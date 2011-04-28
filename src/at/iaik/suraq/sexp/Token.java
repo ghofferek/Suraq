@@ -4,8 +4,9 @@
 package at.iaik.suraq.sexp;
 
 /**
- * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at> A class representing a
- *         single token
+ * A class representing a single token
+ * 
+ * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  */
 public class Token extends SExpression {
 
@@ -22,6 +23,16 @@ public class Token extends SExpression {
      */
     public Token(String token) {
         this.token = token;
+    }
+
+    /**
+     * Constructs a new <code>Token</code>.
+     * 
+     * @param token
+     *            the string representation of the token.
+     */
+    public Token(StringBuffer token) {
+        this.token = token.toString();
     }
 
     /**

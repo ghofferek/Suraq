@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class represents s-expressions. It consists of a list of subexpressions.
+ * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
- *         This class represents s-expressions. It consists of a list of
- *         subexpressions.
  */
 public class SExpression {
 
