@@ -160,13 +160,14 @@ public class ParseError extends SuraqException {
      * 
      * @param lineNumber
      *            the line number where the error occurred.
-     * @param context
-     *            the context in which the error occurred.
+     * @param message
+     *            a detailed error message.
      */
-    public ParseError(int lineNumber, String context) {
+    public ParseError(int lineNumber, String message) {
+        super(message);
         this.lineNumber = lineNumber;
         this.columnNumber = -1;
-        this.context = context;
+        this.context = "";
     }
 
     /**

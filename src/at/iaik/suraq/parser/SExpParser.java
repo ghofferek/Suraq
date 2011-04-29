@@ -68,7 +68,7 @@ public class SExpParser {
     /**
      * The (implicit) root of the parse tree.
      */
-    protected SExpression rootExpr = null;
+    private SExpression rootExpr = null;
 
     /**
      * A stack of parent expressions of the current expression.
@@ -76,12 +76,21 @@ public class SExpParser {
     private Stack<SExpression> parentExpr;
 
     /**
-     * Creates a parser to parse the given string.
+     * Indicates whether or not parsing of the source associated with this
+     * parser has already completed successfully.
+     */
+    private boolean parsingSuccessfull = false;
+
+    /**
+     * Creates a parser to parse the given string. If <code>source</code> is
+     * <code>null</code> it is treated like the empty string.
      * 
      * @param source
-     *            the string to parse
+     *            the string to parse.
      */
     public SExpParser(String source) {
+        if (source == null)
+            source = "";
         String[] stringArray = source.split("\n");
         sourceLines = new ArrayList<String>();
         for (String string : stringArray) {
@@ -120,7 +129,8 @@ public class SExpParser {
      * @return an array containing all the source lines.
      */
     public String[] getSourceLines() {
-        return (String[]) sourceLines.toArray();
+        String[] array = { "" };
+        return (sourceLines.toArray(array));
     }
 
     /**
@@ -223,6 +233,21 @@ public class SExpParser {
                 currentToken.append(character);
             }
         }
+
+        if (currentToken != null) {
+            if (quotedToken)
+                storeToken();
+            else
+                // end of input while waiting for closing '"' of quoted token
+                throw new ParseError(sourceLines.size(), "Missing '\"'.");
+        }
+
+        if (currentExpr != null) { // end of input while waiting for closing ")"
+            throw new ParseError(sourceLines.size(), "Missing \")\".");
+        }
+
+        // The End. Parsing was successful
+        this.parsingSuccessfull = true;
     }
 
     /**
@@ -236,6 +261,14 @@ public class SExpParser {
             parentExpr.peek().addChild(new Token(currentToken));
         }
         currentToken = null;
+    }
+
+    /**
+     * @return <code>true</code> if this parser completed parsing successfully,
+     *         <code>false</code> otherwise.
+     */
+    public boolean wasParsingSuccessfull() {
+        return parsingSuccessfull;
     }
 
 }
