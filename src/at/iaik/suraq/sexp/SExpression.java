@@ -89,6 +89,15 @@ public class SExpression {
     }
 
     /**
+     * Returns the list of children. This is the live list, not a copy.
+     * 
+     * @return the list of children (not a copy).
+     */
+    public List<SExpression> getChildren() {
+        return children;
+    }
+
+    /**
      * Returns a pretty-printed string representation of this s-expression.
      * 
      * @return a pretty-printed string representation of this s-expression.
@@ -108,5 +117,18 @@ public class SExpression {
         }
         buffer.append(")");
         return buffer.toString();
+    }
+
+    /**
+     * Recursively copies this s-expression.
+     * 
+     * @return a deep copy of this s-expression
+     */
+    public SExpression deepCopy() {
+        SExpression copy = new SExpression();
+        for (SExpression child : children) {
+            copy.addChild(child.deepCopy());
+        }
+        return copy;
     }
 }

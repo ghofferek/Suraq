@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.sexp;
 
+import java.util.List;
+
 /**
  * A class representing a single token
  * 
@@ -76,6 +78,22 @@ public class Token extends SExpression {
     @Override
     public String toString() {
         return token;
+    }
+
+    /**
+     * @see at.iaik.suraq.sexp.SExpression#deepCopy()
+     */
+    @Override
+    public SExpression deepCopy() {
+        return new Token(token);
+    }
+
+    /**
+     * @see at.iaik.suraq.sexp.SExpression#getChildren()
+     */
+    @Override
+    public List<SExpression> getChildren() {
+        return null;
     }
 
 }

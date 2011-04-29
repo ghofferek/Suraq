@@ -150,6 +150,8 @@ public class SExpParser {
             currentLine = sourceLines.get(currentLineNumber - 1);
             currentColumnNumber = 0;
             commentState = false;
+            if (currentToken != null)
+                storeToken();
 
             if (quotedToken) {
                 assert (currentToken != null);
@@ -164,13 +166,18 @@ public class SExpParser {
                 if (commentState) // ignore rest of line
                     continue;
 
-                if (character == '(') { // start of a subexpression
+                if (character == '(' && !quotedToken) { // start of a
+                                                        // subexpression
+                    if (currentToken != null)
+                        storeToken();
                     if (currentExpr != null)
                         parentExpr.push(currentExpr);
                     currentExpr = new SExpression();
+                    continue;
                 }
 
-                if (character == ')') { // end of a subexpression
+                if (character == ')' && !quotedToken) { // end of a
+                                                        // subexpression
                     if (currentExpr == null || parentExpr.size() < 1)
                         throw new ParseError(currentLineNumber,
                                 currentColumnNumber, currentLine,
@@ -184,6 +191,7 @@ public class SExpParser {
                             currentExpr = parentExpr.pop();
                         }
                     }
+                    continue;
                 }
 
                 if (character == ' ' || character == '\t' || character == '\n'
@@ -199,6 +207,7 @@ public class SExpParser {
                             // this whitespace ends the token. Store it.
                             storeToken();
                     }
+                    continue;
 
                 }
 
@@ -224,6 +233,7 @@ public class SExpParser {
                                     "Unexpected '\"'.");
                         }
                     }
+                    continue;
                 }
 
                 // We are dealing with an "ordinary" character. So either just
@@ -231,11 +241,12 @@ public class SExpParser {
                 if (currentToken == null)
                     currentToken = new StringBuffer();
                 currentToken.append(character);
+                continue;
             }
         }
 
         if (currentToken != null) {
-            if (quotedToken)
+            if (!quotedToken)
                 storeToken();
             else
                 // end of input while waiting for closing '"' of quoted token
@@ -269,6 +280,23 @@ public class SExpParser {
      */
     public boolean wasParsingSuccessfull() {
         return parsingSuccessfull;
+    }
+
+    /**
+     * Returns a deep copy of the root expression determined by this parser, or
+     * <code>null</code>, if parsing was not successful (or not even attempted).
+     * 
+     * @return a (deep) copy of the <code>rootExpr</code>, or <code>null</code>
+     *         if parsing did not complete successfully
+     */
+    public SExpression getRootExpr() {
+        if (parsingSuccessfull) {
+            assert (rootExpr != null);
+            return rootExpr.deepCopy();
+        } else {
+            return null;
+        }
+
     }
 
 }
