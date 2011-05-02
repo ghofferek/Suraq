@@ -77,7 +77,7 @@ public class Token extends SExpression {
      */
     @Override
     public String toString() {
-        return token;
+        return token + "\n";
     }
 
     /**
@@ -94,6 +94,16 @@ public class Token extends SExpression {
     @Override
     public List<SExpression> getChildren() {
         return null;
+    }
+
+    /**
+     * @see at.iaik.suraq.sexp.SExpression#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Token))
+            return false;
+        return token.equals(((Token) obj).token);
     }
 
 }

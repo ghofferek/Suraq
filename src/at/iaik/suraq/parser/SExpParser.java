@@ -178,6 +178,8 @@ public class SExpParser {
 
                 if (character == ')' && !quotedToken) { // end of a
                                                         // subexpression
+                    if (currentToken != null)
+                        storeToken();
                     if (currentExpr == null || parentExpr.size() < 1)
                         throw new ParseError(currentLineNumber,
                                 currentColumnNumber, currentLine,

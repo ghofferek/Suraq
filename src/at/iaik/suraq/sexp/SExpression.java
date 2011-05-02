@@ -25,9 +25,15 @@ public class SExpression {
      * @param children
      *            the subexpressions.
      */
-    public SExpression(List<SExpression> children) {
+    public SExpression(List<? extends SExpression> children) {
         this.children = new ArrayList<SExpression>();
         this.children.addAll(children);
+    }
+
+    public SExpression(SExpression[] children) {
+        this.children = new ArrayList<SExpression>();
+        for (SExpression child : children)
+            this.children.add(child);
     }
 
     /**
@@ -111,11 +117,12 @@ public class SExpression {
             return "(" + children.get(0).toString() + ")";
 
         StringBuffer buffer = new StringBuffer();
-        buffer.append("(\n");
+        buffer.append("(\n  ");
         for (SExpression child : children) {
             buffer.append(child.toString().replace("\n", "\n  "));
         }
-        buffer.append(")");
+        buffer = buffer.delete(buffer.length() - 2, buffer.length());
+        buffer.append(")\n");
         return buffer.toString();
     }
 
@@ -131,4 +138,26 @@ public class SExpression {
         }
         return copy;
     }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        boolean result = true;
+
+        if (!(obj instanceof SExpression))
+            return false;
+
+        SExpression other = ((SExpression) obj);
+        if (children.size() != other.children.size())
+            return false;
+
+        for (int count = 0; count < children.size(); count++)
+            result = result
+                    && children.get(count).equals(other.children.get(count));
+
+        return result;
+    }
+
 }
