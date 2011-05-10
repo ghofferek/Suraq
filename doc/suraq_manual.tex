@@ -1,0 +1,46 @@
+\documentclass[a4paper]{article}
+
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+
+\newcommand\suraq{\mbox{\textsc{Suraq}}\xspace}
+\newcommand\textbful[1]{\textbf{\underline{#1}}}
+
+\bibliographystyle{plain}
+\begin{document}
+
+\title{Suraq User's Manual\thanks{This work was supported in part by the
+European Commission through project DIAMOND (FP7-2009-IST-4-248613),
+and the Austrian Science Fund (FWF) through the national research
+network RiSE (S11406-N23).}}
+
+\author{Georg Hofferek\\
+Institute for Applied Information Processing\\and Communications
+(IAIK),\\
+Graz University of Technology, Austria}
+\date{}
+\maketitle
+
+
+\section{Introduction} \label{sec:introduction}
+
+Welcome to \suraq, the \emph{\textbful{S}ynthesizer using
+\textbful{U}ninterpreted Functions, A\textbful{r}rays \textbful{a}nd
+E\textbful{q}uality}.\footnote{Any similarity to the name of the
+ancient Vulcan logician ``Surak'' \cite{Memory_Alpha_Surak} is
+completely coincidental. ;-)} \suraq is a tool for
+correct-by-construction controller synthesis. It takes a (logical)
+correctness criterion as input, where control signals are
+existentially quantified. It then constructs functions for these
+control signals so that the specification is fulfilled. The
+correctness criterion is expressed as a formula in the logic of
+arrays, uninterpreted functions, and equality, with limited
+quantification. The theory behind the synthesis approach is presented
+in \cite{Hoffer11}.
+
+
+\bibliography{suraq}
+\end{document}
