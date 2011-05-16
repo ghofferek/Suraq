@@ -21,7 +21,7 @@ import at.iaik.suraq.sexp.Token;
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  */
-public class SExpParser {
+public class SExpParser extends Parser {
 
     /**
      * The current state of this parser. If <code>true</code> it's processing a
@@ -74,12 +74,6 @@ public class SExpParser {
      * A stack of parent expressions of the current expression.
      */
     private Stack<SExpression> parentExpr;
-
-    /**
-     * Indicates whether or not parsing of the source associated with this
-     * parser has already completed successfully.
-     */
-    private boolean parsingSuccessfull = false;
 
     /**
      * Creates a parser to parse the given string. If <code>source</code> is
@@ -140,6 +134,7 @@ public class SExpParser {
      * @throws ParseError
      *             if parsing fails.
      */
+    @Override
     public void parse() throws ParseError {
         rootExpr = new SExpression();
         parentExpr = new Stack<SExpression>();
@@ -274,14 +269,6 @@ public class SExpParser {
             parentExpr.peek().addChild(new Token(currentToken));
         }
         currentToken = null;
-    }
-
-    /**
-     * @return <code>true</code> if this parser completed parsing successfully,
-     *         <code>false</code> otherwise.
-     */
-    public boolean wasParsingSuccessfull() {
-        return parsingSuccessfull;
     }
 
     /**
