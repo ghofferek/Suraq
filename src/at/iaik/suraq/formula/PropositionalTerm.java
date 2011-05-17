@@ -4,11 +4,12 @@
 package at.iaik.suraq.formula;
 
 /**
- * A class for Boolean combination of formulas.
+ * A propositional term. I.e., either a propositional constant or a
+ * propositional variable, or a propositional if-then-else construct.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class BooleanCombinationFormula implements Formula {
+public abstract class PropositionalTerm extends Term implements Formula {
     // just for type safety. No actual methods on this level.
 }

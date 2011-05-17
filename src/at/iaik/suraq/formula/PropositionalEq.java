@@ -6,16 +6,15 @@ package at.iaik.suraq.formula;
 import java.util.Collection;
 
 /**
- * A formula consisting of the (in)equality of array terms.
+ * A formula consisting of the (in)equality of propositional terms.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class ArrayEq extends EqualityFormula {
-
+public class PropositionalEq extends EqualityFormula {
     /**
      * 
-     * Constructs a new <code>ArrayEq</code>.
+     * Constructs a new <code>PropositionalEq</code>.
      * 
      * @param terms
      *            the terms of the (in)equality.
@@ -24,7 +23,7 @@ public abstract class ArrayEq extends EqualityFormula {
      *            <code>false</code> for an inequality.
      * 
      */
-    public ArrayEq(Collection<ArrayTerm> arrayTerms, boolean equal) {
-        super(arrayTerms, equal);
+    public PropositionalEq(Collection<PropositionalTerm> propTerms, boolean equal) {
+        super(propTerms, equal);
     }
 }

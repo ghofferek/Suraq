@@ -4,9 +4,10 @@
 package at.iaik.suraq.formula;
 
 /**
- * 
- * This class represents terms. A term is either a domain variable, a domain
- * constant, an array read expression, or a function call.
+ * This abstract class represents terms. Terms can be domain terms, array terms,
+ * or "propositional terms". Strictly following the grammar, the latter would be
+ * formulas, but treating them like terms eases handling of (in)equalities and
+ * if-then-else constructs.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 

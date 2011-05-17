@@ -11,7 +11,7 @@ package at.iaik.suraq.formula;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class ArrayProperty extends Formula {
+public class ArrayProperty implements Formula {
 
     // TODO implement!
 }

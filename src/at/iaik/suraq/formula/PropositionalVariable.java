@@ -9,7 +9,7 @@ package at.iaik.suraq.formula;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class PropositionalVariable extends Formula {
+public class PropositionalVariable extends PropositionalTerm {
 
     /**
      * The name of the variable.

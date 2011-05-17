@@ -9,7 +9,7 @@ package at.iaik.suraq.formula;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class PropositionalConstant extends Formula {
+public class PropositionalConstant extends PropositionalTerm {
 
     private final boolean constant;
 

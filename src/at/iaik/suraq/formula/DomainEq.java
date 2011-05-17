@@ -6,16 +6,16 @@ package at.iaik.suraq.formula;
 import java.util.Collection;
 
 /**
- * A formula consisting of the (in)equality of array terms.
+ * A formula consisting of the equality of domain terms.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class ArrayEq extends EqualityFormula {
+public class DomainEq extends EqualityFormula {
 
     /**
      * 
-     * Constructs a new <code>ArrayEq</code>.
+     * Constructs a new <code>TermEq</code>.
      * 
      * @param terms
      *            the terms of the (in)equality.
@@ -24,7 +24,7 @@ public abstract class ArrayEq extends EqualityFormula {
      *            <code>false</code> for an inequality.
      * 
      */
-    public ArrayEq(Collection<ArrayTerm> arrayTerms, boolean equal) {
-        super(arrayTerms, equal);
+    public DomainEq(Collection<DomainTerm> domainTerms, boolean equal) {
+        super(domainTerms, equal);
     }
 }
