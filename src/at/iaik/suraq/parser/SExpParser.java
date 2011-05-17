@@ -180,6 +180,8 @@ public class SExpParser extends Parser {
                                 currentColumnNumber, currentLine,
                                 "Unmatched \")\".");
                     else {
+                        currentExpr.setLineNumber(currentLineNumber);
+                        currentExpr.setColumnNumber(currentColumnNumber);
                         parentExpr.peek().addChild(currentExpr);
                         if (parentExpr.size() == 1) { // only the root
                                                       // expression is left.
@@ -263,10 +265,13 @@ public class SExpParser extends Parser {
      */
     private void storeToken() {
         if (currentExpr != null)
-            currentExpr.addChild(new Token(currentToken));
+            currentExpr.addChild(new Token(currentToken, currentLineNumber,
+                    currentColumnNumber));
         else {
             assert (parentExpr.size() == 1);
-            parentExpr.peek().addChild(new Token(currentToken));
+            parentExpr.peek().addChild(
+                    new Token(currentToken, currentLineNumber,
+                            currentColumnNumber));
         }
         currentToken = null;
     }

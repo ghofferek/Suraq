@@ -38,6 +38,18 @@ public class Token extends SExpression {
     }
 
     /**
+     * Constructs a new <code>Token</code>.
+     * 
+     * @param token
+     *            the string representation of the token.
+     */
+    public Token(StringBuffer token, int lineNumber, int columnNumber) {
+        this.token = token.toString();
+        this.lineNumber = lineNumber;
+        this.columnNumber = columnNumber;
+    }
+
+    /**
      * @see at.iaik.suraq.sexp.SExpression#size()
      */
     @Override

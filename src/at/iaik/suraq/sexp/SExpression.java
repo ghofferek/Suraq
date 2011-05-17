@@ -15,6 +15,16 @@ import java.util.List;
 public class SExpression {
 
     /**
+     * the line number in the source file corresponding to this expression
+     */
+    protected int lineNumber = -1;
+
+    /**
+     * the column number in the source file corresponding to this expression
+     */
+    protected int columnNumber = -1;
+
+    /**
      * The children of this (non-Token) S-expression.
      */
     private List<SExpression> children;
@@ -30,6 +40,12 @@ public class SExpression {
         this.children.addAll(children);
     }
 
+    /**
+     * Constructs a new <code>SExpression</code>.
+     * 
+     * @param children
+     *            the subexpressions.
+     */
     public SExpression(SExpression[] children) {
         this.children = new ArrayList<SExpression>();
         for (SExpression child : children)
@@ -158,6 +174,35 @@ public class SExpression {
                     && children.get(count).equals(other.children.get(count));
 
         return result;
+    }
+
+    /**
+     * @return the <code>lineNumber</code>
+     */
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    /**
+     * @param <code>lineNumber</code> the new value for <code>lineNumber</code>
+     */
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    /**
+     * @return the <code>columnNumber</code>
+     */
+    public int getColumnNumber() {
+        return columnNumber;
+    }
+
+    /**
+     * @param <code>columnNumber</code> the new value for
+     *        <code>columnNumber</code>
+     */
+    public void setColumnNumber(int columnNumber) {
+        this.columnNumber = columnNumber;
     }
 
 }
