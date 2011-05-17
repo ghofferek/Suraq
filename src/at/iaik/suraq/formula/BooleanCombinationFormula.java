@@ -4,14 +4,11 @@
 package at.iaik.suraq.formula;
 
 /**
- * 
- * This class represents formulas in the fragment introduced in the MemoCODE'11
- * paper.
+ * A class for Boolean combination of formulas.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class Formula {
-
-    // TODO add common methods.
+public abstract class BooleanCombinationFormula extends Formula {
+    // just for type safety. No actual methods on this level.
 }

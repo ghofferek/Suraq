@@ -5,13 +5,12 @@ package at.iaik.suraq.formula;
 
 /**
  * 
- * This class represents formulas in the fragment introduced in the MemoCODE'11
- * paper.
+ * This class represents terms. A term is either a domain variable, a domain
+ * constant, an array read expression, or a function call.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class Formula {
-
-    // TODO add common methods.
+public class Term {
+    // TODO implement!
 }

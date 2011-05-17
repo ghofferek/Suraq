@@ -5,13 +5,13 @@ package at.iaik.suraq.formula;
 
 /**
  * 
- * This class represents formulas in the fragment introduced in the MemoCODE'11
- * paper.
+ * This class represents array terms. An array term is either an array variable,
+ * or an array write expression.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class Formula {
+public class ArrayTerm {
 
-    // TODO add common methods.
+    // TODO implement!
 }
