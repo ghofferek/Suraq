@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.exceptions;
 
+import at.iaik.suraq.sexp.SExpression;
+
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
@@ -207,5 +209,45 @@ public class ParseError extends SuraqException {
         this.lineNumber = -1;
         this.columnNumber = -1;
         this.context = "";
+    }
+
+    /**
+     * 
+     * Constructs a new <code>ParseError</code>. The line number and column
+     * number information, as well as the context is extracted from the given
+     * <code>SExpression</code>.
+     * 
+     * @param expression
+     *            the <code>SExpression</code> from which information is
+     *            extracted.
+     * @param message
+     *            a more detailed error message.
+     */
+    public ParseError(SExpression expression, String message) {
+        super(message);
+        this.lineNumber = expression.getLineNumber();
+        this.columnNumber = expression.getColumnNumber();
+        this.context = expression.toString();
+    }
+
+    /**
+     * 
+     * Constructs a new <code>ParseError</code>. The line number and column
+     * number information, as well as the context is extracted from the given
+     * <code>SExpression</code>.
+     * 
+     * @param expression
+     *            the <code>SExpression</code> from which information is
+     *            extracted.
+     * @param message
+     *            a more detailed error message.
+     * @param cause
+     *            The cause of this exception
+     */
+    public ParseError(SExpression expression, String message, Throwable cause) {
+        super(message, cause);
+        this.lineNumber = expression.getLineNumber();
+        this.columnNumber = expression.getColumnNumber();
+        this.context = expression.toString();
     }
 }

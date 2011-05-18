@@ -6,6 +6,8 @@ package at.iaik.suraq.sexp;
 import java.util.ArrayList;
 import java.util.List;
 
+import at.iaik.suraq.exceptions.NotATokenListException;
+
 /**
  * This class represents s-expressions. It consists of a list of subexpressions.
  * 
@@ -117,6 +119,33 @@ public class SExpression {
      */
     public List<SExpression> getChildren() {
         return children;
+    }
+
+    /**
+     * Converts this s-expression into a list of <code>Token</code>s. Only
+     * direct children will be considered. If this expression is empty, an empty
+     * list will be returned. If one or more children are not <code>Token</code>
+     * s, an exception is thrown.
+     * 
+     * @return A list of all <code>Token</code>s that are (direct) children of
+     *         this expression.
+     * @throws NotATokenListException
+     *             if one or more children are not <code>Token</code>s.
+     */
+    public List<Token> toTokenList() throws NotATokenListException {
+        List<Token> list = new ArrayList<Token>();
+        if (isEmpty())
+            return list;
+        assert (children != null);
+
+        for (int count = 0; count < children.size(); count++) {
+            if (!(children.get(count) instanceof Token))
+                throw new NotATokenListException(children.get(count).toString()
+                        + " is not a Token!");
+            else
+                list.add((Token) children.get(count));
+        }
+        return list;
     }
 
     /**

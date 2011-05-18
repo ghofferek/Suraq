@@ -118,4 +118,16 @@ public class Token extends SExpression {
         return token.equals(((Token) obj).token);
     }
 
+    /**
+     * Convenience method to match a token versus a <code>String</code>.
+     * 
+     * @param string
+     *            the <code>String</code> to compare with this token.
+     * @return <code>true</code> if this <code>Token</code> matches the given
+     *         <code>string</code>, <code>false</code> otherwise
+     */
+    public boolean equalsString(String string) {
+        return token.equals(string);
+    }
+
 }
