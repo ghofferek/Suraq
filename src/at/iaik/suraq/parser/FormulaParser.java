@@ -3,11 +3,15 @@
  */
 package at.iaik.suraq.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
+import at.iaik.suraq.formula.ArrayVariable;
+import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
+import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
@@ -21,6 +25,26 @@ public class FormulaParser extends Parser {
      * The formula that results from parsing.
      */
     private Formula formula;
+
+    /**
+     * The list of control variables found during parsing
+     */
+    private List<PropositionalVariable> controlVariables = new ArrayList<PropositionalVariable>();
+
+    /**
+     * The list of Boolean variables found during parsing
+     */
+    private List<PropositionalVariable> boolVariables = new ArrayList<PropositionalVariable>();
+
+    /**
+     * The list of domain variables found during parsing
+     */
+    private List<DomainVariable> domainVariables = new ArrayList<DomainVariable>();
+
+    /**
+     * The list of array variables found during parsing
+     */
+    private List<ArrayVariable> arrayVariables = new ArrayList<ArrayVariable>();
 
     /**
      * The root of the s-expression to be parsed.
@@ -142,7 +166,7 @@ public class FormulaParser extends Parser {
 
         assert (expression.getChildren().get(1) instanceof Token);
         Token name = (Token) expression.getChildren().get(1);
-
+        SExpression type = expression.getChildren().get(3);
         SExpression params = expression.getChildren().get(2);
         List<Token> param_list;
         try {
@@ -152,7 +176,49 @@ public class FormulaParser extends Parser {
                     "Error in parsing argument list of declare-fun!", exc);
         }
 
-        // TODO incomplete!
+        if (param_list.size() == 0)
+            handleVariable(name, type);
+        else
+            handleFunction(name, param_list, type);
+    }
+
+    /**
+     * @param name
+     * @param param_list
+     * @param type
+     */
+    private void handleFunction(Token name, List<Token> param_list,
+            SExpression type) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * Handles declarations of new variables (and constants). They must be of
+     * one of the following types: Control, Bool, Value, (Array Value Value).
+     * 
+     * @param name
+     *            the name of the variable.
+     * @param type
+     *            the s-expression determining the type of the variable.
+     */
+    private void handleVariable(Token name, SExpression type) throws ParseError {
+
+        if (type instanceof Token) { // Control, Bool, or Value
+            if (((Token) type).equalsString("Control")) {
+                controlVariables.add(new PropositionalVariable(name));
+            } else if (((Token) type).equalsString("Bool")) {
+                // TODO
+            } else if (((Token) type).equalsString("Value")) {
+                // TODO
+            } else {
+                throw new ParseError(type, "Unsupported Variable type: "
+                        + type.toString());
+            }
+        }
+
+        // TODO handle (Array Value Value)
+
     }
 
     /**

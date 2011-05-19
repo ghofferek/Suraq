@@ -46,7 +46,9 @@
 
 
 ; Declare control variables
-
+; The sort "Control" is implicitely compatible with sort "Bool".
+; I.e., a something of sort "Control" can be used in a place where something
+; of sort "Bool" is expected.
 (declare-fun x () Control) 
 
 ; Declare uninterpreted functions
@@ -82,7 +84,7 @@
   (w       Value            )
   (s       Value            )
   (dest    Value            )
-  (x       Bool           )
+  (x       Bool             )
   )
   Bool  ; return type
   

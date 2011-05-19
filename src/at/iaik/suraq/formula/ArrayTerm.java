@@ -11,7 +11,7 @@ package at.iaik.suraq.formula;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class ArrayTerm extends Term {
+public abstract class ArrayTerm extends Term {
 
     // TODO implement!
 }

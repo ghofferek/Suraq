@@ -3,7 +3,10 @@
  */
 package at.iaik.suraq.sexp;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import at.iaik.suraq.exceptions.NotATokenListException;
 
 /**
  * A class representing a single token
@@ -128,6 +131,16 @@ public class Token extends SExpression {
      */
     public boolean equalsString(String string) {
         return token.equals(string);
+    }
+
+    /**
+     * @see at.iaik.suraq.sexp.SExpression#toTokenList()
+     */
+    @Override
+    public List<Token> toTokenList() throws NotATokenListException {
+        List<Token> list = new ArrayList<Token>();
+        list.add(this);
+        return list;
     }
 
 }

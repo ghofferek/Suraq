@@ -6,13 +6,12 @@ package at.iaik.suraq.formula;
 import at.iaik.suraq.sexp.Token;
 
 /**
- * A class for formulas that consist just of one propositional variable.
+ * A class representing an array variable.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class PropositionalVariable extends PropositionalTerm {
-
+public class ArrayVariable extends ArrayTerm {
     /**
      * The name of the variable.
      */
@@ -20,23 +19,23 @@ public class PropositionalVariable extends PropositionalTerm {
 
     /**
      * 
-     * Constructs a new <code>PropositionalVariable</code>.
+     * Constructs a new <code>ArrayVariable</code>.
      * 
      * @param varName
      *            the name of the variable.
      */
-    public PropositionalVariable(String varName) {
+    public ArrayVariable(String varName) {
         this.varName = varName;
     }
 
     /**
      * 
-     * Constructs a new <code>PropositionalVariable</code>.
+     * Constructs a new <code>ArrayVariable</code>.
      * 
      * @param name
      *            the <code>Token</code> representing the variable name.
      */
-    public PropositionalVariable(Token name) {
+    public ArrayVariable(Token name) {
         this.varName = name.toString();
     }
 
@@ -54,9 +53,8 @@ public class PropositionalVariable extends PropositionalTerm {
      */
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof PropositionalVariable))
+        if (!(obj instanceof ArrayVariable))
             return false;
-        return varName.equals(((PropositionalVariable) obj).varName);
+        return varName.equals(((ArrayVariable) obj).varName);
     }
-
 }
