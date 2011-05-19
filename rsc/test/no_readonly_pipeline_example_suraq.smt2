@@ -52,6 +52,7 @@
 (declare-fun x () Control) 
 
 ; Declare uninterpreted functions
+; Only functions from (Value+) -> Value are supported.
 (declare-fun ALU (Value) Value)
 
 
