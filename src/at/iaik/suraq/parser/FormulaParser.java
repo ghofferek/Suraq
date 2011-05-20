@@ -4,7 +4,9 @@
 package at.iaik.suraq.parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
@@ -140,17 +142,140 @@ public class FormulaParser extends Parser {
     /**
      * @param expression
      */
-    private void handleAssert(SExpression expression) {
+    private void handleAssert(SExpression expression) throws ParseError {
+        assert (expression.getChildren().get(0) instanceof Token);
+        assert (((Token) expression.getChildren().get(0))
+                .equalsString("assert"));
         // TODO Auto-generated method stub
 
     }
 
     /**
+     * Handles a <code>define-fun</code> expression.
+     * 
      * @param expression
+     *            the <code>define-fun</code> expression.
      */
-    private void handleDefineFun(SExpression expression) {
-        // TODO Auto-generated method stub
+    private void handleDefineFun(SExpression expression) throws ParseError {
+        assert (expression.getChildren().get(0) instanceof Token);
+        assert (((Token) expression.getChildren().get(0))
+                .equalsString("define-fun"));
 
+        if (expression.getChildren().size() != 5)
+            throw new ParseError(expression,
+                    "Expected 5 subexpressions in define-fun expression!");
+
+        assert (expression.getChildren().size() == 5);
+
+        if (!(expression.getChildren().get(1) instanceof Token))
+            throw new ParseError(expression,
+                    "The first argument of define-fun must be a token!");
+
+        assert (expression.getChildren().get(1) instanceof Token);
+        Token name = (Token) expression.getChildren().get(1);
+        SExpression type = expression.getChildren().get(3);
+        SExpression params = expression.getChildren().get(2);
+        Map<Token, SExpression> paramMap = parseDefineFunParams(params);
+        checkDefineFunType(type);
+
+    }
+
+    /**
+     * Checks the type of a define-fun macro.
+     * 
+     * @param type
+     *            the type to to check.
+     * @throws ParseError
+     *             if the parameters are invalid.
+     */
+    private void checkDefineFunType(SExpression type) throws ParseError {
+        if (type instanceof Token) {
+            Token token_param = (Token) type;
+            if (token_param.equalsString("Bool")
+                    || token_param.equalsString("Value")) {
+                return;
+            } else {
+                throw new ParseError(token_param, "Unsupported type: "
+                        + token_param.toString());
+            }
+        } else { // expecting an (Array Value Value) now.
+            try {
+                List<Token> tokenList = type.toTokenList();
+                if (tokenList.size() != 3)
+                    throw new ParseError(type, "Unsupported parameter: "
+                            + type.toString());
+                if (!(tokenList.get(0).equalsString("Array")
+                        && tokenList.get(1).equalsString("Value") && tokenList
+                        .get(2).equalsString("Value")))
+                    throw new ParseError(type, "Unsupported parameter: "
+                            + type.toString());
+                else
+                    return;
+            } catch (NotATokenListException exc) {
+                throw new ParseError(type, "Unsupported parameter: "
+                        + type.toString(), exc);
+            }
+        }
+    }
+
+    /**
+     * Parses the parameters of a define-fun macro.
+     * 
+     * @param params
+     *            the parameters to to check.
+     * @return a <code>Map</code> of parameter names (<code>Token</code>s) to
+     *         types (<code>SExpression</code>s).
+     * @throws ParseError
+     *             if the parameters are invalid.
+     */
+    private Map<Token, SExpression> parseDefineFunParams(SExpression params)
+            throws ParseError {
+        Map<Token, SExpression> paramMap = new HashMap<Token, SExpression>();
+        for (SExpression paramMapping : params.getChildren()) {
+            if (paramMapping.getChildren().size() != 2)
+                throw new ParseError(paramMapping,
+                        "Illegal parameter declaration: "
+                                + paramMapping.toString());
+            SExpression paramName = paramMapping.getChildren().get(0);
+            if (!(paramName instanceof Token))
+                throw new ParseError(paramName,
+                        "Illegal parameter declaration: "
+                                + paramName.toString());
+            SExpression paramType = paramMapping.getChildren().get(1);
+            if (paramType instanceof Token) {
+                Token token_param = (Token) paramType;
+                if (token_param.equalsString("Bool")
+                        || token_param.equalsString("Control")
+                        || token_param.equalsString("Value")) {
+                    paramMap.put((Token) paramName, paramType);
+                    continue;
+                } else {
+                    throw new ParseError(token_param, "Unsupported parameter: "
+                            + token_param.toString());
+                }
+            } else { // expecting an (Array Value Value) now.
+                try {
+                    List<Token> tokenList = paramType.toTokenList();
+                    if (tokenList.size() != 3)
+                        throw new ParseError(paramType,
+                                "Unsupported parameter: "
+                                        + paramType.toString());
+                    if (!(tokenList.get(0).equalsString("Array")
+                            && tokenList.get(1).equalsString("Value") && tokenList
+                            .get(2).equalsString("Value")))
+                        throw new ParseError(paramType,
+                                "Unsupported parameter: "
+                                        + paramType.toString());
+                    else
+                        paramMap.put((Token) paramName, paramType);
+                    continue;
+                } catch (NotATokenListException exc) {
+                    throw new ParseError(paramType, "Unsupported parameter: "
+                            + paramType.toString(), exc);
+                }
+            }
+        }
+        return paramMap;
     }
 
     /**
@@ -160,6 +285,11 @@ public class FormulaParser extends Parser {
      *            the <code>declare-fun</code> expression.
      */
     private void handleDeclareFun(SExpression expression) throws ParseError {
+
+        assert (expression.getChildren().get(0) instanceof Token);
+        assert (((Token) expression.getChildren().get(0))
+                .equalsString("declare-fun"));
+
         if (expression.getChildren().size() != 4)
             throw new ParseError(expression,
                     "Expected 4 subexpressions in declare-fun expression!");

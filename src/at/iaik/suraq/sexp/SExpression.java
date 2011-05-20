@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import at.iaik.suraq.exceptions.NotATokenListException;
+import at.iaik.suraq.exceptions.ParseError;
+import at.iaik.suraq.parser.SExpParser;
 
 /**
  * This class represents s-expressions. It consists of a list of subexpressions.
@@ -70,6 +72,35 @@ public class SExpression {
     public SExpression(SExpression child) {
         this.children = new ArrayList<SExpression>();
         this.children.add(child);
+    }
+
+    /**
+     * 
+     * Constructs a new <code>SExpression</code> by parsing the given String. If
+     * <code>string</code> contains a single expression (or token), then this
+     * single expression (token) is returned. If it contains a sequence of
+     * expressions (tokens) then this sequence will be embedded into a root
+     * expression.
+     * 
+     * @param string
+     *            the <code>String</code> to be parsed.
+     * @return the parsed expression, or <code>null</code> if parsing was
+     *         unsuccessful;
+     */
+    public static SExpression fromString(String string) {
+        SExpParser parser = new SExpParser(string);
+        try {
+            parser.parse();
+        } catch (ParseError exc) {
+            return null;
+        }
+        if (!parser.wasParsingSuccessfull())
+            return null;
+        List<SExpression> children = parser.getRootExpr().getChildren();
+        if (children.size() == 1)
+            return children.get(0);
+        else
+            return new SExpression(children);
     }
 
     /**
