@@ -38,4 +38,21 @@ public class SExpressionConstants {
 
     public static final SExpression FALSE = SExpression.fromString("false");
 
+    public static final SExpression AND = SExpression.fromString("and");
+
+    public static final SExpression OR = SExpression.fromString("or");
+
+    public static final SExpression XOR = SExpression.fromString("xor");
+
+    public static final SExpression NOT = SExpression.fromString("not");
+
+    public static final SExpression DISTINCT = SExpression
+            .fromString("distinct");
+
+    public static final SExpression EQUAL = SExpression.fromString("=");
+
+    public static final SExpression ITE = SExpression.fromString("ite");
+
+    public static final SExpression IMPLIES = SExpression.fromString("=>");
+
 }

@@ -5,18 +5,27 @@ package at.iaik.suraq.parser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
+import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.ArrayVariable;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.FunctionMacro;
+import at.iaik.suraq.formula.ImpliesFormula;
+import at.iaik.suraq.formula.NotFormula;
+import at.iaik.suraq.formula.OrFormula;
 import at.iaik.suraq.formula.PropositionalConstant;
+import at.iaik.suraq.formula.PropositionalIte;
 import at.iaik.suraq.formula.PropositionalVariable;
+import at.iaik.suraq.formula.Term;
 import at.iaik.suraq.formula.UninterpretedFunction;
+import at.iaik.suraq.formula.XorFormula;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -30,37 +39,37 @@ public class LogicParser extends Parser {
     /**
      * The formula that results from parsing.
      */
-    private Formula formula;
+    private Formula mainFormula;
 
     /**
      * The list of control variables found during parsing
      */
-    private final List<PropositionalVariable> controlVariables = new ArrayList<PropositionalVariable>();
+    private final Set<PropositionalVariable> controlVariables = new HashSet<PropositionalVariable>();
 
     /**
      * The list of Boolean variables found during parsing
      */
-    private final List<PropositionalVariable> boolVariables = new ArrayList<PropositionalVariable>();
+    private final Set<PropositionalVariable> boolVariables = new HashSet<PropositionalVariable>();
 
     /**
      * The list of domain variables found during parsing
      */
-    private final List<DomainVariable> domainVariables = new ArrayList<DomainVariable>();
+    private final Set<DomainVariable> domainVariables = new HashSet<DomainVariable>();
 
     /**
      * The list of array variables found during parsing
      */
-    private final List<ArrayVariable> arrayVariables = new ArrayList<ArrayVariable>();
+    private final Set<ArrayVariable> arrayVariables = new HashSet<ArrayVariable>();
 
     /**
      * The list of uninterpreted functions found during parsing
      */
-    private final List<UninterpretedFunction> functions = new ArrayList<UninterpretedFunction>();
+    private final Set<UninterpretedFunction> functions = new HashSet<UninterpretedFunction>();
 
     /**
      * The list of function macros found during parsing
      */
-    private final List<FunctionMacro> macros = new ArrayList<FunctionMacro>();
+    private final Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
 
     /**
      * The root of the s-expression to be parsed.
@@ -190,7 +199,10 @@ public class LogicParser extends Parser {
         }
         Formula body = parseFormulaBody(expression.getChildren().get(4));
         FunctionMacro macro = new FunctionMacro(name, paramMap, body);
-        macros.add(macro);
+        if (!macros.add(macro)) {
+            throw new ParseError(name, "Duplicate macro definition: "
+                    + name.toString());
+        }
     }
 
     /**
@@ -217,23 +229,156 @@ public class LogicParser extends Parser {
         }
 
         if (isPropositionalVariable(expression)) {
-
+            return new PropositionalVariable((Token) expression);
         }
 
-        if (isBooleanCombination(expression)) {
+        String operator = isBooleanCombination(expression);
+        if (operator != null) {
+            if (operator.equals("not")) {
+                if (expression.getChildren().size() != 2)
+                    throw new ParseError(expression,
+                            "Expected exactly 1 expression after 'not'.");
+                Formula negatedFormula = parseFormulaBody(expression
+                        .getChildren().get(1));
+                return new NotFormula(negatedFormula);
+            }
+
+            if (operator.equals("and")) {
+                if (expression.getChildren().size() < 3)
+                    throw new ParseError(expression,
+                            "Expected at least 2 expression after 'and'.");
+                List<Formula> formulaList = new ArrayList<Formula>();
+                for (SExpression child : expression.getChildren().subList(1,
+                        expression.getChildren().size())) {
+                    formulaList.add(parseFormulaBody(child));
+                }
+                return new AndFormula(formulaList);
+            }
+
+            if (operator.equals("or")) {
+                if (expression.getChildren().size() < 3)
+                    throw new ParseError(expression,
+                            "Expected at least 2 expression after 'or'.");
+                List<Formula> formulaList = new ArrayList<Formula>();
+                for (SExpression child : expression.getChildren().subList(1,
+                        expression.getChildren().size())) {
+                    formulaList.add(parseFormulaBody(child));
+                }
+                return new OrFormula(formulaList);
+            }
+
+            if (operator.equals("xor")) {
+                if (expression.getChildren().size() < 3)
+                    throw new ParseError(expression,
+                            "Expected at least 2 expression after 'xor'.");
+                List<Formula> formulaList = new ArrayList<Formula>();
+                for (SExpression child : expression.getChildren().subList(1,
+                        expression.getChildren().size())) {
+                    formulaList.add(parseFormulaBody(child));
+                }
+                return new XorFormula(formulaList);
+            }
+
+            if (operator.equals("=>")) {
+                if (expression.getChildren().size() != 3)
+                    throw new ParseError(expression,
+                            "Expected 2 arguments for '=>'.");
+                Formula leftSide = parseFormulaBody(expression.getChildren()
+                        .get(1));
+                Formula rightSide = parseFormulaBody(expression.getChildren()
+                        .get(2));
+                return new ImpliesFormula(leftSide, rightSide);
+            }
+
+            if (operator.equals("ite")) {
+                if (expression.getChildren().size() != 4)
+                    throw new ParseError(expression,
+                            "Expected 3 arguments for 'ite'.");
+                Formula condition = parseFormulaBody(expression.getChildren()
+                        .get(1));
+                Formula thenBranch = parseFormulaBody(expression.getChildren()
+                        .get(2));
+                Formula elseBranch = parseFormulaBody(expression.getChildren()
+                        .get(3));
+                return new PropositionalIte(condition, thenBranch, elseBranch);
+            }
+            throw new ParseError(expression, "Unexpected internal parse error!");
 
         }
 
         if (isEquality(expression)) {
+            assert (expression.getChildren().size() >= 3);
+            boolean equal;
+            if (expression.getChildren().get(0)
+                    .equals(SExpressionConstants.EQUAL))
+                equal = true;
+            else if (expression.getChildren().get(0)
+                    .equals(SExpressionConstants.DISTINCT))
+                equal = false;
+            else
+                throw new ParseError(expression,
+                        "Unexpected internal parse error!");
 
+            List<Term> termList = new ArrayList<Term>();
+            for (SExpression child : expression.getChildren().subList(1,
+                    expression.getChildren().size())) {
+                termList.add(parseTerm(child));
+            }
+            if (!Term.checkTypeCompatibility(termList))
+                throw new ParseError(expression,
+                        "Incompatible terms in comparison!");
+
+            // TODO add creation of actual equality.
         }
 
         if (isArrayProperty(expression)) {
+            // TODO incomplete
+        }
 
+        String macroName = isMacroInstance(expression);
+        if (macroName != null) {
+            // TODO incomplete
         }
 
         // we have something we cannot handle
-        throw new ParseError(expression, "Error parsing formula body");
+        if (expression instanceof Token)
+            throw new ParseError(expression, "Undeclared identifier: "
+                    + expression.toString());
+        else
+            throw new ParseError(expression, "Error parsing formula body.");
+    }
+
+    /**
+     * @param child
+     * @return
+     */
+    private Term parseTerm(SExpression child) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * Checks if the given expression is a macro instance. If so, its name is
+     * returned.
+     * 
+     * @param expression
+     *            the expression to check.
+     * @return the name of this macro instance, or <code>null</code> if this is
+     *         not a macro instance
+     */
+    private String isMacroInstance(SExpression expression) {
+        if (expression.getChildren().size() < 2)
+            return null;
+        if (!(expression.getChildren().get(0) instanceof Token))
+            return null;
+
+        assert (expression.getChildren().get(0) instanceof Token);
+        Token macroName = (Token) expression.getChildren().get(0);
+        for (FunctionMacro macro : macros) {
+            if (macro.getName().equals(macroName))
+                return macroName.toString();
+        }
+        return null;
     }
 
     /**
@@ -246,30 +391,76 @@ public class LogicParser extends Parser {
     }
 
     /**
+     * Checks whether the given expression is an equality instance.
+     * 
      * @param expression
-     * @return
+     *            the expression to check.
+     * @return <code>true</code> if the given expression is an equality
+     *         expression, <code>false</code> otherwise.
      */
     private boolean isEquality(SExpression expression) {
-        // TODO Auto-generated method stub
+        if (expression.getChildren().size() < 3)
+            return false;
+        if (!(expression.getChildren().get(0) instanceof Token))
+            return false;
+        assert (expression.getChildren().get(0) instanceof Token);
+        Token operator = (Token) expression.getChildren().get(0);
+
+        if (operator.equals(SExpressionConstants.EQUAL)
+                || operator.equals(SExpressionConstants.DISTINCT))
+            return true;
         return false;
     }
 
     /**
+     * Checks if the given expression is a Boolean combination (excluding
+     * equality). If so, its operator is returned as a <code>String</code>.
+     * Otherwise, <code>null</code> is returned.
+     * 
      * @param expression
-     * @return
+     *            the expression to check.
+     * @return the operator used, if the given expression is a Boolean
+     *         combination (except equality). <code>null</code> otherwise.
+     * 
      */
-    private boolean isBooleanCombination(SExpression expression) {
-        // TODO Auto-generated method stub
-        return false;
+    private String isBooleanCombination(SExpression expression) {
+        if (expression.getChildren().size() < 2)
+            return null;
+        if (!(expression.getChildren().get(0) instanceof Token))
+            return null;
+
+        assert (expression.getChildren().get(0) instanceof Token);
+        Token operator = (Token) expression.getChildren().get(0);
+
+        if (operator.equals(SExpressionConstants.AND)
+                || operator.equals(SExpressionConstants.OR)
+                || operator.equals(SExpressionConstants.XOR)
+                || operator.equals(SExpressionConstants.NOT)
+                || operator.equals(SExpressionConstants.IMPLIES)
+                || operator.equals(SExpressionConstants.ITE))
+            return operator.toString();
+
+        return null;
     }
 
     /**
+     * Checks if the given expression is a propositional variable.
+     * 
      * @param expression
-     * @return
+     *            the expression to check
+     * @return <code>true</code> if the given expression is a propositional
+     *         variable, <code>false</code> otherwise.
      */
     private boolean isPropositionalVariable(SExpression expression) {
-        // TODO Auto-generated method stub
-        return false;
+        if (!(expression instanceof Token))
+            return false;
+        Token token = (Token) expression;
+        PropositionalVariable variable = new PropositionalVariable(token);
+        if (domainVariables.contains(variable)
+                || controlVariables.contains(variable))
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -386,7 +577,10 @@ public class LogicParser extends Parser {
                     + type.toString());
         assert (type instanceof Token);
 
-        functions.add(new UninterpretedFunction(name, param_list.size()));
+        if (!functions.add(new UninterpretedFunction(name, param_list.size()))) {
+            throw new ParseError(name, "Duplicate function definition: "
+                    + name.toString());
+        }
     }
 
     /**
@@ -401,13 +595,25 @@ public class LogicParser extends Parser {
     private void handleVariable(Token name, SExpression type) throws ParseError {
 
         if (type.equals(SExpressionConstants.CONTROL_TYPE)) {
-            controlVariables.add(new PropositionalVariable(name));
+            if (!controlVariables.add(new PropositionalVariable(name))) {
+                throw new ParseError(name, "Duplicate variable definition: "
+                        + name.toString());
+            }
         } else if (type.equals(SExpressionConstants.BOOL_TYPE)) {
-            boolVariables.add(new PropositionalVariable(name));
+            if (!boolVariables.add(new PropositionalVariable(name))) {
+                throw new ParseError(name, "Duplicate variable definition: "
+                        + name.toString());
+            }
         } else if (type.equals(SExpressionConstants.VALUE_TYPE)) {
-            domainVariables.add(new DomainVariable(name));
+            if (!domainVariables.add(new DomainVariable(name))) {
+                throw new ParseError(name, "Duplicate variable definition: "
+                        + name.toString());
+            }
         } else if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
-            arrayVariables.add(new ArrayVariable(name));
+            if (!arrayVariables.add(new ArrayVariable(name))) {
+                throw new ParseError(name, "Duplicate variable definition: "
+                        + name.toString());
+            }
         } else {
             throw new ParseError(type, "Unsupported variable type: "
                     + type.toString());
@@ -441,10 +647,10 @@ public class LogicParser extends Parser {
      * @return the formula that resulted from parsing, or <code>null</code> if
      *         parsing was not successful.
      */
-    public Formula getFormula() {
+    public Formula getMainFormula() {
         if (!wasParsingSuccessfull())
             return null;
-        return formula;
+        return mainFormula;
     }
 
     /**
