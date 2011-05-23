@@ -13,16 +13,19 @@ import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.formula.ArrayVariable;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
+import at.iaik.suraq.formula.FunctionMacro;
+import at.iaik.suraq.formula.PropositionalConstant;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.UninterpretedFunction;
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class FormulaParser extends Parser {
+public class LogicParser extends Parser {
 
     /**
      * The formula that results from parsing.
@@ -55,6 +58,11 @@ public class FormulaParser extends Parser {
     private final List<UninterpretedFunction> functions = new ArrayList<UninterpretedFunction>();
 
     /**
+     * The list of function macros found during parsing
+     */
+    private final List<FunctionMacro> macros = new ArrayList<FunctionMacro>();
+
+    /**
      * The root of the s-expression to be parsed.
      */
     private final SExpression rootExpr;
@@ -66,7 +74,7 @@ public class FormulaParser extends Parser {
      * @param root
      *            the root expression to parse.
      */
-    public FormulaParser(SExpression root) {
+    public LogicParser(SExpression root) {
         rootExpr = root;
     }
 
@@ -115,17 +123,17 @@ public class FormulaParser extends Parser {
             assert (expression.getChildren().get(0) instanceof Token);
             Token token = (Token) expression.getChildren().get(0);
 
-            if (token.equalsString("declare-fun")) {
+            if (token.equals(SExpressionConstants.DECLARE_FUN)) {
                 handleDeclareFun(expression);
                 continue;
             }
 
-            if (token.equalsString("define-fun")) {
+            if (token.equals(SExpressionConstants.DEFINE_FUN)) {
                 handleDefineFun(expression);
                 continue;
             }
 
-            if (token.equalsString("assert")) {
+            if (token.equals(SExpressionConstants.ASSERT)) {
                 handleAssert(expression);
                 continue;
             }
@@ -158,8 +166,8 @@ public class FormulaParser extends Parser {
      */
     private void handleDefineFun(SExpression expression) throws ParseError {
         assert (expression.getChildren().get(0) instanceof Token);
-        assert (((Token) expression.getChildren().get(0))
-                .equalsString("define-fun"));
+        assert (expression.getChildren().get(0)
+                .equals(SExpressionConstants.DEFINE_FUN));
 
         if (expression.getChildren().size() != 5)
             throw new ParseError(expression,
@@ -176,46 +184,105 @@ public class FormulaParser extends Parser {
         SExpression type = expression.getChildren().get(3);
         SExpression params = expression.getChildren().get(2);
         Map<Token, SExpression> paramMap = parseDefineFunParams(params);
-        checkDefineFunType(type);
-
+        if (!type.equals(SExpressionConstants.BOOL_TYPE)) {
+            // Only Bool macros allowed at this time
+            throw new ParseError(type, "Unsupported type: " + type.toString());
+        }
+        Formula body = parseFormulaBody(expression.getChildren().get(4));
+        FunctionMacro macro = new FunctionMacro(name, paramMap, body);
+        macros.add(macro);
     }
 
     /**
-     * Checks the type of a define-fun macro.
+     * Parses a given s-expression into a formula.
      * 
-     * @param type
-     *            the type to to check.
+     * @param expression
+     *            the expression to parse.
+     * @return the formula resulting from the given expression.
      * @throws ParseError
-     *             if the parameters are invalid.
+     *             if parsing fails.
      */
-    private void checkDefineFunType(SExpression type) throws ParseError {
-        if (type instanceof Token) {
-            Token token_param = (Token) type;
-            if (token_param.equalsString("Bool")
-                    || token_param.equalsString("Value")) {
-                return;
-            } else {
-                throw new ParseError(token_param, "Unsupported type: "
-                        + token_param.toString());
-            }
-        } else { // expecting an (Array Value Value) now.
-            try {
-                List<Token> tokenList = type.toTokenList();
-                if (tokenList.size() != 3)
-                    throw new ParseError(type, "Unsupported parameter: "
-                            + type.toString());
-                if (!(tokenList.get(0).equalsString("Array")
-                        && tokenList.get(1).equalsString("Value") && tokenList
-                        .get(2).equalsString("Value")))
-                    throw new ParseError(type, "Unsupported parameter: "
-                            + type.toString());
-                else
-                    return;
-            } catch (NotATokenListException exc) {
-                throw new ParseError(type, "Unsupported parameter: "
-                        + type.toString(), exc);
-            }
+    private Formula parseFormulaBody(SExpression expression) throws ParseError {
+
+        if (isPropositionalConstant(expression)) {
+            PropositionalConstant constant = null;
+            if (expression.equals(SExpressionConstants.TRUE))
+                constant = new PropositionalConstant(true);
+            else if (expression.equals(SExpressionConstants.FALSE))
+                constant = new PropositionalConstant(false);
+            else
+                throw new ParseError(expression,
+                        "Unexpected Error parsing propositional constant!");
+            return constant;
         }
+
+        if (isPropositionalVariable(expression)) {
+
+        }
+
+        if (isBooleanCombination(expression)) {
+
+        }
+
+        if (isEquality(expression)) {
+
+        }
+
+        if (isArrayProperty(expression)) {
+
+        }
+
+        // we have something we cannot handle
+        throw new ParseError(expression, "Error parsing formula body");
+    }
+
+    /**
+     * @param expression
+     * @return
+     */
+    private boolean isArrayProperty(SExpression expression) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * @param expression
+     * @return
+     */
+    private boolean isEquality(SExpression expression) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * @param expression
+     * @return
+     */
+    private boolean isBooleanCombination(SExpression expression) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * @param expression
+     * @return
+     */
+    private boolean isPropositionalVariable(SExpression expression) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * Checks if the given expression is a propositional constant.
+     * 
+     * @param expression
+     *            the expression to check.
+     * @return <code>true</code> if the given expression is a propositional
+     *         constant, <code>false</code> otherwise.
+     */
+    private boolean isPropositionalConstant(SExpression expression) {
+        return (expression.equals(SExpressionConstants.TRUE) || expression
+                .equals(SExpressionConstants.FALSE));
     }
 
     /**
@@ -242,37 +309,15 @@ public class FormulaParser extends Parser {
                         "Illegal parameter declaration: "
                                 + paramName.toString());
             SExpression paramType = paramMapping.getChildren().get(1);
-            if (paramType instanceof Token) {
-                Token token_param = (Token) paramType;
-                if (token_param.equalsString("Bool")
-                        || token_param.equalsString("Control")
-                        || token_param.equalsString("Value")) {
-                    paramMap.put((Token) paramName, paramType);
-                    continue;
-                } else {
-                    throw new ParseError(token_param, "Unsupported parameter: "
-                            + token_param.toString());
-                }
-            } else { // expecting an (Array Value Value) now.
-                try {
-                    List<Token> tokenList = paramType.toTokenList();
-                    if (tokenList.size() != 3)
-                        throw new ParseError(paramType,
-                                "Unsupported parameter: "
-                                        + paramType.toString());
-                    if (!(tokenList.get(0).equalsString("Array")
-                            && tokenList.get(1).equalsString("Value") && tokenList
-                            .get(2).equalsString("Value")))
-                        throw new ParseError(paramType,
-                                "Unsupported parameter: "
-                                        + paramType.toString());
-                    else
-                        paramMap.put((Token) paramName, paramType);
-                    continue;
-                } catch (NotATokenListException exc) {
-                    throw new ParseError(paramType, "Unsupported parameter: "
-                            + paramType.toString(), exc);
-                }
+            if (paramType.equals(SExpressionConstants.BOOL_TYPE)
+                    || paramType.equals(SExpressionConstants.CONTROL_TYPE)
+                    || paramType.equals(SExpressionConstants.VALUE_TYPE)
+                    || paramType.equals(SExpressionConstants.ARRAY_TYPE)) {
+                paramMap.put((Token) paramName, paramType);
+                continue;
+            } else {
+                throw new ParseError(paramType, "Unsupported parameter: "
+                        + paramType.toString());
             }
         }
         return paramMap;
@@ -332,11 +377,11 @@ public class FormulaParser extends Parser {
     private void handleFunction(Token name, List<Token> param_list,
             SExpression type) throws ParseError {
         for (Token token : param_list) {
-            if (!(token.equalsString("Value")))
+            if (!(token.equals(SExpressionConstants.VALUE_TYPE)))
                 throw new ParseError(token, "Unsupported function argument: "
                         + token.toString());
         }
-        if (!(type instanceof Token))
+        if (!(type.equals(SExpressionConstants.VALUE_TYPE)))
             throw new ParseError(type, "Unsupported function type: "
                     + type.toString());
         assert (type instanceof Token);
@@ -355,38 +400,17 @@ public class FormulaParser extends Parser {
      */
     private void handleVariable(Token name, SExpression type) throws ParseError {
 
-        if (type instanceof Token) { // Control, Bool, or Value
-            if (((Token) type).equalsString("Control")) {
-                controlVariables.add(new PropositionalVariable(name));
-            } else if (((Token) type).equalsString("Bool")) {
-                boolVariables.add(new PropositionalVariable(name));
-            } else if (((Token) type).equalsString("Value")) {
-                domainVariables.add(new DomainVariable(name));
-            } else {
-                throw new ParseError(type, "Unsupported variable type: "
-                        + type.toString());
-            }
-        }
-
-        try {
-            List<Token> token_list = type.toTokenList();
-            if (token_list.size() != 3)
-                throw new ParseError(type, "Unsupported variable type: "
-                        + type.toString());
-            if (!(token_list.get(0).equalsString("Array")))
-                throw new ParseError(type, "Unsupported variable type: "
-                        + type.toString());
-            if (!(token_list.get(1).equalsString("Value") && token_list.get(2)
-                    .equalsString("Value")))
-                throw new ParseError(type, "Unsupported array type: "
-                        + type.toString());
-
-            // valid array variable detected
+        if (type.equals(SExpressionConstants.CONTROL_TYPE)) {
+            controlVariables.add(new PropositionalVariable(name));
+        } else if (type.equals(SExpressionConstants.BOOL_TYPE)) {
+            boolVariables.add(new PropositionalVariable(name));
+        } else if (type.equals(SExpressionConstants.VALUE_TYPE)) {
+            domainVariables.add(new DomainVariable(name));
+        } else if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
             arrayVariables.add(new ArrayVariable(name));
-
-        } catch (NotATokenListException exc) {
+        } else {
             throw new ParseError(type, "Unsupported variable type: "
-                    + type.toString(), exc);
+                    + type.toString());
         }
 
     }
@@ -404,17 +428,7 @@ public class FormulaParser extends Parser {
         if (rootExpr.getChildren().size() < 1)
             throw new ParseError("Empty input");
         SExpression child = rootExpr.getChildren().get(0);
-        if (child.getChildren().size() != 2)
-            throw new ParseError(child.getLineNumber(),
-                    child.getColumnNumber(), child.toString(),
-                    "Expected '(set-logic Suraq)'.");
-        if (!(child.getChildren().get(0) instanceof Token && child
-                .getChildren().get(1) instanceof Token))
-            throw new ParseError(child.getLineNumber(),
-                    child.getColumnNumber(), child.toString(),
-                    "Expected '(set-logic Suraq)'.");
-        if (!(((Token) child.getChildren().get(0)).equalsString("set-logic") && ((Token) child
-                .getChildren().get(1)).equalsString("Suraq")))
+        if (!child.equals(SExpressionConstants.SET_LOGIC_SURAQ))
             throw new ParseError(child.getLineNumber(),
                     child.getColumnNumber(), child.toString(),
                     "Expected '(set-logic Suraq)'.");
@@ -478,4 +492,12 @@ public class FormulaParser extends Parser {
         return new ArrayList<UninterpretedFunction>(functions);
     }
 
+    /**
+     * Returns a copy of the list of function macros.
+     * 
+     * @return a copy of the <code>macros</code>
+     */
+    public List<FunctionMacro> getMacros() {
+        return new ArrayList<FunctionMacro>(macros);
+    }
 }

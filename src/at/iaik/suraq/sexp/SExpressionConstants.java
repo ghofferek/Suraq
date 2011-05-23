@@ -33,4 +33,9 @@ public class SExpressionConstants {
 
     public static final SExpression SET_LOGIC_SURAQ = SExpression
             .fromString("(set-logic Suraq)");
+
+    public static final SExpression TRUE = SExpression.fromString("true");
+
+    public static final SExpression FALSE = SExpression.fromString("false");
+
 }

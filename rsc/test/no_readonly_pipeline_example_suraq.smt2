@@ -58,6 +58,7 @@
 
 
 ; define-fun macros may be used to abbreviate and structure the input.
+; At this point, only define-fun macros of return type Bool are supported.
 
 ; Equivalence Criterion
 
