@@ -92,4 +92,23 @@ public abstract class EqualityFormula implements Formula {
                 "Unexpected situation while trying to construct term equality.");
     }
 
+    /**
+     * Returns a list (copy) of the terms compared by this formula.
+     * 
+     * @return a list of the terms compared by this formula.
+     */
+    public List<Term> getTerms() {
+        return new ArrayList<Term>(terms);
+    }
+
+    /**
+     * Determines whether this is an equality or an inequality.
+     * 
+     * @return <code>true</code> if this is an equality, <code>false</code>
+     *         otherwise.
+     */
+    public boolean isEqual() {
+        return equal;
+    }
+
 }

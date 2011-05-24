@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.Collection;
+
 /**
  * An if-then-else-style domain term.
  * 
@@ -42,6 +44,15 @@ public class DomainIte extends DomainTerm {
         this.condition = condition;
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#isEvar(java.util.Collection)
+     */
+    @Override
+    public boolean isEvar(Collection<DomainVariable> uVars) {
+        // not applicable to DomainIte
+        return false;
     }
 
 }

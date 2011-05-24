@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.Collection;
+
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -56,5 +58,13 @@ public class DomainVariable extends DomainTerm {
         if (!(obj instanceof DomainVariable))
             return false;
         return varName.equals(((DomainVariable) obj).varName);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#isEvar(java.util.Collection)
+     */
+    @Override
+    public boolean isEvar(Collection<DomainVariable> uVars) {
+        return !uVars.contains(this);
     }
 }

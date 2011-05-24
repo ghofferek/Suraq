@@ -12,9 +12,12 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
+import at.iaik.suraq.exceptions.InvalidIndexGuardException;
+import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.formula.AndFormula;
+import at.iaik.suraq.formula.ArrayProperty;
 import at.iaik.suraq.formula.ArrayVariable;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.EqualityFormula;
@@ -345,8 +348,34 @@ public class LogicParser extends Parser {
             SExpression uVarsExpression = expression.getChildren().get(1);
             Collection<DomainVariable> uVars = parseUVars(uVarsExpression);
             SExpression property = expression.getChildren().get(2);
+            Formula indexGuard;
+            Formula valueConstraint;
+            if (property.getChildren().size() <= 2) { // not an implication
+                indexGuard = new PropositionalConstant(true);
+                valueConstraint = parseFormulaBody(property);
+            } else if (!property.getChildren().get(0)
+                    .equals(SExpressionConstants.IMPLIES)) {
+                // also not an implication
+                indexGuard = new PropositionalConstant(true);
+                valueConstraint = parseFormulaBody(property);
+            } else { // we have an implication
+                if (property.getChildren().size() != 3)
+                    throw new ParseError(property, "Malformed array property!");
+                assert (property.getChildren().get(0)
+                        .equals(SExpressionConstants.IMPLIES));
+                indexGuard = parseFormulaBody(property.getChildren().get(1));
+                valueConstraint = parseFormulaBody(property.getChildren()
+                        .get(2));
+            }
 
-            // TODO incomplete
+            try {
+                return new ArrayProperty(uVars, indexGuard, valueConstraint);
+            } catch (InvalidIndexGuardException exc) {
+                throw new ParseError(property, "Malformed index guard.", exc);
+            } catch (InvalidValueConstraintException exc) {
+                throw new ParseError(property, "Malformed value constraint.",
+                        exc);
+            }
         }
 
         String macroName = isMacroInstance(expression);
@@ -360,6 +389,39 @@ public class LogicParser extends Parser {
                     + expression.toString());
         else
             throw new ParseError(expression, "Error parsing formula body.");
+    }
+
+    /**
+     * Parses the list of universally quantified variables.
+     * 
+     * @param uVarsExpression
+     *            the first argument of a <code>forall</code> expression
+     * @return the collection of universally quantified variables.
+     */
+    private Collection<DomainVariable> parseUVars(SExpression uVarsExpression)
+            throws ParseError {
+        Set<DomainVariable> uVars = new HashSet<DomainVariable>();
+        if (uVarsExpression.isEmpty())
+            throw new ParseError(uVarsExpression, "Empty variable list.");
+        for (SExpression child : uVarsExpression.getChildren()) {
+            if (child.getChildren().size() != 2)
+                throw new ParseError(child, "Invalid quantified variable");
+            if (!child.getChildren().get(1)
+                    .equals(SExpressionConstants.VALUE_TYPE))
+                throw new ParseError(child.getChildren().get(1),
+                        "Invalid type of quantified variable: "
+                                + child.getChildren().get(1).toString());
+            if (!(child.getChildren().get(0) instanceof Token))
+                throw new ParseError(child.getChildren().get(0),
+                        "Expected variable name.");
+            if (!uVars.add(new DomainVariable((Token) child.getChildren()
+                    .get(0)))) {
+                throw new ParseError(child.getChildren().get(0),
+                        "Duplicate variable in quantifier scope: "
+                                + child.getChildren().get(0).toString());
+            }
+        }
+        return uVars;
     }
 
     /**

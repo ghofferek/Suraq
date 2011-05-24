@@ -33,4 +33,13 @@ public class AndFormula extends BooleanCombinationFormula {
         this.formulas = new ArrayList<Formula>();
         this.formulas.addAll(formulas);
     }
+
+    /**
+     * Returns a collection of the conjuncted formulas.
+     * 
+     * @return a collection of the conjuncted formulas. (Copy)
+     */
+    public Collection<Formula> getConjuncts() {
+        return new ArrayList<Formula>(formulas);
+    }
 }

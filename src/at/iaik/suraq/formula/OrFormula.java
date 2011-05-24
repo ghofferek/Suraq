@@ -33,4 +33,13 @@ public class OrFormula extends BooleanCombinationFormula {
         this.formulas = new ArrayList<Formula>();
         this.formulas.addAll(formulas);
     }
+
+    /**
+     * Returns a collection of the disjuncted formulas.
+     * 
+     * @return a collection of the disjuncted formulas. (Copy)
+     */
+    public Collection<Formula> getDisjuncts() {
+        return new ArrayList<Formula>(formulas);
+    }
 }
