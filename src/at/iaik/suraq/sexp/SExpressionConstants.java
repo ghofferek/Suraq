@@ -55,4 +55,6 @@ public class SExpressionConstants {
 
     public static final SExpression IMPLIES = SExpression.fromString("=>");
 
+    public static final Object FORALL = SExpression.fromString("forall");
+
 }

@@ -4,17 +4,20 @@
 package at.iaik.suraq.parser;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.ArrayVariable;
 import at.iaik.suraq.formula.DomainVariable;
+import at.iaik.suraq.formula.EqualityFormula;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.FunctionMacro;
 import at.iaik.suraq.formula.ImpliesFormula;
@@ -324,14 +327,25 @@ public class LogicParser extends Parser {
                     expression.getChildren().size())) {
                 termList.add(parseTerm(child));
             }
-            if (!Term.checkTypeCompatibility(termList))
-                throw new ParseError(expression,
-                        "Incompatible terms in comparison!");
 
-            // TODO add creation of actual equality.
+            try {
+                return EqualityFormula.create(termList, equal);
+            } catch (IncomparableTermsException exc) {
+                throw new ParseError(expression,
+                        "Incomparable terms in equality.", exc);
+            }
         }
 
         if (isArrayProperty(expression)) {
+            if (expression.getChildren().size() != 3)
+                throw new ParseError(expression,
+                        "Expected 2 arguments for 'forall' expression.");
+            assert (expression.getChildren().get(0)
+                    .equals(SExpressionConstants.FORALL));
+            SExpression uVarsExpression = expression.getChildren().get(1);
+            Collection<DomainVariable> uVars = parseUVars(uVarsExpression);
+            SExpression property = expression.getChildren().get(2);
+
             // TODO incomplete
         }
 
@@ -349,10 +363,10 @@ public class LogicParser extends Parser {
     }
 
     /**
-     * @param child
+     * @param term
      * @return
      */
-    private Term parseTerm(SExpression child) {
+    private Term parseTerm(SExpression term) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -382,11 +396,27 @@ public class LogicParser extends Parser {
     }
 
     /**
+     * Checks whether the given expression is an array property. For more
+     * meaningful parse errors, everything starting with a <code>forall</code>
+     * token is considered an array property here.
+     * 
      * @param expression
-     * @return
+     *            the expression to check.
+     * @return <code>true</code> if the given expression starts with a
+     *         <code>forall</code> token.
      */
     private boolean isArrayProperty(SExpression expression) {
-        // TODO Auto-generated method stub
+        if (expression instanceof Token)
+            return false;
+        if (expression.getChildren().size() < 1)
+            return false;
+
+        SExpression firstChild = expression.getChildren().get(0);
+        if (!(firstChild instanceof Token))
+            return false;
+        if (firstChild.equals(SExpressionConstants.FORALL))
+            return true;
+
         return false;
     }
 

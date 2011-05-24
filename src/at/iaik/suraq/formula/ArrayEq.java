@@ -11,7 +11,7 @@ import java.util.Collection;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class ArrayEq extends EqualityFormula {
+public class ArrayEq extends EqualityFormula {
 
     /**
      * 

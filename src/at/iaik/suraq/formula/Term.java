@@ -3,7 +3,7 @@
  */
 package at.iaik.suraq.formula;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * This abstract class represents terms. Terms can be domain terms, array terms,
@@ -16,50 +16,50 @@ import java.util.List;
  */
 public class Term {
 
+    public static final Class<?> domainTermClass = (new DomainVariable(""))
+            .getClass().getSuperclass();
+    public static final Class<?> arrayTermClass = (new ArrayVariable(""))
+            .getClass().getSuperclass();
+    public static final Class<?> propositionalTermClass = (new PropositionalVariable(
+            "")).getClass().getSuperclass();
+
     /**
      * Checks whether all terms in the given list are compatible for
-     * (dis)equality operations.
+     * (dis)equality operations. If so, the type is returned.
      * 
-     * @param termList
+     * @param terms
      *            the list of terms to check.
-     * @return <code>true</code> if all terms can be compared by (dis)equality,
-     *         <code>false</code> otherwise.
+     * @return the type of the terms in <code>termList</code> or
+     *         <code>null</code> if there are multiple incompatible types.
      */
-    public static boolean checkTypeCompatibility(List<Term> termList) {
+    public static Class<?> checkTypeCompatibility(
+            Collection<? extends Term> terms) {
 
-        if (termList.size() < 2) // 1 term always compatible.
-            return true;
+        if (terms.size() < 1)
+            return null;
 
         Class<?> type = null;
-        Class<?> domainTermClass;
-        Class<?> arrayTermClass;
-        Class<?> propositionalTermClass;
-        try {
 
-            domainTermClass = Class.forName("at.iaik.suraq.formula.DomainTerm");
-            arrayTermClass = Class.forName("at.iaik.suraq.formula.ArrayTerm");
-            propositionalTermClass = Class
-                    .forName("at.iaik.suraq.formula.PropositionalTerm");
-        } catch (ClassNotFoundException exc) {
-            throw new RuntimeException(exc);
-        }
+        Term firstTerm = terms.iterator().next();
 
-        Term firstTerm = termList.get(0);
+        if (Term.domainTermClass.isInstance(firstTerm))
+            type = Term.domainTermClass;
 
-        if (domainTermClass.isInstance(firstTerm))
-            type = domainTermClass;
+        if (Term.arrayTermClass.isInstance(firstTerm))
+            type = Term.arrayTermClass;
 
-        if (arrayTermClass.isInstance(firstTerm))
-            type = arrayTermClass;
+        if (Term.propositionalTermClass.isInstance(firstTerm))
+            type = Term.propositionalTermClass;
 
-        if (propositionalTermClass.isInstance(firstTerm))
-            type = propositionalTermClass;
-
-        for (Term term : termList.subList(1, termList.size())) {
+        boolean allOk = true;
+        for (Term term : terms) {
             if (!type.isInstance(term))
-                return false;
+                allOk = false;
         }
-        return true;
+        if (allOk)
+            return type;
+        else
+            return null;
 
     }
 }
