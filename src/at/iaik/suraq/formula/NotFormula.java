@@ -3,6 +3,10 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * A formula representing the negation of another one.
  * 
@@ -25,5 +29,15 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     public NotFormula(Formula formula) {
         this.formula = formula;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.BooleanCombinationFormula#getSubFormulas()
+     */
+    @Override
+    public Collection<Formula> getSubFormulas() {
+        List<Formula> list = new ArrayList<Formula>();
+        list.add(formula);
+        return list;
     }
 }

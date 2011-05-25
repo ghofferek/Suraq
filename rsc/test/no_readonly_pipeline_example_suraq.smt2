@@ -63,7 +63,7 @@
 ; Equivalence Criterion
 
 (define-fun equiv ((A (Array Value Value))(B (Array Value Value))) Bool (
-  forall (i Value) (
+  forall ((i Value)) (
     = (select A i)
       (select B i)
     )

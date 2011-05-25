@@ -12,10 +12,27 @@ import java.util.Collection;
 public class ArrayRead extends DomainTerm {
 
     /**
-     * Constructs a new <code>ArrayRead</code>.
+     * The array variable that is read.
      */
-    public ArrayRead() {
-        // TODO Auto-generated constructor stub
+    private final ArrayVariable variable;
+
+    /**
+     * The index from which is read.
+     */
+    private final DomainTerm index;
+
+    /**
+     * Constructs a new <code>ArrayRead</code>.
+     * 
+     * @param variable
+     *            the variable that is read
+     * @param index
+     *            the index from which is read.
+     */
+    public ArrayRead(ArrayVariable variable, DomainTerm index) {
+        super();
+        this.variable = variable;
+        this.index = index;
     }
 
     /**
@@ -25,5 +42,23 @@ public class ArrayRead extends DomainTerm {
     public boolean isEvar(Collection<DomainVariable> uVars) {
         // not applicable for ArrayRead.
         return false;
+    }
+
+    /**
+     * Returns the index from which is read.
+     * 
+     * @return the index from which is read.
+     */
+    public DomainTerm getIndex() {
+        return index;
+    }
+
+    /**
+     * Returns the array variable from which is read.
+     * 
+     * @return the array variable from which is read.
+     */
+    public ArrayVariable getVariable() {
+        return variable;
     }
 }

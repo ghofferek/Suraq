@@ -3,6 +3,10 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * A class for formulas of the form (a => b).
  * 
@@ -35,4 +39,14 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         this.rightSide = rightSide;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.BooleanCombinationFormula#getSubFormulas()
+     */
+    @Override
+    public Collection<Formula> getSubFormulas() {
+        List<Formula> list = new ArrayList<Formula>();
+        list.add(leftSide);
+        list.add(rightSide);
+        return list;
+    }
 }

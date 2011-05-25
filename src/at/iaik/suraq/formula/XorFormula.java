@@ -33,4 +33,12 @@ public class XorFormula extends BooleanCombinationFormula {
         this.formulas = new ArrayList<Formula>();
         this.formulas.addAll(formulas);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.BooleanCombinationFormula#getSubFormulas()
+     */
+    @Override
+    public Collection<Formula> getSubFormulas() {
+        return new ArrayList<Formula>(formulas);
+    }
 }

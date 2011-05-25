@@ -3,6 +3,9 @@
  */
 package at.iaik.suraq.formula;
 
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
+
 /**
  * 
  * This class represents array terms. An array term is either an array variable,
@@ -13,5 +16,12 @@ package at.iaik.suraq.formula;
  */
 public abstract class ArrayTerm extends Term {
 
-    // TODO implement!
+    /**
+     * @see at.iaik.suraq.formula.Term#getType()
+     */
+    @Override
+    public SExpression getType() {
+        return SExpressionConstants.ARRAY_TYPE;
+    }
+
 }

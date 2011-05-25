@@ -66,14 +66,46 @@ public class ArrayProperty implements Formula {
     }
 
     /**
+     * Checks whether the given formula is a legal value constraint (w.r.t. the
+     * given universally quantified variables).
      * 
      * @param uVars
+     *            a list of universally quantified variables
      * @param valueConstraint
-     * @return
+     *            the formula to check
+     * @return <code>true</code> if the given formula is a legal value
+     *         constraint w.r.t. the given list of universally quantified
+     *         variables, <code>false</code> otherwise.
      */
     private static boolean checkValueConstraint(
             Collection<DomainVariable> uVars, Formula valueConstraint) {
-        // TODO Auto-generated method stub
+
+        if (valueConstraint instanceof BooleanCombinationFormula) {
+            for (Formula subFormula : ((BooleanCombinationFormula) valueConstraint)
+                    .getSubFormulas()) {
+                if (!ArrayProperty.checkValueConstraint(uVars, subFormula))
+                    return false;
+            }
+            return true;
+        }
+
+        if (valueConstraint instanceof DomainEq) {
+
+            for (DomainTerm term : ((DomainEq) valueConstraint)
+                    .getDomainTerms()) {
+                if (term instanceof ArrayRead) {
+                    DomainTerm index = ((ArrayRead) term).getIndex();
+                    if (!(index instanceof DomainVariable))
+                        return false;
+                } else {
+                    if (!term.isEvar(uVars))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        // something that is not a legal value constraint
         return false;
     }
 

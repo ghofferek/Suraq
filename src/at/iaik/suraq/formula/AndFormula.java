@@ -42,4 +42,12 @@ public class AndFormula extends BooleanCombinationFormula {
     public Collection<Formula> getConjuncts() {
         return new ArrayList<Formula>(formulas);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.BooleanCombinationFormula#getSubFormulas()
+     */
+    @Override
+    public Collection<Formula> getSubFormulas() {
+        return new ArrayList<Formula>(formulas);
+    }
 }

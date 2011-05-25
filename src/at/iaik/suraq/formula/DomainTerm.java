@@ -5,6 +5,9 @@ package at.iaik.suraq.formula;
 
 import java.util.Collection;
 
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
+
 /**
  * 
  * This class represents domain terms. A domain term is either a domain
@@ -25,4 +28,13 @@ public abstract class DomainTerm extends Term {
      *         <code>false</code> otherwise.
      */
     public abstract boolean isEvar(Collection<DomainVariable> uVars);
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getType()
+     */
+    @Override
+    public SExpression getType() {
+        return SExpressionConstants.VALUE_TYPE;
+    }
+
 }

@@ -13,6 +13,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.InvalidIndexGuardException;
+import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
@@ -23,6 +24,7 @@ import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.EqualityFormula;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.FunctionMacro;
+import at.iaik.suraq.formula.FunctionMacroInstance;
 import at.iaik.suraq.formula.ImpliesFormula;
 import at.iaik.suraq.formula.NotFormula;
 import at.iaik.suraq.formula.OrFormula;
@@ -45,7 +47,7 @@ public class LogicParser extends Parser {
     /**
      * The formula that results from parsing.
      */
-    private Formula mainFormula;
+    private Formula mainFormula = null;
 
     /**
      * The list of control variables found during parsing
@@ -73,9 +75,9 @@ public class LogicParser extends Parser {
     private final Set<UninterpretedFunction> functions = new HashSet<UninterpretedFunction>();
 
     /**
-     * The list of function macros found during parsing
+     * The function macros found during parsing, indexed by name tokens
      */
-    private final Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+    private final Map<Token, FunctionMacro> macros = new HashMap<Token, FunctionMacro>();
 
     /**
      * The root of the s-expression to be parsed.
@@ -163,13 +165,34 @@ public class LogicParser extends Parser {
     }
 
     /**
+     * Handles an assert expression. I.e., if <code>mainFormula</code> is still
+     * <code>null</code>, it will be initialized to the result of parsing this
+     * assert statement's body. If <code>mainFormula</code> already is non-
+     * <code>null</code>, a conjunction of its current value an the parsed body
+     * will be made.
+     * 
      * @param expression
+     *            the assert expression to parse.
      */
     private void handleAssert(SExpression expression) throws ParseError {
         assert (expression.getChildren().get(0) instanceof Token);
-        assert (((Token) expression.getChildren().get(0))
-                .equalsString("assert"));
-        // TODO Auto-generated method stub
+        assert (expression.getChildren().get(0)
+                .equals(SExpressionConstants.ASSERT));
+
+        if (expression.getChildren().size() != 2)
+            throw new ParseError(expression,
+                    "Expected exactly one argument for 'assert'.");
+
+        Formula body = parseFormulaBody(expression.getChildren().get(1));
+
+        if (mainFormula == null)
+            mainFormula = body;
+        else {
+            List<Formula> list = new ArrayList<Formula>();
+            list.add(mainFormula);
+            list.add(body);
+            mainFormula = new AndFormula(list);
+        }
 
     }
 
@@ -198,17 +221,32 @@ public class LogicParser extends Parser {
         Token name = (Token) expression.getChildren().get(1);
         SExpression type = expression.getChildren().get(3);
         SExpression params = expression.getChildren().get(2);
-        Map<Token, SExpression> paramMap = parseDefineFunParams(params);
+        List<Token> paramsList = new ArrayList<Token>();
+        Map<Token, SExpression> paramMap;
+        try {
+            paramMap = parseDefineFunParams(params, paramsList);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected situation while parsing macro parameters", exc);
+        }
         if (!type.equals(SExpressionConstants.BOOL_TYPE)) {
             // Only Bool macros allowed at this time
             throw new ParseError(type, "Unsupported type: " + type.toString());
         }
         Formula body = parseFormulaBody(expression.getChildren().get(4));
-        FunctionMacro macro = new FunctionMacro(name, paramMap, body);
-        if (!macros.add(macro)) {
+        FunctionMacro macro;
+        try {
+            macro = new FunctionMacro(name, paramsList, paramMap, body);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected situation while parsing macro parameters", exc);
+        }
+        if (macros.containsKey(name))
             throw new ParseError(name, "Duplicate macro definition: "
                     + name.toString());
-        }
+        else
+            macros.put(name, macro);
+
     }
 
     /**
@@ -378,9 +416,37 @@ public class LogicParser extends Parser {
             }
         }
 
-        String macroName = isMacroInstance(expression);
-        if (macroName != null) {
-            // TODO incomplete
+        FunctionMacro macro = isMacroInstance(expression);
+        if (macro != null) {
+            List<SExpression> paramExpressions = expression.getChildren()
+                    .subList(1, expression.getChildren().size());
+            if (paramExpressions.size() != macro.getNumParams())
+                throw new ParseError(expression, "Expected "
+                        + macro.getNumParams() + "parameters for macro "
+                        + macro.getName().toString() + ", got "
+                        + paramExpressions.size() + " instead.");
+
+            Map<Token, Term> paramMap = new HashMap<Token, Term>();
+            assert (paramExpressions.size() != macro.getNumParams());
+            for (int count = 0; count < paramExpressions.size(); count++) {
+                Term paramTerm = parseTerm(paramExpressions.get(count));
+
+                if (!paramTerm.getType().equals(macro.getParamType(count)))
+                    throw new ParseError(paramExpressions.get(count),
+                            "Wrong parameter type. Expected "
+                                    + macro.getParamType(count).toString()
+                                    + ", got " + paramTerm.getType().toString()
+                                    + " instead.");
+
+                paramMap.put(macro.getParam(count), paramTerm);
+            }
+            try {
+                return new FunctionMacroInstance(macro, paramMap);
+            } catch (InvalidParametersException exc) {
+                throw new RuntimeException(
+                        "Unexpected condition while creating function macro.",
+                        exc);
+            }
         }
 
         // we have something we cannot handle
@@ -425,24 +491,121 @@ public class LogicParser extends Parser {
     }
 
     /**
-     * @param term
-     * @return
+     * Parses the given expression as a term.
+     * 
+     * @param expression
+     *            the expression to parse
+     * @return the term resulting from parsing.
+     * @throws ParseError
+     *             if parsing fails
      */
-    private Term parseTerm(SExpression term) {
-        // TODO Auto-generated method stub
-        return null;
+    private Term parseTerm(SExpression expression) throws ParseError {
+
+        if (isArrayVariable(expression)) {
+
+        }
+
+        if (isArrayWrite(expression)) {
+
+        }
+
+        if (isDomainVariable(expression)) {
+
+        }
+
+        if (isUninterpredFunctionInstance(expression)) {
+
+        }
+
+        if (isArrayRead(expression)) {
+
+        }
+
+        // we have something we cannot handle
+        throw new ParseError("General parse error while parsing term "
+                + expression.toString());
     }
 
     /**
-     * Checks if the given expression is a macro instance. If so, its name is
-     * returned.
+     * @param expression
+     * @return
+     */
+    private boolean isArrayRead(SExpression expression) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * @param expression
+     * @return
+     */
+    private boolean isArrayWrite(SExpression expression) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * Checks whether the given expression is an uninterpreted function
+     * instance.
+     * 
+     * @param expression
+     *            the expression to check
+     * @return <code>true</code> if the given expression is an uninterpreted
+     *         function instance, <code>false</code> otherwise.
+     */
+    private boolean isUninterpredFunctionInstance(SExpression expression) {
+        if (expression instanceof Token)
+            return false;
+        if (expression.getChildren().size() < 2)
+            return false;
+        if (!(expression.getChildren().get(0) instanceof Token))
+            return false;
+        Token name = (Token) expression.getChildren().get(0);
+        for (UninterpretedFunction function : functions) {
+            if (name.equalsString(function.getName()))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether the given expression is a domain variable
+     * 
+     * @param expression
+     *            the expression to check
+     * @return <code>true</code> if the given expression is a domain variable,
+     *         <code>false</code> otherwise.
+     */
+    private boolean isDomainVariable(SExpression expression) {
+        if (!(expression instanceof Token))
+            return false;
+        return domainVariables.contains(new DomainVariable((Token) expression));
+    }
+
+    /**
+     * Checks whether the given expression is an array variable
+     * 
+     * @param expression
+     *            the expression to check
+     * @return <code>true</code> if the given expression is an array variable,
+     *         <code>false</code> otherwise.
+     */
+    private boolean isArrayVariable(SExpression expression) {
+        if (!(expression instanceof Token))
+            return false;
+        return arrayVariables.contains(new ArrayVariable((Token) expression));
+    }
+
+    /**
+     * Checks if the given expression is a macro instance. If so, the
+     * corresponding macro is returned.
      * 
      * @param expression
      *            the expression to check.
-     * @return the name of this macro instance, or <code>null</code> if this is
-     *         not a macro instance
+     * @return the macro instantiated by this expression, or <code>null</code>
+     *         if this is not a macro instance
      */
-    private String isMacroInstance(SExpression expression) {
+    private FunctionMacro isMacroInstance(SExpression expression) {
         if (expression.getChildren().size() < 2)
             return null;
         if (!(expression.getChildren().get(0) instanceof Token))
@@ -450,11 +613,7 @@ public class LogicParser extends Parser {
 
         assert (expression.getChildren().get(0) instanceof Token);
         Token macroName = (Token) expression.getChildren().get(0);
-        for (FunctionMacro macro : macros) {
-            if (macro.getName().equals(macroName))
-                return macroName.toString();
-        }
-        return null;
+        return macros.get(macroName);
     }
 
     /**
@@ -573,13 +732,26 @@ public class LogicParser extends Parser {
      * 
      * @param params
      *            the parameters to to check.
+     * @param paramsList
+     *            an (empty) list to which the parameter names are added in
+     *            order.
      * @return a <code>Map</code> of parameter names (<code>Token</code>s) to
      *         types (<code>SExpression</code>s).
      * @throws ParseError
      *             if the parameters are invalid.
+     * @throws InvalidParametersException
+     *             if the given <code>paramsList</code> is non-empty or
+     *             <code>null</code>;
      */
-    private Map<Token, SExpression> parseDefineFunParams(SExpression params)
-            throws ParseError {
+    private Map<Token, SExpression> parseDefineFunParams(SExpression params,
+            List<Token> paramsList) throws ParseError,
+            InvalidParametersException {
+
+        if (paramsList == null)
+            throw new InvalidParametersException("paramsList is null");
+        if (paramsList.size() != 0)
+            throw new InvalidParametersException("paramsList is non-empty");
+
         Map<Token, SExpression> paramMap = new HashMap<Token, SExpression>();
         for (SExpression paramMapping : params.getChildren()) {
             if (paramMapping.getChildren().size() != 2)
@@ -593,13 +765,13 @@ public class LogicParser extends Parser {
                                 + paramName.toString());
             SExpression paramType = paramMapping.getChildren().get(1);
             if (paramType.equals(SExpressionConstants.BOOL_TYPE)
-                    || paramType.equals(SExpressionConstants.CONTROL_TYPE)
                     || paramType.equals(SExpressionConstants.VALUE_TYPE)
                     || paramType.equals(SExpressionConstants.ARRAY_TYPE)) {
                 paramMap.put((Token) paramName, paramType);
+                paramsList.add((Token) paramName);
                 continue;
             } else {
-                throw new ParseError(paramType, "Unsupported parameter: "
+                throw new ParseError(paramType, "Unsupported parameter type: "
                         + paramType.toString());
             }
         }
@@ -796,6 +968,6 @@ public class LogicParser extends Parser {
      * @return a copy of the <code>macros</code>
      */
     public List<FunctionMacro> getMacros() {
-        return new ArrayList<FunctionMacro>(macros);
+        return new ArrayList<FunctionMacro>(macros.values());
     }
 }

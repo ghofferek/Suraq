@@ -42,4 +42,12 @@ public class OrFormula extends BooleanCombinationFormula {
     public Collection<Formula> getDisjuncts() {
         return new ArrayList<Formula>(formulas);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.BooleanCombinationFormula#getSubFormulas()
+     */
+    @Override
+    public Collection<Formula> getSubFormulas() {
+        return new ArrayList<Formula>(formulas);
+    }
 }

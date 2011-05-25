@@ -3,6 +3,10 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Represents an if-then-else-style formula.
  * 
@@ -42,5 +46,17 @@ public class PropositionalIte extends BooleanCombinationFormula {
         this.condition = condition;
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.BooleanCombinationFormula#getSubFormulas()
+     */
+    @Override
+    public Collection<Formula> getSubFormulas() {
+        List<Formula> list = new ArrayList<Formula>();
+        list.add(condition);
+        list.add(thenBranch);
+        list.add(elseBranch);
+        return list;
     }
 }

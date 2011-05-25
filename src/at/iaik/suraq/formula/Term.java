@@ -5,6 +5,8 @@ package at.iaik.suraq.formula;
 
 import java.util.Collection;
 
+import at.iaik.suraq.sexp.SExpression;
+
 /**
  * This abstract class represents terms. Terms can be domain terms, array terms,
  * or "propositional terms". Strictly following the grammar, the latter would be
@@ -14,7 +16,7 @@ import java.util.Collection;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class Term {
+public abstract class Term {
 
     public static final Class<?> domainTermClass = (new DomainVariable(""))
             .getClass().getSuperclass();
@@ -62,4 +64,6 @@ public class Term {
             return null;
 
     }
+
+    public abstract SExpression getType();
 }

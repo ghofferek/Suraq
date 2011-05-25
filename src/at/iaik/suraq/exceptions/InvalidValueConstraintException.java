@@ -10,6 +10,11 @@ package at.iaik.suraq.exceptions;
 public class InvalidValueConstraintException extends SuraqException {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
      * Constructs a new <code>InvalidValueConstraintException</code>.
      */
     public InvalidValueConstraintException() {
