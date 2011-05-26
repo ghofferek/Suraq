@@ -10,40 +10,61 @@ import java.util.List;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 
 /**
+ * An instance of an uninterpreted function.
+ * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class FunctionTerm extends DomainTerm {
+public class UninterpretedFunctionInstance extends DomainTerm {
 
     /**
-     * The function.
+     * The function of which this is an instance.
      */
     private final UninterpretedFunction function;
 
     /**
-     * The function parameters.
+     * The list of parameters of this instance.
      */
-    private final List<DomainTerm> parameters;
+    private final List<? extends DomainTerm> parameters;
 
     /**
-     * 
-     * Constructs a new <code>FunctionTerm</code> with the given values.
+     * Constructs a new <code>UninterpretedFunctionInstance</code> with the
+     * given values.
      * 
      * @param function
      *            the function that is applied.
      * @param parameters
      *            the parameters of the function
+     * 
      * @throws WrongNumberOfParametersException
      *             if the number of parameters of the function does not match
      *             the size of <code>parameters</code>.
      */
-    public FunctionTerm(UninterpretedFunction function,
-            List<? extends DomainTerm> parameters)
+    public UninterpretedFunctionInstance(UninterpretedFunction function,
+            List<DomainTerm> parameters)
             throws WrongNumberOfParametersException {
         if (function.getNumParams() != parameters.size())
             throw new WrongNumberOfParametersException();
         this.function = function;
         this.parameters = new ArrayList<DomainTerm>(parameters);
+    }
+
+    /**
+     * Returns the function of which this is an instance
+     * 
+     * @return the <code>function</code>
+     */
+    public UninterpretedFunction getFunction() {
+        return function;
+    }
+
+    /**
+     * Returns a copy of the list of parameters of this instance.
+     * 
+     * @return the <code>parameters</code> (copy)
+     */
+    public List<DomainTerm> getParameters() {
+        return new ArrayList<DomainTerm>(parameters);
     }
 
     /**
@@ -57,5 +78,4 @@ public class FunctionTerm extends DomainTerm {
         }
         return true;
     }
-
 }

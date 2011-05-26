@@ -169,4 +169,31 @@ public class ArrayProperty implements Formula {
 
     }
 
+    /**
+     * Returns a copy of the set of universally quantified variables.
+     * 
+     * @return the <code>uVars</code> (copy)
+     */
+    public Collection<DomainVariable> getuVars() {
+        return new HashSet<DomainVariable>(uVars);
+    }
+
+    /**
+     * Returns the index guard formula.
+     * 
+     * @return the <code>indexGuard</code>
+     */
+    public Formula getIndexGuard() {
+        return indexGuard;
+    }
+
+    /**
+     * Returns the value constraint formula.
+     * 
+     * @return the <code>valueConstraint</code>
+     */
+    public Formula getValueConstraint() {
+        return valueConstraint;
+    }
+
 }

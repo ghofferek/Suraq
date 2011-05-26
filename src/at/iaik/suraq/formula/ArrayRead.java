@@ -14,7 +14,7 @@ public class ArrayRead extends DomainTerm {
     /**
      * The array variable that is read.
      */
-    private final ArrayVariable variable;
+    private final ArrayTerm arrayTerm;
 
     /**
      * The index from which is read.
@@ -24,14 +24,14 @@ public class ArrayRead extends DomainTerm {
     /**
      * Constructs a new <code>ArrayRead</code>.
      * 
-     * @param variable
+     * @param arrayTerm
      *            the variable that is read
      * @param index
      *            the index from which is read.
      */
-    public ArrayRead(ArrayVariable variable, DomainTerm index) {
+    public ArrayRead(ArrayTerm arrayTerm, DomainTerm index) {
         super();
-        this.variable = variable;
+        this.arrayTerm = arrayTerm;
         this.index = index;
     }
 
@@ -58,7 +58,7 @@ public class ArrayRead extends DomainTerm {
      * 
      * @return the array variable from which is read.
      */
-    public ArrayVariable getVariable() {
-        return variable;
+    public ArrayTerm getArrayTerm() {
+        return arrayTerm;
     }
 }

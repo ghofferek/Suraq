@@ -55,4 +55,31 @@ public class DomainIte extends DomainTerm {
         return false;
     }
 
+    /**
+     * Returns the condition.
+     * 
+     * @return the <code>condition</code>
+     */
+    public Formula getCondition() {
+        return condition;
+    }
+
+    /**
+     * Returns the then branch.
+     * 
+     * @return the <code>thenBranch</code>
+     */
+    public DomainTerm getThenBranch() {
+        return thenBranch;
+    }
+
+    /**
+     * Returns the else branch.
+     * 
+     * @return the <code>elseBranch</code>
+     */
+    public DomainTerm getElseBranch() {
+        return elseBranch;
+    }
+
 }

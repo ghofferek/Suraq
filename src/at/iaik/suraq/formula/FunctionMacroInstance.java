@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import at.iaik.suraq.exceptions.InvalidParametersException;
@@ -49,6 +50,36 @@ public class FunctionMacroInstance implements Formula {
 
         this.macro = macro;
         this.paramMap = paramMap;
+    }
+
+    /**
+     * Returns the macro of which this is an instance.
+     * 
+     * @return the <code>macro</code>
+     */
+    public FunctionMacro getMacro() {
+        return macro;
+    }
+
+    /**
+     * Returns the term corresponding to the parameter <code>token</code>.
+     * 
+     * @param token
+     *            the token identifying the parameter of which the term should
+     *            be returned.
+     * @return the term mapped to by the given token.
+     */
+    public Term getTerm(Token token) {
+        return paramMap.get(token);
+    }
+
+    /**
+     * Returns a copy of the parameter map.
+     * 
+     * @return the <code>paramMap</code>
+     */
+    public Map<Token, Term> getParamMap() {
+        return new HashMap<Token, Term>(paramMap);
     }
 
 }

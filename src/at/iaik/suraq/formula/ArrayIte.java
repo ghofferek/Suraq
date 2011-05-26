@@ -44,4 +44,31 @@ public class ArrayIte extends ArrayTerm {
         this.elseBranch = elseBranch;
     }
 
+    /**
+     * Returns the condition.
+     * 
+     * @return the <code>condition</code>
+     */
+    public Formula getCondition() {
+        return condition;
+    }
+
+    /**
+     * Returns the then branch.
+     * 
+     * @return the <code>thenBranch</code>
+     */
+    public ArrayTerm getThenBranch() {
+        return thenBranch;
+    }
+
+    /**
+     * Returns the else branch.
+     * 
+     * @return the <code>elseBranch</code>
+     */
+    public ArrayTerm getElseBranch() {
+        return elseBranch;
+    }
+
 }

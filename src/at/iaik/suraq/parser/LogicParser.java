@@ -17,9 +17,16 @@ import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
+import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.formula.AndFormula;
+import at.iaik.suraq.formula.ArrayIte;
 import at.iaik.suraq.formula.ArrayProperty;
+import at.iaik.suraq.formula.ArrayRead;
+import at.iaik.suraq.formula.ArrayTerm;
 import at.iaik.suraq.formula.ArrayVariable;
+import at.iaik.suraq.formula.ArrayWrite;
+import at.iaik.suraq.formula.DomainIte;
+import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.EqualityFormula;
 import at.iaik.suraq.formula.Formula;
@@ -33,6 +40,7 @@ import at.iaik.suraq.formula.PropositionalIte;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
 import at.iaik.suraq.formula.UninterpretedFunction;
+import at.iaik.suraq.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.formula.XorFormula;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -501,24 +509,99 @@ public class LogicParser extends Parser {
      */
     private Term parseTerm(SExpression expression) throws ParseError {
 
-        if (isArrayVariable(expression)) {
+        if (isIteTerm(expression)) {
+            if (expression.getChildren().size() != 4)
+                throw new ParseError(expression,
+                        "Expected 3 parameters for 'ite' expression.");
+            Formula condition = parseFormulaBody(expression.getChildren()
+                    .get(1));
+            Term thenBranch = parseTerm(expression.getChildren().get(2));
+            Term elseBranch = parseTerm(expression.getChildren().get(3));
 
+            if (thenBranch instanceof ArrayTerm
+                    && elseBranch instanceof ArrayTerm)
+                return new ArrayIte(condition, (ArrayTerm) thenBranch,
+                        (ArrayTerm) elseBranch);
+
+            if (thenBranch instanceof DomainTerm
+                    && elseBranch instanceof DomainTerm)
+                return new DomainIte(condition, (DomainTerm) thenBranch,
+                        (DomainTerm) elseBranch);
+
+            throw new ParseError(expression,
+                    "Incompatible types in 'ite' expression");
+        }
+
+        if (isArrayVariable(expression)) {
+            return new ArrayVariable(expression.toString());
         }
 
         if (isArrayWrite(expression)) {
+            if (expression.getChildren().size() != 4)
+                throw new ParseError(expression,
+                        "Expected 3 parameters for 'store' expression.");
 
+            Term arrayTerm = parseTerm(expression.getChildren().get(1));
+            if (!(arrayTerm instanceof ArrayTerm))
+                throw new ParseError(expression.getChildren().get(1),
+                        "First parameter of 'store' must be an array term.");
+
+            Term indexTerm = parseTerm(expression.getChildren().get(2));
+            if (!(indexTerm instanceof DomainTerm))
+                throw new ParseError(expression.getChildren().get(2),
+                        "Second parameter of 'store' must be a domain term.");
+
+            Term valueTerm = parseTerm(expression.getChildren().get(3));
+            if (!(valueTerm instanceof DomainTerm))
+                throw new ParseError(expression.getChildren().get(3),
+                        "Third parameter of 'store' must be a domain term.");
+
+            return new ArrayWrite((ArrayTerm) arrayTerm,
+                    (DomainTerm) indexTerm, (DomainTerm) valueTerm);
         }
 
         if (isDomainVariable(expression)) {
-
+            return new DomainVariable(expression.toString());
         }
 
-        if (isUninterpredFunctionInstance(expression)) {
-
+        UninterpretedFunction function = isUninterpredFunctionInstance(expression);
+        if (function != null) {
+            if (function.getNumParams() != expression.getChildren().size() - 1)
+                throw new ParseError(expression, "Function '"
+                        + function.getName() + "' expects "
+                        + function.getNumParams() + " parameters.");
+            List<DomainTerm> parameters = new ArrayList<DomainTerm>();
+            for (int count = 0; count < function.getNumParams(); count++) {
+                Term term = parseTerm(expression.getChildren().get(count + 1));
+                if (!(term instanceof DomainTerm))
+                    throw new ParseError(expression.getChildren()
+                            .get(count + 1), "Parameter is not a domain term.");
+                parameters.add((DomainTerm) term);
+            }
+            try {
+                return new UninterpretedFunctionInstance(function, parameters);
+            } catch (WrongNumberOfParametersException exc) {
+                throw new RuntimeException(
+                        "Unexpected situation while parsing uninterpreted function instance.");
+            }
         }
 
         if (isArrayRead(expression)) {
+            if (expression.getChildren().size() != 3)
+                throw new ParseError(expression,
+                        "Expected 2 parameters for 'select' expression.");
 
+            Term arrayTerm = parseTerm(expression.getChildren().get(1));
+            if (!(arrayTerm instanceof ArrayTerm))
+                throw new ParseError(expression.getChildren().get(1),
+                        "First parameter of 'select' must be an array term.");
+
+            Term indexTerm = parseTerm(expression.getChildren().get(2));
+            if (!(indexTerm instanceof DomainTerm))
+                throw new ParseError(expression.getChildren().get(2),
+                        "Second parameter of 'select' must be a domain term.");
+
+            return new ArrayRead((ArrayTerm) arrayTerm, (DomainTerm) indexTerm);
         }
 
         // we have something we cannot handle
@@ -527,45 +610,83 @@ public class LogicParser extends Parser {
     }
 
     /**
+     * Checks if the given expression is an if-then-else term
+     * 
      * @param expression
-     * @return
+     *            the expression to check.
+     * @return <code>true</code> if the first child of <code>expression</code>
+     *         is a <code>Token</code> and it equals the ITE operator.
      */
-    private boolean isArrayRead(SExpression expression) {
-        // TODO Auto-generated method stub
+    private boolean isIteTerm(SExpression expression) {
+        if (expression.getChildren().size() < 1)
+            return false;
+        if (expression.getChildren().get(0).equals(SExpressionConstants.ITE))
+            return true;
+
         return false;
     }
 
     /**
+     * Checks whether the given expression is an array read.
+     * 
      * @param expression
-     * @return
+     *            the expression to check.
+     * @return <code>true</code> if the first child of <code>expression</code>
+     *         is the <code>select</code> token, <code>false</code> otherwise.
+     */
+    private boolean isArrayRead(SExpression expression) {
+        if (expression.getChildren().size() < 1)
+            return false;
+
+        if (!expression.getChildren().get(0)
+                .equals(SExpressionConstants.SELECT))
+            return false;
+        else
+            return true;
+    }
+
+    /**
+     * Checks whether the given expression is an array write.
+     * 
+     * @param expression
+     *            the expression to check.
+     * @return <code>true</code> if the first child of <code>expression</code>
+     *         is the <code>store</code> token, <code>false</code> otherwise.
      */
     private boolean isArrayWrite(SExpression expression) {
-        // TODO Auto-generated method stub
-        return false;
+        if (expression.getChildren().size() < 1)
+            return false;
+
+        if (!expression.getChildren().get(0).equals(SExpressionConstants.STORE))
+            return false;
+        else
+            return true;
     }
 
     /**
      * Checks whether the given expression is an uninterpreted function
-     * instance.
+     * instance. If so, the function is returned.
      * 
      * @param expression
      *            the expression to check
-     * @return <code>true</code> if the given expression is an uninterpreted
-     *         function instance, <code>false</code> otherwise.
+     * @return if the given expression is an uninterpreted function instance,
+     *         the function is returned. Otherwise <code>null</code> is
+     *         returned.
      */
-    private boolean isUninterpredFunctionInstance(SExpression expression) {
+    private UninterpretedFunction isUninterpredFunctionInstance(
+            SExpression expression) {
         if (expression instanceof Token)
-            return false;
+            return null;
         if (expression.getChildren().size() < 2)
-            return false;
+            return null;
         if (!(expression.getChildren().get(0) instanceof Token))
-            return false;
+            return null;
         Token name = (Token) expression.getChildren().get(0);
         for (UninterpretedFunction function : functions) {
             if (name.equalsString(function.getName()))
-                return true;
+                return function;
         }
-        return false;
+        return null;
     }
 
     /**
