@@ -4,6 +4,7 @@
 \usepackage{xspace}
 \usepackage{booktabs}
 \usepackage{graphicx}
+\usepackage[boxruled, linesnumbered]{algorithm2e}
 
 
 \newcommand\suraq{\mbox{\textsc{Suraq}}\xspace}
@@ -22,7 +23,7 @@ Institute for Applied Information Processing\\and Communications
 (IAIK),\\
 Graz University of Technology, Austria}
 \date{}
-\maketitle
+\maketitle \pagebreak
 
 
 \section{Introduction} \label{sec:introduction}
@@ -40,6 +41,49 @@ correctness criterion is expressed as a formula in the logic of
 arrays, uninterpreted functions, and equality, with limited
 quantification. The theory behind the synthesis approach is presented
 in \cite{Hoffer11}.
+
+
+\section{Input Format} \label{sec:input_format}
+
+The input format used by \suraq is based on SMTLIB version 2.0
+\cite{SMTLIB}. However, \suraq imposes some restrictions on the
+input, and makes some implicit assumptions; both of which will be
+detailed in section. A \suraq input file forms the specification for
+a controller synthesis problem by stating a so-called
+\emph{equivalence criterion} \cite{Hoffer11}, which is a formula in a
+logic with (extensional) arrays, uninterpreted functions, and
+equality.
+
+
+\begin{algorithm}
+\DontPrintSemicolon
+  (set-logic Suraq)\;
+  (declare-fun REGci\_\_! () (Array Value Value))\;
+  (declare-fun REGsc\_!  () (Array Value Value))\;
+  (declare-fun REGsc\_\_! () (Array Value Value))\;
+
+  (declare-fun v   () Value)\;
+  (declare-fun v\_  () Value)\;
+  (declare-fun v\_! () Value)\;
+  (declare-fun w   () Value)\;
+  (declare-fun s () Value)\;
+
+  (declare-fun dest () Value)\;
+
+  (declare-fun x () Control)\;
+
+  (declare-fun ALU (Value) Value)\;
+
+  (define-fun equiv ((A (Array Value Value))(B (Array Value Value))) Bool (\;
+    forall ((i Value)) (\;
+      = (select A i)\;
+        (select B i)\;
+      )\;
+    )\;
+  )\;
+
+  (assert (formula REG REGci\_  REGci\_\_  REGsc\_  REGsc\_\_  v v\_  w s dest x))\;
+\end{algorithm}
 
 
 \bibliography{suraq}
