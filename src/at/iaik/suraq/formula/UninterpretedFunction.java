@@ -23,7 +23,7 @@ public class UninterpretedFunction {
     /**
      * The name of this function.
      */
-    private final String name;
+    private final Token name;
 
     /**
      * 
@@ -35,7 +35,7 @@ public class UninterpretedFunction {
      *            the number of parameters.
      */
     public UninterpretedFunction(String name, int numParams) {
-        this.name = name;
+        this.name = new Token(name);
         this.numParams = numParams;
     }
 
@@ -49,7 +49,7 @@ public class UninterpretedFunction {
      *            the number of parameters.
      */
     public UninterpretedFunction(Token name, int numParams) {
-        this.name = name.toString();
+        this.name = name;
         this.numParams = numParams;
     }
 
@@ -67,7 +67,7 @@ public class UninterpretedFunction {
      * 
      * @return the <code>name</code>
      */
-    public String getName() {
+    public Token getName() {
         return name;
     }
 

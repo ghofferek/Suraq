@@ -93,6 +93,16 @@ public class LogicParser extends Parser {
     private final SExpression rootExpr;
 
     /**
+     * A map of current local variables while parsing a function macro.
+     */
+    private Map<Token, SExpression> currentLocals = null;
+
+    /**
+     * The set of universally quantified variables in current scope.
+     */
+    private Collection<DomainVariable> currentUVars = null;
+
+    /**
      * 
      * Constructs a new <code>FormulaParser</code>.
      * 
@@ -241,7 +251,14 @@ public class LogicParser extends Parser {
             // Only Bool macros allowed at this time
             throw new ParseError(type, "Unsupported type: " + type.toString());
         }
-        Formula body = parseFormulaBody(expression.getChildren().get(4));
+        Formula body;
+        this.currentLocals = paramMap;
+        try {
+            body = parseFormulaBody(expression.getChildren().get(4));
+        } finally {
+            this.currentLocals = null;
+        }
+
         FunctionMacro macro;
         try {
             macro = new FunctionMacro(name, paramsList, paramMap, body);
@@ -284,9 +301,9 @@ public class LogicParser extends Parser {
             return new PropositionalVariable((Token) expression);
         }
 
-        String operator = isBooleanCombination(expression);
+        Token operator = isBooleanCombination(expression);
         if (operator != null) {
-            if (operator.equals("not")) {
+            if (operator.equals(SExpressionConstants.NOT)) {
                 if (expression.getChildren().size() != 2)
                     throw new ParseError(expression,
                             "Expected exactly 1 expression after 'not'.");
@@ -295,7 +312,7 @@ public class LogicParser extends Parser {
                 return new NotFormula(negatedFormula);
             }
 
-            if (operator.equals("and")) {
+            if (operator.equals(SExpressionConstants.AND)) {
                 if (expression.getChildren().size() < 3)
                     throw new ParseError(expression,
                             "Expected at least 2 expression after 'and'.");
@@ -307,7 +324,7 @@ public class LogicParser extends Parser {
                 return new AndFormula(formulaList);
             }
 
-            if (operator.equals("or")) {
+            if (operator.equals(SExpressionConstants.OR)) {
                 if (expression.getChildren().size() < 3)
                     throw new ParseError(expression,
                             "Expected at least 2 expression after 'or'.");
@@ -319,7 +336,7 @@ public class LogicParser extends Parser {
                 return new OrFormula(formulaList);
             }
 
-            if (operator.equals("xor")) {
+            if (operator.equals(SExpressionConstants.XOR)) {
                 if (expression.getChildren().size() < 3)
                     throw new ParseError(expression,
                             "Expected at least 2 expression after 'xor'.");
@@ -331,7 +348,7 @@ public class LogicParser extends Parser {
                 return new XorFormula(formulaList);
             }
 
-            if (operator.equals("=>")) {
+            if (operator.equals(SExpressionConstants.IMPLIES)) {
                 if (expression.getChildren().size() != 3)
                     throw new ParseError(expression,
                             "Expected 2 arguments for '=>'.");
@@ -342,7 +359,7 @@ public class LogicParser extends Parser {
                 return new ImpliesFormula(leftSide, rightSide);
             }
 
-            if (operator.equals("ite")) {
+            if (operator.equals(SExpressionConstants.ITE)) {
                 if (expression.getChildren().size() != 4)
                     throw new ParseError(expression,
                             "Expected 3 arguments for 'ite'.");
@@ -392,35 +409,43 @@ public class LogicParser extends Parser {
             assert (expression.getChildren().get(0)
                     .equals(SExpressionConstants.FORALL));
             SExpression uVarsExpression = expression.getChildren().get(1);
-            Collection<DomainVariable> uVars = parseUVars(uVarsExpression);
-            SExpression property = expression.getChildren().get(2);
-            Formula indexGuard;
-            Formula valueConstraint;
-            if (property.getChildren().size() <= 2) { // not an implication
-                indexGuard = new PropositionalConstant(true);
-                valueConstraint = parseFormulaBody(property);
-            } else if (!property.getChildren().get(0)
-                    .equals(SExpressionConstants.IMPLIES)) {
-                // also not an implication
-                indexGuard = new PropositionalConstant(true);
-                valueConstraint = parseFormulaBody(property);
-            } else { // we have an implication
-                if (property.getChildren().size() != 3)
-                    throw new ParseError(property, "Malformed array property!");
-                assert (property.getChildren().get(0)
-                        .equals(SExpressionConstants.IMPLIES));
-                indexGuard = parseFormulaBody(property.getChildren().get(1));
-                valueConstraint = parseFormulaBody(property.getChildren()
-                        .get(2));
-            }
-
             try {
-                return new ArrayProperty(uVars, indexGuard, valueConstraint);
-            } catch (InvalidIndexGuardException exc) {
-                throw new ParseError(property, "Malformed index guard.", exc);
-            } catch (InvalidValueConstraintException exc) {
-                throw new ParseError(property, "Malformed value constraint.",
-                        exc);
+                currentUVars = parseUVars(uVarsExpression);
+                SExpression property = expression.getChildren().get(2);
+                Formula indexGuard;
+                Formula valueConstraint;
+                if (property.getChildren().size() <= 2) { // not an implication
+                    indexGuard = new PropositionalConstant(true);
+                    valueConstraint = parseFormulaBody(property);
+                } else if (!property.getChildren().get(0)
+                        .equals(SExpressionConstants.IMPLIES)) {
+                    // also not an implication
+                    indexGuard = new PropositionalConstant(true);
+                    valueConstraint = parseFormulaBody(property);
+                } else { // we have an implication
+                    if (property.getChildren().size() != 3)
+                        throw new ParseError(property,
+                                "Malformed array property!");
+                    assert (property.getChildren().get(0)
+                            .equals(SExpressionConstants.IMPLIES));
+                    indexGuard = parseFormulaBody(property.getChildren().get(1));
+                    valueConstraint = parseFormulaBody(property.getChildren()
+                            .get(2));
+                }
+
+                try {
+                    return new ArrayProperty(currentUVars, indexGuard,
+                            valueConstraint);
+                } catch (InvalidIndexGuardException exc) {
+                    throw new ParseError(property, "Malformed index guard.",
+                            exc);
+                } catch (InvalidValueConstraintException exc) {
+                    throw new ParseError(property,
+                            "Malformed value constraint.", exc);
+                }
+
+            } finally {
+                currentUVars = null;
             }
         }
 
@@ -508,6 +533,29 @@ public class LogicParser extends Parser {
      *             if parsing fails
      */
     private Term parseTerm(SExpression expression) throws ParseError {
+
+        if (isUVar(expression)) { // Takes precedence over other variable types
+            return new DomainVariable((Token) expression);
+        }
+
+        SExpression type = isLocalVariable(expression); // takes precedence over
+                                                        // global variables.
+        if (type != null) {
+            if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
+                return new ArrayVariable((Token) expression);
+            }
+            if (type.equals(SExpressionConstants.VALUE_TYPE)) {
+                return new DomainVariable((Token) expression);
+            }
+            if (type.equals(SExpressionConstants.BOOL_TYPE)
+                    || type.equals(SExpressionConstants.CONTROL_TYPE)) {
+                return new PropositionalVariable((Token) expression);
+            }
+            // In case we have a type that should not exist:
+            throw new RuntimeException(
+                    "Unexpected type while handling local variable: "
+                            + type.toString());
+        }
 
         if (isIteTerm(expression)) {
             if (expression.getChildren().size() != 4)
@@ -604,9 +652,87 @@ public class LogicParser extends Parser {
             return new ArrayRead((ArrayTerm) arrayTerm, (DomainTerm) indexTerm);
         }
 
+        if (isPropositional(expression)) {
+            if (expression.equals(SExpressionConstants.TRUE))
+                return new PropositionalConstant(true);
+            else if (expression.equals(SExpressionConstants.FALSE))
+                return new PropositionalConstant(false);
+
+            PropositionalVariable variable = new PropositionalVariable(
+                    (Token) expression);
+            if (!boolVariables.contains(variable)
+                    && !controlVariables.contains(variable))
+                throw new RuntimeException(
+                        "Unexpected situation while handling variable "
+                                + variable.toString());
+            return variable;
+        }
         // we have something we cannot handle
         throw new ParseError("General parse error while parsing term "
                 + expression.toString());
+    }
+
+    /**
+     * Checks if the given expression is a propositional variable or constant.
+     * 
+     * @param expression
+     *            the expression to check.
+     * @return <code>true</code> if the given expression is a propositional
+     *         variable or constant, <code>false</code> otherwise.
+     */
+    private boolean isPropositional(SExpression expression) {
+        if (!(expression instanceof Token))
+            return false;
+
+        if (expression.equals(SExpressionConstants.TRUE))
+            return true;
+
+        if (expression.equals(SExpressionConstants.FALSE))
+            return true;
+
+        PropositionalVariable variable = new PropositionalVariable(
+                (Token) expression);
+        if (boolVariables.contains(variable)
+                || controlVariables.contains(variable))
+            return true;
+        else
+            return false;
+    }
+
+    /**
+     * Checks if the given expression is a universally quantified variable (in
+     * current scope).
+     * 
+     * @param expression
+     *            the expression to check
+     * @return <code>true</code> if the expression is a universally quantified
+     *         variable, <code>false</code> otherwise.
+     */
+    private boolean isUVar(SExpression expression) {
+        if (currentUVars == null)
+            return false;
+
+        if (!(expression instanceof Token))
+            return false;
+
+        return (this.currentUVars.contains(new DomainVariable(
+                (Token) expression)));
+    }
+
+    /**
+     * Checks if the given expression is a current local variable. Returns the
+     * type of the variable, or <code>null</code> if no such variable exists.
+     * 
+     * @param expression
+     *            the expression to check
+     * @return the type of the local variable or <code>null</code> if it does
+     *         not exist.
+     */
+    private SExpression isLocalVariable(SExpression expression) {
+        if (currentLocals == null)
+            return null;
+
+        return currentLocals.get(expression);
     }
 
     /**
@@ -618,6 +744,8 @@ public class LogicParser extends Parser {
      *         is a <code>Token</code> and it equals the ITE operator.
      */
     private boolean isIteTerm(SExpression expression) {
+        if (expression instanceof Token)
+            return false;
         if (expression.getChildren().size() < 1)
             return false;
         if (expression.getChildren().get(0).equals(SExpressionConstants.ITE))
@@ -635,6 +763,8 @@ public class LogicParser extends Parser {
      *         is the <code>select</code> token, <code>false</code> otherwise.
      */
     private boolean isArrayRead(SExpression expression) {
+        if (expression instanceof Token)
+            return false;
         if (expression.getChildren().size() < 1)
             return false;
 
@@ -654,6 +784,8 @@ public class LogicParser extends Parser {
      *         is the <code>store</code> token, <code>false</code> otherwise.
      */
     private boolean isArrayWrite(SExpression expression) {
+        if (expression instanceof Token)
+            return false;
         if (expression.getChildren().size() < 1)
             return false;
 
@@ -683,7 +815,7 @@ public class LogicParser extends Parser {
             return null;
         Token name = (Token) expression.getChildren().get(0);
         for (UninterpretedFunction function : functions) {
-            if (name.equalsString(function.getName()))
+            if (name.equals(function.getName()))
                 return function;
         }
         return null;
@@ -727,6 +859,8 @@ public class LogicParser extends Parser {
      *         if this is not a macro instance
      */
     private FunctionMacro isMacroInstance(SExpression expression) {
+        if (expression instanceof Token)
+            return null;
         if (expression.getChildren().size() < 2)
             return null;
         if (!(expression.getChildren().get(0) instanceof Token))
@@ -771,6 +905,8 @@ public class LogicParser extends Parser {
      *         expression, <code>false</code> otherwise.
      */
     private boolean isEquality(SExpression expression) {
+        if (expression instanceof Token)
+            return false;
         if (expression.getChildren().size() < 3)
             return false;
         if (!(expression.getChildren().get(0) instanceof Token))
@@ -786,8 +922,8 @@ public class LogicParser extends Parser {
 
     /**
      * Checks if the given expression is a Boolean combination (excluding
-     * equality). If so, its operator is returned as a <code>String</code>.
-     * Otherwise, <code>null</code> is returned.
+     * equality). If so, its operator is returned. Otherwise, <code>null</code>
+     * is returned.
      * 
      * @param expression
      *            the expression to check.
@@ -795,7 +931,9 @@ public class LogicParser extends Parser {
      *         combination (except equality). <code>null</code> otherwise.
      * 
      */
-    private String isBooleanCombination(SExpression expression) {
+    private Token isBooleanCombination(SExpression expression) {
+        if (expression instanceof Token)
+            return null;
         if (expression.getChildren().size() < 2)
             return null;
         if (!(expression.getChildren().get(0) instanceof Token))
@@ -810,7 +948,7 @@ public class LogicParser extends Parser {
                 || operator.equals(SExpressionConstants.NOT)
                 || operator.equals(SExpressionConstants.IMPLIES)
                 || operator.equals(SExpressionConstants.ITE))
-            return operator.toString();
+            return operator;
 
         return null;
     }

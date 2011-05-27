@@ -59,4 +59,11 @@ public class PropositionalVariable extends PropositionalTerm {
         return varName.equals(((PropositionalVariable) obj).varName);
     }
 
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return varName.hashCode();
+    }
 }

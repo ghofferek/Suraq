@@ -57,4 +57,13 @@ public class ArrayVariable extends ArrayTerm {
             return false;
         return varName.equals(((ArrayVariable) obj).varName);
     }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return varName.hashCode();
+    }
+
 }

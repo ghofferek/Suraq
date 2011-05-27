@@ -43,7 +43,8 @@ public class FunctionMacroInstance implements Formula {
             if (!paramMap.containsKey(parameter))
                 throw new InvalidParametersException(
                         "Given map misses parameter " + parameter.toString());
-            if (!paramMap.get(parameter).equals(macro.getParamType(parameter)))
+            if (!paramMap.get(parameter).getType()
+                    .equals(macro.getParamType(parameter)))
                 throw new InvalidParametersException(
                         "Type mismatch for parameter " + parameter.toString());
         }

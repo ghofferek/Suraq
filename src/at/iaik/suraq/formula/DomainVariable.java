@@ -61,6 +61,14 @@ public class DomainVariable extends DomainTerm {
     }
 
     /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return varName.hashCode();
+    }
+
+    /**
      * @see at.iaik.suraq.formula.DomainTerm#isEvar(java.util.Collection)
      */
     @Override

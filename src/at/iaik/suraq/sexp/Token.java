@@ -92,7 +92,7 @@ public class Token extends SExpression {
      */
     @Override
     public String toString() {
-        return token + "\n";
+        return token;
     }
 
     /**
@@ -119,6 +119,14 @@ public class Token extends SExpression {
         if (!(obj instanceof Token))
             return false;
         return token.equals(((Token) obj).token);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return token.hashCode();
     }
 
     /**

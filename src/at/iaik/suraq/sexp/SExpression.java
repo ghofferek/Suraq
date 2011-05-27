@@ -195,7 +195,8 @@ public class SExpression {
         StringBuffer buffer = new StringBuffer();
         buffer.append("(\n  ");
         for (SExpression child : children) {
-            buffer.append(child.toString().replace("\n", "\n  "));
+            buffer.append((child instanceof Token ? child.toString() + "\n"
+                    : child.toString()).replace("\n", "\n  "));
         }
         buffer = buffer.delete(buffer.length() - 2, buffer.length());
         buffer.append(")\n");
@@ -234,6 +235,18 @@ public class SExpression {
                     && children.get(count).equals(other.children.get(count));
 
         return result;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        int code = 0;
+        for (int count = 0; count < children.size(); count++) {
+            code = code ^ children.get(count).hashCode();
+        }
+        return code;
     }
 
     /**
