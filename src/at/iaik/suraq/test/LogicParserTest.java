@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import at.iaik.suraq.exceptions.ParseError;
+import at.iaik.suraq.formula.FunctionMacroInstance;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
@@ -25,7 +26,7 @@ public class LogicParserTest {
      */
     @Test
     public void testParseNoReadonlyPipelineExample() {
-
+        LogicParser logicParser = null;
         try {
             SExpParser sexpParser = new SExpParser(new File(
                     "./rsc/test/no_readonly_pipeline_example_suraq.smt2"));
@@ -34,7 +35,7 @@ public class LogicParserTest {
             SExpression result = sexpParser.getRootExpr();
             Assert.assertNotNull(result);
 
-            LogicParser logicParser = new LogicParser(result);
+            logicParser = new LogicParser(result);
             logicParser.parse();
             Assert.assertTrue(logicParser.wasParsingSuccessfull());
 
@@ -48,5 +49,22 @@ public class LogicParserTest {
             exc.printStackTrace();
             Assert.fail(exc.getMessage());
         }
+
+        // Some more detailed checks
+
+        Assert.assertEquals(1, logicParser.getControlVariables().size());
+        Assert.assertEquals("x", logicParser.getControlVariables().get(0)
+                .getVarName());
+        Assert.assertEquals(1, logicParser.getFunctions().size());
+        Assert.assertEquals("ALU", logicParser.getFunctions().get(0).getName()
+                .toString());
+        Assert.assertEquals(0, logicParser.getBoolVariables().size());
+        Assert.assertEquals(3, logicParser.getMacros().size());
+        Assert.assertEquals(9, logicParser.getArrayVariables().size());
+        Assert.assertEquals(6, logicParser.getDomainVariables().size());
+
+        Assert.assertNotNull(logicParser.getMainFormula());
+        Assert.assertTrue(logicParser.getMainFormula() instanceof FunctionMacroInstance);
+
     }
 }
