@@ -153,7 +153,7 @@ public class SExpParserTest {
         Assert.assertNotNull(result);
         Assert.assertTrue(result.size() == 1);
         Assert.assertEquals(result.getChildren().get(0).toString(),
-                "SingleToken\n");
+                "SingleToken");
     }
 
     /**
@@ -173,7 +173,7 @@ public class SExpParserTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(1, result.size());
         Assert.assertEquals(result.getChildren().get(0).toString(),
-                "SingleToken\n");
+                "SingleToken");
     }
 
     /**
@@ -194,7 +194,7 @@ public class SExpParserTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(1, result.size());
         Assert.assertEquals(result.getChildren().get(0).toString(),
-                "SingleToken\n");
+                "SingleToken");
     }
 
     /**
@@ -214,11 +214,11 @@ public class SExpParserTest {
         SExpression result = parser.getRootExpr();
         Assert.assertNotNull(result);
         Assert.assertEquals(3, result.size());
-        Assert.assertEquals("FirstToken\n", result.getChildren().get(0)
+        Assert.assertEquals("FirstToken", result.getChildren().get(0)
                 .toString());
-        Assert.assertEquals("SecondToken\n", result.getChildren().get(1)
+        Assert.assertEquals("SecondToken", result.getChildren().get(1)
                 .toString());
-        Assert.assertEquals("ThirdToken\n", result.getChildren().get(2)
+        Assert.assertEquals("ThirdToken", result.getChildren().get(2)
                 .toString());
     }
 
