@@ -11,8 +11,6 @@
 
 
 ; Declare arrays.
-; since ' ist not a valid SMTLIB symbol character, _ is used instead
-; a ! symbol is appended to variable duplicated for formula expansion
 ;
 ; Arrays must all be of sort (Array Value Value). Other types of arrays are not
 ; supported at this time. 
@@ -23,10 +21,6 @@
 (declare-fun REGsc_   () (Array Value Value))
 (declare-fun REGsc__  () (Array Value Value))
 
-(declare-fun REGci_!  () (Array Value Value))
-(declare-fun REGci__! () (Array Value Value))
-(declare-fun REGsc_!  () (Array Value Value))
-(declare-fun REGsc__! () (Array Value Value))
 
 
 ; Declare variables for pipeline registers
@@ -35,7 +29,6 @@
 
 (declare-fun v   () Value)
 (declare-fun v_  () Value)
-(declare-fun v_! () Value)
 (declare-fun w   () Value)
 
 
