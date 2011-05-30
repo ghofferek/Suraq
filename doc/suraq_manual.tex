@@ -4,8 +4,27 @@
 \usepackage{xspace}
 \usepackage{booktabs}
 \usepackage{graphicx}
-\usepackage[boxruled, linesnumbered]{algorithm2e}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Algorithm2e package and some custom definitions for it
+\usepackage[boxruled, linesnumbered]{algorithm2e}
+\SetAlgorithmName{Listing}{Listing}{Listings}
+\SetKw{declareFun}{declare-fun}
+\SetKw{defineFun}{define-fun}
+\SetKw{setLogic}{set-logic}
+\SetKwData{suraqlogic}{Suraq}
+\SetKw{Array}{Array}
+\SetKw{Bool}{Bool}
+\SetKw{Control}{Control}
+\SetKw{Value}{Value}
+\SetKwData{true}{true}
+\SetKwData{false}{false}
+\SetKw{store}{store}
+\SetKw{select}{select}
+\SetKw{assert}{assert}
+\SetKw{smtforall}{forall}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand\suraq{\mbox{\textsc{Suraq}}\xspace}
 \newcommand\textbful[1]{\textbf{\underline{#1}}}
@@ -23,7 +42,11 @@ Institute for Applied Information Processing\\and Communications
 (IAIK),\\
 Graz University of Technology, Austria}
 \date{}
-\maketitle \pagebreak
+\maketitle
+ \vspace{14cm}
+ \pagebreak
+% \tableofcontents
+% \listofalgorithms
 
 
 \section{Introduction} \label{sec:introduction}
@@ -52,39 +75,75 @@ detailed in section. A \suraq input file forms the specification for
 a controller synthesis problem by stating a so-called
 \emph{equivalence criterion} \cite{Hoffer11}, which is a formula in a
 logic with (extensional) arrays, uninterpreted functions, and
-equality.
-
+equality. A (partial) example of what the input looks like is given
+in Listing~\ref{list:first_example}. For details on the syntax of
+s-expressions, comments, etc., refer to the SMTLIB standard
+\cite{SMTLIB}.
 
 \begin{algorithm}
 \DontPrintSemicolon
-  (set-logic Suraq)\;
-  (declare-fun REGci\_\_! () (Array Value Value))\;
-  (declare-fun REGsc\_!  () (Array Value Value))\;
-  (declare-fun REGsc\_\_! () (Array Value Value))\;
-
-  (declare-fun v   () Value)\;
-  (declare-fun v\_  () Value)\;
-  (declare-fun v\_! () Value)\;
-  (declare-fun w   () Value)\;
-  (declare-fun s () Value)\;
-
-  (declare-fun dest () Value)\;
-
-  (declare-fun x () Control)\;
-
-  (declare-fun ALU (Value) Value)\;
-
-  (define-fun equiv ((A (Array Value Value))(B (Array Value Value))) Bool (\;
-    forall ((i Value)) (\;
-      = (select A i)\;
-        (select B i)\;
-      )\;
-    )\;
-  )\;
-
-  (assert (formula REG REGci\_  REGci\_\_  REGsc\_  REGsc\_\_  v v\_  w s dest x))\;
+  (\setLogic \suraqlogic)\;
+  \BlankLine
+  [...]
+  \BlankLine
+  (\declareFun REGci\_\_ () (\Array \Value \Value))\;
+  (\declareFun REGsc\_  ()  (\Array \Value \Value))\;
+  (\declareFun REGsc\_\_ () (\Array \Value \Value))\;
+\BlankLine
+  (\declareFun v    () \Value)\;
+  (\declareFun v\_  () \Value)\;
+  (\declareFun w    () \Value)\;
+  (\declareFun s    () \Value)\;
+\BlankLine
+  (\declareFun x () \Control)\;
+\BlankLine
+  (\declareFun ALU (\Value) \Value)\;
+\BlankLine
+  (\defineFun equiv \;\Indp
+  ((A (\Array \Value \Value))(B (\Array \Value \Value)))\;
+  \Bool (\;\Indp
+    \smtforall ((i \Value)) (\;\Indp
+      = (\select A i)\; \Indp
+        (\select B i)\;\Indm
+ \Indm      )\;
+ \Indm    )\;
+ \Indm  )\;
+  \BlankLine
+  [...]
+  \BlankLine
+  (\assert \;\Indp
+  (formula REG REGci\_  REGci\_\_  REGsc\_  REGsc\_\_  v v\_  w s dest
+  x))\;\Indm
+  \caption{Example of input format.} \label{list:first_example}
 \end{algorithm}
 
+
+The first command in each \suraq input file needs to be (\setLogic
+\suraqlogic). This command identifies the rest of the file as a
+\suraq input file. This implicitly defines two sorts\footnote{
+``sort'' is the SMTLIB word for a datatype.}, \Control and \Value, in
+addition to the sort \Bool, defined by the core theory. \Control is a
+sort that is used for Boolean variables, for which logic should be
+synthesized. An expression of sort \Control can be used anywhere a
+\Bool expression is expected. \Value, on the other hand, is a sort
+that represents elements of an uninterpreted domain. It is implicitly
+assumed that the domain of sort \Value is large enough to assign
+pairwise distinct values to all variables in the entire formula. It
+is easiest to think about it as having an infinite domain.
+%
+It is possible to build arrays of sort \Value, i.e., the (complex)
+sort (\Array \Value \Value). Note that sort \Value is used as both,
+the index and the element domain of these arrays. Any other sorts are
+not supported by \suraq at this time.
+
+After the initial \setLogic command, you should declare all
+identifiers that will be used in the formula. Note that SMTLIB
+requires that identifiers are declared before their respective first
+use. Identifiers include domain variables (sort \Value), Boolean
+control variables for which logic should be synthesized (sort
+\Control), other Boolean variables (sort \Bool), uninterpreted
+functions (mapping from (\Value, \Value, \ldots) to \Value), and
+arrays.
 
 \bibliography{suraq}
 \end{document}
