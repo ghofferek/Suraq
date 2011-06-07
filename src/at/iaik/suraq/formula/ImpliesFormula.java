@@ -49,4 +49,13 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         list.add(rightSide);
         return list;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        return new ImpliesFormula(leftSide.deepFormulaCopy(),
+                rightSide.deepFormulaCopy());
+    }
 }

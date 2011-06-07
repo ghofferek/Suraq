@@ -40,4 +40,12 @@ public class NotFormula extends BooleanCombinationFormula {
         list.add(formula);
         return list;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        return new NotFormula(formula.deepFormulaCopy());
+    }
 }

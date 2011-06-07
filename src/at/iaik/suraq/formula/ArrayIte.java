@@ -71,4 +71,13 @@ public class ArrayIte extends ArrayTerm {
         return elseBranch;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return new ArrayIte(condition.deepFormulaCopy(),
+                (ArrayTerm) thenBranch.deepTermCopy(),
+                (ArrayTerm) elseBranch.deepTermCopy());
+    }
 }

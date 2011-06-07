@@ -12,5 +12,10 @@ package at.iaik.suraq.formula;
  */
 public interface Formula {
 
-    // TODO add common methods.
+    /**
+     * Returns a deep copy of the formula.
+     * 
+     * @return a deep copy of the formula
+     */
+    public Formula deepFormulaCopy();
 }

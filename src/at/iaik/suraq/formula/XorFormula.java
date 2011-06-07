@@ -41,4 +41,15 @@ public class XorFormula extends BooleanCombinationFormula {
     public Collection<Formula> getSubFormulas() {
         return new ArrayList<Formula>(formulas);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        List<Formula> subformulas = new ArrayList<Formula>();
+        for (Formula formula : formulas)
+            subformulas.add(formula.deepFormulaCopy());
+        return new XorFormula(subformulas);
+    }
 }

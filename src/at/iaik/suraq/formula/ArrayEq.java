@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A formula consisting of the (in)equality of array terms.
@@ -26,5 +28,17 @@ public class ArrayEq extends EqualityFormula {
      */
     public ArrayEq(Collection<ArrayTerm> arrayTerms, boolean equal) {
         super(arrayTerms, equal);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        List<ArrayTerm> terms = new ArrayList<ArrayTerm>();
+        for (Term term : this.terms) {
+            terms.add((ArrayTerm) term.deepTermCopy());
+        }
+        return new ArrayEq(terms, equal);
     }
 }

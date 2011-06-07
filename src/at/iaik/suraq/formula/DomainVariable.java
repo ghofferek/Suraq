@@ -75,4 +75,12 @@ public class DomainVariable extends DomainTerm {
     public boolean isEvar(Collection<DomainVariable> uVars) {
         return !uVars.contains(this);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return new DomainVariable(new String(varName));
+    }
 }

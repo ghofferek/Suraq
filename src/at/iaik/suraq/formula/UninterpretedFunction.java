@@ -54,6 +54,19 @@ public class UninterpretedFunction {
     }
 
     /**
+     * 
+     * Constructs a new <code>UninterpretedFunction</code> as a deep copy of the
+     * given one.
+     * 
+     * @param original
+     *            the object to (deep) copy
+     */
+    public UninterpretedFunction(UninterpretedFunction original) {
+        this.numParams = original.numParams;
+        this.name = (Token) original.name.deepCopy();
+    }
+
+    /**
      * Returns the number of parameters of this function.
      * 
      * @return the number of parameters.

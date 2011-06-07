@@ -70,4 +70,14 @@ public class ArrayWrite extends ArrayTerm {
         return valueTerm;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return new ArrayWrite((ArrayTerm) arrayTerm.deepTermCopy(),
+                (DomainTerm) indexTerm.deepTermCopy(),
+                (DomainTerm) valueTerm.deepTermCopy());
+    }
+
 }

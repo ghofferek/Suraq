@@ -66,4 +66,21 @@ public class PropositionalVariable extends PropositionalTerm {
     public int hashCode() {
         return varName.hashCode();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return new PropositionalVariable(new String(varName));
+    }
 }

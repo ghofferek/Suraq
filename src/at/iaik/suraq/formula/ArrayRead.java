@@ -61,4 +61,13 @@ public class ArrayRead extends DomainTerm {
     public ArrayTerm getArrayTerm() {
         return arrayTerm;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return new ArrayRead((ArrayTerm) arrayTerm.deepTermCopy(),
+                (DomainTerm) index.deepTermCopy());
+    }
 }

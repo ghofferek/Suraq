@@ -82,4 +82,14 @@ public class DomainIte extends DomainTerm {
         return elseBranch;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return new DomainIte(condition.deepFormulaCopy(),
+                (DomainTerm) thenBranch.deepTermCopy(),
+                (DomainTerm) elseBranch.deepTermCopy());
+    }
+
 }

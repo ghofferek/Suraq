@@ -83,4 +83,26 @@ public class FunctionMacroInstance implements Formula {
         return new HashMap<Token, Term>(paramMap);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        FunctionMacro macro = new FunctionMacro(this.macro);
+        Map<Token, Term> paramMap = new HashMap<Token, Term>();
+        for (Token token : this.paramMap.keySet())
+            paramMap.put((Token) token.deepCopy(), this.paramMap.get(token)
+                    .deepTermCopy());
+
+        try {
+            return new FunctionMacroInstance(macro, paramMap);
+        } catch (InvalidParametersException exc) {
+            // This should never happen!
+            assert (false);
+            throw new RuntimeException(
+                    "Unexpected situation while copying function macro instance.",
+                    exc);
+        }
+    }
+
 }

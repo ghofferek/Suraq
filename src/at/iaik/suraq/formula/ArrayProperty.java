@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -194,6 +195,31 @@ public class ArrayProperty implements Formula {
      */
     public Formula getValueConstraint() {
         return valueConstraint;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        List<DomainVariable> uVars = new ArrayList<DomainVariable>();
+        for (DomainVariable uVar : this.uVars)
+            uVars.add((DomainVariable) uVar.deepTermCopy());
+        try {
+            return new ArrayProperty(uVars, indexGuard.deepFormulaCopy(),
+                    valueConstraint.deepFormulaCopy());
+        } catch (InvalidIndexGuardException exc) {
+            // This should never happen!
+            assert (false);
+            throw new RuntimeException(
+                    "Unexpected situation while copying array property.", exc);
+
+        } catch (InvalidValueConstraintException exc) {
+            // This should never happen!
+            assert (false);
+            throw new RuntimeException(
+                    "Unexpected situation while copying array property.", exc);
+        }
     }
 
 }

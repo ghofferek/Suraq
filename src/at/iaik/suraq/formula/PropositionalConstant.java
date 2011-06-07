@@ -33,4 +33,20 @@ public class PropositionalConstant extends PropositionalTerm {
         return constant;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        return new PropositionalConstant(constant);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return new PropositionalConstant(constant);
+    }
+
 }

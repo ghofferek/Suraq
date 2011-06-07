@@ -65,5 +65,17 @@ public abstract class Term {
 
     }
 
+    /**
+     * Returns the type of this term.
+     * 
+     * @return the type of this term.
+     */
     public abstract SExpression getType();
+
+    /**
+     * Returns a deep copy of this term.
+     * 
+     * @return a deep copy of this term.
+     */
+    public abstract Term deepTermCopy();
 }

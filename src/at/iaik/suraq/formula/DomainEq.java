@@ -41,4 +41,16 @@ public class DomainEq extends EqualityFormula {
             terms.add(((DomainTerm) term));
         return terms;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        List<DomainTerm> terms = new ArrayList<DomainTerm>();
+        for (Term term : this.terms) {
+            terms.add((DomainTerm) term.deepTermCopy());
+        }
+        return new DomainEq(terms, equal);
+    }
 }

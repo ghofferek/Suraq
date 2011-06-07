@@ -78,4 +78,24 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         }
         return true;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        List<DomainTerm> parameters = new ArrayList<DomainTerm>();
+        for (DomainTerm term : this.parameters)
+            parameters.add((DomainTerm) term.deepTermCopy());
+        try {
+            return new UninterpretedFunctionInstance(new UninterpretedFunction(
+                    function), parameters);
+        } catch (WrongNumberOfParametersException exc) {
+            // This should never happen!
+            assert (false);
+            throw new RuntimeException(
+                    "Unexpected situation while copying uninterpreted function instance.",
+                    exc);
+        }
+    }
 }

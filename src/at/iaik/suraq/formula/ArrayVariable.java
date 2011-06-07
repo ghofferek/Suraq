@@ -66,4 +66,12 @@ public class ArrayVariable extends ArrayTerm {
         return varName.hashCode();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return new ArrayVariable(new String(varName));
+    }
+
 }

@@ -72,6 +72,26 @@ public class FunctionMacro {
     }
 
     /**
+     * Constructs a new <code>FunctionMacro</code>, which is a deep copy of the
+     * given one
+     * 
+     * @param macro
+     *            the macro to (deep) copy.
+     */
+    public FunctionMacro(FunctionMacro macro) {
+
+        this.name = (Token) macro.name.deepCopy();
+        this.parameters = new ArrayList<Token>();
+        for (Token parameter : macro.parameters)
+            this.parameters.add((Token) parameter.deepCopy());
+        this.paramMap = new HashMap<Token, SExpression>();
+        for (Token token : macro.paramMap.keySet())
+            this.paramMap.put((Token) token.deepCopy(),
+                    macro.paramMap.get(token).deepCopy());
+        this.body = macro.body.deepFormulaCopy();
+    }
+
+    /**
      * @return the <code>name</code>
      */
     public Token getName() {

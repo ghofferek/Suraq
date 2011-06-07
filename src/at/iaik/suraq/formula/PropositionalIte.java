@@ -59,4 +59,13 @@ public class PropositionalIte extends BooleanCombinationFormula {
         list.add(elseBranch);
         return list;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        return new PropositionalIte(condition.deepFormulaCopy(),
+                thenBranch.deepFormulaCopy(), elseBranch.deepFormulaCopy());
+    }
 }
