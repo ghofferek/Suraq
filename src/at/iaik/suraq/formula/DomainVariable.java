@@ -4,6 +4,8 @@
 package at.iaik.suraq.formula;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import at.iaik.suraq.sexp.Token;
 
@@ -82,5 +84,31 @@ public class DomainVariable extends DomainTerm {
     @Override
     public Term deepTermCopy() {
         return new DomainVariable(new String(varName));
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        return new HashSet<ArrayVariable>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> result = new HashSet<DomainVariable>();
+        result.add(new DomainVariable(varName));
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        return new HashSet<PropositionalVariable>();
     }
 }

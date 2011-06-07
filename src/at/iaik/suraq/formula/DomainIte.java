@@ -4,6 +4,7 @@
 package at.iaik.suraq.formula;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * An if-then-else-style domain term.
@@ -92,4 +93,34 @@ public class DomainIte extends DomainTerm {
                 (DomainTerm) elseBranch.deepTermCopy());
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        Set<ArrayVariable> result = thenBranch.getSetOfArrayVariables();
+        result.addAll(elseBranch.getSetOfArrayVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> result = thenBranch.getSetOfDomainVariables();
+        result.addAll(elseBranch.getSetOfDomainVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> result = thenBranch
+                .getSetOfPropositionalVariables();
+        result.addAll(elseBranch.getSetOfPropositionalVariables());
+        return result;
+    }
 }

@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.Set;
+
 /**
  * An array write expression.
  * 
@@ -80,4 +82,37 @@ public class ArrayWrite extends ArrayTerm {
                 (DomainTerm) valueTerm.deepTermCopy());
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        Set<ArrayVariable> result = arrayTerm.getSetOfArrayVariables();
+        result.addAll(indexTerm.getSetOfArrayVariables());
+        result.addAll(valueTerm.getSetOfArrayVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> result = arrayTerm.getSetOfDomainVariables();
+        result.addAll(indexTerm.getSetOfDomainVariables());
+        result.addAll(valueTerm.getSetOfDomainVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> result = arrayTerm
+                .getSetOfPropositionalVariables();
+        result.addAll(indexTerm.getSetOfPropositionalVariables());
+        result.addAll(valueTerm.getSetOfPropositionalVariables());
+        return result;
+    }
 }

@@ -6,6 +6,7 @@ package at.iaik.suraq.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A class for formulas of the form (a => b).
@@ -58,4 +59,36 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         return new ImpliesFormula(leftSide.deepFormulaCopy(),
                 rightSide.deepFormulaCopy());
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        Set<ArrayVariable> result = leftSide.getSetOfArrayVariables();
+        result.addAll(rightSide.getSetOfArrayVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> result = leftSide.getSetOfDomainVariables();
+        result.addAll(rightSide.getSetOfDomainVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> result = leftSide
+                .getSetOfPropositionalVariables();
+        result.addAll(rightSide.getSetOfPropositionalVariables());
+        return result;
+    }
+
 }

@@ -3,6 +3,9 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * A formula that consists of a simple propositional constant.
  * 
@@ -47,6 +50,30 @@ public class PropositionalConstant extends PropositionalTerm {
     @Override
     public Term deepTermCopy() {
         return new PropositionalConstant(constant);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        return new HashSet<ArrayVariable>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        return new HashSet<DomainVariable>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        return new HashSet<PropositionalVariable>();
     }
 
 }

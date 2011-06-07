@@ -6,6 +6,7 @@ package at.iaik.suraq.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A formula representing the negation of another one.
@@ -47,5 +48,29 @@ public class NotFormula extends BooleanCombinationFormula {
     @Override
     public Formula deepFormulaCopy() {
         return new NotFormula(formula.deepFormulaCopy());
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        return formula.getSetOfArrayVariables();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        return formula.getSetOfDomainVariables();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        return formula.getSetOfPropositionalVariables();
     }
 }

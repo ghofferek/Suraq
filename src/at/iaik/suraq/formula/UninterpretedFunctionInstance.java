@@ -5,7 +5,9 @@ package at.iaik.suraq.formula;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 
@@ -97,5 +99,38 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                     "Unexpected situation while copying uninterpreted function instance.",
                     exc);
         }
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        Set<ArrayVariable> variables = new HashSet<ArrayVariable>();
+        for (Term term : parameters)
+            variables.addAll(term.getSetOfArrayVariables());
+        return variables;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> variables = new HashSet<DomainVariable>();
+        for (Term term : parameters)
+            variables.addAll(term.getSetOfDomainVariables());
+        return variables;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> variables = new HashSet<PropositionalVariable>();
+        for (Term term : parameters)
+            variables.addAll(term.getSetOfPropositionalVariables());
+        return variables;
     }
 }

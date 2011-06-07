@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import at.iaik.suraq.exceptions.InvalidIndexGuardException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
@@ -222,4 +223,33 @@ public class ArrayProperty implements Formula {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        return valueConstraint.getSetOfArrayVariables();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> result = indexGuard.getSetOfDomainVariables();
+        result.addAll(valueConstraint.getSetOfDomainVariables());
+        result.removeAll(uVars);
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> result = indexGuard
+                .getSetOfPropositionalVariables();
+        result.addAll(valueConstraint.getSetOfPropositionalVariables());
+        return result;
+    }
 }

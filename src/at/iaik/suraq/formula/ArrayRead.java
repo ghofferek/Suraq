@@ -4,6 +4,7 @@
 package at.iaik.suraq.formula;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -69,5 +70,36 @@ public class ArrayRead extends DomainTerm {
     public Term deepTermCopy() {
         return new ArrayRead((ArrayTerm) arrayTerm.deepTermCopy(),
                 (DomainTerm) index.deepTermCopy());
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        Set<ArrayVariable> result = arrayTerm.getSetOfArrayVariables();
+        result.addAll(index.getSetOfArrayVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> result = arrayTerm.getSetOfDomainVariables();
+        result.addAll(index.getSetOfDomainVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> result = arrayTerm
+                .getSetOfPropositionalVariables();
+        result.addAll(index.getSetOfPropositionalVariables());
+        return result;
     }
 }

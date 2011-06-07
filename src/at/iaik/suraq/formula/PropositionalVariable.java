@@ -3,6 +3,9 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -82,5 +85,31 @@ public class PropositionalVariable extends PropositionalTerm {
     @Override
     public Term deepTermCopy() {
         return new PropositionalVariable(new String(varName));
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        return new HashSet<ArrayVariable>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        return new HashSet<DomainVariable>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> result = new HashSet<PropositionalVariable>();
+        result.add(new PropositionalVariable(varName));
+        return result;
     }
 }

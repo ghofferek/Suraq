@@ -5,7 +5,6 @@ package at.iaik.suraq.formula;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * 
@@ -14,12 +13,7 @@ import java.util.List;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class OrFormula extends BooleanCombinationFormula {
-
-    /**
-     * The list of disjuncted formulas.
-     */
-    private final List<Formula> formulas;
+public class OrFormula extends AndOrXorFormula {
 
     /**
      * 
@@ -30,8 +24,7 @@ public class OrFormula extends BooleanCombinationFormula {
      *            the formulas to disjunct.
      */
     public OrFormula(Collection<Formula> formulas) {
-        this.formulas = new ArrayList<Formula>();
-        this.formulas.addAll(formulas);
+        super(formulas);
     }
 
     /**
@@ -41,24 +34,5 @@ public class OrFormula extends BooleanCombinationFormula {
      */
     public Collection<Formula> getDisjuncts() {
         return new ArrayList<Formula>(formulas);
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.BooleanCombinationFormula#getSubFormulas()
-     */
-    @Override
-    public Collection<Formula> getSubFormulas() {
-        return new ArrayList<Formula>(formulas);
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
-     */
-    @Override
-    public Formula deepFormulaCopy() {
-        List<Formula> subformulas = new ArrayList<Formula>();
-        for (Formula formula : formulas)
-            subformulas.add(formula.deepFormulaCopy());
-        return new OrFormula(subformulas);
     }
 }

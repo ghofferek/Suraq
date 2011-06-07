@@ -4,7 +4,9 @@
 package at.iaik.suraq.formula;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.sexp.Token;
@@ -103,6 +105,39 @@ public class FunctionMacroInstance implements Formula {
                     "Unexpected situation while copying function macro instance.",
                     exc);
         }
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        Set<ArrayVariable> variables = new HashSet<ArrayVariable>();
+        for (Term term : paramMap.values())
+            variables.addAll(term.getSetOfArrayVariables());
+        return variables;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> variables = new HashSet<DomainVariable>();
+        for (Term term : paramMap.values())
+            variables.addAll(term.getSetOfDomainVariables());
+        return variables;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> variables = new HashSet<PropositionalVariable>();
+        for (Term term : paramMap.values())
+            variables.addAll(term.getSetOfPropositionalVariables());
+        return variables;
     }
 
 }

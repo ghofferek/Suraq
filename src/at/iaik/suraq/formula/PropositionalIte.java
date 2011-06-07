@@ -6,6 +6,7 @@ package at.iaik.suraq.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents an if-then-else-style formula.
@@ -67,5 +68,36 @@ public class PropositionalIte extends BooleanCombinationFormula {
     public Formula deepFormulaCopy() {
         return new PropositionalIte(condition.deepFormulaCopy(),
                 thenBranch.deepFormulaCopy(), elseBranch.deepFormulaCopy());
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     */
+    @Override
+    public Set<ArrayVariable> getSetOfArrayVariables() {
+        Set<ArrayVariable> result = thenBranch.getSetOfArrayVariables();
+        result.addAll(elseBranch.getSetOfArrayVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     */
+    @Override
+    public Set<DomainVariable> getSetOfDomainVariables() {
+        Set<DomainVariable> result = thenBranch.getSetOfDomainVariables();
+        result.addAll(elseBranch.getSetOfDomainVariables());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     */
+    @Override
+    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+        Set<PropositionalVariable> result = thenBranch
+                .getSetOfPropositionalVariables();
+        result.addAll(elseBranch.getSetOfPropositionalVariables());
+        return result;
     }
 }

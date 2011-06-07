@@ -4,6 +4,7 @@
 package at.iaik.suraq.formula;
 
 import java.util.Collection;
+import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
 
@@ -78,4 +79,26 @@ public abstract class Term {
      * @return a deep copy of this term.
      */
     public abstract Term deepTermCopy();
+
+    /**
+     * Returns a set of all array variables used in this term.
+     * 
+     * @return a set of array variables used in this term.
+     */
+    public abstract Set<ArrayVariable> getSetOfArrayVariables();
+
+    /**
+     * Returns a set of all domain variables used in this term.
+     * 
+     * @return a set of domain variables used in this term.
+     */
+    public abstract Set<DomainVariable> getSetOfDomainVariables();
+
+    /**
+     * Returns a set of all propositional variables used in this term.
+     * 
+     * @return a set of propositional variables used in this term.
+     */
+    public abstract Set<PropositionalVariable> getSetOfPropositionalVariables();
+
 }
