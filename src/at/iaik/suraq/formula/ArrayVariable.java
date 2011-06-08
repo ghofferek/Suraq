@@ -78,28 +78,28 @@ public class ArrayVariable extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
+    public Set<ArrayVariable> getArrayVariables() {
         Set<ArrayVariable> result = new HashSet<ArrayVariable>();
         result.add(new ArrayVariable(varName));
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
+    public Set<DomainVariable> getDomainVariables() {
         return new HashSet<DomainVariable>();
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         return new HashSet<PropositionalVariable>();
     }
 

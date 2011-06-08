@@ -94,33 +94,33 @@ public class DomainIte extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
-        Set<ArrayVariable> result = thenBranch.getSetOfArrayVariables();
-        result.addAll(elseBranch.getSetOfArrayVariables());
+    public Set<ArrayVariable> getArrayVariables() {
+        Set<ArrayVariable> result = thenBranch.getArrayVariables();
+        result.addAll(elseBranch.getArrayVariables());
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
-        Set<DomainVariable> result = thenBranch.getSetOfDomainVariables();
-        result.addAll(elseBranch.getSetOfDomainVariables());
+    public Set<DomainVariable> getDomainVariables() {
+        Set<DomainVariable> result = thenBranch.getDomainVariables();
+        result.addAll(elseBranch.getDomainVariables());
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = thenBranch
-                .getSetOfPropositionalVariables();
-        result.addAll(elseBranch.getSetOfPropositionalVariables());
+                .getPropositionalVariables();
+        result.addAll(elseBranch.getPropositionalVariables());
         return result;
     }
 }

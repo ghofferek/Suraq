@@ -224,32 +224,32 @@ public class ArrayProperty implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
-        return valueConstraint.getSetOfArrayVariables();
+    public Set<ArrayVariable> getArrayVariables() {
+        return valueConstraint.getArrayVariables();
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
-        Set<DomainVariable> result = indexGuard.getSetOfDomainVariables();
-        result.addAll(valueConstraint.getSetOfDomainVariables());
+    public Set<DomainVariable> getDomainVariables() {
+        Set<DomainVariable> result = indexGuard.getDomainVariables();
+        result.addAll(valueConstraint.getDomainVariables());
         result.removeAll(uVars);
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = indexGuard
-                .getSetOfPropositionalVariables();
-        result.addAll(valueConstraint.getSetOfPropositionalVariables());
+                .getPropositionalVariables();
+        result.addAll(valueConstraint.getPropositionalVariables());
         return result;
     }
 }

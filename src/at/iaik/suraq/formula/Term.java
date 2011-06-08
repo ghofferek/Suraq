@@ -85,20 +85,20 @@ public abstract class Term {
      * 
      * @return a set of array variables used in this term.
      */
-    public abstract Set<ArrayVariable> getSetOfArrayVariables();
+    public abstract Set<ArrayVariable> getArrayVariables();
 
     /**
      * Returns a set of all domain variables used in this term.
      * 
      * @return a set of domain variables used in this term.
      */
-    public abstract Set<DomainVariable> getSetOfDomainVariables();
+    public abstract Set<DomainVariable> getDomainVariables();
 
     /**
      * Returns a set of all propositional variables used in this term.
      * 
      * @return a set of propositional variables used in this term.
      */
-    public abstract Set<PropositionalVariable> getSetOfPropositionalVariables();
+    public abstract Set<PropositionalVariable> getPropositionalVariables();
 
 }

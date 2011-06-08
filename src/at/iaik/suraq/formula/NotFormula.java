@@ -51,26 +51,26 @@ public class NotFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
-        return formula.getSetOfArrayVariables();
+    public Set<ArrayVariable> getArrayVariables() {
+        return formula.getArrayVariables();
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
-        return formula.getSetOfDomainVariables();
+    public Set<DomainVariable> getDomainVariables() {
+        return formula.getDomainVariables();
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
-        return formula.getSetOfPropositionalVariables();
+    public Set<PropositionalVariable> getPropositionalVariables() {
+        return formula.getPropositionalVariables();
     }
 }

@@ -26,20 +26,20 @@ public interface Formula {
      * 
      * @return a set of array variables used in this formula.
      */
-    public Set<ArrayVariable> getSetOfArrayVariables();
+    public Set<ArrayVariable> getArrayVariables();
 
     /**
      * Returns a set of all domain variables used in this formula.
      * 
      * @return a set of domain variables used in this formula.
      */
-    public Set<DomainVariable> getSetOfDomainVariables();
+    public Set<DomainVariable> getDomainVariables();
 
     /**
      * Returns a set of all propositional variables used in this formula.
      * 
      * @return a set of propositional variables used in this formula.
      */
-    public Set<PropositionalVariable> getSetOfPropositionalVariables();
+    public Set<PropositionalVariable> getPropositionalVariables();
 
 }

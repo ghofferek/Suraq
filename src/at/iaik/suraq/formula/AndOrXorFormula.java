@@ -35,35 +35,35 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
+    public Set<ArrayVariable> getArrayVariables() {
         Set<ArrayVariable> variables = new HashSet<ArrayVariable>();
         for (Formula formula : formulas)
-            variables.addAll(formula.getSetOfArrayVariables());
+            variables.addAll(formula.getArrayVariables());
         return variables;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
+    public Set<DomainVariable> getDomainVariables() {
         Set<DomainVariable> variables = new HashSet<DomainVariable>();
         for (Formula formula : formulas)
-            variables.addAll(formula.getSetOfDomainVariables());
+            variables.addAll(formula.getDomainVariables());
         return variables;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> variables = new HashSet<PropositionalVariable>();
         for (Formula formula : formulas)
-            variables.addAll(formula.getSetOfPropositionalVariables());
+            variables.addAll(formula.getPropositionalVariables());
         return variables;
     }
 

@@ -73,33 +73,33 @@ public class ArrayRead extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
-        Set<ArrayVariable> result = arrayTerm.getSetOfArrayVariables();
-        result.addAll(index.getSetOfArrayVariables());
+    public Set<ArrayVariable> getArrayVariables() {
+        Set<ArrayVariable> result = arrayTerm.getArrayVariables();
+        result.addAll(index.getArrayVariables());
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
-        Set<DomainVariable> result = arrayTerm.getSetOfDomainVariables();
-        result.addAll(index.getSetOfDomainVariables());
+    public Set<DomainVariable> getDomainVariables() {
+        Set<DomainVariable> result = arrayTerm.getDomainVariables();
+        result.addAll(index.getDomainVariables());
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = arrayTerm
-                .getSetOfPropositionalVariables();
-        result.addAll(index.getSetOfPropositionalVariables());
+                .getPropositionalVariables();
+        result.addAll(index.getPropositionalVariables());
         return result;
     }
 }

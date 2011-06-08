@@ -88,26 +88,26 @@ public class PropositionalVariable extends PropositionalTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
+    public Set<ArrayVariable> getArrayVariables() {
         return new HashSet<ArrayVariable>();
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
+    public Set<DomainVariable> getDomainVariables() {
         return new HashSet<DomainVariable>();
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = new HashSet<PropositionalVariable>();
         result.add(new PropositionalVariable(varName));
         return result;

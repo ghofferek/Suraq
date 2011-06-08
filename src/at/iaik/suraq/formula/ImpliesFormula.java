@@ -61,33 +61,33 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
-        Set<ArrayVariable> result = leftSide.getSetOfArrayVariables();
-        result.addAll(rightSide.getSetOfArrayVariables());
+    public Set<ArrayVariable> getArrayVariables() {
+        Set<ArrayVariable> result = leftSide.getArrayVariables();
+        result.addAll(rightSide.getArrayVariables());
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
-        Set<DomainVariable> result = leftSide.getSetOfDomainVariables();
-        result.addAll(rightSide.getSetOfDomainVariables());
+    public Set<DomainVariable> getDomainVariables() {
+        Set<DomainVariable> result = leftSide.getDomainVariables();
+        result.addAll(rightSide.getDomainVariables());
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = leftSide
-                .getSetOfPropositionalVariables();
-        result.addAll(rightSide.getSetOfPropositionalVariables());
+                .getPropositionalVariables();
+        result.addAll(rightSide.getPropositionalVariables());
         return result;
     }
 

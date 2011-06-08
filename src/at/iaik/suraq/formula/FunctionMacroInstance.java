@@ -108,35 +108,35 @@ public class FunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
+    public Set<ArrayVariable> getArrayVariables() {
         Set<ArrayVariable> variables = new HashSet<ArrayVariable>();
         for (Term term : paramMap.values())
-            variables.addAll(term.getSetOfArrayVariables());
+            variables.addAll(term.getArrayVariables());
         return variables;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
+    public Set<DomainVariable> getDomainVariables() {
         Set<DomainVariable> variables = new HashSet<DomainVariable>();
         for (Term term : paramMap.values())
-            variables.addAll(term.getSetOfDomainVariables());
+            variables.addAll(term.getDomainVariables());
         return variables;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> variables = new HashSet<PropositionalVariable>();
         for (Term term : paramMap.values())
-            variables.addAll(term.getSetOfPropositionalVariables());
+            variables.addAll(term.getPropositionalVariables());
         return variables;
     }
 

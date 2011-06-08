@@ -83,36 +83,36 @@ public class ArrayWrite extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
-        Set<ArrayVariable> result = arrayTerm.getSetOfArrayVariables();
-        result.addAll(indexTerm.getSetOfArrayVariables());
-        result.addAll(valueTerm.getSetOfArrayVariables());
+    public Set<ArrayVariable> getArrayVariables() {
+        Set<ArrayVariable> result = arrayTerm.getArrayVariables();
+        result.addAll(indexTerm.getArrayVariables());
+        result.addAll(valueTerm.getArrayVariables());
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
-        Set<DomainVariable> result = arrayTerm.getSetOfDomainVariables();
-        result.addAll(indexTerm.getSetOfDomainVariables());
-        result.addAll(valueTerm.getSetOfDomainVariables());
+    public Set<DomainVariable> getDomainVariables() {
+        Set<DomainVariable> result = arrayTerm.getDomainVariables();
+        result.addAll(indexTerm.getDomainVariables());
+        result.addAll(valueTerm.getDomainVariables());
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = arrayTerm
-                .getSetOfPropositionalVariables();
-        result.addAll(indexTerm.getSetOfPropositionalVariables());
-        result.addAll(valueTerm.getSetOfPropositionalVariables());
+                .getPropositionalVariables();
+        result.addAll(indexTerm.getPropositionalVariables());
+        result.addAll(valueTerm.getPropositionalVariables());
         return result;
     }
 }

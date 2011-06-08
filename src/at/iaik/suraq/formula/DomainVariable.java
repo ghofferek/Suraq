@@ -87,28 +87,28 @@ public class DomainVariable extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfArrayVariables()
+     * @see at.iaik.suraq.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getSetOfArrayVariables() {
+    public Set<ArrayVariable> getArrayVariables() {
         return new HashSet<ArrayVariable>();
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfDomainVariables()
+     * @see at.iaik.suraq.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getSetOfDomainVariables() {
+    public Set<DomainVariable> getDomainVariables() {
         Set<DomainVariable> result = new HashSet<DomainVariable>();
         result.add(new DomainVariable(varName));
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getSetOfPropositionalVariables()
+     * @see at.iaik.suraq.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getSetOfPropositionalVariables() {
+    public Set<PropositionalVariable> getPropositionalVariables() {
         return new HashSet<PropositionalVariable>();
     }
 }
