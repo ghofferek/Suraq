@@ -11,6 +11,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.InvalidIndexGuardException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
+import at.iaik.suraq.exceptions.SuraqException;
 
 /**
  * 
@@ -251,5 +252,15 @@ public class ArrayProperty implements Formula {
                 .getPropositionalVariables();
         result.addAll(valueConstraint.getPropositionalVariables());
         return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+        return new ArrayProperty(new ArrayList<DomainVariable>(uVars),
+                indexGuard.negationNormalForm(),
+                valueConstraint.negationNormalForm());
     }
 }

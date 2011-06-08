@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
+
 /**
  * A class for formulas of the form (a => b).
  * 
@@ -89,6 +91,31 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 .getPropositionalVariables();
         result.addAll(rightSide.getPropositionalVariables());
         return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+        List<Formula> list = new ArrayList<Formula>();
+        list.add((new NotFormula(leftSide)).negationNormalForm());
+        list.add(rightSide.negationNormalForm());
+        return new OrFormula(list);
+    }
+
+    /**
+     * @return the <code>leftSide</code>
+     */
+    public Formula getLeftSide() {
+        return leftSide;
+    }
+
+    /**
+     * @return the <code>rightSide</code>
+     */
+    public Formula getRightSide() {
+        return rightSide;
     }
 
 }

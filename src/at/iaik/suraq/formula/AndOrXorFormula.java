@@ -3,11 +3,14 @@
  */
 package at.iaik.suraq.formula;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import at.iaik.suraq.exceptions.SuraqException;
 
 /**
  * A common superclass for And- Or- and Xor-formulas to avoid code redundancy.
@@ -85,4 +88,29 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             subformulas.add(formula.deepFormulaCopy());
         return new XorFormula(subformulas);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+        List<Formula> nnfFormulas = new ArrayList<Formula>();
+        for (Formula formula : formulas)
+            nnfFormulas.add(formula.negationNormalForm());
+
+        Class<? extends AndOrXorFormula> myClass = this.getClass();
+        Class<?> listClass = nnfFormulas.getClass();
+        AndOrXorFormula instance;
+        try {
+            Constructor<? extends AndOrXorFormula> constructor = myClass
+                    .getConstructor(listClass);
+            instance = constructor.newInstance(nnfFormulas);
+            return instance;
+        } catch (Throwable exc) {
+            throw new RuntimeException(
+                    "Unable to create object while putting formula in NNF.",
+                    exc);
+        }
+    }
+
 }

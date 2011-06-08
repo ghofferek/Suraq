@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
+import at.iaik.suraq.exceptions.SuraqException;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -144,6 +145,45 @@ public abstract class EqualityFormula implements Formula {
         for (Term term : terms)
             variables.addAll(term.getPropositionalVariables());
         return variables;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+
+        return this.deepFormulaCopy();
+    }
+
+    /**
+     * @return
+     */
+    public boolean isPair() {
+        return terms.size() == 2;
+    }
+
+    /**
+     * @return
+     */
+    public AndFormula toPairwise() {
+        List<Formula> pairs = new ArrayList<Formula>();
+        for (int i = 0; i < terms.size(); i++) {
+            for (int j = i; j < terms.size(); j++) {
+                List<Term> list = new ArrayList<Term>();
+                list.add(terms.get(i));
+                list.add(terms.get(j));
+                try {
+                    pairs.add(EqualityFormula.create(list, equal));
+                } catch (IncomparableTermsException exc) {
+                    // This should never happen
+                    throw new RuntimeException(
+                            "Unexpected situaton while making pairwise equalities.",
+                            exc);
+                }
+            }
+        }
+        return new AndFormula(pairs);
     }
 
 }

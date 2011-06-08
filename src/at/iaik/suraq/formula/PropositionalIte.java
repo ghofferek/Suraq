@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
+
 /**
  * Represents an if-then-else-style formula.
  * 
@@ -100,4 +102,36 @@ public class PropositionalIte extends BooleanCombinationFormula {
         result.addAll(elseBranch.getPropositionalVariables());
         return result;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+        return new PropositionalIte(condition.negationNormalForm(),
+                thenBranch.negationNormalForm(),
+                elseBranch.negationNormalForm());
+    }
+
+    /**
+     * @return the <code>condition</code>
+     */
+    public Formula getCondition() {
+        return condition;
+    }
+
+    /**
+     * @return the <code>thenBranch</code>
+     */
+    public Formula getThenBranch() {
+        return thenBranch;
+    }
+
+    /**
+     * @return the <code>elseBranch</code>
+     */
+    public Formula getElseBranch() {
+        return elseBranch;
+    }
+
 }

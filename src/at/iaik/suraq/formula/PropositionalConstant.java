@@ -6,6 +6,8 @@ package at.iaik.suraq.formula;
 import java.util.HashSet;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
+
 /**
  * A formula that consists of a simple propositional constant.
  * 
@@ -74,6 +76,14 @@ public class PropositionalConstant extends PropositionalTerm {
     @Override
     public Set<PropositionalVariable> getPropositionalVariables() {
         return new HashSet<PropositionalVariable>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+        return new PropositionalConstant(constant);
     }
 
 }

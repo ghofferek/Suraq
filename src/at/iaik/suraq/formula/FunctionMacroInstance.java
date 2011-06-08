@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.InvalidParametersException;
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -138,6 +139,15 @@ public class FunctionMacroInstance implements Formula {
         for (Term term : paramMap.values())
             variables.addAll(term.getPropositionalVariables());
         return variables;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+        Map<Token, Term> paramMap = new HashMap<Token, Term>(this.paramMap);
+        return new FunctionMacroInstance(macro.negationNormalForm(), paramMap);
     }
 
 }

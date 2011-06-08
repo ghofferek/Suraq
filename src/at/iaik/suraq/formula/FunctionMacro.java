@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import at.iaik.suraq.exceptions.InvalidParametersException;
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
@@ -174,6 +175,45 @@ public class FunctionMacro {
      */
     public Formula getBody() {
         return body;
+    }
+
+    /**
+     * Creates a new macro, which is the same as this one, but in NNF.
+     * 
+     * @return a copy of this macro in NNF.
+     * @throws SuraqException
+     *             if conversion to NNF fails (e.g. due to invalid array
+     *             properties)
+     */
+    public FunctionMacro negationNormalForm() throws SuraqException {
+        assert (!name.toString().endsWith("NNF"));
+
+        Token nnfName = new Token(name.toString() + "NNF");
+        Map<Token, SExpression> nnfParamMap = new HashMap<Token, SExpression>(
+                paramMap);
+        List<Token> nnfParameters = new ArrayList<Token>(parameters);
+
+        Formula nnfBody = body.negationNormalForm();
+
+        return new FunctionMacro(nnfName, nnfParameters, nnfParamMap, nnfBody);
+    }
+
+    /**
+     * Creates a macro with negated body, put in NNF.
+     * 
+     * @return a macro with a negated body, put in NNF.
+     * @throws SuraqException
+     */
+    public FunctionMacro negatedMacro() throws SuraqException {
+        Token negatedName = new Token(name.toString() + "Negated");
+        Map<Token, SExpression> negatedParamMap = new HashMap<Token, SExpression>(
+                paramMap);
+        List<Token> negatedParameters = new ArrayList<Token>(parameters);
+
+        Formula negatedBody = (new NotFormula(body)).negationNormalForm();
+
+        return new FunctionMacro(negatedName, negatedParameters,
+                negatedParamMap, negatedBody);
     }
 
 }

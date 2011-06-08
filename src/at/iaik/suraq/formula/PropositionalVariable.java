@@ -6,6 +6,7 @@ package at.iaik.suraq.formula;
 import java.util.HashSet;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -112,4 +113,13 @@ public class PropositionalVariable extends PropositionalTerm {
         result.add(new PropositionalVariable(varName));
         return result;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+        return this.deepFormulaCopy();
+    }
+
 }

@@ -237,6 +237,10 @@ public class LogicParser extends Parser {
 
         assert (expression.getChildren().get(1) instanceof Token);
         Token name = (Token) expression.getChildren().get(1);
+        if (name.toString().endsWith("NNF"))
+            throw new ParseError(name,
+                    "Names of function macros may not end with 'NNF'.");
+
         SExpression type = expression.getChildren().get(3);
         SExpression params = expression.getChildren().get(2);
         List<Token> paramsList = new ArrayList<Token>();
