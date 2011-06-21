@@ -3,9 +3,11 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * An array write expression.
@@ -168,6 +170,17 @@ public class ArrayWrite extends ArrayTerm {
     public Set<DomainTerm> getIndexSet() throws SuraqException {
         throw new SuraqException(
                 "Encountered array write while computing index set.");
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     */
+    @Override
+    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+        return new ArrayWrite(
+                (ArrayTerm) arrayTerm.convertToCallerScope(paramMap),
+                (DomainTerm) indexTerm.convertToCallerScope(paramMap),
+                (DomainTerm) valueTerm.convertToCallerScope(paramMap));
     }
 
 }

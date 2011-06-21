@@ -3,9 +3,11 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * 
@@ -78,5 +80,18 @@ public interface Formula {
      *             resulting invalid array properties.
      */
     public Formula negationNormalForm() throws SuraqException;
+
+    /**
+     * Returns a new formula that is a version of this formula, converted to a
+     * caller's scope by the given map. In other words, the local terms of a
+     * function macro's body are converted to the (more) global terms of the
+     * macro's instance. Terms which are not found in the map are returned
+     * unchanged.
+     * 
+     * @param paramMap
+     *            the map to convert local terms to the caller's scope
+     * @return a (new) formula, converted according to the given map.
+     */
+    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap);
 
 }

@@ -7,10 +7,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * An instance of an uninterpreted function.
@@ -193,4 +195,25 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         return result;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     */
+    @Override
+    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+        List<DomainTerm> convertedParameters = new ArrayList<DomainTerm>();
+        for (int count = 0; count < parameters.size(); count++)
+            convertedParameters.add((DomainTerm) parameters.get(count)
+                    .convertToCallerScope(paramMap));
+
+        UninterpretedFunctionInstance result;
+        try {
+            result = new UninterpretedFunctionInstance(function,
+                    convertedParameters);
+        } catch (WrongNumberOfParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected error in number of parameters while trying to convert UninterpretedFunctionInstance to caller scope.",
+                    exc);
+        }
+        return result;
+    }
 }

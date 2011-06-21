@@ -5,9 +5,11 @@ package at.iaik.suraq.formula;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -156,6 +158,16 @@ public class ArrayRead extends DomainTerm {
         Set<DomainTerm> result = new HashSet<DomainTerm>();
         result.add(index);
         return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     */
+    @Override
+    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+        return new ArrayRead(
+                (ArrayTerm) arrayTerm.convertToCallerScope(paramMap),
+                (DomainTerm) index.convertToCallerScope(paramMap));
     }
 
 }

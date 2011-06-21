@@ -7,10 +7,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -236,6 +238,23 @@ public abstract class EqualityFormula implements Formula {
     @Override
     public Set<DomainTerm> getIndexSet() throws SuraqException {
         return new HashSet<DomainTerm>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     */
+    @Override
+    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+        List<Term> convertedTerms = new ArrayList<Term>();
+        for (Term term : terms)
+            convertedTerms.add(term.convertToCallerScope(paramMap));
+        try {
+            return EqualityFormula.create(convertedTerms, equal);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Unexpected problems with term types while converting EqualityFormula to caller scope.",
+                    exc);
+        }
     }
 
 }

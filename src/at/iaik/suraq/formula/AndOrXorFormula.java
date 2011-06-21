@@ -8,9 +8,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * A common superclass for And- Or- and Xor-formulas to avoid code redundancy.
@@ -162,6 +164,28 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     @Override
     public int hashCode() {
         return formulas.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     */
+    @Override
+    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+        List<Formula> convertedFormulas = new ArrayList<Formula>();
+        for (Formula formula : formulas)
+            convertedFormulas
+                    .add(formula.convertFormulaToCallerScope(paramMap));
+
+        Class<? extends Formula> thisClass = this.getClass();
+        try {
+            Constructor<? extends Formula> constructur = thisClass
+                    .getConstructor(convertedFormulas.getClass());
+            return constructur.newInstance(convertedFormulas);
+        } catch (Throwable exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while converting AndOrXorFormula to caller scope.",
+                    exc);
+        }
     }
 
 }

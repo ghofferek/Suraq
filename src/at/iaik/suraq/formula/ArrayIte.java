@@ -3,7 +3,12 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
+import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * An if-then-else-style array term.
@@ -159,5 +164,32 @@ public class ArrayIte extends ArrayTerm {
     public int hashCode() {
         return condition.hashCode() ^ thenBranch.hashCode()
                 ^ elseBranch.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        Set<DomainTerm> result = new HashSet<DomainTerm>();
+        result.addAll(thenBranch.getIndexSet());
+        result.addAll(elseBranch.getIndexSet());
+        result.addAll(condition.getIndexSet());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     */
+    @Override
+    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+        ArrayTerm convertedThenBranch = (ArrayTerm) thenBranch
+                .convertToCallerScope(paramMap);
+        ArrayTerm convertedElseBranch = (ArrayTerm) elseBranch
+                .convertToCallerScope(paramMap);
+        Formula convertedCondition = condition
+                .convertFormulaToCallerScope(paramMap);
+        return new ArrayIte(convertedCondition, convertedThenBranch,
+                convertedElseBranch);
     }
 }

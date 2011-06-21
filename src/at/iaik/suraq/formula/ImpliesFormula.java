@@ -6,9 +6,11 @@ package at.iaik.suraq.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * A class for formulas of the form (a => b).
@@ -165,6 +167,16 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         Set<DomainTerm> result = leftSide.getIndexSet();
         result.addAll(rightSide.getIndexSet());
         return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     */
+    @Override
+    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+        return new ImpliesFormula(
+                leftSide.convertFormulaToCallerScope(paramMap),
+                rightSide.convertFormulaToCallerScope(paramMap));
     }
 
 }

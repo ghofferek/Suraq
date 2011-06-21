@@ -4,8 +4,10 @@
 package at.iaik.suraq.formula;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -117,6 +119,25 @@ public class ArrayVariable extends ArrayTerm {
     @Override
     public Set<String> getUninterpretedFunctionNames() {
         return new HashSet<String>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        return new HashSet<DomainTerm>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     */
+    @Override
+    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+        if (paramMap.containsKey(new Token(varName)))
+            return paramMap.get(new Token(varName));
+        else
+            return this;
     }
 
 }

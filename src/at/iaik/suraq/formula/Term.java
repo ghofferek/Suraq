@@ -122,13 +122,14 @@ public abstract class Term {
      * Returns a new term that is a version of this term, converted to a
      * caller's scope by the given map. In other words, the local term of a
      * function macro's body is converted to the (more) global term of the
-     * macro's instance.
+     * macro's instance. Terms which are not found in the map are returned
+     * unchanged.
      * 
      * @param paramMap
      *            the map to convert local terms to the caller's scope
-     * @return a new term, converted according to the given map.
+     * @return a (new) term, converted according to the given map.
      */
-    public abstract DomainTerm convertToCallerScope(Map<Token, Term> paramMap);
+    public abstract Term convertToCallerScope(Map<Token, Term> paramMap);
 
     /**
      * Computes the index set of this term. I.e., if it is an array read, its

@@ -217,4 +217,12 @@ public class NotFormula extends BooleanCombinationFormula {
     public Set<DomainTerm> getIndexSet() throws SuraqException {
         return formula.getIndexSet();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     */
+    @Override
+    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+        return new NotFormula(formula.convertFormulaToCallerScope(paramMap));
+    }
 }

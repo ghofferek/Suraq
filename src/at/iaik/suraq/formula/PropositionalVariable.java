@@ -4,6 +4,7 @@
 package at.iaik.suraq.formula;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
@@ -144,6 +145,28 @@ public class PropositionalVariable extends PropositionalTerm {
     @Override
     public Set<DomainTerm> getIndexSet() throws SuraqException {
         return new HashSet<DomainTerm>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     */
+    @Override
+    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+        if (paramMap.containsKey(new Token(varName)))
+            return paramMap.get(new Token(varName));
+        else
+            return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     */
+    @Override
+    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+        if (paramMap.containsKey(new Token(varName)))
+            return (PropositionalTerm) paramMap.get(new Token(varName));
+        else
+            return this;
     }
 
 }

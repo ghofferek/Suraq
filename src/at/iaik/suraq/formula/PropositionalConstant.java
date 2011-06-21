@@ -4,9 +4,11 @@
 package at.iaik.suraq.formula;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * A formula that consists of a simple propositional constant.
@@ -126,5 +128,21 @@ public class PropositionalConstant extends PropositionalTerm {
     @Override
     public Set<DomainTerm> getIndexSet() throws SuraqException {
         return new HashSet<DomainTerm>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     */
+    @Override
+    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+        return new PropositionalConstant(constant);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     */
+    @Override
+    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+        return new PropositionalConstant(constant);
     }
 }

@@ -5,9 +5,11 @@ package at.iaik.suraq.formula;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * An if-then-else-style domain term.
@@ -184,5 +186,20 @@ public class DomainIte extends DomainTerm {
         result.addAll(elseBranch.getIndexSet());
         result.addAll(condition.getIndexSet());
         return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     */
+    @Override
+    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+        DomainTerm convertedThenBranch = (DomainTerm) thenBranch
+                .convertToCallerScope(paramMap);
+        DomainTerm convertedElseBranch = (DomainTerm) elseBranch
+                .convertToCallerScope(paramMap);
+        Formula convertedCondition = condition
+                .convertFormulaToCallerScope(paramMap);
+        return new DomainIte(convertedCondition, convertedThenBranch,
+                convertedElseBranch);
     }
 }

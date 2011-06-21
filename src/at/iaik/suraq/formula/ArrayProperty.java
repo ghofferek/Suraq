@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.InvalidIndexGuardException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * 
@@ -368,6 +370,21 @@ public class ArrayProperty implements Formula {
     @Override
     public Set<DomainTerm> getIndexSet() throws SuraqException {
         return ArrayProperty.getEVarsFromIndexGuard(uVars, indexGuard);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     */
+    @Override
+    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+        try {
+            return new ArrayProperty(uVars,
+                    indexGuard.convertFormulaToCallerScope(paramMap),
+                    valueConstraint.convertFormulaToCallerScope(paramMap));
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unable to convert ArrayProperty to caller scope.", exc);
+        }
     }
 
 }
