@@ -175,4 +175,20 @@ public class NotFormula extends BooleanCombinationFormula {
                 "Unexpected formula type while trying to convert to NNF:"
                         + formula.getClass().toString());
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        return formula.getUninterpretedFunctionNames();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        return formula.getFunctionMacroNames();
+    }
 }

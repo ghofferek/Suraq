@@ -115,4 +115,27 @@ public class ArrayWrite extends ArrayTerm {
         result.addAll(valueTerm.getPropositionalVariables());
         return result;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> result = arrayTerm.getFunctionMacroNames();
+        result.addAll(indexTerm.getFunctionMacroNames());
+        result.addAll(valueTerm.getFunctionMacroNames());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> result = arrayTerm.getUninterpretedFunctionNames();
+        result.addAll(indexTerm.getUninterpretedFunctionNames());
+        result.addAll(valueTerm.getUninterpretedFunctionNames());
+        return result;
+    }
+
 }

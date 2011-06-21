@@ -113,4 +113,26 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> functionNames = new HashSet<String>();
+        for (Formula formula : formulas)
+            functionNames.addAll(formula.getUninterpretedFunctionNames());
+        return functionNames;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> macroNames = new HashSet<String>();
+        for (Formula formula : formulas)
+            macroNames.addAll(formula.getFunctionMacroNames());
+        return macroNames;
+    }
+
 }

@@ -150,4 +150,28 @@ public class FunctionMacroInstance implements Formula {
         return new FunctionMacroInstance(macro.negationNormalForm(), paramMap);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> functionNames = new HashSet<String>();
+        functionNames.addAll(macro.getBody().getUninterpretedFunctionNames());
+        for (Term term : paramMap.values())
+            functionNames.addAll(term.getUninterpretedFunctionNames());
+        return functionNames;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> macroNames = new HashSet<String>();
+        macroNames.add(macro.getName().toString());
+        for (Term term : paramMap.values())
+            macroNames.addAll(term.getFunctionMacroNames());
+        return macroNames;
+    }
+
 }

@@ -133,4 +133,27 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             variables.addAll(term.getPropositionalVariables());
         return variables;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> result = new HashSet<String>();
+        for (Term term : parameters)
+            result.addAll(term.getFunctionMacroNames());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> result = new HashSet<String>();
+        result.add(function.getName().toString());
+        for (Term term : parameters)
+            result.addAll(term.getUninterpretedFunctionNames());
+        return result;
+    }
 }

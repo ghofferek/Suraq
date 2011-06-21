@@ -111,4 +111,20 @@ public class DomainVariable extends DomainTerm {
     public Set<PropositionalVariable> getPropositionalVariables() {
         return new HashSet<PropositionalVariable>();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        return new HashSet<String>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        return new HashSet<String>();
+    }
 }

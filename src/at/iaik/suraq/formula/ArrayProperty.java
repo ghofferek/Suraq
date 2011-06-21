@@ -263,4 +263,24 @@ public class ArrayProperty implements Formula {
                 indexGuard.negationNormalForm(),
                 valueConstraint.negationNormalForm());
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> result = indexGuard.getUninterpretedFunctionNames();
+        result.addAll(valueConstraint.getUninterpretedFunctionNames());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> result = indexGuard.getFunctionMacroNames();
+        result.addAll(valueConstraint.getFunctionMacroNames());
+        return result;
+    }
 }

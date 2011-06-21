@@ -134,4 +134,24 @@ public class PropositionalIte extends BooleanCombinationFormula {
         return elseBranch;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> result = thenBranch.getUninterpretedFunctionNames();
+        result.addAll(elseBranch.getUninterpretedFunctionNames());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> result = thenBranch.getFunctionMacroNames();
+        result.addAll(elseBranch.getFunctionMacroNames());
+        return result;
+    }
+
 }

@@ -103,4 +103,20 @@ public class ArrayVariable extends ArrayTerm {
         return new HashSet<PropositionalVariable>();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        return new HashSet<String>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        return new HashSet<String>();
+    }
+
 }

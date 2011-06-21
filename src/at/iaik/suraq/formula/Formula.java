@@ -45,6 +45,20 @@ public interface Formula {
     public Set<PropositionalVariable> getPropositionalVariables();
 
     /**
+     * Returns a set of all uninterpreted function names used in this formula.
+     * 
+     * @return a set of uninterpreted function names used in this formula.
+     */
+    public Set<String> getUninterpretedFunctionNames();
+
+    /**
+     * Returns a set of all function macro names used in this formula.
+     * 
+     * @return a set of function macro names used in this formula.
+     */
+    public Set<String> getFunctionMacroNames();
+
+    /**
      * Returns a copy of this formula in negation normal form.
      * 
      * @return a copy of this formula in negation normal form.

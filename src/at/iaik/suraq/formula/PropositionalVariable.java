@@ -122,4 +122,20 @@ public class PropositionalVariable extends PropositionalTerm {
         return this.deepFormulaCopy();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        return new HashSet<String>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        return new HashSet<String>();
+    }
+
 }

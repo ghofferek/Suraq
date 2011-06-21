@@ -118,4 +118,24 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         return rightSide;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> result = leftSide.getUninterpretedFunctionNames();
+        result.addAll(rightSide.getUninterpretedFunctionNames());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> result = leftSide.getFunctionMacroNames();
+        result.addAll(rightSide.getFunctionMacroNames());
+        return result;
+    }
+
 }

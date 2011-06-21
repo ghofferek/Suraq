@@ -102,4 +102,24 @@ public class ArrayRead extends DomainTerm {
         result.addAll(index.getPropositionalVariables());
         return result;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> result = arrayTerm.getFunctionMacroNames();
+        result.addAll(index.getFunctionMacroNames());
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> result = arrayTerm.getUninterpretedFunctionNames();
+        result.addAll(index.getUninterpretedFunctionNames());
+        return result;
+    }
 }

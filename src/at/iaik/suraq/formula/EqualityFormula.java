@@ -186,4 +186,26 @@ public abstract class EqualityFormula implements Formula {
         return new AndFormula(pairs);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
+     */
+    @Override
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> functionNames = new HashSet<String>();
+        for (Term term : terms)
+            functionNames.addAll(term.getUninterpretedFunctionNames());
+        return functionNames;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     */
+    @Override
+    public Set<String> getFunctionMacroNames() {
+        Set<String> macroNames = new HashSet<String>();
+        for (Term term : terms)
+            macroNames.addAll(term.getFunctionMacroNames());
+        return macroNames;
+    }
+
 }
