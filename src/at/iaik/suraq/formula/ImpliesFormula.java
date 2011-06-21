@@ -138,4 +138,33 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         return result;
     }
 
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ImpliesFormula))
+            return false;
+        return ((ImpliesFormula) obj).leftSide.equals(leftSide)
+                && ((ImpliesFormula) obj).rightSide.equals(rightSide);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return leftSide.hashCode() ^ rightSide.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        Set<DomainTerm> result = leftSide.getIndexSet();
+        result.addAll(rightSide.getIndexSet());
+        return result;
+    }
+
 }

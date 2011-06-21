@@ -5,6 +5,8 @@ package at.iaik.suraq.formula;
 
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
+
 /**
  * An array write expression.
  * 
@@ -136,6 +138,36 @@ public class ArrayWrite extends ArrayTerm {
         result.addAll(indexTerm.getUninterpretedFunctionNames());
         result.addAll(valueTerm.getUninterpretedFunctionNames());
         return result;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ArrayWrite))
+            return false;
+        return ((ArrayWrite) obj).arrayTerm.equals(arrayTerm)
+                && ((ArrayWrite) obj).indexTerm.equals(indexTerm)
+                && ((ArrayWrite) obj).valueTerm.equals(valueTerm);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return arrayTerm.hashCode() ^ indexTerm.hashCode()
+                ^ valueTerm.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        throw new SuraqException(
+                "Encountered array write while computing index set.");
     }
 
 }

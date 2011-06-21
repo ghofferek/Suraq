@@ -20,7 +20,9 @@ import at.iaik.suraq.formula.PropositionalVariable;
 public class Util {
 
     /**
-     * Chooses a fresh variable name with respect to the given formula.
+     * Chooses a fresh variable name with respect to the given formula. The name
+     * is also distinct from present macro names and uninterpreted function
+     * names.
      * 
      * @param formula
      *            the formula
@@ -34,6 +36,8 @@ public class Util {
         Set<DomainVariable> domainVars = formula.getDomainVariables();
         Set<PropositionalVariable> propVars = formula
                 .getPropositionalVariables();
+        Set<String> functionNames = formula.getUninterpretedFunctionNames();
+        Set<String> macroNames = formula.getFunctionMacroNames();
 
         int count = 0;
         while (count++ >= 0) {
@@ -43,6 +47,10 @@ public class Util {
             if (domainVars.contains(new DomainVariable(name)))
                 continue;
             if (propVars.contains(new PropositionalVariable(name)))
+                continue;
+            if (functionNames.contains(name))
+                continue;
+            if (macroNames.contains(name))
                 continue;
             return name;
         }

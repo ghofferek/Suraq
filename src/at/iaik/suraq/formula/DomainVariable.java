@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -126,5 +127,13 @@ public class DomainVariable extends DomainTerm {
     @Override
     public Set<String> getUninterpretedFunctionNames() {
         return new HashSet<String>();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        return new HashSet<DomainTerm>();
     }
 }

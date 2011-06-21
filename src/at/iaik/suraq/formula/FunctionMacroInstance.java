@@ -174,4 +174,36 @@ public class FunctionMacroInstance implements Formula {
         return macroNames;
     }
 
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof FunctionMacroInstance))
+            return false;
+        return ((FunctionMacroInstance) obj).macro.equals(macro)
+                && ((FunctionMacroInstance) obj).paramMap.equals(paramMap);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return macro.hashCode() ^ paramMap.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        Set<DomainTerm> localIndexSet = macro.getBody().getIndexSet();
+        Set<DomainTerm> result = new HashSet<DomainTerm>();
+        for (DomainTerm term : localIndexSet) {
+            result.add(term.convertToCallerScope(paramMap));
+        }
+        return result;
+    }
+
 }

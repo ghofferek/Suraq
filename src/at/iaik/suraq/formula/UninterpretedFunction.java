@@ -84,4 +84,23 @@ public class UninterpretedFunction {
         return name;
     }
 
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof UninterpretedFunction))
+            return false;
+        return ((UninterpretedFunction) obj).name.equals(name)
+                && ((UninterpretedFunction) obj).numParams == numParams;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return name.hashCode() + numParams;
+    }
+
 }

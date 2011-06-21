@@ -5,7 +5,11 @@ package at.iaik.suraq.formula;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import at.iaik.suraq.exceptions.SuraqException;
 
 /**
  * A formula consisting of the equality of domain terms.
@@ -53,4 +57,16 @@ public class DomainEq extends EqualityFormula {
         }
         return new DomainEq(terms, equal);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        Set<DomainTerm> indexSet = new HashSet<DomainTerm>();
+        for (Term term : terms)
+            indexSet.addAll(((DomainTerm) term).getIndexSet());
+        return indexSet;
+    }
+
 }

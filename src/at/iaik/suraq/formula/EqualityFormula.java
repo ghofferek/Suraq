@@ -208,4 +208,34 @@ public abstract class EqualityFormula implements Formula {
         return macroNames;
     }
 
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(this.getClass().isInstance(obj)))
+            return false;
+        if (!((EqualityFormula) obj).terms.equals(terms))
+            return false;
+        if (((EqualityFormula) obj).equal != equal)
+            return false;
+        return true;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return terms.hashCode() + (equal ? 1 : 0);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        return new HashSet<DomainTerm>();
+    }
+
 }

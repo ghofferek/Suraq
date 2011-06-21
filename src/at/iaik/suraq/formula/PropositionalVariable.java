@@ -138,4 +138,12 @@ public class PropositionalVariable extends PropositionalTerm {
         return new HashSet<String>();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        return new HashSet<DomainTerm>();
+    }
+
 }

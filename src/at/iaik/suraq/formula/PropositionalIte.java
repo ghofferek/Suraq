@@ -79,6 +79,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
     public Set<ArrayVariable> getArrayVariables() {
         Set<ArrayVariable> result = thenBranch.getArrayVariables();
         result.addAll(elseBranch.getArrayVariables());
+        result.addAll(condition.getArrayVariables());
         return result;
     }
 
@@ -89,6 +90,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
     public Set<DomainVariable> getDomainVariables() {
         Set<DomainVariable> result = thenBranch.getDomainVariables();
         result.addAll(elseBranch.getDomainVariables());
+        result.addAll(condition.getDomainVariables());
         return result;
     }
 
@@ -100,6 +102,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         Set<PropositionalVariable> result = thenBranch
                 .getPropositionalVariables();
         result.addAll(elseBranch.getPropositionalVariables());
+        result.addAll(condition.getPropositionalVariables());
         return result;
     }
 
@@ -141,6 +144,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
     public Set<String> getUninterpretedFunctionNames() {
         Set<String> result = thenBranch.getUninterpretedFunctionNames();
         result.addAll(elseBranch.getUninterpretedFunctionNames());
+        result.addAll(condition.getUninterpretedFunctionNames());
         return result;
     }
 
@@ -151,7 +155,40 @@ public class PropositionalIte extends BooleanCombinationFormula {
     public Set<String> getFunctionMacroNames() {
         Set<String> result = thenBranch.getFunctionMacroNames();
         result.addAll(elseBranch.getFunctionMacroNames());
+        result.addAll(condition.getFunctionMacroNames());
         return result;
     }
 
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof PropositionalIte))
+            return false;
+        return ((PropositionalIte) obj).thenBranch.equals(thenBranch)
+                && ((PropositionalIte) obj).elseBranch.equals(elseBranch)
+                && ((PropositionalIte) obj).condition.equals(condition);
+
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return condition.hashCode() ^ thenBranch.hashCode()
+                ^ elseBranch.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        Set<DomainTerm> result = thenBranch.getIndexSet();
+        result.addAll(elseBranch.getIndexSet());
+        result.addAll(condition.getIndexSet());
+        return result;
+    }
 }

@@ -4,9 +4,12 @@
 package at.iaik.suraq.formula;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * This abstract class represents terms. Terms can be domain terms, array terms,
@@ -114,5 +117,29 @@ public abstract class Term {
      * @return a set of uninterpreted function names used in this formula.
      */
     public abstract Set<String> getUninterpretedFunctionNames();
+
+    /**
+     * Returns a new term that is a version of this term, converted to a
+     * caller's scope by the given map. In other words, the local term of a
+     * function macro's body is converted to the (more) global term of the
+     * macro's instance.
+     * 
+     * @param paramMap
+     *            the map to convert local terms to the caller's scope
+     * @return a new term, converted according to the given map.
+     */
+    public abstract DomainTerm convertToCallerScope(Map<Token, Term> paramMap);
+
+    /**
+     * Computes the index set of this term. I.e., if it is an array read, its
+     * index term is returned (as a singleton). For other term types, an empty
+     * set is returned.
+     * 
+     * @return the index set.
+     * @throws SuraqException
+     *             if the term is an array write expressions, or computation
+     *             otherwise fails.
+     */
+    public abstract Set<DomainTerm> getIndexSet() throws SuraqException;
 
 }

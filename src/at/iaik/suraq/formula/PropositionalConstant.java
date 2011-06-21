@@ -102,4 +102,29 @@ public class PropositionalConstant extends PropositionalTerm {
         return new HashSet<String>();
     }
 
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof PropositionalConstant))
+            return false;
+        return ((PropositionalConstant) obj).constant == constant;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return constant ? 1 : 0;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        return new HashSet<DomainTerm>();
+    }
 }

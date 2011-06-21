@@ -4,7 +4,10 @@
 package at.iaik.suraq.formula;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
+
+import at.iaik.suraq.exceptions.SuraqException;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -122,4 +125,37 @@ public class ArrayRead extends DomainTerm {
         result.addAll(index.getUninterpretedFunctionNames());
         return result;
     }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ArrayRead))
+            return false;
+        return arrayTerm.equals(((ArrayRead) obj).equals(arrayTerm))
+                && index.equals(((ArrayRead) obj).equals(index));
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return arrayTerm.hashCode() ^ index.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        if (!(arrayTerm instanceof ArrayVariable))
+            throw new SuraqException(
+                    "Encountered array-read from non-variable array term while computing index set.");
+        Set<DomainTerm> result = new HashSet<DomainTerm>();
+        result.add(index);
+        return result;
+    }
+
 }

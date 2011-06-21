@@ -135,4 +135,33 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         return macroNames;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(this.getClass().isInstance(obj)))
+            return false;
+        if (!((AndOrXorFormula) obj).formulas.equals(formulas))
+            return false;
+        return true;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return formulas.hashCode();
+    }
+
 }

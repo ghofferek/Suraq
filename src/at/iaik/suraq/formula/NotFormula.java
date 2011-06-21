@@ -191,4 +191,30 @@ public class NotFormula extends BooleanCombinationFormula {
     public Set<String> getFunctionMacroNames() {
         return formula.getFunctionMacroNames();
     }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof NotFormula))
+            return false;
+        return ((NotFormula) obj).formula.equals(formula);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return formula.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        return formula.getIndexSet();
+    }
 }

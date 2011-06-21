@@ -113,6 +113,63 @@ public class ArrayProperty implements Formula {
     }
 
     /**
+     * Returns a set of all terms used as eVars in the index guard.
+     * 
+     * @param uVars
+     *            a collection of uVars.
+     * @param indexGuard
+     *            the index guard (or a subformula of it)
+     * @return the set of all terms that parse as evars in the given
+     *         <code>indexGuard</code>.
+     * @throws InvalidIndexGuardException
+     *             if the given <code>indgexGuard</code> is not a valid one.
+     *             (This method does not perform all checks; the exception is
+     *             merely thrown when an invalid index guard is found
+     *             "by chance".)
+     */
+    private static Set<DomainTerm> getEVarsFromIndexGuard(
+            Collection<DomainVariable> uVars, Formula indexGuard)
+            throws InvalidIndexGuardException {
+        if (indexGuard instanceof PropositionalConstant)
+            // only "true" is allowed in index guards
+            return new HashSet<DomainTerm>();
+
+        if (indexGuard instanceof AndFormula) {
+            Set<DomainTerm> result = new HashSet<DomainTerm>();
+            for (Formula formula : ((AndFormula) indexGuard).getConjuncts())
+                result.addAll(ArrayProperty.getEVarsFromIndexGuard(uVars,
+                        formula));
+            return result;
+        }
+
+        if (indexGuard instanceof OrFormula) {
+            Set<DomainTerm> result = new HashSet<DomainTerm>();
+            for (Formula formula : ((OrFormula) indexGuard).getDisjuncts())
+                result.addAll(ArrayProperty.getEVarsFromIndexGuard(uVars,
+                        formula));
+            return result;
+        }
+
+        if (indexGuard instanceof DomainEq) {
+            Set<DomainTerm> result = new HashSet<DomainTerm>();
+            List<DomainTerm> terms = ((DomainEq) indexGuard).getDomainTerms();
+            for (int count = 0; count < terms.size(); count++) {
+                if (terms.get(count) instanceof ArrayRead
+                        || terms.get(count) instanceof DomainIte)
+                    throw new InvalidIndexGuardException();
+
+                if (terms.get(count).isEvar(uVars))
+                    result.add(terms.get(count));
+
+            }
+            return result;
+        }
+
+        // something that is not an index guard.
+        throw new InvalidIndexGuardException();
+    }
+
+    /**
      * Checks if the given formula is a valid index guard.
      * 
      * @param uVars
@@ -283,4 +340,34 @@ public class ArrayProperty implements Formula {
         result.addAll(valueConstraint.getFunctionMacroNames());
         return result;
     }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ArrayProperty))
+            return false;
+        ArrayProperty other = (ArrayProperty) obj;
+        return other.uVars.equals(uVars) && other.indexGuard.equals(indexGuard)
+                && other.valueConstraint.equals(valueConstraint);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return uVars.hashCode() ^ indexGuard.hashCode()
+                ^ valueConstraint.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        return ArrayProperty.getEVarsFromIndexGuard(uVars, indexGuard);
+    }
+
 }

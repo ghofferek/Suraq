@@ -6,6 +6,9 @@ package at.iaik.suraq.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+
+import at.iaik.suraq.exceptions.SuraqException;
 
 /**
  * A formula consisting of the (in)equality of array terms.
@@ -41,4 +44,14 @@ public class ArrayEq extends EqualityFormula {
         }
         return new ArrayEq(terms, equal);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.EqualityFormula#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        throw new SuraqException(
+                "Encountered array equality while computing index set. Should have already been removed.");
+    }
+
 }

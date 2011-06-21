@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 
 /**
@@ -156,4 +157,40 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             result.addAll(term.getUninterpretedFunctionNames());
         return result;
     }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof UninterpretedFunctionInstance))
+            return false;
+        UninterpretedFunctionInstance other = (UninterpretedFunctionInstance) obj;
+        if (!other.parameters.equals(parameters))
+            return false;
+        if (!other.function.equals(function))
+            return false;
+        return true;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return function.hashCode() ^ parameters.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getIndexSet()
+     */
+    @Override
+    public Set<DomainTerm> getIndexSet() throws SuraqException {
+        Set<DomainTerm> result = new HashSet<DomainTerm>();
+        for (DomainTerm term : parameters) {
+            result.addAll(term.getIndexSet());
+        }
+        return result;
+    }
+
 }

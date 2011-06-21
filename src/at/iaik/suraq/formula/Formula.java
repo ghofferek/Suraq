@@ -59,6 +59,17 @@ public interface Formula {
     public Set<String> getFunctionMacroNames();
 
     /**
+     * Computes the index set of this formula. (Cf. Bradley/Manna, p. 295) The
+     * set does <em>not</em> yet include the new variable <code>lambda</code>.
+     * 
+     * @return the index set.
+     * @throws SuraqException
+     *             if the formula contains array write expressions, or
+     *             computation otherwise fails.
+     */
+    public Set<DomainTerm> getIndexSet() throws SuraqException;
+
+    /**
      * Returns a copy of this formula in negation normal form.
      * 
      * @return a copy of this formula in negation normal form.

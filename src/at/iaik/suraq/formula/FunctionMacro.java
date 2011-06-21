@@ -216,4 +216,25 @@ public class FunctionMacro {
                 negatedParamMap, negatedBody);
     }
 
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof FunctionMacro))
+            return false;
+        FunctionMacro other = (FunctionMacro) obj;
+        return other.name.equals(name) && other.parameters.equals(parameters)
+                && other.paramMap.equals(paramMap) && other.body.equals(body);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return name.hashCode() ^ parameters.hashCode() ^ paramMap.hashCode()
+                ^ body.hashCode();
+    }
+
 }
