@@ -23,17 +23,17 @@ public class PropositionalIte extends BooleanCombinationFormula {
     /**
      * The formula that represents the condition.
      */
-    private final Formula condition;
+    private Formula condition;
 
     /**
      * The formula that represents the then-branch.
      */
-    private final Formula thenBranch;
+    private Formula thenBranch;
 
     /**
      * The formula that represents the else-branch.
      */
-    private final Formula elseBranch;
+    private Formula elseBranch;
 
     /**
      * 
@@ -203,5 +203,26 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 condition.convertFormulaToCallerScope(paramMap),
                 thenBranch.convertFormulaToCallerScope(paramMap),
                 elseBranch.convertFormulaToCallerScope(paramMap));
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        if (condition instanceof ArrayEq)
+            condition = ((ArrayEq) condition).toArrayProperties();
+        else
+            condition.removeArrayEqualities();
+
+        if (thenBranch instanceof ArrayEq)
+            thenBranch = ((ArrayEq) thenBranch).toArrayProperties();
+        else
+            thenBranch.removeArrayEqualities();
+
+        if (elseBranch instanceof ArrayEq)
+            elseBranch = ((ArrayEq) elseBranch).toArrayProperties();
+        else
+            elseBranch.removeArrayEqualities();
     }
 }

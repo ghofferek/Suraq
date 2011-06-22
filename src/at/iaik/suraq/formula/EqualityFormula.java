@@ -257,4 +257,24 @@ public abstract class EqualityFormula implements Formula {
         }
     }
 
+    /**
+     * Returns the number of terms compared by this equality.
+     * 
+     * @return the number of terms compared by this equality.
+     */
+    public int numTerms() {
+        return terms.size();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        // Nothing to do.
+        // If this equality is an array equality, it will be dealt with on a
+        // higher level.
+        // Other equalities do not need transformation.
+        return;
+    }
 }

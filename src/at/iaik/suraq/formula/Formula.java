@@ -94,4 +94,9 @@ public interface Formula {
      */
     public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap);
 
+    /**
+     * Replaces all array equalities in this formula by equivalent array
+     * properties.
+     */
+    public void removeArrayEqualities();
 }

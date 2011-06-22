@@ -38,7 +38,7 @@ public class FunctionMacro {
     /**
      * The body of this macro.
      */
-    private final Formula body;
+    private Formula body;
 
     /**
      * Constructs a new <code>FunctionMacro</code> with the given values.
@@ -235,6 +235,16 @@ public class FunctionMacro {
     public int hashCode() {
         return name.hashCode() ^ parameters.hashCode() ^ paramMap.hashCode()
                 ^ body.hashCode();
+    }
+
+    /**
+     * 
+     */
+    public void removeArrayEqualities() {
+        if (body instanceof ArrayEq)
+            body = ((ArrayEq) body).toArrayProperties();
+        else
+            body.removeArrayEqualities();
     }
 
 }

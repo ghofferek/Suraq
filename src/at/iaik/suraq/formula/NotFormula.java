@@ -24,7 +24,7 @@ public class NotFormula extends BooleanCombinationFormula {
     /**
      * The negated internal formula.
      */
-    private final Formula formula;
+    private Formula formula;
 
     /**
      * 
@@ -224,5 +224,16 @@ public class NotFormula extends BooleanCombinationFormula {
     @Override
     public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
         return new NotFormula(formula.convertFormulaToCallerScope(paramMap));
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        if (formula instanceof ArrayEq)
+            formula = ((ArrayEq) formula).toArrayProperties();
+        else
+            formula.removeArrayEqualities();
     }
 }

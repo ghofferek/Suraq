@@ -387,4 +387,13 @@ public class ArrayProperty implements Formula {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        // Nothing to do.
+        // ArrayProperties cannot contain array equalities.
+        return;
+    }
 }

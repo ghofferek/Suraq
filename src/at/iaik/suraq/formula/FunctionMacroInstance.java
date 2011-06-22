@@ -226,4 +226,12 @@ public class FunctionMacroInstance implements Formula {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        macro.removeArrayEqualities();
+    }
+
 }

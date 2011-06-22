@@ -23,12 +23,12 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     /**
      * The left side of the implication.
      */
-    private final Formula leftSide;
+    private Formula leftSide;
 
     /**
      * The right side of the implication.
      */
-    private final Formula rightSide;
+    private Formula rightSide;
 
     /**
      * 
@@ -177,6 +177,22 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         return new ImpliesFormula(
                 leftSide.convertFormulaToCallerScope(paramMap),
                 rightSide.convertFormulaToCallerScope(paramMap));
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        if (leftSide instanceof ArrayEq)
+            leftSide = ((ArrayEq) leftSide).toArrayProperties();
+        else
+            leftSide.removeArrayEqualities();
+
+        if (rightSide instanceof ArrayEq)
+            rightSide = ((ArrayEq) rightSide).toArrayProperties();
+        else
+            rightSide.removeArrayEqualities();
     }
 
 }

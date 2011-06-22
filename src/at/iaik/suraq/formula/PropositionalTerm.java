@@ -23,4 +23,14 @@ public abstract class PropositionalTerm extends Term implements Formula {
         return SExpressionConstants.BOOL_TYPE;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        // Nothing to do here.
+        // No array equalities contained here.
+        return;
+    }
+
 }

@@ -188,4 +188,18 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        for (int count = 0; count < formulas.size(); count++) {
+            if (formulas.get(count) instanceof ArrayEq)
+                formulas.set(count,
+                        ((ArrayEq) formulas.get(count)).toArrayProperties());
+            else
+                formulas.get(count).removeArrayEqualities();
+        }
+    }
+
 }

@@ -30,7 +30,7 @@ public class DomainEq extends EqualityFormula {
      *            <code>false</code> for an inequality.
      * 
      */
-    public DomainEq(Collection<DomainTerm> domainTerms, boolean equal) {
+    public DomainEq(Collection<? extends DomainTerm> domainTerms, boolean equal) {
         super(domainTerms, equal);
     }
 
