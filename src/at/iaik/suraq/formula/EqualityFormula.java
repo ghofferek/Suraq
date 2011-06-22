@@ -241,13 +241,13 @@ public abstract class EqualityFormula implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
      */
     @Override
-    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, Term> paramMap) {
         List<Term> convertedTerms = new ArrayList<Term>();
         for (Term term : terms)
-            convertedTerms.add(term.convertToCallerScope(paramMap));
+            convertedTerms.add(term.substituteTerm(paramMap));
         try {
             return EqualityFormula.create(convertedTerms, equal);
         } catch (IncomparableTermsException exc) {

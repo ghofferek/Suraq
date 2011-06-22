@@ -5,6 +5,7 @@ package at.iaik.suraq.formula;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import at.iaik.suraq.exceptions.InvalidIndexGuardException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * 
@@ -28,7 +30,7 @@ public class ArrayProperty implements Formula {
     /**
      * The collection of universally quantified variables.
      */
-    private final Collection<DomainVariable> uVars;
+    private final List<DomainVariable> uVars;
 
     /**
      * The formula representing the index guard.
@@ -58,7 +60,7 @@ public class ArrayProperty implements Formula {
     public ArrayProperty(Collection<DomainVariable> uVars, Formula indexGuard,
             Formula valueConstraint) throws InvalidIndexGuardException,
             InvalidValueConstraintException {
-        this.uVars = new HashSet<DomainVariable>(uVars);
+        this.uVars = new ArrayList<DomainVariable>(uVars);
 
         if (!ArrayProperty.checkIndexGuard(uVars, indexGuard))
             throw new InvalidIndexGuardException();
@@ -373,14 +375,14 @@ public class ArrayProperty implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
      */
     @Override
-    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, Term> paramMap) {
         try {
             return new ArrayProperty(uVars,
-                    indexGuard.convertFormulaToCallerScope(paramMap),
-                    valueConstraint.convertFormulaToCallerScope(paramMap));
+                    indexGuard.substituteFormula(paramMap),
+                    valueConstraint.substituteFormula(paramMap));
         } catch (SuraqException exc) {
             throw new RuntimeException(
                     "Unable to convert ArrayProperty to caller scope.", exc);
@@ -395,5 +397,62 @@ public class ArrayProperty implements Formula {
         // Nothing to do.
         // ArrayProperties cannot contain array equalities.
         return;
+    }
+
+    /**
+     * Instantiates the body of this property by replacing the universally
+     * quantified variables with the given terms.
+     * 
+     * @param indices
+     *            the terms to use in place of the universally quantified
+     *            variables.
+     * @return an instance of this property's body with the given terms
+     *         replacing universally quantified variables
+     * @throws SuraqException
+     *             if the number of indices does not match the number of
+     *             <code>uVars</code>.
+     */
+    private Formula instantiate(List<DomainTerm> indices) throws SuraqException {
+        if (indices.size() != uVars.size())
+            throw new SuraqException(
+                    "Wrong number of indices for instantiating array property");
+
+        Map<Token, Term> substitutions = new HashMap<Token, Term>();
+        for (int count = 0; count < uVars.size(); count++)
+            substitutions.put(new Token(uVars.get(count).toString()),
+                    indices.get(count));
+
+        return new ImpliesFormula(indexGuard.substituteFormula(substitutions),
+                valueConstraint.substituteFormula(substitutions));
+    }
+
+    /**
+     * Returns a new formula that is the finite conjunction version of this
+     * array property, instantiated over the given index set.
+     * 
+     * @param indexSet
+     *            the index set.
+     * @return the finite conjunction
+     */
+    public AndFormula toFiniteConjunction(Set<DomainTerm> indexSet) {
+        List<Formula> conjuncts = new ArrayList<Formula>();
+        List<DomainTerm> indices = new ArrayList<DomainTerm>(indexSet);
+        List<Integer> counters = new ArrayList<Integer>();
+        for (int count = 0; count < uVars.size(); count++)
+            counters.add(0);
+        do {
+            List<DomainTerm> currentIndices = new ArrayList<DomainTerm>();
+            for (int count = 0; count < counters.size(); count++)
+                currentIndices.add(indices.get(counters.get(count)));
+            try {
+                conjuncts.add(this.instantiate(currentIndices));
+            } catch (SuraqException exc) {
+                throw new RuntimeException(
+                        "Unexpected exception while converting array property to finite conjunction.",
+                        exc);
+            }
+
+        } while (Util.incrementCounters(counters));
+        return new AndFormula(conjuncts);
     }
 }

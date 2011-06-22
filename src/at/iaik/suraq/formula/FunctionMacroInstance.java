@@ -201,21 +201,21 @@ public class FunctionMacroInstance implements Formula {
         Set<DomainTerm> localIndexSet = macro.getBody().getIndexSet();
         Set<DomainTerm> result = new HashSet<DomainTerm>();
         for (DomainTerm term : localIndexSet) {
-            result.add((DomainTerm) term.convertToCallerScope(paramMap));
+            result.add((DomainTerm) term.substituteTerm(paramMap));
         }
         return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
      */
     @Override
-    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, Term> paramMap) {
         Map<Token, Term> convertedMap = new HashMap<Token, Term>();
 
         for (Token token : this.paramMap.keySet())
             convertedMap.put(token,
-                    paramMap.get(token).convertToCallerScope(paramMap));
+                    paramMap.get(token).substituteTerm(paramMap));
 
         try {
             return new FunctionMacroInstance(macro, convertedMap);

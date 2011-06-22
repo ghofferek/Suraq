@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.util;
 
+import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.formula.ArrayVariable;
@@ -66,6 +67,28 @@ public class Util {
      */
     public static final String freshVarName(Formula formula) {
         return Util.freshVarName(formula, "");
+    }
+
+    /**
+     * Increments the given list of (modular) counters.
+     * 
+     * @param counters
+     * @return <code>true</code> if the counters did not (overall) overflow,
+     *         <code>false</code> otherwise.
+     */
+    public static boolean incrementCounters(List<Integer> counters) {
+        int k = counters.size();
+        int count = 0;
+        do {
+            if (counters.get(count) == k - 1) {
+                counters.set(count, 0);
+                count++;
+            } else {
+                counters.set(count, counters.get(count) + 1);
+                return true;
+            }
+        } while (count < k);
+        return false;
     }
 
 }

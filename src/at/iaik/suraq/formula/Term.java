@@ -119,17 +119,16 @@ public abstract class Term {
     public abstract Set<String> getUninterpretedFunctionNames();
 
     /**
-     * Returns a new term that is a version of this term, converted to a
-     * caller's scope by the given map. In other words, the local term of a
-     * function macro's body is converted to the (more) global term of the
-     * macro's instance. Terms which are not found in the map are returned
-     * unchanged.
+     * Returns a new term that is a version of this term, with the substitutions
+     * given by the given map applied. E.g., the local term of a function
+     * macro's body is converted to the (more) global term of the macro's
+     * instance. Terms which are not found in the map are returned unchanged.
      * 
      * @param paramMap
      *            the map to convert local terms to the caller's scope
      * @return a (new) term, converted according to the given map.
      */
-    public abstract Term convertToCallerScope(Map<Token, Term> paramMap);
+    public abstract Term substituteTerm(Map<Token, Term> paramMap);
 
     /**
      * Computes the index set of this term. I.e., if it is an array read, its

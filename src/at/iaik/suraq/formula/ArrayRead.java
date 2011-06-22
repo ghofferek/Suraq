@@ -161,13 +161,13 @@ public class ArrayRead extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Term#substituteTerm(java.util.Map)
      */
     @Override
-    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, Term> paramMap) {
         return new ArrayRead(
-                (ArrayTerm) arrayTerm.convertToCallerScope(paramMap),
-                (DomainTerm) index.convertToCallerScope(paramMap));
+                (ArrayTerm) arrayTerm.substituteTerm(paramMap),
+                (DomainTerm) index.substituteTerm(paramMap));
     }
 
 }

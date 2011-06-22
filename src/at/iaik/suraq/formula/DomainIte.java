@@ -189,16 +189,16 @@ public class DomainIte extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Term#substituteTerm(java.util.Map)
      */
     @Override
-    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, Term> paramMap) {
         DomainTerm convertedThenBranch = (DomainTerm) thenBranch
-                .convertToCallerScope(paramMap);
+                .substituteTerm(paramMap);
         DomainTerm convertedElseBranch = (DomainTerm) elseBranch
-                .convertToCallerScope(paramMap);
+                .substituteTerm(paramMap);
         Formula convertedCondition = condition
-                .convertFormulaToCallerScope(paramMap);
+                .substituteFormula(paramMap);
         return new DomainIte(convertedCondition, convertedThenBranch,
                 convertedElseBranch);
     }

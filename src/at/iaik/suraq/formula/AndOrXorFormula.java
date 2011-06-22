@@ -167,14 +167,14 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
      */
     @Override
-    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, Term> paramMap) {
         List<Formula> convertedFormulas = new ArrayList<Formula>();
         for (Formula formula : formulas)
             convertedFormulas
-                    .add(formula.convertFormulaToCallerScope(paramMap));
+                    .add(formula.substituteFormula(paramMap));
 
         Class<? extends Formula> thisClass = this.getClass();
         try {

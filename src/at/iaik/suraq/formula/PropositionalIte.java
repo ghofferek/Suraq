@@ -195,14 +195,14 @@ public class PropositionalIte extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
      */
     @Override
-    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, Term> paramMap) {
         return new PropositionalIte(
-                condition.convertFormulaToCallerScope(paramMap),
-                thenBranch.convertFormulaToCallerScope(paramMap),
-                elseBranch.convertFormulaToCallerScope(paramMap));
+                condition.substituteFormula(paramMap),
+                thenBranch.substituteFormula(paramMap),
+                elseBranch.substituteFormula(paramMap));
     }
 
     /**

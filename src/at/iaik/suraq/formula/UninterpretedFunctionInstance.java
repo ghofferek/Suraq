@@ -196,14 +196,14 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Term#substituteTerm(java.util.Map)
      */
     @Override
-    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, Term> paramMap) {
         List<DomainTerm> convertedParameters = new ArrayList<DomainTerm>();
         for (int count = 0; count < parameters.size(); count++)
             convertedParameters.add((DomainTerm) parameters.get(count)
-                    .convertToCallerScope(paramMap));
+                    .substituteTerm(paramMap));
 
         UninterpretedFunctionInstance result;
         try {

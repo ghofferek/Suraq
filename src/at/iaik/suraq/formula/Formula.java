@@ -82,17 +82,17 @@ public interface Formula {
     public Formula negationNormalForm() throws SuraqException;
 
     /**
-     * Returns a new formula that is a version of this formula, converted to a
-     * caller's scope by the given map. In other words, the local terms of a
-     * function macro's body are converted to the (more) global terms of the
-     * macro's instance. Terms which are not found in the map are returned
+     * Returns a new formula that is a version of this formula, with
+     * substitutions performed according to the givem map. E.g., the local terms
+     * of a function macro's body are converted to the (more) global terms of
+     * the macro's instance. Terms which are not found in the map are returned
      * unchanged.
      * 
      * @param paramMap
      *            the map to convert local terms to the caller's scope
      * @return a (new) formula, converted according to the given map.
      */
-    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap);
+    public Formula substituteFormula(Map<Token, Term> paramMap);
 
     /**
      * Replaces all array equalities in this formula by equivalent array

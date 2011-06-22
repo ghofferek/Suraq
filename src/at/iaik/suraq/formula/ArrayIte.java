@@ -179,16 +179,16 @@ public class ArrayIte extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#convertToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Term#substituteTerm(java.util.Map)
      */
     @Override
-    public Term convertToCallerScope(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, Term> paramMap) {
         ArrayTerm convertedThenBranch = (ArrayTerm) thenBranch
-                .convertToCallerScope(paramMap);
+                .substituteTerm(paramMap);
         ArrayTerm convertedElseBranch = (ArrayTerm) elseBranch
-                .convertToCallerScope(paramMap);
+                .substituteTerm(paramMap);
         Formula convertedCondition = condition
-                .convertFormulaToCallerScope(paramMap);
+                .substituteFormula(paramMap);
         return new ArrayIte(convertedCondition, convertedThenBranch,
                 convertedElseBranch);
     }

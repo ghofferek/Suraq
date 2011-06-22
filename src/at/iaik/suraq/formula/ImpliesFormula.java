@@ -170,13 +170,13 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#convertFormulaToCallerScope(java.util.Map)
+     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
      */
     @Override
-    public Formula convertFormulaToCallerScope(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, Term> paramMap) {
         return new ImpliesFormula(
-                leftSide.convertFormulaToCallerScope(paramMap),
-                rightSide.convertFormulaToCallerScope(paramMap));
+                leftSide.substituteFormula(paramMap),
+                rightSide.substituteFormula(paramMap));
     }
 
     /**
