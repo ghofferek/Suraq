@@ -455,4 +455,13 @@ public class ArrayProperty implements Formula {
         } while (Util.incrementCounters(counters));
         return new AndFormula(conjuncts);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        throw new RuntimeException(
+                "arrayPropertiesToFiniteConjunctions cannot be called on an ArrayProperty.\nUse toFiniteConjunction instead.");
+    }
 }

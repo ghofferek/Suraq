@@ -174,8 +174,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteFormula(Map<Token, Term> paramMap) {
-        return new ImpliesFormula(
-                leftSide.substituteFormula(paramMap),
+        return new ImpliesFormula(leftSide.substituteFormula(paramMap),
                 rightSide.substituteFormula(paramMap));
     }
 
@@ -193,6 +192,23 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             rightSide = ((ArrayEq) rightSide).toArrayProperties();
         else
             rightSide.removeArrayEqualities();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        if (leftSide instanceof ArrayProperty)
+            leftSide = ((ArrayProperty) leftSide).toFiniteConjunction(indexSet);
+        else
+            leftSide.arrayPropertiesToFiniteConjunctions(indexSet);
+
+        if (rightSide instanceof ArrayProperty)
+            rightSide = ((ArrayProperty) rightSide)
+                    .toFiniteConjunction(indexSet);
+        else
+            rightSide.arrayPropertiesToFiniteConjunctions(indexSet);
     }
 
 }

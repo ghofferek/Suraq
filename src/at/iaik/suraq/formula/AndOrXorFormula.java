@@ -173,8 +173,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     public Formula substituteFormula(Map<Token, Term> paramMap) {
         List<Formula> convertedFormulas = new ArrayList<Formula>();
         for (Formula formula : formulas)
-            convertedFormulas
-                    .add(formula.substituteFormula(paramMap));
+            convertedFormulas.add(formula.substituteFormula(paramMap));
 
         Class<? extends Formula> thisClass = this.getClass();
         try {
@@ -199,6 +198,21 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
                         ((ArrayEq) formulas.get(count)).toArrayProperties());
             else
                 formulas.get(count).removeArrayEqualities();
+        }
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        for (int count = 0; count < formulas.size(); count++) {
+            if (formulas.get(count) instanceof ArrayProperty)
+                formulas.set(count, ((ArrayProperty) formulas.get(count))
+                        .toFiniteConjunction(indexSet));
+            else
+                formulas.get(count).arrayPropertiesToFiniteConjunctions(
+                        indexSet);
         }
     }
 

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
@@ -245,6 +246,16 @@ public class FunctionMacro {
             body = ((ArrayEq) body).toArrayProperties();
         else
             body.removeArrayEqualities();
+    }
+
+    /**
+     * @param indexSet
+     */
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        if (body instanceof ArrayProperty)
+            body = ((ArrayProperty) body).toFiniteConjunction(indexSet);
+        else
+            body.arrayPropertiesToFiniteConjunctions(indexSet);
     }
 
 }

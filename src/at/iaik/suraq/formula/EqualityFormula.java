@@ -277,4 +277,16 @@ public abstract class EqualityFormula implements Formula {
         // Other equalities do not need transformation.
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        // Nothing to do here.
+        // Equality formulas do not have subformulas.
+        // Array Equalities should already have been removed.
+        return;
+    }
+
 }

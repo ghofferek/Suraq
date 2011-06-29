@@ -199,8 +199,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteFormula(Map<Token, Term> paramMap) {
-        return new PropositionalIte(
-                condition.substituteFormula(paramMap),
+        return new PropositionalIte(condition.substituteFormula(paramMap),
                 thenBranch.substituteFormula(paramMap),
                 elseBranch.substituteFormula(paramMap));
     }
@@ -224,5 +223,29 @@ public class PropositionalIte extends BooleanCombinationFormula {
             elseBranch = ((ArrayEq) elseBranch).toArrayProperties();
         else
             elseBranch.removeArrayEqualities();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        if (condition instanceof ArrayProperty)
+            condition = ((ArrayProperty) condition)
+                    .toFiniteConjunction(indexSet);
+        else
+            condition.arrayPropertiesToFiniteConjunctions(indexSet);
+
+        if (thenBranch instanceof ArrayProperty)
+            thenBranch = ((ArrayProperty) thenBranch)
+                    .toFiniteConjunction(indexSet);
+        else
+            thenBranch.arrayPropertiesToFiniteConjunctions(indexSet);
+
+        if (elseBranch instanceof ArrayProperty)
+            elseBranch = ((ArrayProperty) elseBranch)
+                    .toFiniteConjunction(indexSet);
+        else
+            elseBranch.arrayPropertiesToFiniteConjunctions(indexSet);
     }
 }

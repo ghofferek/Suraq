@@ -145,4 +145,13 @@ public class PropositionalConstant extends PropositionalTerm {
     public Formula substituteFormula(Map<Token, Term> paramMap) {
         return new PropositionalConstant(constant);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        // Nothing to do here.
+        return;
+    }
 }

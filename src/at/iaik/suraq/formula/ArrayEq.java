@@ -114,4 +114,12 @@ public class ArrayEq extends EqualityFormula {
         return newFormula;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        throw new RuntimeException(
+                "arrayPropertiesToFiniteConjunctions cannot be called on an ArrayEq.\nRemove array equalities before reducing properties to conjunctions.");
+    }
 }

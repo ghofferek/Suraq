@@ -236,4 +236,15 @@ public class NotFormula extends BooleanCombinationFormula {
         else
             formula.removeArrayEqualities();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        if (formula instanceof ArrayProperty)
+            formula = ((ArrayProperty) formula).toFiniteConjunction(indexSet);
+        else
+            formula.arrayPropertiesToFiniteConjunctions(indexSet);
+    }
 }

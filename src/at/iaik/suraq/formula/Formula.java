@@ -99,4 +99,14 @@ public interface Formula {
      * properties.
      */
     public void removeArrayEqualities();
+
+    /**
+     * Reduces all array properties in this formula to finite conjunctions over
+     * the given index set. The index set must already include the special
+     * variable lambda.
+     * 
+     * @param indexSet
+     *            the index set.
+     */
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet);
 }

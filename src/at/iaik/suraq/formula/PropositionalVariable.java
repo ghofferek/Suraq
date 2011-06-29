@@ -77,8 +77,7 @@ public class PropositionalVariable extends PropositionalTerm {
      */
     @Override
     public Formula deepFormulaCopy() {
-        // TODO Auto-generated method stub
-        return null;
+        return new PropositionalVariable(new String(varName));
     }
 
     /**
@@ -167,6 +166,15 @@ public class PropositionalVariable extends PropositionalTerm {
             return (PropositionalTerm) paramMap.get(new Token(varName));
         else
             return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        // Nothing to do here.
+        return;
     }
 
 }

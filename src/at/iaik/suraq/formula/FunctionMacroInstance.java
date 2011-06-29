@@ -214,8 +214,8 @@ public class FunctionMacroInstance implements Formula {
         Map<Token, Term> convertedMap = new HashMap<Token, Term>();
 
         for (Token token : this.paramMap.keySet())
-            convertedMap.put(token,
-                    paramMap.get(token).substituteTerm(paramMap));
+            convertedMap.put(token, paramMap.get(token)
+                    .substituteTerm(paramMap));
 
         try {
             return new FunctionMacroInstance(macro, convertedMap);
@@ -232,6 +232,15 @@ public class FunctionMacroInstance implements Formula {
     @Override
     public void removeArrayEqualities() {
         macro.removeArrayEqualities();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        macro.arrayPropertiesToFiniteConjunctions(indexSet);
     }
 
 }
