@@ -211,4 +211,40 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             rightSide.arrayPropertiesToFiniteConjunctions(indexSet);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        leftSide = leftSide.simplify();
+        rightSide = rightSide.simplify();
+
+        if (leftSide instanceof PropositionalConstant) {
+            if (((PropositionalConstant) leftSide).getValue())
+                return rightSide;
+            else
+                return new PropositionalConstant(true);
+        }
+
+        if (rightSide instanceof PropositionalConstant) {
+            if (((PropositionalConstant) rightSide).getValue())
+                return new PropositionalConstant(true);
+            else
+                return new NotFormula(leftSide).simplify();
+        }
+
+        if (leftSide.equals(rightSide))
+            return new PropositionalConstant(true);
+
+        if (leftSide instanceof NotFormula)
+            if (rightSide.equals(((NotFormula) leftSide).getNegatedFormula()))
+                return rightSide;
+
+        if (rightSide instanceof NotFormula)
+            if (leftSide.equals(((NotFormula) rightSide).getNegatedFormula()))
+                return rightSide;
+
+        return this;
+    }
+
 }

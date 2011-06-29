@@ -22,7 +22,7 @@ public abstract class EqualityFormula implements Formula {
     /**
      * The terms to be compared.
      */
-    protected final List<? extends Term> terms;
+    protected final List<Term> terms;
 
     /**
      * <code>true</code> for an equality, <code>false</code> for an inequality.
@@ -287,6 +287,29 @@ public abstract class EqualityFormula implements Formula {
         // Equality formulas do not have subformulas.
         // Array Equalities should already have been removed.
         return;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+
+        Set<Term> termSet = new HashSet<Term>(terms);
+
+        if (equal) {
+            terms.clear();
+            terms.addAll(termSet);
+
+            if (terms.size() < 2)
+                return new PropositionalConstant(true);
+
+        } else {
+            if (termSet.size() != terms.size())
+                return new PropositionalConstant(false);
+        }
+
+        return this;
     }
 
 }

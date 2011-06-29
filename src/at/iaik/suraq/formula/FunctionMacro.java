@@ -239,7 +239,7 @@ public class FunctionMacro {
     }
 
     /**
-     * 
+     * Removes array equalities from the body of the macro.
      */
     public void removeArrayEqualities() {
         if (body instanceof ArrayEq)
@@ -249,13 +249,46 @@ public class FunctionMacro {
     }
 
     /**
+     * Converts array properties in the body of the macro to finite conjunctions
+     * 
      * @param indexSet
+     *            the index set.
      */
     public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         if (body instanceof ArrayProperty)
             body = ((ArrayProperty) body).toFiniteConjunction(indexSet);
         else
             body.arrayPropertiesToFiniteConjunctions(indexSet);
+    }
+
+    /**
+     * Simplifies the body of the macro.
+     */
+    public void simplify() {
+        body = body.simplify();
+    }
+
+    /**
+     * Simplifies the body of the macro after substituting local variables
+     * according to the given map. If the result is a constant, it is returned
+     * as a <code>Boolean</code>. Otherwise, <code>null</code> is returned.
+     * 
+     * @param paramMap
+     *            the map for substituting local variables.
+     * @return <code>null</code>, if simplifcation does not yield a constant.
+     *         The constant as a <code>Boolean</code> otherwise.
+     */
+    public Boolean simplify(Map<Token, Term> paramMap) {
+
+        Formula bodyCopy = body.deepFormulaCopy();
+
+        bodyCopy.substituteFormula(paramMap);
+        bodyCopy = bodyCopy.simplify();
+
+        if (bodyCopy instanceof PropositionalConstant)
+            return ((PropositionalConstant) bodyCopy).getValue();
+
+        return null;
     }
 
 }

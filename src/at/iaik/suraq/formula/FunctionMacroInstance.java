@@ -243,4 +243,18 @@ public class FunctionMacroInstance implements Formula {
         macro.arrayPropertiesToFiniteConjunctions(indexSet);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        macro.simplify();
+
+        Boolean simplification = macro.simplify(paramMap);
+        if (simplification != null)
+            return new PropositionalConstant(simplification);
+
+        return this;
+    }
+
 }

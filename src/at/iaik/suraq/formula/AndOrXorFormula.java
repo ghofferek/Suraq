@@ -216,4 +216,15 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        // Default, unless a subclass has more clever method
+        for (int count = 0; count < formulas.size(); count++)
+            formulas.set(count, formulas.get(count).simplify());
+        return this;
+    }
+
 }

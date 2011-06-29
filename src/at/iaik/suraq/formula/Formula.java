@@ -109,4 +109,15 @@ public interface Formula {
      *            the index set.
      */
     public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet);
+
+    /**
+     * Simplifies this formula by (Boolean) constant propagation and some
+     * limited constraint propagation. If the formula cannot be simplified, it
+     * is returned unchanged (not copied!). Otherwise a simplified formula is
+     * returned. Unchanged subformulas are not copied!
+     * 
+     * @return this formula, simplified by constant propagation and some
+     *         constraint propagation.
+     */
+    public Formula simplify();
 }

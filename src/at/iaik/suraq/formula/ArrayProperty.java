@@ -464,4 +464,13 @@ public class ArrayProperty implements Formula {
         throw new RuntimeException(
                 "arrayPropertiesToFiniteConjunctions cannot be called on an ArrayProperty.\nUse toFiniteConjunction instead.");
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        // Not needed, as array properties are removed before simplifications.
+        return this;
+    }
 }

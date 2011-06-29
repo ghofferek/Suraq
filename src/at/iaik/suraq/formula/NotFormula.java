@@ -48,6 +48,15 @@ public class NotFormula extends BooleanCombinationFormula {
     }
 
     /**
+     * Returns a copy of the negated formula.
+     * 
+     * @return A copy of the negated formula.
+     */
+    public Formula getNegatedFormula() {
+        return formula.deepFormulaCopy();
+    }
+
+    /**
      * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
      */
     @Override
@@ -247,4 +256,52 @@ public class NotFormula extends BooleanCombinationFormula {
         else
             formula.arrayPropertiesToFiniteConjunctions(indexSet);
     }
+
+    /**
+     * Checks whether this <code>NotFormula</code> is a negated propositional
+     * variable. If so, the variable is returned (without the negation).
+     * 
+     * @return If this <code>NotFormula</code> is the negation of a
+     *         <code>PropositionalVariable</code>, the variable is returned.
+     *         Else, <code>null</code> is returned.
+     */
+    public PropositionalVariable isNegatedVariable() {
+        if (!(formula instanceof PropositionalVariable))
+            return null;
+        else
+            return (PropositionalVariable) formula;
+    }
+
+    /**
+     * Checks whether this <code>NotFormula</code> is a negated propositional
+     * constant. If so, the constant is returned (without the negation).
+     * 
+     * @return If this <code>NotFormula</code> is the negation of a
+     *         <code>PropositionalConstant</code>, it is returned. Else,
+     *         <code>null</code> is returned.
+     */
+    public PropositionalConstant isNegatedConstant() {
+        if (!(formula instanceof PropositionalConstant))
+            return null;
+        else
+            return (PropositionalConstant) formula;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        formula = formula.simplify();
+
+        if (formula instanceof PropositionalConstant)
+            return new PropositionalConstant(
+                    !((PropositionalConstant) formula).getValue());
+
+        if (formula instanceof NotFormula)
+            return ((NotFormula) formula).formula;
+
+        return this;
+    }
+
 }

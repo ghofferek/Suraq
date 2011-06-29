@@ -248,4 +248,26 @@ public class PropositionalIte extends BooleanCombinationFormula {
         else
             elseBranch.arrayPropertiesToFiniteConjunctions(indexSet);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        condition = condition.simplify();
+        thenBranch = thenBranch.simplify();
+        elseBranch = elseBranch.simplify();
+
+        if (condition instanceof PropositionalConstant) {
+            if (((PropositionalConstant) condition).getValue())
+                return thenBranch;
+            else
+                return elseBranch;
+        }
+
+        if (thenBranch.equals(elseBranch))
+            return thenBranch;
+
+        return this;
+    }
 }

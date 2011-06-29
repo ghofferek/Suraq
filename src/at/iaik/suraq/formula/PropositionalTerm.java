@@ -29,8 +29,17 @@ public abstract class PropositionalTerm extends Term implements Formula {
     @Override
     public void removeArrayEqualities() {
         // Nothing to do here.
-        // No array equalities contained here.
+        // No array equalities contained here.ß
         return;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        // Nothing to do
+        return this;
     }
 
 }
