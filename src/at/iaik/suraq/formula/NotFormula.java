@@ -304,4 +304,12 @@ public class NotFormula extends BooleanCombinationFormula {
         return this;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        return new NotFormula(formula.flatten());
+    }
+
 }

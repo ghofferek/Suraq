@@ -214,4 +214,13 @@ public class ArrayIte extends ArrayTerm {
 
         return new ArrayIte(simplifiedCondition, thenBranch, elseBranch);
     }
+
+    /**
+     * @return a flattened copy of this term.
+     */
+    public ArrayTerm flatten() {
+        return new ArrayIte(condition.flatten(),
+                (ArrayTerm) thenBranch.deepTermCopy(),
+                (ArrayTerm) elseBranch.deepTermCopy());
+    }
 }

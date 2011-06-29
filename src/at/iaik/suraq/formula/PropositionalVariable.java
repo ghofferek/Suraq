@@ -177,4 +177,12 @@ public class PropositionalVariable extends PropositionalTerm {
         return;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        return this.deepFormulaCopy();
+    }
+
 }

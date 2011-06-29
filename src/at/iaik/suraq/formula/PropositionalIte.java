@@ -270,4 +270,13 @@ public class PropositionalIte extends BooleanCombinationFormula {
 
         return this;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        return new PropositionalIte(condition.flatten(), thenBranch.flatten(),
+                elseBranch.flatten());
+    }
 }

@@ -320,4 +320,33 @@ public abstract class EqualityFormula implements Formula {
         return this;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        List<Term> termCopies = new ArrayList<Term>();
+
+        for (Term term : terms) {
+            if (term instanceof DomainIte) {
+                termCopies.add(((DomainIte) term).flatten());
+                continue;
+            }
+
+            if (term instanceof ArrayIte) {
+                termCopies.add(((ArrayIte) term).flatten());
+                continue;
+            }
+
+            termCopies.add(term);
+        }
+
+        try {
+            return EqualityFormula.create(termCopies, equal);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Unforeseen exception while flattening equality formula.",
+                    exc);
+        }
+    }
 }

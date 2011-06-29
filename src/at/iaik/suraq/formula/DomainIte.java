@@ -224,4 +224,13 @@ public class DomainIte extends DomainTerm {
 
         return new DomainIte(simplifiedCondition, thenBranch, elseBranch);
     }
+
+    /**
+     * @return a flattened copy of this term.
+     */
+    public DomainTerm flatten() {
+        return new DomainIte(condition.flatten(),
+                (DomainTerm) thenBranch.deepTermCopy(),
+                (DomainTerm) elseBranch.deepTermCopy());
+    }
 }

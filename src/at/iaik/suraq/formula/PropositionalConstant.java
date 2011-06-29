@@ -154,4 +154,12 @@ public class PropositionalConstant extends PropositionalTerm {
         // Nothing to do here.
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        return this.deepFormulaCopy();
+    }
 }

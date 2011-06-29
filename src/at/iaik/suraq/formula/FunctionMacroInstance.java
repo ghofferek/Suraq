@@ -257,4 +257,12 @@ public class FunctionMacroInstance implements Formula {
         return this;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        return macro.getBody().substituteFormula(paramMap).flatten();
+    }
+
 }

@@ -473,4 +473,19 @@ public class ArrayProperty implements Formula {
         // Not needed, as array properties are removed before simplifications.
         return this;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        try {
+            return new ArrayProperty(uVars, indexGuard.flatten(),
+                    valueConstraint.flatten());
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unforseen exception while flattening array property.", exc);
+        }
+    }
+
 }

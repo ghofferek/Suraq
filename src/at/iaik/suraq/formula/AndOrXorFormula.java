@@ -39,6 +39,15 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         this.formulas.addAll(formulas);
     }
 
+    /**
+     * Creates a new <code>AndOrXorFormula</code> which is of the same type as
+     * <code>this</code> object and has the given subformulas.
+     * 
+     * @param formulas
+     *            the subformulas
+     * @return a new <code>AndOrXorFormula</code> with the same type as
+     *         <code>this</code>.
+     */
     protected AndOrXorFormula create(Collection<? extends Formula> formulas) {
         Class<? extends AndOrXorFormula> myClass = this.getClass();
         Class<?> listClass = formulas.getClass();
@@ -220,6 +229,18 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         for (int count = 0; count < formulas.size(); count++)
             formulas.set(count, formulas.get(count).simplify());
         return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        List<Formula> flattenedFormulas = new ArrayList<Formula>();
+        for (Formula formula : formulas)
+            flattenedFormulas.add(formula.flatten());
+
+        return create(flattenedFormulas);
     }
 
 }

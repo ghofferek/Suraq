@@ -247,4 +247,12 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         return this;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Formula flatten() {
+        return new ImpliesFormula(leftSide.flatten(), rightSide.flatten());
+    }
+
 }
