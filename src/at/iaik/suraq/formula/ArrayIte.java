@@ -187,9 +187,31 @@ public class ArrayIte extends ArrayTerm {
                 .substituteTerm(paramMap);
         ArrayTerm convertedElseBranch = (ArrayTerm) elseBranch
                 .substituteTerm(paramMap);
-        Formula convertedCondition = condition
-                .substituteFormula(paramMap);
+        Formula convertedCondition = condition.substituteFormula(paramMap);
         return new ArrayIte(convertedCondition, convertedThenBranch,
                 convertedElseBranch);
+    }
+
+    /**
+     * Simplifies this term by first simplifying the condition, and subsequently
+     * simplifying the ite, if the condition is a constant.
+     * 
+     * @return a <code>ArrayIte</code> term, which is simplified. Unchanged
+     *         parts are not copied.
+     */
+    public ArrayTerm simplify() {
+
+        Formula simplifiedCondition = condition.simplify();
+
+        if (simplifiedCondition instanceof PropositionalConstant)
+            if (((PropositionalConstant) simplifiedCondition).getValue())
+                return thenBranch;
+            else
+                return elseBranch;
+
+        if (thenBranch.equals(elseBranch))
+            return thenBranch;
+
+        return new ArrayIte(simplifiedCondition, thenBranch, elseBranch);
     }
 }

@@ -120,4 +120,5 @@ public interface Formula {
      *         constraint propagation.
      */
     public Formula simplify();
+
 }

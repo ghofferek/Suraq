@@ -197,9 +197,31 @@ public class DomainIte extends DomainTerm {
                 .substituteTerm(paramMap);
         DomainTerm convertedElseBranch = (DomainTerm) elseBranch
                 .substituteTerm(paramMap);
-        Formula convertedCondition = condition
-                .substituteFormula(paramMap);
+        Formula convertedCondition = condition.substituteFormula(paramMap);
         return new DomainIte(convertedCondition, convertedThenBranch,
                 convertedElseBranch);
+    }
+
+    /**
+     * Simplifies this term by first simplifying the condition, and subsequently
+     * simplifying the ite, if the condition is a constant.
+     * 
+     * @return a <code>DomainIte</code> term, which is simplified. Unchanged
+     *         parts are not copied.
+     */
+    public DomainTerm simplify() {
+
+        Formula simplifiedCondition = condition.simplify();
+
+        if (simplifiedCondition instanceof PropositionalConstant)
+            if (((PropositionalConstant) simplifiedCondition).getValue())
+                return thenBranch;
+            else
+                return elseBranch;
+
+        if (thenBranch.equals(elseBranch))
+            return thenBranch;
+
+        return new DomainIte(simplifiedCondition, thenBranch, elseBranch);
     }
 }

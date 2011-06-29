@@ -295,6 +295,14 @@ public abstract class EqualityFormula implements Formula {
     @Override
     public Formula simplify() {
 
+        for (int count = 0; count < terms.size(); count++) {
+            if (terms.get(count) instanceof DomainIte)
+                terms.set(count, ((DomainIte) terms.get(count)).simplify());
+
+            if (terms.get(count) instanceof ArrayIte)
+                terms.set(count, ((ArrayIte) terms.get(count)).simplify());
+        }
+
         Set<Term> termSet = new HashSet<Term>(terms);
 
         if (equal) {
