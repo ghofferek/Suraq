@@ -121,4 +121,12 @@ public interface Formula {
      */
     public Formula simplify();
 
+    /**
+     * Returns a (new) flattened version of this formula. I.e., macro instances
+     * are replaced by their respective instantiations.
+     * 
+     * @return a flattened copy of this formula.
+     */
+    public Formula flatten();
+
 }

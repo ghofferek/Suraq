@@ -39,6 +39,20 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         this.formulas.addAll(formulas);
     }
 
+    protected AndOrXorFormula create(Collection<? extends Formula> formulas) {
+        Class<? extends AndOrXorFormula> myClass = this.getClass();
+        Class<?> listClass = formulas.getClass();
+        AndOrXorFormula instance;
+        try {
+            Constructor<? extends AndOrXorFormula> constructor = myClass
+                    .getConstructor(listClass);
+            instance = constructor.newInstance(formulas);
+            return instance;
+        } catch (Throwable exc) {
+            throw new RuntimeException("Unable to create AndOrXorFormula", exc);
+        }
+    }
+
     /**
      * @see at.iaik.suraq.formula.Formula#getArrayVariables()
      */
@@ -88,7 +102,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         List<Formula> subformulas = new ArrayList<Formula>();
         for (Formula formula : formulas)
             subformulas.add(formula.deepFormulaCopy());
-        return new XorFormula(subformulas);
+        return create(subformulas);
     }
 
     /**
@@ -100,19 +114,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         for (Formula formula : formulas)
             nnfFormulas.add(formula.negationNormalForm());
 
-        Class<? extends AndOrXorFormula> myClass = this.getClass();
-        Class<?> listClass = nnfFormulas.getClass();
-        AndOrXorFormula instance;
-        try {
-            Constructor<? extends AndOrXorFormula> constructor = myClass
-                    .getConstructor(listClass);
-            instance = constructor.newInstance(nnfFormulas);
-            return instance;
-        } catch (Throwable exc) {
-            throw new RuntimeException(
-                    "Unable to create object while putting formula in NNF.",
-                    exc);
-        }
+        return create(nnfFormulas);
     }
 
     /**
@@ -142,8 +144,10 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public Set<DomainTerm> getIndexSet() throws SuraqException {
-        // TODO Auto-generated method stub
-        return null;
+        Set<DomainTerm> indexSet = new HashSet<DomainTerm>();
+        for (Formula formula : formulas)
+            indexSet.addAll(formula.getIndexSet());
+        return indexSet;
     }
 
     /**
@@ -175,16 +179,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         for (Formula formula : formulas)
             convertedFormulas.add(formula.substituteFormula(paramMap));
 
-        Class<? extends Formula> thisClass = this.getClass();
-        try {
-            Constructor<? extends Formula> constructur = thisClass
-                    .getConstructor(convertedFormulas.getClass());
-            return constructur.newInstance(convertedFormulas);
-        } catch (Throwable exc) {
-            throw new RuntimeException(
-                    "Unexpected exception while converting AndOrXorFormula to caller scope.",
-                    exc);
-        }
+        return create(convertedFormulas);
     }
 
     /**
