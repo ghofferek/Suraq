@@ -60,8 +60,9 @@ public class LogicParserTest {
                 .toString());
         Assert.assertEquals(0, logicParser.getBoolVariables().size());
         Assert.assertEquals(3, logicParser.getMacros().size());
-        Assert.assertEquals(9, logicParser.getArrayVariables().size());
-        Assert.assertEquals(6, logicParser.getDomainVariables().size());
+        Assert.assertEquals(5, logicParser.getArrayVariables().size());
+        Assert.assertEquals(5, logicParser.getDomainVariables().size());
+        Assert.assertEquals(5, logicParser.getNoDependenceVariables().size());
 
         Assert.assertNotNull(logicParser.getMainFormula());
         Assert.assertTrue(logicParser.getMainFormula() instanceof FunctionMacroInstance);

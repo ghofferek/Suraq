@@ -83,6 +83,11 @@ public class LogicParser extends Parser {
     private final Set<UninterpretedFunction> functions = new HashSet<UninterpretedFunction>();
 
     /**
+     * The set of variables on which control logic may <em>not</em> depend
+     */
+    private final Set<Token> noDependenceVariables = new HashSet<Token>();
+
+    /**
      * The function macros found during parsing, indexed by name tokens
      */
     private final Map<Token, FunctionMacro> macros = new HashMap<Token, FunctionMacro>();
@@ -1053,15 +1058,27 @@ public class LogicParser extends Parser {
         assert (((Token) expression.getChildren().get(0))
                 .equalsString("declare-fun"));
 
-        if (expression.getChildren().size() != 4)
+        if (expression.getChildren().size() < 4
+                || expression.getChildren().size() > 5)
             throw new ParseError(expression,
-                    "Expected 4 subexpressions in declare-fun expression!");
+                    "Expected 4 or 5 subexpressions in declare-fun expression!");
 
-        assert (expression.getChildren().size() == 4);
+        assert (expression.getChildren().size() == 4 || expression
+                .getChildren().size() == 5);
 
         if (!(expression.getChildren().get(1) instanceof Token))
             throw new ParseError(expression,
                     "The first argument of declare-fun must be a token!");
+
+        boolean noDependence = false;
+        if (expression.getChildren().size() == 5) {
+            if (!expression.getChildren().get(4)
+                    .equals(SExpressionConstants.NO_DEPENDENCE))
+                throw new ParseError(expression.getChildren().get(4),
+                        "Expected either '' or ':no_dependence' as fourth parameter of declare-fun.");
+            else
+                noDependence = true;
+        }
 
         assert (expression.getChildren().get(1) instanceof Token);
         Token name = (Token) expression.getChildren().get(1);
@@ -1076,7 +1093,7 @@ public class LogicParser extends Parser {
         }
 
         if (param_list.size() == 0)
-            handleVariable(name, type);
+            handleVariable(name, type, noDependence);
         else
             handleFunction(name, param_list, type);
     }
@@ -1118,8 +1135,18 @@ public class LogicParser extends Parser {
      *            the name of the variable.
      * @param type
      *            the s-expression determining the type of the variable.
+     * @param noDependence
+     *            <code>true</code> if this is a variable on which control logic
+     *            may <em>not</em> depend.
      */
-    private void handleVariable(Token name, SExpression type) throws ParseError {
+    private void handleVariable(Token name, SExpression type,
+            boolean noDependence) throws ParseError {
+
+        if (checkNameExists(name)) {
+            throw new ParseError(name, "Name already used: " + name.toString());
+            // After this check the exceptions below should actually never
+            // be thrown.
+        }
 
         if (type.equals(SExpressionConstants.CONTROL_TYPE)) {
             if (!controlVariables.add(new PropositionalVariable(name))) {
@@ -1146,6 +1173,42 @@ public class LogicParser extends Parser {
                     + type.toString());
         }
 
+        if (noDependence) {
+            noDependenceVariables.add(name);
+        }
+
+    }
+
+    /**
+     * Checks whether the given name already exists (as an identifier of any
+     * other type).
+     * 
+     * @param name
+     *            the name to check.
+     * @return <code>true</code> if something with this name already exists,
+     *         false otherwise.
+     */
+    private boolean checkNameExists(Token name) {
+        Set<Token> names = new HashSet<Token>();
+
+        for (PropositionalVariable variable : boolVariables)
+            names.add(new Token(variable.getVarName()));
+
+        for (PropositionalVariable variable : controlVariables)
+            names.add(new Token(variable.getVarName()));
+
+        for (DomainVariable variable : domainVariables)
+            names.add(new Token(variable.getVarName()));
+
+        for (ArrayVariable variable : arrayVariables)
+            names.add(new Token(variable.getVarName()));
+
+        for (UninterpretedFunction function : functions)
+            names.add(function.getName());
+
+        names.addAll(macros.keySet());
+
+        return names.contains(names);
     }
 
     /**
@@ -1214,6 +1277,17 @@ public class LogicParser extends Parser {
      */
     public List<ArrayVariable> getArrayVariables() {
         return new ArrayList<ArrayVariable>(arrayVariables);
+    }
+
+    /**
+     * Returns a copy of the list of variables on which control logic may
+     * <em>not</em> depend.
+     * 
+     * @return a copy of the list of variables on which control logic may
+     *         <em>not</em> depend.
+     */
+    public List<Token> getNoDependenceVariables() {
+        return new ArrayList<Token>(noDependenceVariables);
     }
 
     /**

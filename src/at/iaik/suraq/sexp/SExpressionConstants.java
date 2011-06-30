@@ -55,10 +55,13 @@ public class SExpressionConstants {
 
     public static final SExpression IMPLIES = SExpression.fromString("=>");
 
-    public static final Object FORALL = SExpression.fromString("forall");
+    public static final SExpression FORALL = SExpression.fromString("forall");
 
-    public static final Object SELECT = SExpression.fromString("select");
+    public static final SExpression SELECT = SExpression.fromString("select");
 
-    public static final Object STORE = SExpression.fromString("store");
+    public static final SExpression STORE = SExpression.fromString("store");
+
+    public static final SExpression NO_DEPENDENCE = SExpression
+            .fromString(":no_dependence");
 
 }

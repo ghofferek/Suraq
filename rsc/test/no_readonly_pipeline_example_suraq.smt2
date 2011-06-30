@@ -11,16 +11,19 @@
 
 
 ; Declare arrays.
+; since ' ist not a valid SMTLIB symbol character, _ is used instead
 ;
 ; Arrays must all be of sort (Array Value Value). Other types of arrays are not
 ; supported at this time. 
+;
+; Variables on which the control signals may *not* depend are annotated with
+; :no_dependence
 
 (declare-fun REG      () (Array Value Value))
-(declare-fun REGci_   () (Array Value Value))
-(declare-fun REGci__  () (Array Value Value))
-(declare-fun REGsc_   () (Array Value Value))
-(declare-fun REGsc__  () (Array Value Value))
-
+(declare-fun REGci_   () (Array Value Value) :no_dependence)
+(declare-fun REGci__  () (Array Value Value) :no_dependence)
+(declare-fun REGsc_   () (Array Value Value) :no_dependence)
+(declare-fun REGsc__  () (Array Value Value) :no_dependence)
 
 
 ; Declare variables for pipeline registers
@@ -28,7 +31,7 @@
 ; at this time. 
 
 (declare-fun v   () Value)
-(declare-fun v_  () Value)
+(declare-fun v_  () Value :no_dependence)
 (declare-fun w   () Value)
 
 
