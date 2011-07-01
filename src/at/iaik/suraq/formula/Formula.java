@@ -56,9 +56,16 @@ public interface Formula {
     /**
      * Returns a set of all function macro names used in this formula.
      * 
-     * @return a set of function macro names used in this formula.
+     * @return a set of all function macro names used in this formula.
      */
     public Set<String> getFunctionMacroNames();
+
+    /**
+     * Returns a set of all function macros used in this formula.
+     * 
+     * @return a set of all function macros used in this formula.
+     */
+    public Set<FunctionMacro> getFunctionMacros();
 
     /**
      * Computes the index set of this formula. (Cf. Bradley/Manna, p. 295) The

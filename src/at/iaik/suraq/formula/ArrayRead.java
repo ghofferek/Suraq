@@ -119,6 +119,16 @@ public class ArrayRead extends DomainTerm {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = arrayTerm.getFunctionMacros();
+        result.addAll(index.getFunctionMacros());
+        return result;
+    }
+
+    /**
      * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
@@ -165,8 +175,7 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public Term substituteTerm(Map<Token, Term> paramMap) {
-        return new ArrayRead(
-                (ArrayTerm) arrayTerm.substituteTerm(paramMap),
+        return new ArrayRead((ArrayTerm) arrayTerm.substituteTerm(paramMap),
                 (DomainTerm) index.substituteTerm(paramMap));
     }
 

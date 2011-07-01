@@ -141,6 +141,16 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = leftSide.getFunctionMacros();
+        result.addAll(rightSide.getFunctionMacros());
+        return result;
+    }
+
+    /**
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override

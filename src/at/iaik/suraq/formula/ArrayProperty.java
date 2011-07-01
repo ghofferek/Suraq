@@ -346,6 +346,16 @@ public class ArrayProperty implements Formula {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = indexGuard.getFunctionMacros();
+        result.addAll(valueConstraint.getFunctionMacros());
+        return result;
+    }
+
+    /**
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override

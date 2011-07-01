@@ -211,6 +211,17 @@ public abstract class EqualityFormula implements Formula {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+        for (Term term : terms)
+            macros.addAll(term.getFunctionMacros());
+        return macros;
+    }
+
+    /**
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override

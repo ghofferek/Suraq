@@ -139,6 +139,14 @@ public class PropositionalVariable extends PropositionalTerm {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        return new HashSet<FunctionMacro>();
+    }
+
+    /**
      * @see at.iaik.suraq.formula.Formula#getIndexSet()
      */
     @Override

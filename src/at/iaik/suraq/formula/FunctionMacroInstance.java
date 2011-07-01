@@ -175,6 +175,18 @@ public class FunctionMacroInstance implements Formula {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> macroNames = new HashSet<FunctionMacro>();
+        macroNames.add(macro);
+        for (Term term : paramMap.values())
+            macroNames.addAll(term.getFunctionMacros());
+        return macroNames;
+    }
+
+    /**
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override

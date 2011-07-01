@@ -114,6 +114,14 @@ public class ArrayVariable extends ArrayTerm {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        return new HashSet<FunctionMacro>();
+    }
+
+    /**
      * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
      */
     @Override

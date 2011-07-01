@@ -132,6 +132,17 @@ public class ArrayWrite extends ArrayTerm {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = arrayTerm.getFunctionMacros();
+        result.addAll(indexTerm.getFunctionMacros());
+        result.addAll(valueTerm.getFunctionMacros());
+        return result;
+    }
+
+    /**
      * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
@@ -177,8 +188,7 @@ public class ArrayWrite extends ArrayTerm {
      */
     @Override
     public Term substituteTerm(Map<Token, Term> paramMap) {
-        return new ArrayWrite(
-                (ArrayTerm) arrayTerm.substituteTerm(paramMap),
+        return new ArrayWrite((ArrayTerm) arrayTerm.substituteTerm(paramMap),
                 (DomainTerm) indexTerm.substituteTerm(paramMap),
                 (DomainTerm) valueTerm.substituteTerm(paramMap));
     }

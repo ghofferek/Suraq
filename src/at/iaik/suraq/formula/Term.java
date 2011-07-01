@@ -105,11 +105,18 @@ public abstract class Term {
     public abstract Set<PropositionalVariable> getPropositionalVariables();
 
     /**
-     * Returns a set of all function macro names used in this formula.
+     * Returns a set of all function macro names used in this term.
      * 
-     * @return a set of function macro names used in this formula.
+     * @return a set of function macro names used in this term.
      */
     public abstract Set<String> getFunctionMacroNames();
+
+    /**
+     * Returns a set of all function macros used in this term.
+     * 
+     * @return a set of all function macros used in this term.
+     */
+    public abstract Set<FunctionMacro> getFunctionMacros();
 
     /**
      * Returns a set of all uninterpreted function names used in this formula.

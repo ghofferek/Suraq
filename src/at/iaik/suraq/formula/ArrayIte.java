@@ -134,6 +134,17 @@ public class ArrayIte extends ArrayTerm {
     }
 
     /**
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
+     */
+    @Override
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = thenBranch.getFunctionMacros();
+        result.addAll(elseBranch.getFunctionMacros());
+        result.addAll(condition.getFunctionMacros());
+        return result;
+    }
+
+    /**
      * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
