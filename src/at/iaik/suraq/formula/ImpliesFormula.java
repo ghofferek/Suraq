@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -263,6 +265,15 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     @Override
     public Formula flatten() {
         return new ImpliesFormula(leftSide.flatten(), rightSide.flatten());
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        return new SExpression(SExpressionConstants.IMPLIES,
+                leftSide.toSmtlibV2(), rightSide.toSmtlibV2());
     }
 
 }

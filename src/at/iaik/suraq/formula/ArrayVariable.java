@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -146,6 +147,14 @@ public class ArrayVariable extends ArrayTerm {
             return paramMap.get(new Token(varName));
         else
             return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        return new Token(varName);
     }
 
 }

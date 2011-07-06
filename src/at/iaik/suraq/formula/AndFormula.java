@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.sexp.Token;
+
 /**
  * 
  * A formula that is a conjunction of other formulas.
@@ -84,6 +87,14 @@ public class AndFormula extends AndOrXorFormula {
 
         // No simplifications found
         return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.AndOrXorFormula#getOperator()
+     */
+    @Override
+    protected Token getOperator() {
+        return SExpressionConstants.AND;
     }
 
 }

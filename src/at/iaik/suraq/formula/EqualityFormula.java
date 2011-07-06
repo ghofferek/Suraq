@@ -12,6 +12,8 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -359,5 +361,18 @@ public abstract class EqualityFormula implements Formula {
                     "Unforeseen exception while flattening equality formula.",
                     exc);
         }
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        List<SExpression> expr = new ArrayList<SExpression>();
+        expr.add(equal ? SExpressionConstants.EQUAL
+                : SExpressionConstants.DISTINCT);
+        for (Term term : terms)
+            expr.add(term.toSmtlibV2());
+        return new SExpression(expr);
     }
 }

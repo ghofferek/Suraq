@@ -12,6 +12,7 @@ import at.iaik.suraq.parser.SExpParser;
 
 /**
  * This class represents s-expressions. It consists of a list of subexpressions.
+ * <code>SExpression</code>s are immutable objects.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
@@ -72,6 +73,39 @@ public class SExpression {
     public SExpression(SExpression child) {
         this.children = new ArrayList<SExpression>();
         this.children.add(child);
+    }
+
+    /**
+     * Convenience method to construct an <code>SExpression</code> with exactly
+     * two children. Constructs a new <code>SExpression</code>.
+     * 
+     * @param first
+     *            the first child
+     * @param second
+     *            the second child
+     */
+    public SExpression(SExpression first, SExpression second) {
+        this.children = new ArrayList<SExpression>();
+        this.children.add(first);
+        this.children.add(second);
+    }
+
+    /**
+     * Convenience method to construct an <code>SExpression</code> with exactly
+     * three children. Constructs a new <code>SExpression</code>.
+     * 
+     * @param first
+     *            the first child
+     * @param second
+     *            the second child
+     * @param third
+     *            the third child
+     */
+    public SExpression(SExpression first, SExpression second, SExpression third) {
+        this.children = new ArrayList<SExpression>();
+        this.children.add(first);
+        this.children.add(second);
+        this.children.add(third);
     }
 
     /**

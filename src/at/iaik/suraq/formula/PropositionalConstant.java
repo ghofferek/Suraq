@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -169,5 +171,14 @@ public class PropositionalConstant extends PropositionalTerm {
     @Override
     public Formula flatten() {
         return this.deepFormulaCopy();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        return constant ? SExpressionConstants.TRUE
+                : SExpressionConstants.FALSE;
     }
 }

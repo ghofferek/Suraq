@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -191,6 +192,14 @@ public class PropositionalVariable extends PropositionalTerm {
     @Override
     public Formula flatten() {
         return this.deepFormulaCopy();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        return new Token(varName);
     }
 
 }

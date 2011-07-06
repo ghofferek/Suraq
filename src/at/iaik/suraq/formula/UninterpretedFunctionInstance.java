@@ -12,6 +12,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -226,5 +227,17 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                     exc);
         }
         return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        List<SExpression> expr = new ArrayList<SExpression>();
+        expr.add(function.getName());
+        for (DomainTerm term : parameters)
+            expr.add(term.toSmtlibV2());
+        return new SExpression(expr);
     }
 }

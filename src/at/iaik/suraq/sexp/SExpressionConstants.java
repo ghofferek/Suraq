@@ -15,53 +15,54 @@ public class SExpressionConstants {
     public static final SExpression ARRAY_TYPE = SExpression
             .fromString("(Array Value Value)");
 
-    public static final SExpression VALUE_TYPE = SExpression
+    public static final Token VALUE_TYPE = (Token) SExpression
             .fromString("Value");
 
-    public static final SExpression CONTROL_TYPE = SExpression
+    public static final Token CONTROL_TYPE = (Token) SExpression
             .fromString("Control");
 
-    public static final SExpression BOOL_TYPE = SExpression.fromString("Bool");
+    public static final Token BOOL_TYPE = (Token) SExpression
+            .fromString("Bool");
 
-    public static final SExpression DECLARE_FUN = SExpression
+    public static final Token DECLARE_FUN = (Token) SExpression
             .fromString("declare-fun");
 
-    public static final SExpression DEFINE_FUN = SExpression
+    public static final Token DEFINE_FUN = (Token) SExpression
             .fromString("define-fun");
 
-    public static final SExpression ASSERT = SExpression.fromString("assert");
+    public static final Token ASSERT = (Token) SExpression.fromString("assert");
 
     public static final SExpression SET_LOGIC_SURAQ = SExpression
             .fromString("(set-logic Suraq)");
 
-    public static final SExpression TRUE = SExpression.fromString("true");
+    public static final Token TRUE = (Token) SExpression.fromString("true");
 
-    public static final SExpression FALSE = SExpression.fromString("false");
+    public static final Token FALSE = (Token) SExpression.fromString("false");
 
-    public static final SExpression AND = SExpression.fromString("and");
+    public static final Token AND = (Token) SExpression.fromString("and");
 
-    public static final SExpression OR = SExpression.fromString("or");
+    public static final Token OR = (Token) SExpression.fromString("or");
 
-    public static final SExpression XOR = SExpression.fromString("xor");
+    public static final Token XOR = (Token) SExpression.fromString("xor");
 
-    public static final SExpression NOT = SExpression.fromString("not");
+    public static final Token NOT = (Token) SExpression.fromString("not");
 
-    public static final SExpression DISTINCT = SExpression
+    public static final Token DISTINCT = (Token) SExpression
             .fromString("distinct");
 
-    public static final SExpression EQUAL = SExpression.fromString("=");
+    public static final Token EQUAL = (Token) SExpression.fromString("=");
 
-    public static final SExpression ITE = SExpression.fromString("ite");
+    public static final Token ITE = (Token) SExpression.fromString("ite");
 
-    public static final SExpression IMPLIES = SExpression.fromString("=>");
+    public static final Token IMPLIES = (Token) SExpression.fromString("=>");
 
-    public static final SExpression FORALL = SExpression.fromString("forall");
+    public static final Token FORALL = (Token) SExpression.fromString("forall");
 
-    public static final SExpression SELECT = SExpression.fromString("select");
+    public static final Token SELECT = (Token) SExpression.fromString("select");
 
-    public static final SExpression STORE = SExpression.fromString("store");
+    public static final Token STORE = (Token) SExpression.fromString("store");
 
-    public static final SExpression NO_DEPENDENCE = SExpression
+    public static final Token NO_DEPENDENCE = (Token) SExpression
             .fromString(":no_dependence");
 
 }

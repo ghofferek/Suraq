@@ -149,4 +149,13 @@ public abstract class Term {
      */
     public abstract Set<DomainTerm> getIndexSet() throws SuraqException;
 
+    /**
+     * Converts this term into an s-expression compatible with SMTLIBv2. Only
+     * the term itself is converted. No variable/function/macro declarations are
+     * included.
+     * 
+     * @return this term as an SMTLIBv2 s-expression.
+     */
+    public abstract SExpression toSmtlibV2();
+
 }

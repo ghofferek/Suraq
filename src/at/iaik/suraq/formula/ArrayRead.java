@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -25,7 +27,7 @@ public class ArrayRead extends DomainTerm {
     /**
      * The index from which is read.
      */
-    private final DomainTerm index;
+    private final DomainTerm indexTerm;
 
     /**
      * Constructs a new <code>ArrayRead</code>.
@@ -38,7 +40,7 @@ public class ArrayRead extends DomainTerm {
     public ArrayRead(ArrayTerm arrayTerm, DomainTerm index) {
         super();
         this.arrayTerm = arrayTerm;
-        this.index = index;
+        this.indexTerm = index;
     }
 
     /**
@@ -55,8 +57,8 @@ public class ArrayRead extends DomainTerm {
      * 
      * @return the index from which is read.
      */
-    public DomainTerm getIndex() {
-        return index;
+    public DomainTerm getIndexTerm() {
+        return indexTerm;
     }
 
     /**
@@ -74,7 +76,7 @@ public class ArrayRead extends DomainTerm {
     @Override
     public Term deepTermCopy() {
         return new ArrayRead((ArrayTerm) arrayTerm.deepTermCopy(),
-                (DomainTerm) index.deepTermCopy());
+                (DomainTerm) indexTerm.deepTermCopy());
     }
 
     /**
@@ -83,7 +85,7 @@ public class ArrayRead extends DomainTerm {
     @Override
     public Set<ArrayVariable> getArrayVariables() {
         Set<ArrayVariable> result = arrayTerm.getArrayVariables();
-        result.addAll(index.getArrayVariables());
+        result.addAll(indexTerm.getArrayVariables());
         return result;
     }
 
@@ -93,7 +95,7 @@ public class ArrayRead extends DomainTerm {
     @Override
     public Set<DomainVariable> getDomainVariables() {
         Set<DomainVariable> result = arrayTerm.getDomainVariables();
-        result.addAll(index.getDomainVariables());
+        result.addAll(indexTerm.getDomainVariables());
         return result;
     }
 
@@ -104,7 +106,7 @@ public class ArrayRead extends DomainTerm {
     public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = arrayTerm
                 .getPropositionalVariables();
-        result.addAll(index.getPropositionalVariables());
+        result.addAll(indexTerm.getPropositionalVariables());
         return result;
     }
 
@@ -114,7 +116,7 @@ public class ArrayRead extends DomainTerm {
     @Override
     public Set<String> getFunctionMacroNames() {
         Set<String> result = arrayTerm.getFunctionMacroNames();
-        result.addAll(index.getFunctionMacroNames());
+        result.addAll(indexTerm.getFunctionMacroNames());
         return result;
     }
 
@@ -124,7 +126,7 @@ public class ArrayRead extends DomainTerm {
     @Override
     public Set<FunctionMacro> getFunctionMacros() {
         Set<FunctionMacro> result = arrayTerm.getFunctionMacros();
-        result.addAll(index.getFunctionMacros());
+        result.addAll(indexTerm.getFunctionMacros());
         return result;
     }
 
@@ -134,7 +136,7 @@ public class ArrayRead extends DomainTerm {
     @Override
     public Set<String> getUninterpretedFunctionNames() {
         Set<String> result = arrayTerm.getUninterpretedFunctionNames();
-        result.addAll(index.getUninterpretedFunctionNames());
+        result.addAll(indexTerm.getUninterpretedFunctionNames());
         return result;
     }
 
@@ -146,7 +148,7 @@ public class ArrayRead extends DomainTerm {
         if (!(obj instanceof ArrayRead))
             return false;
         return arrayTerm.equals(((ArrayRead) obj).equals(arrayTerm))
-                && index.equals(((ArrayRead) obj).equals(index));
+                && indexTerm.equals(((ArrayRead) obj).equals(indexTerm));
     }
 
     /**
@@ -154,7 +156,7 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public int hashCode() {
-        return arrayTerm.hashCode() ^ index.hashCode();
+        return arrayTerm.hashCode() ^ indexTerm.hashCode();
     }
 
     /**
@@ -166,7 +168,7 @@ public class ArrayRead extends DomainTerm {
             throw new SuraqException(
                     "Encountered array-read from non-variable array term while computing index set.");
         Set<DomainTerm> result = new HashSet<DomainTerm>();
-        result.add(index);
+        result.add(indexTerm);
         return result;
     }
 
@@ -176,7 +178,19 @@ public class ArrayRead extends DomainTerm {
     @Override
     public Term substituteTerm(Map<Token, Term> paramMap) {
         return new ArrayRead((ArrayTerm) arrayTerm.substituteTerm(paramMap),
-                (DomainTerm) index.substituteTerm(paramMap));
+                (DomainTerm) indexTerm.substituteTerm(paramMap));
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        SExpression[] expr = new SExpression[3];
+        expr[0] = SExpressionConstants.SELECT;
+        expr[1] = arrayTerm.toSmtlibV2();
+        expr[2] = indexTerm.toSmtlibV2();
+        return new SExpression(expr);
     }
 
 }

@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.List;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * 
@@ -60,6 +62,14 @@ public class XorFormula extends AndOrXorFormula {
     @Override
     public Formula negationNormalForm() throws SuraqException {
         return toAndOrFormula().negationNormalForm();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.AndOrXorFormula#getOperator()
+     */
+    @Override
+    protected Token getOperator() {
+        return SExpressionConstants.XOR;
     }
 
 }

@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -191,6 +193,19 @@ public class ArrayWrite extends ArrayTerm {
         return new ArrayWrite((ArrayTerm) arrayTerm.substituteTerm(paramMap),
                 (DomainTerm) indexTerm.substituteTerm(paramMap),
                 (DomainTerm) valueTerm.substituteTerm(paramMap));
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        SExpression[] expr = new SExpression[4];
+        expr[0] = SExpressionConstants.SELECT;
+        expr[1] = arrayTerm.toSmtlibV2();
+        expr[2] = indexTerm.toSmtlibV2();
+        expr[3] = valueTerm.toSmtlibV2();
+        return new SExpression(expr);
     }
 
 }

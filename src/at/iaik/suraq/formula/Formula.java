@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -136,4 +137,12 @@ public interface Formula {
      */
     public Formula flatten();
 
+    /**
+     * Converts this formula into an s-expression compatible with SMTLIBv2. Only
+     * the formula itself is converted. No variable/function/macro declarations
+     * are included.
+     * 
+     * @return this formulas as an SMTLIBv2 s-expression.
+     */
+    public SExpression toSmtlibV2();
 }

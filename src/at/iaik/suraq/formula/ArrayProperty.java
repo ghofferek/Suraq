@@ -14,6 +14,8 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.InvalidIndexGuardException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.Util;
 
@@ -101,7 +103,7 @@ public class ArrayProperty implements Formula {
             for (DomainTerm term : ((DomainEq) valueConstraint)
                     .getDomainTerms()) {
                 if (term instanceof ArrayRead) {
-                    DomainTerm index = ((ArrayRead) term).getIndex();
+                    DomainTerm index = ((ArrayRead) term).getIndexTerm();
                     if (!(index instanceof DomainVariable))
                         return false;
                 } else {
@@ -496,6 +498,29 @@ public class ArrayProperty implements Formula {
             throw new RuntimeException(
                     "Unforseen exception while flattening array property.", exc);
         }
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        return new SExpression(SExpressionConstants.FORALL, uVarsExpression(),
+                (new ImpliesFormula(indexGuard, valueConstraint)).toSmtlibV2());
+    }
+
+    /**
+     * Returns an s-expression of all universally quantified variables and their
+     * type. E.g. ((var1 Value)(var2 Value)(var3 Value)).
+     * 
+     * @return s-expression of uvars.
+     */
+    private SExpression uVarsExpression() {
+        List<SExpression> expr = new ArrayList<SExpression>();
+        for (DomainVariable uVar : uVars)
+            expr.add(new SExpression(uVar.toSmtlibV2(),
+                    SExpressionConstants.VALUE_TYPE));
+        return new SExpression(expr);
     }
 
 }

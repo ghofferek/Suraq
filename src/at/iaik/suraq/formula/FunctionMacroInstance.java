@@ -3,13 +3,16 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -275,6 +278,18 @@ public class FunctionMacroInstance implements Formula {
     @Override
     public Formula flatten() {
         return macro.getBody().substituteFormula(paramMap).flatten();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        List<SExpression> expr = new ArrayList<SExpression>();
+        expr.add(macro.getName());
+        for (Token param : macro.getParameters())
+            expr.add(paramMap.get(param).toSmtlibV2());
+        return new SExpression(expr);
     }
 
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -254,4 +255,22 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         return create(flattenedFormulas);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        List<SExpression> children = new ArrayList<SExpression>();
+        children.add(this.getOperator());
+        for (Formula formula : formulas)
+            children.add(formula.toSmtlibV2());
+        return new SExpression(children);
+    }
+
+    /**
+     * Returns the token representing the operator (and/or/xor) of this formula.
+     * 
+     * @return The operator token.
+     */
+    protected abstract Token getOperator();
 }
