@@ -250,4 +250,25 @@ public class ParseError extends SuraqException {
         this.columnNumber = expression.getColumnNumber();
         this.context = expression.toString();
     }
+
+    /**
+     * @return the <code>lineNumber</code>
+     */
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    /**
+     * @return the <code>columnNumber</code>
+     */
+    public int getColumnNumber() {
+        return columnNumber;
+    }
+
+    /**
+     * @return the <code>context</code>
+     */
+    public String getContext() {
+        return context;
+    }
 }
