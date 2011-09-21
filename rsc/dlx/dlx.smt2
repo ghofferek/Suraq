@@ -133,6 +133,43 @@
 )
 
 
+; Helper Macros (to shorten main parts of formula)
+
+(define-fun rf1data
+  ( ; parameters
+    (REGFILE (Array Value Value))
+    (IMEM    (Array Value Value))
+    (PC      Value              )
+  )
+  Value ; return type of macro
+  ; main expression:
+  (
+    (ite
+      (= ZERO (rf1-of (select IMEM PC)))
+      ZERO
+      (select REGFILE (rf1-of (select IMEM PC)))
+    )
+  )
+) 
+
+(define-fun rf2data
+  ( ; parameters
+    (REGFILE (Array Value Value))
+    (IMEM    (Array Value Value))
+    (PC      Value              )
+  )
+  Value ; return type of macro
+  ; main expression:
+  (
+    (ite
+      (= ZERO (rf2-of (select IMEM PC)))
+      ZERO
+      (select REGFILE (rf2-of (select IMEM PC)))
+    )
+  )
+) 
+
+
 ; One instruction in the reference architecture
 
 (define-fun instruction-in-reference
@@ -171,11 +208,7 @@
               (is-BEQZ (opcode-of (select IMEMi PCi)))
               (= 
                 ZERO
-                (ite
-                  (= ZERO (rf1-of (select IMEMi PCi)))
-                  (ZERO)
-                  (select REGFILEi (rf1-of (select IMEMi PCi)))
-                )
+                (rf1data REGFILEi IMEMi PCi)
               )
             )
             (PLUS
@@ -196,25 +229,73 @@
             DMEMi
             (PLUS
               (short-immed-of (select IMEMi PCi))
-              (ite
-                (= ZERO (rf1-of (select IMEMi PCi)))
-                (ZERO)
-                (select REGFILEi (rf1-of (select IMEMi PCi)))
-              )
+              (rf1data REGFILEi IMEMi PCi)
             )
-            (ite
-              (= ZERO (rf2-of (select IMEMi PCi)))
-              (ZERO)
-              (select REGFILEi (rf2-of (select IMEMi PCi)))
-            )
+            (rf2data REGFILEi IMEMi PCi)
           )
         )
         (= DMEMo DMEMi) ; write-enable == False
       )
     
       ; update of REGFILE
-      ( 
-      ;TODO
+      (ite 
+        (or ; write-enable
+          (and
+            (distinct ZERO (rf2-of (select IMEMi PCi)))
+            (is-load (opcode-of (select IMEMi PCi)))
+          )
+          (and
+            (distinct ZERO (rf2-of (select IMEMi PCi)))
+            (is-alu-immed (opcode-of (select IMEMi PCi)))
+          )
+          (and
+            (distinct ZERO (rf3-of (select IMEMi PCi)))
+            (and
+              (not (is-load       (opcode-of (select IMEMi PCi))))
+              (not (is-store      (opcode-of (select IMEMi PCi))))
+              (not (is-J          (opcode-of (select IMEMi PCi))))
+              (not (is-BEQZ       (opcode-of (select IMEMi PCi))))
+              (not (is-alu-immed  (opcode-of (select IMEMi PCi))))
+            )
+          )
+        )   ; END write-enable
+        (=  ; write to REGFILE
+          REGFILEo
+          (store
+            REGFILEi
+            (ite    ; write address
+              (and
+                (not (is-load       (opcode-of (select IMEMi PCi))))
+                (not (is-store      (opcode-of (select IMEMi PCi))))
+                (not (is-J          (opcode-of (select IMEMi PCi))))
+                (not (is-BEQZ       (opcode-of (select IMEMi PCi))))
+                (not (is-alu-immed  (opcode-of (select IMEMi PCi))))
+              )
+              (rf3-of (select IMEMi PCi))
+              (rf2-of (select IMEMi PCi))
+            )       ; END write address
+            (ite ; write data
+              (is-load (opcode-of (select IMEMi PCi)))
+              (select
+                DMEMi 
+                (PLUS
+                  (short-immed-of (select IMEMi PCi))
+                  (rf1data REGFILEi IMEMi PCi)
+                )
+              )
+              (ALU
+                (alu-op-of (opcode-of (select IMEMi PCi)))
+                (rf1data REGFILEi IMEMi PCi)
+                (ite
+                  (is-alu-immed (opcode-of (select IMEMi PCi)))
+                  (short-immed-of (select IMEMi PCi))
+                  (rf2data REGFILEi IMEMi PCi)
+                )
+              )
+            )    ; END write data
+          )
+        )   ; END write to REGFILE
+        (= REGFILEi REGFILEo) ; write-enable == False
       )
       
     ) ; END conjunction over all parts 
