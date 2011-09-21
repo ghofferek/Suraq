@@ -169,7 +169,93 @@
   )
 ) 
 
+(define-fun alu-result
+  ( ; parameters
+    (operand-a    Value)
+    (operand-b    Value)
+    (opcode       Value)
+    (short-immed  Value)
+  )
+  Value ; return type of macro
+  ; main expression:
+  (
+    (ite
+      (or
+        (is-load  opcode)
+        (is-store opcode)
+      )
+      (PLUS short-immed operand-a)
+      (ALU (alu-op-of opcode) operand-a operand-b)
+    )
+  )
+) 
 
+(define-fun stall-issue
+  ( ; parameters
+    (force-stall-issue  Bool )
+    (bubble-ex          Bool )
+    (opcode-ex          Value)
+    (dest-ex            Value)
+    (bubble-id          Bool )
+    (inst-id            Value)
+  )
+  Bool ; return type of macro
+  ; main expression
+  (
+    (or
+      force-stall-issue
+      (and
+        (or
+          (= (rf1-of inst-id) dest-ex)
+          (= (rf2-of inst-id) dest-ex)
+        )
+        (is-load (opcode-of inst-id))
+        (not bubble-ex)
+        (not bubble-id)
+      )
+    )
+  )
+)
+
+(define-fun branch-taken
+  ( ; parameters
+    (bubble-id          Bool )
+    (inst-id            Value)
+    (operand-an         Value)
+  )
+  Bool ; return type of macro
+  ; main expression
+  (
+    (and
+      (not bubble-id)
+      (or
+        (is-J (opcode-of inst-id))
+        (and
+          (is-BEQZ (opcode of inst-id))
+          (= ZERO operand-an)
+        )
+      )
+    )
+  )
+)
+
+(define-fun TA
+  ( ; parameters
+    (inst-id Value)
+    (PC      Value)
+  )
+  Value ; return type of macro
+  ; main expression
+  (
+    (ite
+      (is-J (opcode-of inst-id))
+      (PLUS PC (long-immed-of  inst-id))
+      (PLUS PC (short-immed-of inst-id))
+    )
+  )
+)
+
+; ------------------------------------------------------------------------------
 ; One instruction in the reference architecture
 
 (define-fun instruction-in-reference
@@ -302,3 +388,268 @@
   ) ; END main expression
 ) ; END instruction-in-reference macro
 
+
+; One step in the pipeline architecture
+
+(define-fun step-in-pipeline
+  ( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (REGFILEi         (Array Value Value))
+    (DMEMi            (Array Value Value))
+    (IMEMi            (Array Value Value))
+    (PCi              Value              )
+  
+    (inst-idi         Value              )
+    (bubble-idi       Bool               )
+    
+    (bubble-exi       Bool               )
+    (short-immed-exi  Value              )
+    (dest-exi         Value              )
+    (opcode-exi       Value              )
+    (operand-ai       Value              )
+    (operand-bi       Value              )
+    
+    (dest-memi        Value              )
+    (result-memi      Value              )
+    (mari             Value              )
+    (load-flagi       Bool               )
+    (store-flagi      Bool               )
+    
+    (dest-wbi         Value              )
+    (result-wbi       Value              )
+      
+    ; "outputs" of macro (state after the step)
+    (REGFILEo         (Array Value Value))
+    (DMEMo            (Array Value Value))
+    (IMEMo            (Array Value Value))
+    (PCo              Value              )
+    
+    (inst-ido         Value              )
+    (bubble-ido       Bool               )
+    
+    (bubble-exo       Bool               )
+    (short-immed-exo  Value              )
+    (dest-exo         Value              )
+    (opcode-exo       Value              )
+    (operand-ao       Value              )
+    (operand-bo       Value              )
+    
+    (dest-memo        Value              )
+    (result-memo      Value              )
+    (maro             Value              )
+    (load-flago       Bool               )
+    (store-flago      Bool               )
+    
+    (dest-wbo         Value              )
+    (result-wbo       Value              )
+  
+    ; primary inputs
+    (force-stall-issue Bool              )
+    (stall             Bool              )
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+      
+      ; IMEM is never written
+      (= IMEMo IMEMi)
+      
+      ; update of REGFILE
+      (ite
+        (distinct ZERO dest-wbi) ; write-enable
+        (=
+          REGFILEo
+          (store REGFILEi dest-wbi)
+        )
+        (= REGFILEo REGFILEi) ; write-enable == False
+      )
+    
+      ; update of DMEM
+      (ite
+        store-flagi ; write-enable
+        (=
+          DMEMo
+          (store DMEMi mari result-memi)
+        )
+        (= DMEMo DMEMi) ; write-enable == False
+      )
+    
+      ; update of WB stage registers
+      (= dest-wbo dest-memi)
+      (= 
+        result-wbo
+        (ite
+          load-flagi
+          (select DMEMi mari)
+          result-memi
+        )
+      )
+    
+      ; update of MEM stage registers
+      (= dest-memo dest-exi)
+      (= 
+        result-memo
+        (ite
+          (or (is-load opcode-exi) (is-store opcode-exi))
+          (PLUS operand-ai short-immed-exi)
+          (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
+        )
+      )
+      (= maro (alu-result operand-ai operand-bi opcode-exi short-immed-exi))
+      (= 
+        load-flago
+        (and (is-load opcode-exi) (not bubble-exi))
+      )
+      (= 
+        store-flago
+        (and (is-store opcode-exi) (not bubble-exi))
+      )   
+      
+      ; update of EX stage registers
+      (=
+        bubble-exo
+        (or
+          (stall-issue force-stall-issue bubble-exi opcode-exi dest-exi bubble-idi inst-idi) 
+          bubble-idi
+          (is-J    (opcode-of inst-idi))
+          (is-BEQZ (opcode-of inst-idi))
+        )
+      )
+      (= short-immed-exo (short-immed-of inst-idi))
+      (=
+        dest-exo
+        (ite
+          (or bubble-exo (is-store (opcode-of inst-idi)))
+          ZERO
+          (ite
+            (or
+              (is-alu-immed (opcode-of inst-idi))
+              (is-load      (opcode-of inst-idi))
+            )
+            (rf2-of inst-idi)
+            (rf3-of inst-idi)
+          )
+        )
+      )
+      (= opcode-exo (opcode-of inst-idi))
+      (= 
+        operand-ao
+        (ite ; load from REGFILE[0]? 
+          (= ZERO (rf1-of inst-idi))
+          ZERO
+          (ite ; forward from EX?
+            (= (rf1-of inst-idi) dest-exi)
+            (result-memo)
+            (ite ; forward from MEM?
+              (= (rf1-of inst-idi) dest-memi)
+              (result-wbo)
+              (ite ; forward from WB?
+                (= (rf1-of inst-idi) dest-wbi)
+                (result-wbi)
+                (select REGFILEi (rf1-of inst-idi)) ; normal read
+              )
+            )
+          )
+        )
+      )
+      (=
+        operand-bo
+        (ite ; load immed from inst?
+          (is-alu-immed (opcode-of inst-idi))
+          (short-immed-of inst-idi)
+          (ite ; load from REGFILE[0]?
+            (= ZERO (rf2-of inst-idi))
+            ZERO
+            (ite ; forward from EX?
+              (= (rf2-of inst-idi) dest-exi)
+              (result-memo)
+              (ite ; forward from MEM?
+                (= (rf2-of inst-idi) dest-memi)
+                (result-wbo)
+                (ite ; forward from WB?
+                  (= (rf2-of inst-idi) dest-wbi)
+                  (result-wbi)
+                  (select REGFILEi (rf2-of inst-idi)) ; normal read
+                )
+              )
+            )
+          )
+        )
+      )
+    
+      ; update of ID registers
+      (= 
+        bubble-ido
+        (ite
+          force-stall-issue
+          (ite
+            (or (not bubble-idi) stall)
+            bubble-idi
+            false
+          )
+          (ite
+            (stall-issue force-stall-issue bubble-exi opcode-exi dest-exi bubble-idi inst-idi)
+            bubble-idi
+            (ite
+              stall
+              true
+              (branch-taken bubble-idi inst-idi operand-ao)
+            )
+          )
+        )
+      )
+      (=
+        inst-ido
+        (ite
+          force-stall-issue
+          (ite
+            (or (not bubble-idi) stall)
+            inst-idi
+            (select IMEMi PCi)
+          )
+          (ite
+            (stall-issue force-stall-issue bubble-exi opcode-exi dest-exi bubble-idi inst-idi)
+            inst-idi
+            (ite
+              stall
+              inst-idi
+              (select IMEMi PCi)
+            )
+          )
+        )
+      )
+    
+      ; update of PC
+      (=
+        PCo
+        (ite
+          force-stall-issue
+          (ite
+            (or (not bubble-idi) stall)
+            PCi
+            (PLUS FOUR PCi)
+          )
+          (ite
+            (stall-issue force-stall-issue bubble-exi opcode-exi dest-exi bubble-idi inst-idi)
+            PCi
+            (ite
+              stall
+              (ite
+                (branch-taken bubble-idi inst-idi operand-ao)
+                (TA inst-idi PCi)
+                PCi
+              )
+              (ite
+                (branch-taken bubble-idi inst-idi operand-ao)
+                (TA inst-idi PCi)
+                (PLUS FOUR PCi)
+              )
+            )
+          )
+        )
+      )
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of step-in-pipeline macro
