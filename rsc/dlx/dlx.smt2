@@ -813,362 +813,76 @@
   (
     (and ; conjunction over all parts
       
-      ; IMEM is never written
-      ; (= IMEMo IMEMi)
+      (step-in-REGFILE
+        REGFILEi
+        dest-wbi
+        result-wbi
+        REGFILEo
+      )
       
-      ; update of REGFILE
-      (ite
-        (distinct ZERO dest-wbi) ; write-enable
-        (=
-          REGFILEo
-          (store REGFILEi dest-wbi result-wbi)
-        )
-        (= REGFILEo REGFILEi) ; write-enable == False
-      )
-    
-      ; update of DMEM
-      (ite
-        store-flagi ; write-enable
-        (=
-          DMEMo
-          (store DMEMi mari result-memi)
-        )
-        (= DMEMo DMEMi) ; write-enable == False
-      )
-    
-      ; update of WB stage registers
-      (= dest-wbo dest-memi)
-      (= 
+      (step-in-WB
+        DMEMi      
+        dest-memi  
+        result-memi
+        mari       
+        load-flagi 
+        store-flagi
+        DMEMo        
+        dest-wbo  
         result-wbo
-        (ite
-          load-flagi
-          (select DMEMi mari)
-          result-memi
-        )
       )
     
-      ; update of MEM stage registers
-      (= dest-memo dest-exi)
-      (= 
-        result-memo
-        (ite
-          (or (is-load opcode-exi) (is-store opcode-exi))
-          (PLUS operand-ai short-immed-exi)
-          (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
-        )
-      )
-      (= maro (alu-result operand-ai operand-bi opcode-exi short-immed-exi))
-      (= 
-        load-flago
-        (and (is-load opcode-exi) (not bubble-exi))
-      )
-      (= 
+      (step-in-MEM
+        inst-idi   
+        bubble-idi 
+        bubble-exi      
+        short-immed-exi 
+        dest-exi        
+        opcode-exi       
+        operand-ai       
+        operand-bi       
+        dest-wbi    
+        result-wbi  
+        dest-memo      
+        result-memo    
+        maro           
+        load-flago     
         store-flago
-        (and (is-store opcode-exi) (not bubble-exi))
-      )   
+      )
+    
+      (step-in-EX
+        REGFILEi        
+        inst-idi                       
+        bubble-idi                      
+        dest-exf                       
+        result-exf                     
+        dest-memf                      
+        result-memf                    
+        dest-wbf                       
+        result-wbf                     
+        bubble-exo                      
+        short-immed-exo                
+        dest-exo                       
+        opcode-exo                     
+        operand-ao                     
+        operand-bo                     
+        force-stall-issue                   
+      )
       
-      ; update of EX stage registers
-      (=
-        bubble-exo
-        (or
-          (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi) 
-          bubble-idi
-          (is-J    (opcode-of inst-idi))
-          (is-BEQZ (opcode-of inst-idi))
-        )
-      )
-      (= short-immed-exo (short-immed-of inst-idi))
-      (=
-        dest-exo
-        (ite
-          (or bubble-exo (is-store (opcode-of inst-idi)))
-          ZERO
-          (ite
-            (or
-              (is-alu-immed (opcode-of inst-idi))
-              (is-load      (opcode-of inst-idi))
-            )
-            (rf2-of inst-idi)
-            (rf3-of inst-idi)
-          )
-        )
-      )
-      (= opcode-exo (opcode-of inst-idi))
-      (= 
-        operand-ao
-        (ite ; load from REGFILE[0]? 
-          (= ZERO (rf1-of inst-idi))
-          ZERO
-          (ite ; forward from EX?
-            (= (rf1-of inst-idi) dest-exi)
-            (result-memo)
-            (ite ; forward from MEM?
-              (= (rf1-of inst-idi) dest-memi)
-              (result-wbo)
-              (ite ; forward from WB?
-                (= (rf1-of inst-idi) dest-wbi)
-                (result-wbi)
-                (select REGFILEi (rf1-of inst-idi)) ; normal read
-              )
-            )
-          )
-        )
-      )
-      (=
-        operand-bo
-        (ite ; load immed from inst?
-          (is-alu-immed (opcode-of inst-idi))
-          (short-immed-of inst-idi)
-          (ite ; load from REGFILE[0]?
-            (= ZERO (rf2-of inst-idi))
-            ZERO
-            (ite ; forward from EX?
-              (= (rf2-of inst-idi) dest-exi)
-              (result-memo)
-              (ite ; forward from MEM?
-                (= (rf2-of inst-idi) dest-memi)
-                (result-wbo)
-                (ite ; forward from WB?
-                  (= (rf2-of inst-idi) dest-wbi)
-                  (result-wbi)
-                  (select REGFILEi (rf2-of inst-idi)) ; normal read
-                )
-              )
-            )
-          )
-        )
-      )
-    
-      ; update of ID registers
-      (= 
-        bubble-ido
-        (ite
-          force-stall-issue
-          (ite
-            (or (not bubble-idi) stall)
-            bubble-idi
-            false
-          )
-          (ite
-            (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi)
-            bubble-idi
-            (ite
-              stall
-              true
-              (branch-taken bubble-idi inst-idi operand-ao)
-            )
-          )
-        )
-      )
-      (=
-        inst-ido
-        (ite
-          force-stall-issue
-          (ite
-            (or (not bubble-idi) stall)
-            inst-idi
-            (select IMEMi PCi)
-          )
-          (ite
-            (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi)
-            inst-idi
-            (ite
-              stall
-              inst-idi
-              (select IMEMi PCi)
-            )
-          )
-        )
-      )
-    
-      ; update of PC
-      (=
-        PCo
-        (ite
-          force-stall-issue
-          (ite
-            (or (not bubble-idi) stall)
-            PCi
-            (PLUS FOUR PCi)
-          )
-          (ite
-            (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi)
-            PCi
-            (ite
-              stall
-              (ite
-                (branch-taken bubble-idi inst-idi operand-ao)
-                (TA inst-idi PCi)
-                PCi
-              )
-              (ite
-                (branch-taken bubble-idi inst-idi operand-ao)
-                (TA inst-idi PCi)
-                (PLUS FOUR PCi)
-              )
-            )
-          )
-        )
-      )
+      (step-in-ID
+        IMEMi            
+        PCi              
+        inst-idi         
+        bubble-idi       
+        bubble-exf       
+        dest-exf         
+        PCo              
+        inst-ido         
+        bubble-ido       
+        force-stall-issue 
+        stall            
+      )   
     ) ; END conjunction over all parts 
   ) ; END main expression
 ) ; END of step-in-pipeline macro
 
-
-; ------------------------------------------------------------------------------
-; Completion of the WB stage
-
-(define-fun completion-of-WB
-  ( ; parameters
-  
-    ; "inputs" to macro (state before the step)
-    (REGFILEi         (Array Value Value))
-    (DMEMi            (Array Value Value))
-    
-    (dest-memi        Value              )
-    (result-memi      Value              )
-    (mari             Value              )
-    (load-flagi       Bool               )
-    (store-flagi      Bool               )
-    
-    (dest-wbi         Value              )
-    (result-wbi       Value              )
-      
-    ; "outputs" of macro (state after the step)
-    (REGFILEo         (Array Value Value))
-    (DMEMo            (Array Value Value))
-   ;(IMEMo            (Array Value Value))
-    
-    (dest-wbo         Value              )
-    (result-wbo       Value              )
-  
-  )
-  Bool ; return type
-  ; main expression
-  (
-    (and ; conjunction over all parts
-          
-      ; update of REGFILE
-      (ite
-        (distinct ZERO dest-wbi) ; write-enable
-        (=
-          REGFILEo
-          (store REGFILEi dest-wbi result-wbi)
-        )
-        (= REGFILEo REGFILEi) ; write-enable == False
-      )
-    
-      ; update of WB stage registers
-      (= dest-wbo dest-memi)
-      (= 
-        result-wbo
-        (ite
-          load-flagi
-          (select DMEMi mari)
-          result-memi
-        )
-      )
-    ) ; END conjunction over all parts 
-  ) ; END main expression
-) ; END of completion-of-WB macro
-    
-
-; ------------------------------------------------------------------------------
-; Completion of the MEM stage
-
-(define-fun completion-of-MEM
-  ( ; parameters
-  
-    ; "inputs" to macro (state before the step)
-    (REGFILEi         (Array Value Value))
-    (DMEMi            (Array Value Value))
-  
-    (bubble-exi       Bool               )
-    (short-immed-exi  Value              )
-    (dest-exi         Value              )
-    (opcode-exi       Value              )
-    (operand-ai       Value              )
-    (operand-bi       Value              )
-    
-    (dest-memi        Value              )
-    (result-memi      Value              )
-    (mari             Value              )
-    (load-flagi       Bool               )
-    (store-flagi      Bool               )
-    
-    (dest-wbi         Value              )
-    (result-wbi       Value              )
-      
-    ; "outputs" of macro (state after the step)
-    (REGFILEo         (Array Value Value))
-    (DMEMo            (Array Value Value))
-
-    (dest-memo        Value              )
-    (result-memo      Value              )
-    (maro             Value              )
-    (load-flago       Bool               )
-    (store-flago      Bool               )
-    
-    (dest-wbo         Value              )
-    (result-wbo       Value              )
-  
-  )
-  Bool ; return type
-  ; main expression
-  (
-    (and ; conjunction over all parts
-          
-      ; update of REGFILE
-      (ite
-        (distinct ZERO dest-wbi) ; write-enable
-        (=
-          REGFILEo
-          (store REGFILEi dest-wbi result-wbi)
-        )
-        (= REGFILEo REGFILEi) ; write-enable == False
-      )
-    
-      ; update of DMEM
-      (ite
-        store-flagi ; write-enable
-        (=
-          DMEMo
-          (store DMEMi mari result-memi)
-        )
-        (= DMEMo DMEMi) ; write-enable == False
-      )
-    
-      ; update of WB stage registers
-      (= dest-wbo dest-memi)
-      (= 
-        result-wbo
-        (ite
-          load-flagi
-          (select DMEMi mari)
-          result-memi
-        )
-      )
-    
-      ; update of MEM stage registers
-      (= dest-memo dest-exi)
-      (= 
-        result-memo
-        (ite
-          (or (is-load opcode-exi) (is-store opcode-exi))
-          (PLUS operand-ai short-immed-exi)
-          (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
-        )
-      )
-      (= maro (alu-result operand-ai operand-bi opcode-exi short-immed-exi))
-      (= 
-        load-flago
-        (and (is-load opcode-exi) (not bubble-exi))
-      )
-      (= 
-        store-flago
-        (and (is-store opcode-exi) (not bubble-exi))
-      )   
-    ) ; END conjunction over all parts 
-  ) ; END main expression
-) ; END of completion-of-MEM macro
-      
