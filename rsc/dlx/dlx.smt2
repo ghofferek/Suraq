@@ -194,7 +194,6 @@
   ( ; parameters
     (force-stall-issue  Bool )
     (bubble-ex          Bool )
-    (opcode-ex          Value)
     (dest-ex            Value)
     (bubble-id          Bool )
     (inst-id            Value)
@@ -390,6 +389,366 @@
 
 
 ; ------------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
+; Macros for each stage of the pipeline.
+
+(define-fun step-in-REGFILE
+  ( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (REGFILEi         (Array Value Value))
+    
+    (dest-wbi         Value              )
+    (result-wbi       Value              )
+      
+    ; "outputs" of macro (state after the step)
+    (REGFILEo         (Array Value Value))
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+         
+      ; update of REGFILE
+      (ite
+        (distinct ZERO dest-wbi) ; write-enable
+        (=
+          REGFILEo
+          (store REGFILEi dest-wbi result-wbi)
+        )
+        (= REGFILEo REGFILEi) ; write-enable == False
+      )
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of step-in-REGFILE macro
+
+
+; ------------------------------------------------------------------------------
+(define-fun step-in-WB
+  ( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (DMEMi            (Array Value Value))
+    
+    (dest-memi        Value              )
+    (result-memi      Value              )
+    (mari             Value              )
+    (load-flagi       Bool               )
+    (store-flagi      Bool               )
+    
+      
+    ; "outputs" of macro (state after the step)
+    (DMEMo            (Array Value Value))
+    
+    (dest-wbo         Value              )
+    (result-wbo       Value              )
+  
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+      
+    
+      ; update of DMEM
+      (ite
+        store-flagi ; write-enable
+        (=
+          DMEMo
+          (store DMEMi mari result-memi)
+        )
+        (= DMEMo DMEMi) ; write-enable == False
+      )
+    
+      ; update of WB stage registers
+      (= dest-wbo dest-memi)
+      (= 
+        result-wbo
+        (ite
+          load-flagi
+          (select DMEMi mari)
+          result-memi
+        )
+      )
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of step-in-WB macro
+
+
+; ------------------------------------------------------------------------------
+(define-fun step-in-MEM
+  ( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (inst-idi         Value              )
+    (bubble-idi       Bool               )
+    
+    (bubble-exi       Bool               )
+    (short-immed-exi  Value              )
+    (dest-exi         Value              )
+    (opcode-exi       Value              )
+    (operand-ai       Value              )
+    (operand-bi       Value              )
+    
+    (dest-wbi         Value              )
+    (result-wbi       Value              )
+      
+    ; "outputs" of macro (state after the step)
+    (dest-memo        Value              )
+    (result-memo      Value              )
+    (maro             Value              )
+    (load-flago       Bool               )
+    (store-flago      Bool               )
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+        
+      ; update of MEM stage registers
+      (= dest-memo dest-exi)
+      (= 
+        result-memo
+        (ite
+          (or (is-load opcode-exi) (is-store opcode-exi))
+          (PLUS operand-ai short-immed-exi)
+          (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
+        )
+      )
+      (= maro (alu-result operand-ai operand-bi opcode-exi short-immed-exi))
+      (= 
+        load-flago
+        (and (is-load opcode-exi) (not bubble-exi))
+      )
+      (= 
+        store-flago
+        (and (is-store opcode-exi) (not bubble-exi))
+      )   
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of step-in-MEM macro
+
+
+; ------------------------------------------------------------------------------
+(define-fun step-in-EX
+  ( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (REGFILEi         (Array Value Value))
+    
+    (inst-idi         Value              )
+    (bubble-idi       Bool               )
+    
+    (dest-exf         Value              )  ; f = forward
+    (result-exf       Value              )
+    
+    (dest-memf        Value              )
+    (result-memf      Value              )
+    
+    (dest-wbf         Value              )
+    (result-wbf       Value              )
+      
+    ; "outputs" of macro (state after the step)
+    
+    (bubble-exo       Bool               )
+    (short-immed-exo  Value              )
+    (dest-exo         Value              )
+    (opcode-exo       Value              )
+    (operand-ao       Value              )
+    (operand-bo       Value              )
+    
+    ; primary inputs
+    (force-stall-issue Bool              )
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+           
+      ; update of EX stage registers
+      (=
+        bubble-exo
+        (or
+          (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi) 
+          bubble-idi
+          (is-J    (opcode-of inst-idi))
+          (is-BEQZ (opcode-of inst-idi))
+        )
+      )
+      (= short-immed-exo (short-immed-of inst-idi))
+      (=
+        dest-exo
+        (ite
+          (or bubble-exo (is-store (opcode-of inst-idi)))
+          ZERO
+          (ite
+            (or
+              (is-alu-immed (opcode-of inst-idi))
+              (is-load      (opcode-of inst-idi))
+            )
+            (rf2-of inst-idi)
+            (rf3-of inst-idi)
+          )
+        )
+      )
+      (= opcode-exo (opcode-of inst-idi))
+      (= 
+        operand-ao
+        (ite ; load from REGFILE[0]? 
+          (= ZERO (rf1-of inst-idi))
+          ZERO
+          (ite ; forward from EX?
+            (= (rf1-of inst-idi) dest-exf)
+            result-exf
+            (ite ; forward from MEM?
+              (= (rf1-of inst-idi) dest-memf)
+              result-memf
+              (ite ; forward from WB?
+                (= (rf1-of inst-idi) dest-wbf)
+                result-wbf
+                (select REGFILEi (rf1-of inst-idi)) ; normal read
+              )
+            )
+          )
+        )
+      )
+      (=
+        operand-bo
+        (ite ; load immed from inst?
+          (is-alu-immed (opcode-of inst-idi))
+          (short-immed-of inst-idi)
+          (ite ; load from REGFILE[0]?
+            (= ZERO (rf2-of inst-idi))
+            ZERO
+            (ite ; forward from EX?
+              (= (rf2-of inst-idi) dest-exf)
+              result-exf
+              (ite ; forward from MEM?
+                (= (rf2-of inst-idi) dest-memf)
+                result-memf
+                (ite ; forward from WB?
+                  (= (rf2-of inst-idi) dest-wbf)
+                  result-wbf
+                  (select REGFILEi (rf2-of inst-idi)) ; normal read
+                )
+              )
+            )
+          )
+        )
+      )
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of step-in-EX macro
+
+
+; ------------------------------------------------------------------------------
+
+(define-fun step-in-ID
+  ( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (IMEMi            (Array Value Value))
+    (PCi              Value              )
+  
+    (inst-idi         Value              )
+    (bubble-idi       Bool               )
+  
+    (bubble-exf       Bool               )
+    (dest-exf         Value              )
+          
+    ; "outputs" of macro (state after the step)
+    (PCo              Value              )
+    
+    (inst-ido         Value              )
+    (bubble-ido       Bool               )
+      
+    ; primary inputs
+    (force-stall-issue Bool              )
+    (stall             Bool              )
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+    
+      ; update of ID registers
+      (= 
+        bubble-ido
+        (ite
+          force-stall-issue
+          (ite
+            (or (not bubble-idi) stall)
+            bubble-idi
+            false
+          )
+          (ite
+            (stall-issue force-stall-issue bubble-exf dest-exf bubble-idi inst-idi)
+            bubble-idi
+            (ite
+              stall
+              true
+              (branch-taken bubble-idi inst-idi operand-ao)
+            )
+          )
+        )
+      )
+      (=
+        inst-ido
+        (ite
+          force-stall-issue
+          (ite
+            (or (not bubble-idi) stall)
+            inst-idi
+            (select IMEMi PCi)
+          )
+          (ite
+            (stall-issue force-stall-issue bubble-exf dest-exf bubble-idi inst-idi)
+            inst-idi
+            (ite
+              stall
+              inst-idi
+              (select IMEMi PCi)
+            )
+          )
+        )
+      )
+    
+      ; update of PC
+      (=
+        PCo
+        (ite
+          force-stall-issue
+          (ite
+            (or (not bubble-idi) stall)
+            PCi
+            (PLUS FOUR PCi)
+          )
+          (ite
+            (stall-issue force-stall-issue bubble-exf dest-exf bubble-idi inst-idi)
+            PCi
+            (ite
+              stall
+              (ite
+                (branch-taken bubble-idi inst-idi operand-ao)
+                (TA inst-idi PCi)
+                PCi
+              )
+              (ite
+                (branch-taken bubble-idi inst-idi operand-ao)
+                (TA inst-idi PCi)
+                (PLUS FOUR PCi)
+              )
+            )
+          )
+        )
+      )
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of step-in-ID macro
+
+
+
+; ------------------------------------------------------------------------------
 ; One step in the pipeline architecture
 
 (define-fun step-in-pipeline
@@ -512,7 +871,7 @@
       (=
         bubble-exo
         (or
-          (stall-issue force-stall-issue bubble-exi opcode-exi dest-exi bubble-idi inst-idi) 
+          (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi) 
           bubble-idi
           (is-J    (opcode-of inst-idi))
           (is-BEQZ (opcode-of inst-idi))
@@ -591,7 +950,7 @@
             false
           )
           (ite
-            (stall-issue force-stall-issue bubble-exi opcode-exi dest-exi bubble-idi inst-idi)
+            (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi)
             bubble-idi
             (ite
               stall
@@ -611,7 +970,7 @@
             (select IMEMi PCi)
           )
           (ite
-            (stall-issue force-stall-issue bubble-exi opcode-exi dest-exi bubble-idi inst-idi)
+            (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi)
             inst-idi
             (ite
               stall
@@ -633,7 +992,7 @@
             (PLUS FOUR PCi)
           )
           (ite
-            (stall-issue force-stall-issue bubble-exi opcode-exi dest-exi bubble-idi inst-idi)
+            (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi)
             PCi
             (ite
               stall
@@ -665,7 +1024,6 @@
     ; "inputs" to macro (state before the step)
     (REGFILEi         (Array Value Value))
     (DMEMi            (Array Value Value))
-    (IMEMi            (Array Value Value))
     
     (dest-memi        Value              )
     (result-memi      Value              )
@@ -700,7 +1058,7 @@
         (= REGFILEo REGFILEi) ; write-enable == False
       )
     
-      ; new values for WB "wires"
+      ; update of WB stage registers
       (= dest-wbo dest-memi)
       (= 
         result-wbo
@@ -715,4 +1073,102 @@
 ) ; END of completion-of-WB macro
     
 
+; ------------------------------------------------------------------------------
+; Completion of the MEM stage
 
+(define-fun completion-of-MEM
+  ( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (REGFILEi         (Array Value Value))
+    (DMEMi            (Array Value Value))
+  
+    (bubble-exi       Bool               )
+    (short-immed-exi  Value              )
+    (dest-exi         Value              )
+    (opcode-exi       Value              )
+    (operand-ai       Value              )
+    (operand-bi       Value              )
+    
+    (dest-memi        Value              )
+    (result-memi      Value              )
+    (mari             Value              )
+    (load-flagi       Bool               )
+    (store-flagi      Bool               )
+    
+    (dest-wbi         Value              )
+    (result-wbi       Value              )
+      
+    ; "outputs" of macro (state after the step)
+    (REGFILEo         (Array Value Value))
+    (DMEMo            (Array Value Value))
+
+    (dest-memo        Value              )
+    (result-memo      Value              )
+    (maro             Value              )
+    (load-flago       Bool               )
+    (store-flago      Bool               )
+    
+    (dest-wbo         Value              )
+    (result-wbo       Value              )
+  
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+          
+      ; update of REGFILE
+      (ite
+        (distinct ZERO dest-wbi) ; write-enable
+        (=
+          REGFILEo
+          (store REGFILEi dest-wbi result-wbi)
+        )
+        (= REGFILEo REGFILEi) ; write-enable == False
+      )
+    
+      ; update of DMEM
+      (ite
+        store-flagi ; write-enable
+        (=
+          DMEMo
+          (store DMEMi mari result-memi)
+        )
+        (= DMEMo DMEMi) ; write-enable == False
+      )
+    
+      ; update of WB stage registers
+      (= dest-wbo dest-memi)
+      (= 
+        result-wbo
+        (ite
+          load-flagi
+          (select DMEMi mari)
+          result-memi
+        )
+      )
+    
+      ; update of MEM stage registers
+      (= dest-memo dest-exi)
+      (= 
+        result-memo
+        (ite
+          (or (is-load opcode-exi) (is-store opcode-exi))
+          (PLUS operand-ai short-immed-exi)
+          (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
+        )
+      )
+      (= maro (alu-result operand-ai operand-bi opcode-exi short-immed-exi))
+      (= 
+        load-flago
+        (and (is-load opcode-exi) (not bubble-exi))
+      )
+      (= 
+        store-flago
+        (and (is-store opcode-exi) (not bubble-exi))
+      )   
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of completion-of-MEM macro
+      
