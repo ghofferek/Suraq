@@ -270,7 +270,7 @@
     ; "outputs" of macro (state after the instruction)
     (REGFILEo (Array Value Value))
     (DMEMo    (Array Value Value))
-    (IMEMo    (Array Value Value))
+   ;(IMEMo    (Array Value Value))
     (PCo      Value              )
   )
   Bool ; return type of macro
@@ -279,7 +279,7 @@
     (and  ; conjunction over all parts of update expression 
       
       ; IMEM is never written
-      (= IMEMo IMEMi)
+      ; (= IMEMo IMEMi)
     
       ; update of PC
       (= PCo
@@ -389,6 +389,7 @@
 ) ; END instruction-in-reference macro
 
 
+; ------------------------------------------------------------------------------
 ; One step in the pipeline architecture
 
 (define-fun step-in-pipeline
@@ -422,7 +423,7 @@
     ; "outputs" of macro (state after the step)
     (REGFILEo         (Array Value Value))
     (DMEMo            (Array Value Value))
-    (IMEMo            (Array Value Value))
+   ;(IMEMo            (Array Value Value))
     (PCo              Value              )
     
     (inst-ido         Value              )
@@ -454,14 +455,14 @@
     (and ; conjunction over all parts
       
       ; IMEM is never written
-      (= IMEMo IMEMi)
+      ; (= IMEMo IMEMi)
       
       ; update of REGFILE
       (ite
         (distinct ZERO dest-wbi) ; write-enable
         (=
           REGFILEo
-          (store REGFILEi dest-wbi)
+          (store REGFILEi dest-wbi result-wbi)
         )
         (= REGFILEo REGFILEi) ; write-enable == False
       )
@@ -653,3 +654,65 @@
     ) ; END conjunction over all parts 
   ) ; END main expression
 ) ; END of step-in-pipeline macro
+
+
+; ------------------------------------------------------------------------------
+; Completion of the WB stage
+
+(define-fun completion-of-WB
+  ( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (REGFILEi         (Array Value Value))
+    (DMEMi            (Array Value Value))
+    (IMEMi            (Array Value Value))
+    
+    (dest-memi        Value              )
+    (result-memi      Value              )
+    (mari             Value              )
+    (load-flagi       Bool               )
+    (store-flagi      Bool               )
+    
+    (dest-wbi         Value              )
+    (result-wbi       Value              )
+      
+    ; "outputs" of macro (state after the step)
+    (REGFILEo         (Array Value Value))
+    (DMEMo            (Array Value Value))
+   ;(IMEMo            (Array Value Value))
+    
+    (dest-wbo         Value              )
+    (result-wbo       Value              )
+  
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+          
+      ; update of REGFILE
+      (ite
+        (distinct ZERO dest-wbi) ; write-enable
+        (=
+          REGFILEo
+          (store REGFILEi dest-wbi result-wbi)
+        )
+        (= REGFILEo REGFILEi) ; write-enable == False
+      )
+    
+      ; new values for WB "wires"
+      (= dest-wbo dest-memi)
+      (= 
+        result-wbo
+        (ite
+          load-flagi
+          (select DMEMi mari)
+          result-memi
+        )
+      )
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of completion-of-WB macro
+    
+
+
