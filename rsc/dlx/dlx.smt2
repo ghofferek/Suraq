@@ -42,8 +42,12 @@
 
 ; Declare single data elements
 
-(declare-fun PC () Value)  ; Program counter
-
+(declare-fun PC     () Value               )  ; Program counter
+(declare-fun PCci4_ () Value :no_dependence)  
+(declare-fun PCci5_ () Value :no_dependence)
+(declare-fun PCsc1_ () Value :no_dependence)  
+(declare-fun PCsc5_ () Value :no_dependence)
+  
 
 ; Declare uninterpreted functions of the datapath
 
@@ -67,17 +71,61 @@
 (declare-fun is-alu-immed      (Value            )   Bool )
 
 
-; Declare pipeline registers
+; Declare pipeline registers (and copies for stepping and completion)
 
-(declare-fun inst-id         () Value)
-(declare-fun bubble-id       () Bool )
+; ID stage
+(declare-fun inst-id             () Value               )
+(declare-fun inst-idci4_         () Value :no_dependence)
+(declare-fun inst-idsc1_         () Value :no_dependence)
+(declare-fun inst-idsc5_         () Value :no_dependence)
 
-(declare-fun bubble-ex       () Bool )
-(declare-fun short-immed-ex  () Value)
-(declare-fun dest-ex         () Value)
-(declare-fun opcode-ex       () Value)
-(declare-fun operand-a       () Value)
-(declare-fun operand-b       () Value)
+(declare-fun bubble-id           () Bool  :no_dependence)
+(declare-fun bubble-idci4_       () Bool  :no_dependence)
+(declare-fun bubble-idsc1_       () Bool  :no_dependence)
+(declare-fun bubble-idsc5_       () Bool  :no_dependence)
+
+; EX stage
+(declare-fun bubble-ex           () Bool                )
+(declare-fun bubble-exci3_       () Bool  :no_dependence)
+(declare-fun bubble-exci4_       () Bool  :no_dependence)
+(declare-fun bubble-exsc1_       () Bool  :no_dependence)
+(declare-fun bubble-exsc4_       () Bool  :no_dependence)
+(declare-fun bubble-exsc5_       () Bool  :no_dependence)
+
+(declare-fun short-immed-ex      () Value               )
+(declare-fun short-immed-exci3_  () Value :no_dependence)
+(declare-fun short-immed-exci4_  () Value :no_dependence)
+(declare-fun short-immed-exsc1_  () Value :no_dependence)
+(declare-fun short-immed-exsc4_  () Value :no_dependence)
+(declare-fun short-immed-exsc5_  () Value :no_dependence)
+
+(declare-fun dest-ex             () Value               )
+(declare-fun dest-exci3_         () Value :no_dependence)
+(declare-fun dest-exci4_         () Value :no_dependence)
+(declare-fun dest-exsc1_         () Value :no_dependence)
+(declare-fun dest-exsc4_         () Value :no_dependence)
+(declare-fun dest-exsc5_         () Value :no_dependence)
+
+(declare-fun opcode-ex           () Value               )
+(declare-fun opcode-exci3_       () Value :no_dependence)
+(declare-fun opcode-exci4_       () Value :no_dependence)
+(declare-fun opcode-exsc1_       () Value :no_dependence)
+(declare-fun opcode-exsc4_       () Value :no_dependence)
+(declare-fun opcode-exsc5_       () Value :no_dependence)
+
+(declare-fun operand-a           () Value               )
+(declare-fun operand-aci3_       () Value  :no_dependence)
+(declare-fun operand-aci4_       () Value  :no_dependence)
+(declare-fun operand-asc1_       () Value  :no_dependence)
+(declare-fun operand-asc4_       () Value  :no_dependence)
+(declare-fun operand-asc5_       () Value  :no_dependence)
+
+(declare-fun operand-b           () Value               )
+(declare-fun operand-bci3_       () Value  :no_dependence)
+(declare-fun operand-bci4_       () Value  :no_dependence)
+(declare-fun operand-bsc1_       () Value  :no_dependence)
+(declare-fun operand-bsc4_       () Value  :no_dependence)
+(declare-fun operand-bsc5_       () Value  :no_dependence)
 
 (declare-fun dest-mem        () Value)
 (declare-fun result-mem      () Value)
@@ -882,6 +930,75 @@
         force-stall-issue 
         stall            
       )   
+    ) ; END conjunction over all parts 
+  ) ; END main expression
+) ; END of step-in-pipeline macro
+
+
+; ------------------------------------------------------------------------------
+(define-fun complete-pipeline
+( ; parameters
+  
+    ; "inputs" to macro (state before the step)
+    (REGFILEi         (Array Value Value))
+    (DMEMi            (Array Value Value))
+    (IMEMi            (Array Value Value))
+    (PCi              Value              )
+  
+    (inst-idi         Value              )
+    (bubble-idi       Bool               )
+    
+    (bubble-exi       Bool               )
+    (short-immed-exi  Value              )
+    (dest-exi         Value              )
+    (opcode-exi       Value              )
+    (operand-ai       Value              )
+    (operand-bi       Value              )
+    
+    (dest-memi        Value              )
+    (result-memi      Value              )
+    (mari             Value              )
+    (load-flagi       Bool               )
+    (store-flagi      Bool               )
+    
+    (dest-wbi         Value              )
+    (result-wbi       Value              )
+      
+    ; "outputs" of macro (state after the step)
+    (REGFILEo         (Array Value Value))
+    (DMEMo            (Array Value Value))
+   ;(IMEMo            (Array Value Value))
+    (PCo              Value              )
+    
+    (inst-ido         Value              )
+    (bubble-ido       Bool               )
+    
+    (bubble-exo       Bool               )
+    (short-immed-exo  Value              )
+    (dest-exo         Value              )
+    (opcode-exo       Value              )
+    (operand-ao       Value              )
+    (operand-bo       Value              )
+    
+    (dest-memo        Value              )
+    (result-memo      Value              )
+    (maro             Value              )
+    (load-flago       Bool               )
+    (store-flago      Bool               )
+    
+    (dest-wbo         Value              )
+    (result-wbo       Value              )
+  
+    ; primary inputs
+    (force-stall-issue Bool              )
+    (stall             Bool              )
+  )
+  Bool ; return type
+  ; main expression
+  (
+    (and ; conjunction over all parts
+    
+    
     ) ; END conjunction over all parts 
   ) ; END main expression
 ) ; END of step-in-pipeline macro
