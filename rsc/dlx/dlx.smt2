@@ -67,7 +67,11 @@
 ; *) During completion, forwarding signals from stages that are already completed
 ;    are set to "no forward". (This is necessary to ensure that only one instance
 ;    of the control signal occurs in the formula.)
-
+;
+; *) The macros for stages are named according to their "origin" stage, i.e., the
+;    stage from which they read the inputs. E.g., the step-in-WB macro takes as
+;    inputs the (current) values of the WB stage registers and produces outputs
+;    that should be stored in the register file.
 
 
 (set-logic Suraq)
@@ -515,11 +519,16 @@
 ) ; END instruction-in-reference macro
 
 
-; ------------------------------------------------------------------------------
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
 ; ------------------------------------------------------------------------------
 ; Macros for each stage of the pipeline.
 
-(define-fun step-in-REGFILE
+(define-fun step-in-WB
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
@@ -551,7 +560,7 @@
 
 
 ; ------------------------------------------------------------------------------
-(define-fun step-in-WB
+(define-fun step-in-MEM
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
@@ -603,7 +612,7 @@
 
 
 ; ------------------------------------------------------------------------------
-(define-fun step-in-MEM
+(define-fun step-in-EX
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
@@ -657,7 +666,7 @@
 
 
 ; ------------------------------------------------------------------------------
-(define-fun step-in-EX
+(define-fun step-in-ID
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
@@ -770,7 +779,7 @@
 
 ; ------------------------------------------------------------------------------
 
-(define-fun step-in-ID
+(define-fun step-in-IF ; necessary?? Don't think so.
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
