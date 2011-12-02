@@ -1,11 +1,80 @@
 ; DLX processor
 ;
 ; encoded in SMTLIBv2 format by Georg Hofferek <georg.hofferek@iaik.tugraz.at>
+;
+;
+; Some notes:
+;
+;
+; *) When refering to a "Burch-Dill diagram", a diagram of the following form
+;    is ment:
+;
+;    ISA            O --------- instr -----> O
+;                   ^                        ^
+;                   |                        |
+;                   |                        |
+;                complete                complete
+;                   |                        |
+;                   |                        |
+;    Pipeline       O --------- step ------> O
+;
+; 
+; *) For modelling the evolution of data elements during the "ci" and "sc" path,
+;    copies of are created, where necessary. The naming convention is as follows:
+;    "ci" ("sc", respectively) is added to the name of the variable, followed by
+;    a number from 1-5 and a "_". The "_" substitutes the prime "'", which is not
+;    a legal symbol for identifiers in SMTLIBv2. The number indicates how many 
+;    primes there are. I.e., "PCci3_" should read "PC (program counter) three prime,
+;    in path ci."
+;
+; *) The unprimed names of data elements represent the "original" values. I.e.,
+;    the values in the start state (lower left corner in Burch-Dill diagram).
+;
+; *) The names with 5 primes ("5_") represent the "end state", i.e., the upper
+;    right state in the Burch-Dill diagram. The "*ci5_" and the "*sc5_" values
+;    are supposed to be equal (programmer visible parts only).
+;
+; *) In the "sc" path, the names "*sc1_" represent the values after the "step"
+;    operation. I.e., the values corresponding to the lower right state in the
+;    Burch-Dill diagram.
+;
+; *) In the "ci" path, the names "*ci4_" correspond to the values before the 
+;    ISA instruction. I.e., to the values in the upper left state of the Burch-
+;    Dill diagram.
+;
+; *) The names "*ci1_" to "*ci4" correspond to intermediate values during the
+;    completion (left upwards arrow in the Burch-Dill diagram). "*ci4_" are
+;    the values for which completion has finished.
+;
+; *) The names "*sc2_" to "*sc5_" correspond to the intermediate values during
+;    the completion (right upwards arrow in the Burch-Dill diagram). "*sc5_" are
+;    the values for which completion has finished.
+;
+; *) The combinational logic of each stage (or the whole ISA model) is modelled 
+;    as a separate macro of (return) type Bool. The "inputs" ("outputs", respectively) 
+;    of the macros are named by appeding an "i" ("o", respectively) to the name
+;    of the signal.
+;
+; *) Completion is achieved by plugging the aforementioned macros together.
+;    The process is illustrated for the sc path. The ci path works analogously.
+;    First, the last stage is completed. To do so, the corresponding macro is
+;    instantiated with inputs "*sc1_" and outputs "*sc2_". Next, the macros for
+;    the second-to-last stage and the last stage are instantiated. The second-to-last
+;    stage macro uses inputs "*sc1_" and outputs "*sc2_". This last stage macro 
+;    uses "*sc2" as inputs and "*sc3_" as outputs. The remainin completion
+;    proceeds analogously. 
+;
+; *) During completion, forwarding signals from stages that are already completed
+;    are set to "no forward". (This is necessary to ensure that only one instance
+;    of the control signal occurs in the formula.)
+
+
 
 (set-logic Suraq)
 
 
 ; Declare arrays
+; (and copies for ci and sc paths)
 
 (declare-fun REGFILE      () (Array Value Value))
 (declare-fun REGFILEci1_  () (Array Value Value) :no_dependence)
@@ -41,6 +110,7 @@
 
 
 ; Declare single data elements
+; (and copies for ci and sc paths)
 
 (declare-fun PC     () Value               )  ; Program counter
 (declare-fun PCci4_ () Value :no_dependence)  
