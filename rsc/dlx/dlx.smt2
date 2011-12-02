@@ -93,13 +93,11 @@
 (declare-fun REGFILEsc5_  () (Array Value Value) :no_dependence)
 
 (declare-fun DMEM         () (Array Value Value))
-(declare-fun DMEMci1_     () (Array Value Value) :no_dependence)
 (declare-fun DMEMci2_     () (Array Value Value) :no_dependence)
 (declare-fun DMEMci3_     () (Array Value Value) :no_dependence)
 (declare-fun DMEMci4_     () (Array Value Value) :no_dependence)
 (declare-fun DMEMci5_     () (Array Value Value) :no_dependence)
 (declare-fun DMEMsc1_     () (Array Value Value) :no_dependence)
-(declare-fun DMEMsc2_     () (Array Value Value) :no_dependence)
 (declare-fun DMEMsc3_     () (Array Value Value) :no_dependence)
 (declare-fun DMEMsc4_     () (Array Value Value) :no_dependence)
 (declare-fun DMEMsc5_     () (Array Value Value) :no_dependence)
@@ -556,7 +554,7 @@
       )
     ) ; END conjunction over all parts 
   ) ; END main expression
-) ; END of step-in-REGFILE macro
+) ; END of step-in-WB macro
 
 
 ; ------------------------------------------------------------------------------
@@ -608,27 +606,21 @@
       )
     ) ; END conjunction over all parts 
   ) ; END main expression
-) ; END of step-in-WB macro
+) ; END of step-in-MEM macro
 
 
 ; ------------------------------------------------------------------------------
 (define-fun step-in-EX
   ( ; parameters
   
-    ; "inputs" to macro (state before the step)
-    (inst-idi         Value              )
-    (bubble-idi       Bool               )
-    
+    ; "inputs" to macro (state before the step)   
     (bubble-exi       Bool               )
     (short-immed-exi  Value              )
     (dest-exi         Value              )
     (opcode-exi       Value              )
     (operand-ai       Value              )
     (operand-bi       Value              )
-    
-    (dest-wbi         Value              )
-    (result-wbi       Value              )
-      
+          
     ; "outputs" of macro (state after the step)
     (dest-memo        Value              )
     (result-memo      Value              )
@@ -662,7 +654,7 @@
       )   
     ) ; END conjunction over all parts 
   ) ; END main expression
-) ; END of step-in-MEM macro
+) ; END of step-in-EX macro
 
 
 ; ------------------------------------------------------------------------------
@@ -675,7 +667,8 @@
     (inst-idi         Value              )
     (bubble-idi       Bool               )
     
-    (dest-exf         Value              )  ; f = forward
+    (bubble-exf       Bool               )  ; f = forward
+    (dest-exf         Value              )
     (result-exf       Value              )
     
     (dest-memf        Value              )
@@ -705,7 +698,7 @@
       (=
         bubble-exo
         (or
-          (stall-issue force-stall-issue bubble-exi dest-exi bubble-idi inst-idi) 
+          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idi inst-idi) 
           bubble-idi
           (is-J    (opcode-of inst-idi))
           (is-BEQZ (opcode-of inst-idi))
@@ -774,23 +767,25 @@
       )
     ) ; END conjunction over all parts 
   ) ; END main expression
-) ; END of step-in-EX macro
+) ; END of step-in-ID macro
 
 
 ; ------------------------------------------------------------------------------
 
-(define-fun step-in-IF ; necessary?? Don't think so.
+(define-fun step-in-IF ; necessary for "step" only; not neeeded for completion.
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
     (IMEMi            (Array Value Value))
     (PCi              Value              )
   
-    (inst-idi         Value              )
-    (bubble-idi       Bool               )
+    (inst-idf         Value              )
+    (bubble-idf       Bool               )
   
     (bubble-exf       Bool               )
     (dest-exf         Value              )
+    
+    (operand-af       Value              )  ; the value at the *input* (not the output!!) of operand-a register
           
     ; "outputs" of macro (state after the step)
     (PCo              Value              )
@@ -823,7 +818,7 @@
             (ite
               stall
               true
-              (branch-taken bubble-idi inst-idi operand-ao)
+              (branch-taken bubble-idi inst-idi operand-af)
             )
           )
         )
@@ -865,12 +860,12 @@
             (ite
               stall
               (ite
-                (branch-taken bubble-idi inst-idi operand-ao)
+                (branch-taken bubble-idi inst-idi operand-af)
                 (TA inst-idi PCi)
                 PCi
               )
               (ite
-                (branch-taken bubble-idi inst-idi operand-ao)
+                (branch-taken bubble-idi inst-idi operand-af)
                 (TA inst-idi PCi)
                 (PLUS FOUR PCi)
               )
@@ -880,7 +875,7 @@
       )
     ) ; END conjunction over all parts 
   ) ; END main expression
-) ; END of step-in-ID macro
+) ; END of step-in-IF macro
 
 
 
@@ -949,14 +944,14 @@
   (
     (and ; conjunction over all parts
       
-      (step-in-REGFILE
+      (step-in-WB
         REGFILEi
         dest-wbi
         result-wbi
         REGFILEo
       )
       
-      (step-in-WB
+      (step-in-MEM
         DMEMi      
         dest-memi  
         result-memi
@@ -968,17 +963,13 @@
         result-wbo
       )
     
-      (step-in-MEM
-        inst-idi   
-        bubble-idi 
+      (step-in-EX 
         bubble-exi      
         short-immed-exi 
         dest-exi        
         opcode-exi       
         operand-ai       
-        operand-bi       
-        dest-wbi    
-        result-wbi  
+        operand-bi         
         dest-memo      
         result-memo    
         maro           
@@ -986,16 +977,17 @@
         store-flago
       )
     
-      (step-in-EX
+      (step-in-ID
         REGFILEi        
         inst-idi                       
-        bubble-idi                      
-        dest-exf                       
-        result-exf                     
-        dest-memf                      
-        result-memf                    
-        dest-wbf                       
-        result-wbf                     
+        bubble-idi
+        bubble-exi ; forwarded value                      
+        dest-exi ; forwarded value                       
+        result-exi ; forwarded value                     
+        dest-memi ; forwarded value                      
+        result-memi ; forwarded value                    
+        dest-wbi ; forwarded value                       
+        result-wbi ; forwarded value                     
         bubble-exo                      
         short-immed-exo                
         dest-exo                       
@@ -1005,13 +997,14 @@
         force-stall-issue                   
       )
       
-      (step-in-ID
+      (step-in-IF
         IMEMi            
         PCi              
         inst-idi         
         bubble-idi       
-        bubble-exf       
-        dest-exf         
+        bubble-exi       
+        dest-exi
+        operand-ai         
         PCo              
         inst-ido         
         bubble-ido       
