@@ -1054,7 +1054,56 @@
     (DMEMo            (Array Value Value))
    ;(IMEMo            (Array Value Value))
     (PCo              Value              )
+     
+     
+    ; intermediate ("transient") values
+    (REGFILEt1_       (Array Value Value))
+    (REGFILEt2_       (Array Value Value))
+    (REGFILEt3_       (Array Value Value))
+    (REGFILEt4_       (Array Value Value))
+
+    (DMEMt2_          (Array Value Value))
+    (DMEMt3_          (Array Value Value))
+    (DMEMt4_          (Array Value Value))
   
+    (PCt4_            Value              )
+  
+    (bubble-ext4_     Bool               )
+    
+    (short-immed-ext4_ Value             )
+    
+    (dest-ext4_       Value              )
+     
+    (opcode-ext4_     Value              )
+    
+    (operand-at4_     Value              )
+     
+    (operand-bt4_     Value              )
+     
+    (dest-memt3_      Value              )
+    (dest-memt4_      Value              )
+  
+    (result-memt3_    Value              )
+    (result-memt4_    Value              )
+    
+    (mart3_           Value              )
+    (mart4_           Value              )
+    
+    (load-flagt3_     Bool               )
+    (load-flagt4_     Bool               )
+    
+    (store-flagt3_    Bool               )
+    (store-flagt4_    Bool               )
+  
+    (dest-wbt2_       Value              )
+    (dest-wbt3_       Value              )
+    (dest-wbt4_       Value              )
+  
+    (result-wbt2_     Value              )
+    (result-wbt3_     Value              )
+    (result-wbt4_     Value              )
+  
+    
     ; primary inputs
     (force-stall-issue Bool              )
     (stall             Bool              )
@@ -1067,5 +1116,5 @@
     
     ) ; END conjunction over all parts 
   ) ; END main expression
-) ; END of step-in-pipeline macro
+) ; END of complete-pipeline macro
 
