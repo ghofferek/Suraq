@@ -242,7 +242,8 @@
 
 
 ; Equivalence Criterion:
-; The programmer-visible state of the processor is the REGFILE and the DMEM.
+; The programmer-visible state of the processor is the REGFILE, the DMEM and
+; the PC.
 ; They must be equal after going along the ci and the sc branch.
 
 (define-fun equiv 
@@ -251,12 +252,15 @@
     (REGFILEsc (Array Value Value))
     (DMEMci    (Array Value Value))
     (DMEMsc    (Array Value Value))
+    (PCci      Value              )
+    (PCsc      Value              )
   )
   Bool ; return type of macro
   ; main expression: 
   ( 
     (and (= REGFILEci REGFILEsc)
          (= DMEMci    DMEMsc   )
+         (= PCci      PCsc     )
     )
   )
 )
@@ -1050,25 +1054,6 @@
     (DMEMo            (Array Value Value))
    ;(IMEMo            (Array Value Value))
     (PCo              Value              )
-    
-    (inst-ido         Value              )
-    (bubble-ido       Bool               )
-    
-    (bubble-exo       Bool               )
-    (short-immed-exo  Value              )
-    (dest-exo         Value              )
-    (opcode-exo       Value              )
-    (operand-ao       Value              )
-    (operand-bo       Value              )
-    
-    (dest-memo        Value              )
-    (result-memo      Value              )
-    (maro             Value              )
-    (load-flago       Bool               )
-    (store-flago      Bool               )
-    
-    (dest-wbo         Value              )
-    (result-wbo       Value              )
   
     ; primary inputs
     (force-stall-issue Bool              )
