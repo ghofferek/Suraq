@@ -145,88 +145,97 @@
 
 ; ID stage
 (declare-fun inst-id             () Value               )
-(declare-fun inst-idci4_         () Value :no_dependence)
 (declare-fun inst-idsc1_         () Value :no_dependence)
-(declare-fun inst-idsc5_         () Value :no_dependence)
 
 (declare-fun bubble-id           () Bool  :no_dependence)
-(declare-fun bubble-idci4_       () Bool  :no_dependence)
 (declare-fun bubble-idsc1_       () Bool  :no_dependence)
-(declare-fun bubble-idsc5_       () Bool  :no_dependence)
 
 ; EX stage
 (declare-fun bubble-ex           () Bool                )
-(declare-fun bubble-exci3_       () Bool  :no_dependence)
 (declare-fun bubble-exci4_       () Bool  :no_dependence)
 (declare-fun bubble-exsc1_       () Bool  :no_dependence)
-(declare-fun bubble-exsc4_       () Bool  :no_dependence)
 (declare-fun bubble-exsc5_       () Bool  :no_dependence)
 
 (declare-fun short-immed-ex      () Value               )
-(declare-fun short-immed-exci3_  () Value :no_dependence)
 (declare-fun short-immed-exci4_  () Value :no_dependence)
 (declare-fun short-immed-exsc1_  () Value :no_dependence)
-(declare-fun short-immed-exsc4_  () Value :no_dependence)
 (declare-fun short-immed-exsc5_  () Value :no_dependence)
 
 (declare-fun dest-ex             () Value               )
-(declare-fun dest-exci3_         () Value :no_dependence)
 (declare-fun dest-exci4_         () Value :no_dependence)
 (declare-fun dest-exsc1_         () Value :no_dependence)
-(declare-fun dest-exsc4_         () Value :no_dependence)
 (declare-fun dest-exsc5_         () Value :no_dependence)
 
 (declare-fun opcode-ex           () Value               )
-(declare-fun opcode-exci3_       () Value :no_dependence)
 (declare-fun opcode-exci4_       () Value :no_dependence)
 (declare-fun opcode-exsc1_       () Value :no_dependence)
-(declare-fun opcode-exsc4_       () Value :no_dependence)
 (declare-fun opcode-exsc5_       () Value :no_dependence)
 
 (declare-fun operand-a           () Value               )
-(declare-fun operand-aci3_       () Value  :no_dependence)
 (declare-fun operand-aci4_       () Value  :no_dependence)
 (declare-fun operand-asc1_       () Value  :no_dependence)
-(declare-fun operand-asc4_       () Value  :no_dependence)
 (declare-fun operand-asc5_       () Value  :no_dependence)
 
 (declare-fun operand-b           () Value               )
-(declare-fun operand-bci3_       () Value  :no_dependence)
 (declare-fun operand-bci4_       () Value  :no_dependence)
 (declare-fun operand-bsc1_       () Value  :no_dependence)
-(declare-fun operand-bsc4_       () Value  :no_dependence)
 (declare-fun operand-bsc5_       () Value  :no_dependence)
 
+; MEM stage
 (declare-fun dest-mem        () Value)
+(declare-fun dest-memci3_    () Value)
+(declare-fun dest-memci4_    () Value)
+(declare-fun dest-memsc1_    () Value)
+(declare-fun dest-memsc4_    () Value)
+(declare-fun dest-memsc5_    () Value)
+
 (declare-fun result-mem      () Value)
+(declare-fun result-memci3_  () Value)
+(declare-fun result-memci4_  () Value)
+(declare-fun result-memsc1_  () Value)
+(declare-fun result-memsc4_  () Value)
+(declare-fun result-memsc5_  () Value)
+
 (declare-fun mar             () Value)
+(declare-fun marci3_         () Value)
+(declare-fun marci4_         () Value)
+(declare-fun marsc1_         () Value)
+(declare-fun marsc4_         () Value)
+(declare-fun marsc5_         () Value)
+
 (declare-fun load-flag       () Bool )
+(declare-fun load-flagci3_   () Bool )
+(declare-fun load-flagci4_   () Bool )
+(declare-fun load-flagsc1_   () Bool )
+(declare-fun load-flagsc4_   () Bool )
+(declare-fun load-flagsc5_   () Bool )
+
 (declare-fun store-flag      () Bool )
+(declare-fun store-flagci3_  () Bool )
+(declare-fun store-flagci4_  () Bool )
+(declare-fun store-flagsc1_  () Bool )
+(declare-fun store-flagsc4_  () Bool )
+(declare-fun store-flagsc5_  () Bool )
 
+
+; WB stage
 (declare-fun dest-wb         () Value)
+(declare-fun dest-wbci2_     () Value)
+(declare-fun dest-wbci3_     () Value)
+(declare-fun dest-wbci4_     () Value)
+(declare-fun dest-wbsc1_     () Value)
+(declare-fun dest-wbsc3_    () Value)
+(declare-fun dest-wbsc4_     () Value)
+(declare-fun dest-wbsc5_     () Value)
+
 (declare-fun result-wb       () Value)
-
-
-; Declare "stepped" pipeline registers (values after one step)
-
-(declare-fun inst-id_        () Value :no_dependence)
-(declare-fun bubble-id_      () Bool  :no_dependence)
-
-(declare-fun bubble-ex_      () Bool  :no_dependence)
-(declare-fun short-immed-ex_ () Value :no_dependence)
-(declare-fun dest-ex_        () Value :no_dependence)
-(declare-fun opcode-ex_      () Value :no_dependence)
-(declare-fun operand-a_      () Value :no_dependence)
-(declare-fun operand-b_      () Value :no_dependence)
-
-(declare-fun dest-mem_       () Value :no_dependence)
-(declare-fun result-mem_     () Value :no_dependence)
-(declare-fun mar_            () Value :no_dependence)
-(declare-fun load-flag_      () Bool  :no_dependence)
-(declare-fun store-flag_     () Bool  :no_dependence)
-
-(declare-fun dest-wb_        () Value :no_dependence)
-(declare-fun result-wb_      () Value :no_dependence)
+(declare-fun result-wbci2_   () Value)
+(declare-fun result-wbci3_   () Value)
+(declare-fun result-wbci4_   () Value)
+(declare-fun result-wbsc1_   () Value)
+(declare-fun result-wbsc3_   () Value)
+(declare-fun result-wbsc4_   () Value)
+(declare-fun result-wbsc5_   () Value)
 
 
 
