@@ -76,7 +76,7 @@
 (set-option :produce-assignments true)
 ;(set-logic Suraq)
 ;(set-logic ArraysEx) ; for z3
-(declare-sort Value 0) ; for z3
+;(declare-sort Value 0) ; for z3
 
 ; primary inputs
 (declare-fun stall             () Bool)
@@ -85,73 +85,73 @@
 ; Declare arrays
 ; (and copies for ci and sc paths)
 
-(declare-fun REGFILE      () (Array Value Value))
-(declare-fun REGFILEci1_  () (Array Value Value) )
-(declare-fun REGFILEci2_  () (Array Value Value) )
-(declare-fun REGFILEci3_  () (Array Value Value) )
-(declare-fun REGFILEci4_  () (Array Value Value) )
-(declare-fun REGFILEci5_  () (Array Value Value) )
-(declare-fun REGFILEsc1_  () (Array Value Value) )
-(declare-fun REGFILEsc2_  () (Array Value Value) )
-(declare-fun REGFILEsc3_  () (Array Value Value) )
-(declare-fun REGFILEsc4_  () (Array Value Value) )
-(declare-fun REGFILEsc5_  () (Array Value Value) )
+(declare-fun REGFILE      () (Array Int Int))
+(declare-fun REGFILEci1_  () (Array Int Int) )
+(declare-fun REGFILEci2_  () (Array Int Int) )
+(declare-fun REGFILEci3_  () (Array Int Int) )
+(declare-fun REGFILEci4_  () (Array Int Int) )
+(declare-fun REGFILEci5_  () (Array Int Int) )
+(declare-fun REGFILEsc1_  () (Array Int Int) )
+(declare-fun REGFILEsc2_  () (Array Int Int) )
+(declare-fun REGFILEsc3_  () (Array Int Int) )
+(declare-fun REGFILEsc4_  () (Array Int Int) )
+(declare-fun REGFILEsc5_  () (Array Int Int) )
 
-(declare-fun DMEM         () (Array Value Value))
-(declare-fun DMEMci2_     () (Array Value Value) )
-(declare-fun DMEMci3_     () (Array Value Value) )
-(declare-fun DMEMci4_     () (Array Value Value) )
-(declare-fun DMEMci5_     () (Array Value Value) )
-(declare-fun DMEMsc1_     () (Array Value Value) )
-(declare-fun DMEMsc3_     () (Array Value Value) )
-(declare-fun DMEMsc4_     () (Array Value Value) )
-(declare-fun DMEMsc5_     () (Array Value Value) )
+(declare-fun DMEM         () (Array Int Int))
+(declare-fun DMEMci2_     () (Array Int Int) )
+(declare-fun DMEMci3_     () (Array Int Int) )
+(declare-fun DMEMci4_     () (Array Int Int) )
+(declare-fun DMEMci5_     () (Array Int Int) )
+(declare-fun DMEMsc1_     () (Array Int Int) )
+(declare-fun DMEMsc3_     () (Array Int Int) )
+(declare-fun DMEMsc4_     () (Array Int Int) )
+(declare-fun DMEMsc5_     () (Array Int Int) )
 
-(declare-fun IMEM         () (Array Value Value))  ; IMEM is never written. Thus no need for more copies.
+(declare-fun IMEM         () (Array Int Int))  ; IMEM is never written. Thus no need for more copies.
 
 
 ; Declare constants
 
-(declare-fun FOUR () Value)
-(declare-fun ZERO () Value)
+(declare-fun FOUR () Int)
+(declare-fun ZERO () Int)
 
 
 ; Declare single data elements
 ; (and copies for ci and sc paths)
 
-(declare-fun PC     () Value               )  ; Program counter
-(declare-fun PCci4_ () Value )  
-(declare-fun PCci5_ () Value )
-(declare-fun PCsc1_ () Value )  
+(declare-fun PC     () Int               )  ; Program counter
+(declare-fun PCci4_ () Int )  
+(declare-fun PCci5_ () Int )
+(declare-fun PCsc1_ () Int )  
   
 
 ; Declare uninterpreted functions of the datapath
 
-(declare-fun PLUS              (Value Value      )   Value)
-(declare-fun ALU               (Value Value Value)   Value)
-(declare-fun rf1-of            (Value            )   Value)
-(declare-fun rf2-of            (Value            )   Value)
-(declare-fun rf3-of            (Value            )   Value)
-(declare-fun opcode-of         (Value            )   Value)
-(declare-fun short-immed-of    (Value            )   Value)
-(declare-fun long-immed-of     (Value            )   Value)
-(declare-fun alu-op-of         (Value            )   Value)
+(declare-fun PLUS              (Int Int      )   Int)
+(declare-fun ALU               (Int Int Int)   Int)
+(declare-fun rf1-of            (Int            )   Int)
+(declare-fun rf2-of            (Int            )   Int)
+(declare-fun rf3-of            (Int            )   Int)
+(declare-fun opcode-of         (Int            )   Int)
+(declare-fun short-immed-of    (Int            )   Int)
+(declare-fun long-immed-of     (Int            )   Int)
+(declare-fun alu-op-of         (Int            )   Int)
 
 
 ; Declare uninterpreted predicates of the datapath
 
-(declare-fun is-load           (Value            )   Bool )
-(declare-fun is-store          (Value            )   Bool ) 
-(declare-fun is-J              (Value            )   Bool )
-(declare-fun is-BEQZ           (Value            )   Bool )
-(declare-fun is-alu-immed      (Value            )   Bool )
+(declare-fun is-load           (Int            )   Bool )
+(declare-fun is-store          (Int            )   Bool ) 
+(declare-fun is-J              (Int            )   Bool )
+(declare-fun is-BEQZ           (Int            )   Bool )
+(declare-fun is-alu-immed      (Int            )   Bool )
 
 
 ; Declare pipeline registers (and copies for stepping and completion)
 
 ; ID stage
-(declare-fun inst-id             () Value               )
-(declare-fun inst-idsc1_         () Value )
+(declare-fun inst-id             () Int               )
+(declare-fun inst-idsc1_         () Int )
 
 (declare-fun bubble-id           () Bool  )
 (declare-fun bubble-idsc1_       () Bool  )
@@ -162,52 +162,52 @@
 (declare-fun bubble-exsc1_       () Bool  )
 (declare-fun bubble-exsc5_       () Bool  )
 
-(declare-fun short-immed-ex      () Value               )
-(declare-fun short-immed-exci4_  () Value )
-(declare-fun short-immed-exsc1_  () Value )
-(declare-fun short-immed-exsc5_  () Value )
+(declare-fun short-immed-ex      () Int               )
+(declare-fun short-immed-exci4_  () Int )
+(declare-fun short-immed-exsc1_  () Int )
+(declare-fun short-immed-exsc5_  () Int )
 
-(declare-fun dest-ex             () Value               )
-(declare-fun dest-exci4_         () Value )
-(declare-fun dest-exsc1_         () Value )
-(declare-fun dest-exsc5_         () Value )
+(declare-fun dest-ex             () Int               )
+(declare-fun dest-exci4_         () Int )
+(declare-fun dest-exsc1_         () Int )
+(declare-fun dest-exsc5_         () Int )
 
-(declare-fun opcode-ex           () Value               )
-(declare-fun opcode-exci4_       () Value )
-(declare-fun opcode-exsc1_       () Value )
-(declare-fun opcode-exsc5_       () Value )
+(declare-fun opcode-ex           () Int               )
+(declare-fun opcode-exci4_       () Int )
+(declare-fun opcode-exsc1_       () Int )
+(declare-fun opcode-exsc5_       () Int )
 
-(declare-fun operand-a           () Value               )
-(declare-fun operand-aci4_       () Value  )
-(declare-fun operand-asc1_       () Value  )
-(declare-fun operand-asc5_       () Value  )
+(declare-fun operand-a           () Int               )
+(declare-fun operand-aci4_       () Int  )
+(declare-fun operand-asc1_       () Int  )
+(declare-fun operand-asc5_       () Int  )
 
-(declare-fun operand-b           () Value               )
-(declare-fun operand-bci4_       () Value  )
-(declare-fun operand-bsc1_       () Value  )
-(declare-fun operand-bsc5_       () Value  )
+(declare-fun operand-b           () Int               )
+(declare-fun operand-bci4_       () Int  )
+(declare-fun operand-bsc1_       () Int  )
+(declare-fun operand-bsc5_       () Int  )
 
 ; MEM stage
-(declare-fun dest-mem        () Value)
-(declare-fun dest-memci3_    () Value)
-(declare-fun dest-memci4_    () Value)
-(declare-fun dest-memsc1_    () Value)
-(declare-fun dest-memsc4_    () Value)
-(declare-fun dest-memsc5_    () Value)
+(declare-fun dest-mem        () Int)
+(declare-fun dest-memci3_    () Int)
+(declare-fun dest-memci4_    () Int)
+(declare-fun dest-memsc1_    () Int)
+(declare-fun dest-memsc4_    () Int)
+(declare-fun dest-memsc5_    () Int)
 
-(declare-fun result-mem      () Value)
-(declare-fun result-memci3_  () Value)
-(declare-fun result-memci4_  () Value)
-(declare-fun result-memsc1_  () Value)
-(declare-fun result-memsc4_  () Value)
-(declare-fun result-memsc5_  () Value)
+(declare-fun result-mem      () Int)
+(declare-fun result-memci3_  () Int)
+(declare-fun result-memci4_  () Int)
+(declare-fun result-memsc1_  () Int)
+(declare-fun result-memsc4_  () Int)
+(declare-fun result-memsc5_  () Int)
 
-(declare-fun mar             () Value)
-(declare-fun marci3_         () Value)
-(declare-fun marci4_         () Value)
-(declare-fun marsc1_         () Value)
-(declare-fun marsc4_         () Value)
-(declare-fun marsc5_         () Value)
+(declare-fun mar             () Int)
+(declare-fun marci3_         () Int)
+(declare-fun marci4_         () Int)
+(declare-fun marsc1_         () Int)
+(declare-fun marsc4_         () Int)
+(declare-fun marsc5_         () Int)
 
 (declare-fun load-flag       () Bool )
 (declare-fun load-flagci3_   () Bool )
@@ -225,45 +225,45 @@
 
 
 ; WB stage
-(declare-fun dest-wb         () Value)
-(declare-fun dest-wbci2_     () Value)
-(declare-fun dest-wbci3_     () Value)
-(declare-fun dest-wbci4_     () Value)
-(declare-fun dest-wbsc1_     () Value)
-(declare-fun dest-wbsc3_    () Value)
-(declare-fun dest-wbsc4_     () Value)
-(declare-fun dest-wbsc5_     () Value)
+(declare-fun dest-wb         () Int)
+(declare-fun dest-wbci2_     () Int)
+(declare-fun dest-wbci3_     () Int)
+(declare-fun dest-wbci4_     () Int)
+(declare-fun dest-wbsc1_     () Int)
+(declare-fun dest-wbsc3_    () Int)
+(declare-fun dest-wbsc4_     () Int)
+(declare-fun dest-wbsc5_     () Int)
 
-(declare-fun result-wb       () Value)
-(declare-fun result-wbci2_   () Value)
-(declare-fun result-wbci3_   () Value)
-(declare-fun result-wbci4_   () Value)
-(declare-fun result-wbsc1_   () Value)
-(declare-fun result-wbsc3_   () Value)
-(declare-fun result-wbsc4_   () Value)
-(declare-fun result-wbsc5_   () Value)
+(declare-fun result-wb       () Int)
+(declare-fun result-wbci2_   () Int)
+(declare-fun result-wbci3_   () Int)
+(declare-fun result-wbci4_   () Int)
+(declare-fun result-wbsc1_   () Int)
+(declare-fun result-wbsc3_   () Int)
+(declare-fun result-wbsc4_   () Int)
+(declare-fun result-wbsc5_   () Int)
 
 
 ; auxiliary constants to state commutativity and associativity of PLUS
-(declare-fun aux1            () Value )
-(declare-fun aux2            () Value )
-(declare-fun aux3            () Value )
-(declare-fun aux4            () Value )
-(declare-fun aux5            () Value )
+(declare-fun aux1            () Int )
+(declare-fun aux2            () Int )
+(declare-fun aux3            () Int )
+(declare-fun aux4            () Int )
+(declare-fun aux5            () Int )
 
 ; auxiliary constants to state properti4es of the is-XXX predicates
-(declare-fun aux6            () Value )
+(declare-fun aux6            () Int )
 
 
 
 ; Properties of PLUS (commutativity and asscciativity)
 (define-fun plus-properties
   ( ; parameters
-    (a Value)
-    (b Value)
-    (c Value)
-    (d Value)
-    (e Value)  
+    (a Int)
+    (b Int)
+    (c Int)
+    (d Int)
+    (e Int)  
   )
   Bool ; return type of macro
   ; main expression:
@@ -284,7 +284,7 @@
 ; (always exactly one is true)
 (define-fun is-properties
   ( ; parameters
-    (opcode Value)  
+    (opcode Int)  
   )
   Bool ; return type of macro
   ; main expression:
@@ -359,12 +359,12 @@
 
 (define-fun equivalence 
   ( ; parameters
-    (REGFILEci (Array Value Value))
-    (REGFILEsc (Array Value Value))
-    (DMEMci    (Array Value Value))
-    (DMEMsc    (Array Value Value))
-    (PCci      Value              )
-    (PCsc      Value              )
+    (REGFILEci (Array Int Int))
+    (REGFILEsc (Array Int Int))
+    (DMEMci    (Array Int Int))
+    (DMEMsc    (Array Int Int))
+    (PCci      Int              )
+    (PCsc      Int              )
   )
   Bool ; return type of macro
   ; main expression: 
@@ -380,11 +380,11 @@
 
 (define-fun rf1data
   ( ; parameters
-    (REGFILE (Array Value Value))
-    (IMEM    (Array Value Value))
-    (PC      Value              )
+    (REGFILE (Array Int Int))
+    (IMEM    (Array Int Int))
+    (PC      Int              )
   )
-  Value ; return type of macro
+  Int ; return type of macro
   ; main expression:
   (ite
     (= ZERO (rf1-of (select IMEM PC)))
@@ -395,11 +395,11 @@
 
 (define-fun rf2data
   ( ; parameters
-    (REGFILE (Array Value Value))
-    (IMEM    (Array Value Value))
-    (PC      Value              )
+    (REGFILE (Array Int Int))
+    (IMEM    (Array Int Int))
+    (PC      Int              )
   )
-  Value ; return type of macro
+  Int ; return type of macro
   ; main expression:
   (ite
     (= ZERO (rf2-of (select IMEM PC)))
@@ -410,12 +410,12 @@
 
 (define-fun alu-result
   ( ; parameters
-    (operand-a    Value)
-    (operand-b    Value)
-    (opcode       Value)
-    (short-immed  Value)
+    (operand-a    Int)
+    (operand-b    Int)
+    (opcode       Int)
+    (short-immed  Int)
   )
-  Value ; return type of macro
+  Int ; return type of macro
   ; main expression:
   (ite
     (or
@@ -431,9 +431,9 @@
   ( ; parameters
     (force-stall-issue  Bool )
     (bubble-ex          Bool )
-    (dest-ex            Value)
+    (dest-ex            Int)
     (bubble-id          Bool )
-    (inst-id            Value)
+    (inst-id            Int)
   )
   Bool ; return type of macro
   ; main expression
@@ -454,8 +454,8 @@
 (define-fun branch-taken
   ( ; parameters
     (bubble-id          Bool )
-    (inst-id            Value)
-    (operand-an         Value)
+    (inst-id            Int)
+    (operand-an         Int)
   )
   Bool ; return type of macro
   ; main expression
@@ -473,10 +473,10 @@
 
 (define-fun TA
   ( ; parameters
-    (inst-id Value)
-    (PC      Value)
+    (inst-id Int)
+    (PC      Int)
   )
-  Value ; return type of macro
+  Int ; return type of macro
   ; main expression
   (ite
     (is-J (opcode-of inst-id))
@@ -492,16 +492,16 @@
   ( ; parameters
   
     ; "inputs" to macro (state before the instruction)
-    (REGFILEi (Array Value Value))
-    (DMEMi    (Array Value Value))
-    (IMEMi    (Array Value Value))
-    (PCi      Value              )
+    (REGFILEi (Array Int Int))
+    (DMEMi    (Array Int Int))
+    (IMEMi    (Array Int Int))
+    (PCi      Int              )
   
     ; "outputs" of macro (state after the instruction)
-    (REGFILEo (Array Value Value))
-    (DMEMo    (Array Value Value))
-   ;(IMEMo    (Array Value Value))
-    (PCo      Value              )
+    (REGFILEo (Array Int Int))
+    (DMEMo    (Array Int Int))
+   ;(IMEMo    (Array Int Int))
+    (PCo      Int              )
   )
   Bool ; return type of macro
   ; main expression
@@ -629,13 +629,13 @@
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
-    (REGFILEi         (Array Value Value))
+    (REGFILEi         (Array Int Int))
     
-    (dest-wbi         Value              )
-    (result-wbi       Value              )
+    (dest-wbi         Int              )
+    (result-wbi       Int              )
       
     ; "outputs" of macro (state after the step)
-    (REGFILEo         (Array Value Value))
+    (REGFILEo         (Array Int Int))
   )
   Bool ; return type
   ; main expression
@@ -659,20 +659,20 @@
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
-    (DMEMi            (Array Value Value))
+    (DMEMi            (Array Int Int))
     
-    (dest-memi        Value              )
-    (result-memi      Value              )
-    (mari             Value              )
+    (dest-memi        Int              )
+    (result-memi      Int              )
+    (mari             Int              )
     (load-flagi       Bool               )
     (store-flagi      Bool               )
     
       
     ; "outputs" of macro (state after the step)
-    (DMEMo            (Array Value Value))
+    (DMEMo            (Array Int Int))
     
-    (dest-wbo         Value              )
-    (result-wbo       Value              )
+    (dest-wbo         Int              )
+    (result-wbo       Int              )
   
   )
   Bool ; return type
@@ -709,16 +709,16 @@
   
     ; "inputs" to macro (state before the step)   
     (bubble-exi       Bool               )
-    (short-immed-exi  Value              )
-    (dest-exi         Value              )
-    (opcode-exi       Value              )
-    (operand-ai       Value              )
-    (operand-bi       Value              )
+    (short-immed-exi  Int              )
+    (dest-exi         Int              )
+    (opcode-exi       Int              )
+    (operand-ai       Int              )
+    (operand-bi       Int              )
           
     ; "outputs" of macro (state after the step)
-    (dest-memo        Value              )
-    (result-memo      Value              )
-    (maro             Value              )
+    (dest-memo        Int              )
+    (result-memo      Int              )
+    (maro             Int              )
     (load-flago       Bool               )
     (store-flago      Bool               )
   )
@@ -754,29 +754,29 @@
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
-    (REGFILEi         (Array Value Value))
+    (REGFILEi         (Array Int Int))
     
-    (inst-idi         Value              )
+    (inst-idi         Int              )
     (bubble-idi       Bool               )
     
     (bubble-exf       Bool               )  ; f = forward
-    (dest-exf         Value              )
-    (result-exf       Value              )
+    (dest-exf         Int              )
+    (result-exf       Int              )
     
-    (dest-memf        Value              )
-    (result-memf      Value              )
+    (dest-memf        Int              )
+    (result-memf      Int              )
     
-    (dest-wbf         Value              )
-    (result-wbf       Value              )
+    (dest-wbf         Int              )
+    (result-wbf       Int              )
       
     ; "outputs" of macro (state after the step)
     
     (bubble-exo       Bool               )
-    (short-immed-exo  Value              )
-    (dest-exo         Value              )
-    (opcode-exo       Value              )
-    (operand-ao       Value              )
-    (operand-bo       Value              )
+    (short-immed-exo  Int              )
+    (dest-exo         Int              )
+    (opcode-exo       Int              )
+    (operand-ao       Int              )
+    (operand-bo       Int              )
     
     ; primary inputs
     (force-stall-issue Bool              )
@@ -866,21 +866,21 @@
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
-    (IMEMi            (Array Value Value))
-    (PCi              Value              )
+    (IMEMi            (Array Int Int))
+    (PCi              Int              )
   
-    (inst-idf         Value              )
+    (inst-idf         Int              )
     (bubble-idf       Bool               )
   
     (bubble-exf       Bool               )
-    (dest-exf         Value              )
+    (dest-exf         Int              )
     
-    (operand-af       Value              )  ; the value at the *input* (not the output!!) of operand-a register
+    (operand-af       Int              )  ; the value at the *input* (not the output!!) of operand-a register
           
     ; "outputs" of macro (state after the step)
-    (PCo              Value              )
+    (PCo              Int              )
     
-    (inst-ido         Value              )
+    (inst-ido         Int              )
     (bubble-ido       Bool               )
       
     ; primary inputs
@@ -974,54 +974,54 @@
   ( ; parameters
   
     ; "inputs" to macro (state before the step)
-    (REGFILEi         (Array Value Value))
-    (DMEMi            (Array Value Value))
-    (IMEMi            (Array Value Value))
-    (PCi              Value              )
+    (REGFILEi         (Array Int Int))
+    (DMEMi            (Array Int Int))
+    (IMEMi            (Array Int Int))
+    (PCi              Int              )
   
-    (inst-idi         Value              )
+    (inst-idi         Int              )
     (bubble-idi       Bool               )
     
     (bubble-exi       Bool               )
-    (short-immed-exi  Value              )
-    (dest-exi         Value              )
-    (opcode-exi       Value              )
-    (operand-ai       Value              )
-    (operand-bi       Value              )
+    (short-immed-exi  Int              )
+    (dest-exi         Int              )
+    (opcode-exi       Int              )
+    (operand-ai       Int              )
+    (operand-bi       Int              )
     
-    (dest-memi        Value              )
-    (result-memi      Value              )
-    (mari             Value              )
+    (dest-memi        Int              )
+    (result-memi      Int              )
+    (mari             Int              )
     (load-flagi       Bool               )
     (store-flagi      Bool               )
     
-    (dest-wbi         Value              )
-    (result-wbi       Value              )
+    (dest-wbi         Int              )
+    (result-wbi       Int              )
       
     ; "outputs" of macro (state after the step)
-    (REGFILEo         (Array Value Value))
-    (DMEMo            (Array Value Value))
-   ;(IMEMo            (Array Value Value))
-    (PCo              Value              )
+    (REGFILEo         (Array Int Int))
+    (DMEMo            (Array Int Int))
+   ;(IMEMo            (Array Int Int))
+    (PCo              Int              )
     
-    (inst-ido         Value              )
+    (inst-ido         Int              )
     (bubble-ido       Bool               )
     
     (bubble-exo       Bool               )
-    (short-immed-exo  Value              )
-    (dest-exo         Value              )
-    (opcode-exo       Value              )
-    (operand-ao       Value              )
-    (operand-bo       Value              )
+    (short-immed-exo  Int              )
+    (dest-exo         Int              )
+    (opcode-exo       Int              )
+    (operand-ao       Int              )
+    (operand-bo       Int              )
     
-    (dest-memo        Value              )
-    (result-memo      Value              )
-    (maro             Value              )
+    (dest-memo        Int              )
+    (result-memo      Int              )
+    (maro             Int              )
     (load-flago       Bool               )
     (store-flago      Bool               )
     
-    (dest-wbo         Value              )
-    (result-wbo       Value              )
+    (dest-wbo         Int              )
+    (result-wbo       Int              )
   
     ; primary inputs
     (force-stall-issue Bool              )
@@ -1111,65 +1111,65 @@
 ( ; parameters
   
     ; "inputs" to macro (state before the step)
-    (REGFILEi         (Array Value Value))
-    (DMEMi            (Array Value Value))
-    (IMEMi            (Array Value Value))
-    (PCi              Value              )
+    (REGFILEi         (Array Int Int))
+    (DMEMi            (Array Int Int))
+    (IMEMi            (Array Int Int))
+    (PCi              Int              )
   
-    (inst-idi         Value              )
+    (inst-idi         Int              )
     (bubble-idi       Bool               )
     
     (bubble-exi       Bool               )
-    (short-immed-exi  Value              )
-    (dest-exi         Value              )
-    (opcode-exi       Value              )
-    (operand-ai       Value              )
-    (operand-bi       Value              )
+    (short-immed-exi  Int              )
+    (dest-exi         Int              )
+    (opcode-exi       Int              )
+    (operand-ai       Int              )
+    (operand-bi       Int              )
     
-    (dest-memi        Value              )
-    (result-memi      Value              )
-    (mari             Value              )
+    (dest-memi        Int              )
+    (result-memi      Int              )
+    (mari             Int              )
     (load-flagi       Bool               )
     (store-flagi      Bool               )
     
-    (dest-wbi         Value              )
-    (result-wbi       Value              )
+    (dest-wbi         Int              )
+    (result-wbi       Int              )
       
     ; "outputs" of macro (state after the step)
-    (REGFILEo         (Array Value Value))
-    (DMEMo            (Array Value Value))
-   ;(IMEMo            (Array Value Value))
+    (REGFILEo         (Array Int Int))
+    (DMEMo            (Array Int Int))
+   ;(IMEMo            (Array Int Int))
     
      
      
     ; intermediate ("transient") values
-    (REGFILEt1_       (Array Value Value))
-    (REGFILEt2_       (Array Value Value))
-    (REGFILEt3_       (Array Value Value))
+    (REGFILEt1_       (Array Int Int))
+    (REGFILEt2_       (Array Int Int))
+    (REGFILEt3_       (Array Int Int))
     
-    (DMEMt2_          (Array Value Value))
-    (DMEMt3_          (Array Value Value))
+    (DMEMt2_          (Array Int Int))
+    (DMEMt3_          (Array Int Int))
     
     (bubble-ext4_     Bool               )
     
-    (short-immed-ext4_ Value             )
+    (short-immed-ext4_ Int             )
     
-    (dest-ext4_       Value              )
+    (dest-ext4_       Int              )
      
-    (opcode-ext4_     Value              )
+    (opcode-ext4_     Int              )
     
-    (operand-at4_     Value              )
+    (operand-at4_     Int              )
      
-    (operand-bt4_     Value              )
+    (operand-bt4_     Int              )
      
-    (dest-memt3_      Value              )
-    (dest-memt4_      Value              )
+    (dest-memt3_      Int              )
+    (dest-memt4_      Int              )
   
-    (result-memt3_    Value              )
-    (result-memt4_    Value              )
+    (result-memt3_    Int              )
+    (result-memt4_    Int              )
     
-    (mart3_           Value              )
-    (mart4_           Value              )
+    (mart3_           Int              )
+    (mart4_           Int              )
     
     (load-flagt3_     Bool               )
     (load-flagt4_     Bool               )
@@ -1177,13 +1177,13 @@
     (store-flagt3_    Bool               )
     (store-flagt4_    Bool               )
   
-    (dest-wbt2_       Value              )
-    (dest-wbt3_       Value              )
-    (dest-wbt4_       Value              )
+    (dest-wbt2_       Int              )
+    (dest-wbt3_       Int              )
+    (dest-wbt4_       Int              )
   
-    (result-wbt2_     Value              )
-    (result-wbt3_     Value              )
-    (result-wbt4_     Value              )
+    (result-wbt2_     Int              )
+    (result-wbt3_     Int              )
+    (result-wbt4_     Int              )
   
     
     ; primary inputs
@@ -1334,37 +1334,37 @@
     (pstall         Bool)
     (pforce-stall-issue Bool)
     
-    (pREGFILE       (Array Value Value))
-    (pREGFILEci1_   (Array Value Value))
-    (pREGFILEci2_   (Array Value Value))
-    (pREGFILEci3_   (Array Value Value))
-    (pREGFILEci4_   (Array Value Value))
-    (pREGFILEci5_   (Array Value Value))
-    (pREGFILEsc1_   (Array Value Value))
-    (pREGFILEsc2_   (Array Value Value))
-    (pREGFILEsc3_   (Array Value Value))
-    (pREGFILEsc4_   (Array Value Value))
-    (pREGFILEsc5_   (Array Value Value))
+    (pREGFILE       (Array Int Int))
+    (pREGFILEci1_   (Array Int Int))
+    (pREGFILEci2_   (Array Int Int))
+    (pREGFILEci3_   (Array Int Int))
+    (pREGFILEci4_   (Array Int Int))
+    (pREGFILEci5_   (Array Int Int))
+    (pREGFILEsc1_   (Array Int Int))
+    (pREGFILEsc2_   (Array Int Int))
+    (pREGFILEsc3_   (Array Int Int))
+    (pREGFILEsc4_   (Array Int Int))
+    (pREGFILEsc5_   (Array Int Int))
     
-    (pDMEM          (Array Value Value))
-    (pDMEMci2_      (Array Value Value))
-    (pDMEMci3_      (Array Value Value))
-    (pDMEMci4_      (Array Value Value))
-    (pDMEMci5_      (Array Value Value))
-    (pDMEMsc1_      (Array Value Value))
-    (pDMEMsc3_      (Array Value Value))
-    (pDMEMsc4_      (Array Value Value))
-    (pDMEMsc5_      (Array Value Value))
+    (pDMEM          (Array Int Int))
+    (pDMEMci2_      (Array Int Int))
+    (pDMEMci3_      (Array Int Int))
+    (pDMEMci4_      (Array Int Int))
+    (pDMEMci5_      (Array Int Int))
+    (pDMEMsc1_      (Array Int Int))
+    (pDMEMsc3_      (Array Int Int))
+    (pDMEMsc4_      (Array Int Int))
+    (pDMEMsc5_      (Array Int Int))
     
-    (pIMEM          (Array Value Value))  
+    (pIMEM          (Array Int Int))  
     
-    (pPC      Value               )  
-    (pPCci4_  Value)  
-    (pPCci5_  Value)
-    (pPCsc1_  Value)  
+    (pPC      Int               )  
+    (pPCci4_  Int)  
+    (pPCci5_  Int)
+    (pPCsc1_  Int)  
     
-    (pinst-id              Value               )
-    (pinst-idsc1_          Value)
+    (pinst-id              Int               )
+    (pinst-idsc1_          Int)
     
     (pbubble-id            Bool )
     (pbubble-idsc1_        Bool )
@@ -1374,51 +1374,51 @@
     (pbubble-exsc1_        Bool )
     (pbubble-exsc5_        Bool )
     
-    (pshort-immed-ex       Value               )
-    (pshort-immed-exci4_   Value)
-    (pshort-immed-exsc1_   Value)
-    (pshort-immed-exsc5_   Value)
+    (pshort-immed-ex       Int               )
+    (pshort-immed-exci4_   Int)
+    (pshort-immed-exsc1_   Int)
+    (pshort-immed-exsc5_   Int)
     
-    (pdest-ex              Value               )
-    (pdest-exci4_          Value)
-    (pdest-exsc1_          Value)
-    (pdest-exsc5_          Value)
+    (pdest-ex              Int               )
+    (pdest-exci4_          Int)
+    (pdest-exsc1_          Int)
+    (pdest-exsc5_          Int)
     
-    (popcode-ex            Value               )
-    (popcode-exci4_        Value)
-    (popcode-exsc1_        Value)
-    (popcode-exsc5_        Value)
+    (popcode-ex            Int               )
+    (popcode-exci4_        Int)
+    (popcode-exsc1_        Int)
+    (popcode-exsc5_        Int)
     
-    (poperand-a            Value               )
-    (poperand-aci4_        Value )
-    (poperand-asc1_        Value )
-    (poperand-asc5_        Value )
+    (poperand-a            Int               )
+    (poperand-aci4_        Int )
+    (poperand-asc1_        Int )
+    (poperand-asc5_        Int )
     
-    (poperand-b            Value               )
-    (poperand-bci4_        Value )
-    (poperand-bsc1_        Value )
-    (poperand-bsc5_        Value )
+    (poperand-b            Int               )
+    (poperand-bci4_        Int )
+    (poperand-bsc1_        Int )
+    (poperand-bsc5_        Int )
     
-    (pdest-mem         Value)
-    (pdest-memci3_     Value)
-    (pdest-memci4_     Value)
-    (pdest-memsc1_     Value)
-    (pdest-memsc4_     Value)
-    (pdest-memsc5_     Value)
+    (pdest-mem         Int)
+    (pdest-memci3_     Int)
+    (pdest-memci4_     Int)
+    (pdest-memsc1_     Int)
+    (pdest-memsc4_     Int)
+    (pdest-memsc5_     Int)
     
-    (presult-mem       Value)
-    (presult-memci3_   Value)
-    (presult-memci4_   Value)
-    (presult-memsc1_   Value)
-    (presult-memsc4_   Value)
-    (presult-memsc5_   Value)
+    (presult-mem       Int)
+    (presult-memci3_   Int)
+    (presult-memci4_   Int)
+    (presult-memsc1_   Int)
+    (presult-memsc4_   Int)
+    (presult-memsc5_   Int)
     
-    (pmar              Value)
-    (pmarci3_          Value)
-    (pmarci4_          Value)
-    (pmarsc1_          Value)
-    (pmarsc4_          Value)
-    (pmarsc5_          Value)
+    (pmar              Int)
+    (pmarci3_          Int)
+    (pmarci4_          Int)
+    (pmarsc1_          Int)
+    (pmarsc4_          Int)
+    (pmarsc5_          Int)
     
     (pload-flag        Bool )
     (pload-flagci3_    Bool )
@@ -1434,31 +1434,31 @@
     (pstore-flagsc4_   Bool )
     (pstore-flagsc5_   Bool )
     
-    (pdest-wb          Value)
-    (pdest-wbci2_      Value)
-    (pdest-wbci3_      Value)
-    (pdest-wbci4_      Value)
-    (pdest-wbsc1_      Value)
-    (pdest-wbsc3_      Value)
-    (pdest-wbsc4_      Value)
-    (pdest-wbsc5_      Value)
+    (pdest-wb          Int)
+    (pdest-wbci2_      Int)
+    (pdest-wbci3_      Int)
+    (pdest-wbci4_      Int)
+    (pdest-wbsc1_      Int)
+    (pdest-wbsc3_      Int)
+    (pdest-wbsc4_      Int)
+    (pdest-wbsc5_      Int)
     
-    (presult-wb        Value)
-    (presult-wbci2_    Value)
-    (presult-wbci3_    Value)
-    (presult-wbci4_    Value)
-    (presult-wbsc1_    Value)
-    (presult-wbsc3_    Value)
-    (presult-wbsc4_    Value)
-    (presult-wbsc5_    Value)
+    (presult-wb        Int)
+    (presult-wbci2_    Int)
+    (presult-wbci3_    Int)
+    (presult-wbci4_    Int)
+    (presult-wbsc1_    Int)
+    (presult-wbsc3_    Int)
+    (presult-wbsc4_    Int)
+    (presult-wbsc5_    Int)
     
     
-    (paux1             Value)
-    (paux2             Value)
-    (paux3             Value)
-    (paux4             Value)
-    (paux5             Value)
-    (paux6             Value)  
+    (paux1             Int)
+    (paux2             Int)
+    (paux3             Int)
+    (paux4             Int)
+    (paux5             Int)
+    (paux6             Int)  
   )
   Bool ; return type of macro
   ; main expression:
