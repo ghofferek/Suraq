@@ -74,7 +74,9 @@
 ;    that should be stored in the register file.
 
 
-(set-logic Suraq)
+;(set-logic Suraq)
+;(set-logic ArraysEx) ; for z3
+(declare-sort Value 0) ; for z3
 
 ; primary inputs
 (declare-fun stall             () Bool)
@@ -84,26 +86,26 @@
 ; (and copies for ci and sc paths)
 
 (declare-fun REGFILE      () (Array Value Value))
-(declare-fun REGFILEci1_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEci2_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEci3_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEci4_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEci5_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEsc1_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEsc2_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEsc3_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEsc4_  () (Array Value Value) :no_dependence)
-(declare-fun REGFILEsc5_  () (Array Value Value) :no_dependence)
+(declare-fun REGFILEci1_  () (Array Value Value) )
+(declare-fun REGFILEci2_  () (Array Value Value) )
+(declare-fun REGFILEci3_  () (Array Value Value) )
+(declare-fun REGFILEci4_  () (Array Value Value) )
+(declare-fun REGFILEci5_  () (Array Value Value) )
+(declare-fun REGFILEsc1_  () (Array Value Value) )
+(declare-fun REGFILEsc2_  () (Array Value Value) )
+(declare-fun REGFILEsc3_  () (Array Value Value) )
+(declare-fun REGFILEsc4_  () (Array Value Value) )
+(declare-fun REGFILEsc5_  () (Array Value Value) )
 
 (declare-fun DMEM         () (Array Value Value))
-(declare-fun DMEMci2_     () (Array Value Value) :no_dependence)
-(declare-fun DMEMci3_     () (Array Value Value) :no_dependence)
-(declare-fun DMEMci4_     () (Array Value Value) :no_dependence)
-(declare-fun DMEMci5_     () (Array Value Value) :no_dependence)
-(declare-fun DMEMsc1_     () (Array Value Value) :no_dependence)
-(declare-fun DMEMsc3_     () (Array Value Value) :no_dependence)
-(declare-fun DMEMsc4_     () (Array Value Value) :no_dependence)
-(declare-fun DMEMsc5_     () (Array Value Value) :no_dependence)
+(declare-fun DMEMci2_     () (Array Value Value) )
+(declare-fun DMEMci3_     () (Array Value Value) )
+(declare-fun DMEMci4_     () (Array Value Value) )
+(declare-fun DMEMci5_     () (Array Value Value) )
+(declare-fun DMEMsc1_     () (Array Value Value) )
+(declare-fun DMEMsc3_     () (Array Value Value) )
+(declare-fun DMEMsc4_     () (Array Value Value) )
+(declare-fun DMEMsc5_     () (Array Value Value) )
 
 (declare-fun IMEM         () (Array Value Value))  ; IMEM is never written. Thus no need for more copies.
 
@@ -118,9 +120,9 @@
 ; (and copies for ci and sc paths)
 
 (declare-fun PC     () Value               )  ; Program counter
-(declare-fun PCci4_ () Value :no_dependence)  
-(declare-fun PCci5_ () Value :no_dependence)
-(declare-fun PCsc1_ () Value :no_dependence)  
+(declare-fun PCci4_ () Value )  
+(declare-fun PCci5_ () Value )
+(declare-fun PCsc1_ () Value )  
   
 
 ; Declare uninterpreted functions of the datapath
@@ -149,41 +151,41 @@
 
 ; ID stage
 (declare-fun inst-id             () Value               )
-(declare-fun inst-idsc1_         () Value :no_dependence)
+(declare-fun inst-idsc1_         () Value )
 
-(declare-fun bubble-id           () Bool  :no_dependence)
-(declare-fun bubble-idsc1_       () Bool  :no_dependence)
+(declare-fun bubble-id           () Bool  )
+(declare-fun bubble-idsc1_       () Bool  )
 
 ; EX stage
 (declare-fun bubble-ex           () Bool                )
-(declare-fun bubble-exci4_       () Bool  :no_dependence)
-(declare-fun bubble-exsc1_       () Bool  :no_dependence)
-(declare-fun bubble-exsc5_       () Bool  :no_dependence)
+(declare-fun bubble-exci4_       () Bool  )
+(declare-fun bubble-exsc1_       () Bool  )
+(declare-fun bubble-exsc5_       () Bool  )
 
 (declare-fun short-immed-ex      () Value               )
-(declare-fun short-immed-exci4_  () Value :no_dependence)
-(declare-fun short-immed-exsc1_  () Value :no_dependence)
-(declare-fun short-immed-exsc5_  () Value :no_dependence)
+(declare-fun short-immed-exci4_  () Value )
+(declare-fun short-immed-exsc1_  () Value )
+(declare-fun short-immed-exsc5_  () Value )
 
 (declare-fun dest-ex             () Value               )
-(declare-fun dest-exci4_         () Value :no_dependence)
-(declare-fun dest-exsc1_         () Value :no_dependence)
-(declare-fun dest-exsc5_         () Value :no_dependence)
+(declare-fun dest-exci4_         () Value )
+(declare-fun dest-exsc1_         () Value )
+(declare-fun dest-exsc5_         () Value )
 
 (declare-fun opcode-ex           () Value               )
-(declare-fun opcode-exci4_       () Value :no_dependence)
-(declare-fun opcode-exsc1_       () Value :no_dependence)
-(declare-fun opcode-exsc5_       () Value :no_dependence)
+(declare-fun opcode-exci4_       () Value )
+(declare-fun opcode-exsc1_       () Value )
+(declare-fun opcode-exsc5_       () Value )
 
 (declare-fun operand-a           () Value               )
-(declare-fun operand-aci4_       () Value  :no_dependence)
-(declare-fun operand-asc1_       () Value  :no_dependence)
-(declare-fun operand-asc5_       () Value  :no_dependence)
+(declare-fun operand-aci4_       () Value  )
+(declare-fun operand-asc1_       () Value  )
+(declare-fun operand-asc5_       () Value  )
 
 (declare-fun operand-b           () Value               )
-(declare-fun operand-bci4_       () Value  :no_dependence)
-(declare-fun operand-bsc1_       () Value  :no_dependence)
-(declare-fun operand-bsc5_       () Value  :no_dependence)
+(declare-fun operand-bci4_       () Value  )
+(declare-fun operand-bsc1_       () Value  )
+(declare-fun operand-bsc5_       () Value  )
 
 ; MEM stage
 (declare-fun dest-mem        () Value)
@@ -243,14 +245,14 @@
 
 
 ; auxiliary constants to state commutativity and associativity of PLUS
-(declare-fun aux1            () Value :no_dependence)
-(declare-fun aux2            () Value :no_dependence)
-(declare-fun aux3            () Value :no_dependence)
-(declare-fun aux4            () Value :no_dependence)
-(declare-fun aux5            () Value :no_dependence)
+(declare-fun aux1            () Value )
+(declare-fun aux2            () Value )
+(declare-fun aux3            () Value )
+(declare-fun aux4            () Value )
+(declare-fun aux5            () Value )
 
 ; auxiliary constants to state properti4es of the is-XXX predicates
-(declare-fun aux6            () Value :no_dependence)
+(declare-fun aux6            () Value )
 
 
 
@@ -1718,135 +1720,137 @@
 ; The actual assert statement
 
 (assert
-  (main-formula
-    stall
-    false ;force-stall-issue
-    
-    REGFILE       
-    REGFILEci1_   
-    REGFILEci2_   
-    REGFILEci3_   
-    REGFILEci4_   
-    REGFILEci5_   
-    REGFILEsc1_   
-    REGFILEsc2_   
-    REGFILEsc3_   
-    REGFILEsc4_   
-    REGFILEsc5_   
-    
-    DMEM          
-    DMEMci2_      
-    DMEMci3_      
-    DMEMci4_      
-    DMEMci5_      
-    DMEMsc1_      
-    DMEMsc3_      
-    DMEMsc4_      
-    DMEMsc5_      
-    
-    IMEM            
-    
-    PC       
-    PCci4_   
-    PCci5_ 
-    PCsc1_   
-    
-    inst-id
-    inst-idsc1_
-    
-    bubble-id
-    bubble-idsc1_
-    
-    bubble-ex    
-    bubble-exci4_
-    bubble-exsc1_
-    bubble-exsc5_
-    
-    short-immed-ex 
-    short-immed-exci4_
-    short-immed-exsc1_
-    short-immed-exsc5_
-    
-    dest-ex           
-    dest-exci4_       
-    dest-exsc1_       
-    dest-exsc5_       
-    
-    opcode-ex         
-    opcode-exci4_     
-    opcode-exsc1_     
-    opcode-exsc5_     
-    
-    operand-a         
-    operand-aci4_     
-    operand-asc1_     
-    operand-asc5_     
-    
-    operand-b         
-    operand-bci4_     
-    operand-bsc1_   
-    operand-bsc5_   
-    
-    dest-mem        
-    dest-memci3_    
-    dest-memci4_    
-    dest-memsc1_    
-    dest-memsc4_    
-    dest-memsc5_    
-    
-    result-mem      
-    result-memci3_  
-    result-memci4_  
-    result-memsc1_  
-    result-memsc4_  
-    result-memsc5_  
-    
-    mar             
-    marci3_         
-    marci4_         
-    marsc1_         
-    marsc4_         
-    marsc5_         
-    
-    load-flag       
-    load-flagci3_   
-    load-flagci4_   
-    load-flagsc1_   
-    load-flagsc4_   
-    load-flagsc5_   
-    
-    store-flag      
-    store-flagci3_  
-    store-flagci4_  
-    store-flagsc1_  
-    store-flagsc4_  
-    store-flagsc5_  
-    
-    dest-wb         
-    dest-wbci2_     
-    dest-wbci3_     
-    dest-wbci4_     
-    dest-wbsc1_     
-    dest-wbsc3_     
-    dest-wbsc4_   
-    dest-wbsc5_   
-    
-    result-wb     
-    result-wbci2_ 
-    result-wbci3_ 
-    result-wbci4_ 
-    result-wbsc1_ 
-    result-wbsc3_ 
-    result-wbsc4_ 
-    result-wbsc5_ 
-    
-    aux1          
-    aux2          
-    aux3          
-    aux4          
-    aux5          
-    aux6            
+  (not
+    (main-formula
+      stall
+      false ;force-stall-issue
+      
+      REGFILE       
+      REGFILEci1_   
+      REGFILEci2_   
+      REGFILEci3_   
+      REGFILEci4_   
+      REGFILEci5_   
+      REGFILEsc1_   
+      REGFILEsc2_   
+      REGFILEsc3_   
+      REGFILEsc4_   
+      REGFILEsc5_   
+      
+      DMEM          
+      DMEMci2_      
+      DMEMci3_      
+      DMEMci4_      
+      DMEMci5_      
+      DMEMsc1_      
+      DMEMsc3_      
+      DMEMsc4_      
+      DMEMsc5_      
+      
+      IMEM            
+      
+      PC       
+      PCci4_   
+      PCci5_ 
+      PCsc1_   
+      
+      inst-id
+      inst-idsc1_
+      
+      bubble-id
+      bubble-idsc1_
+      
+      bubble-ex    
+      bubble-exci4_
+      bubble-exsc1_
+      bubble-exsc5_
+      
+      short-immed-ex 
+      short-immed-exci4_
+      short-immed-exsc1_
+      short-immed-exsc5_
+      
+      dest-ex           
+      dest-exci4_       
+      dest-exsc1_       
+      dest-exsc5_       
+      
+      opcode-ex         
+      opcode-exci4_     
+      opcode-exsc1_     
+      opcode-exsc5_     
+      
+      operand-a         
+      operand-aci4_     
+      operand-asc1_     
+      operand-asc5_     
+      
+      operand-b         
+      operand-bci4_     
+      operand-bsc1_   
+      operand-bsc5_   
+      
+      dest-mem        
+      dest-memci3_    
+      dest-memci4_    
+      dest-memsc1_    
+      dest-memsc4_    
+      dest-memsc5_    
+      
+      result-mem      
+      result-memci3_  
+      result-memci4_  
+      result-memsc1_  
+      result-memsc4_  
+      result-memsc5_  
+      
+      mar             
+      marci3_         
+      marci4_         
+      marsc1_         
+      marsc4_         
+      marsc5_         
+      
+      load-flag       
+      load-flagci3_   
+      load-flagci4_   
+      load-flagsc1_   
+      load-flagsc4_   
+      load-flagsc5_   
+      
+      store-flag      
+      store-flagci3_  
+      store-flagci4_  
+      store-flagsc1_  
+      store-flagsc4_  
+      store-flagsc5_  
+      
+      dest-wb         
+      dest-wbci2_     
+      dest-wbci3_     
+      dest-wbci4_     
+      dest-wbsc1_     
+      dest-wbsc3_     
+      dest-wbsc4_   
+      dest-wbsc5_   
+      
+      result-wb     
+      result-wbci2_ 
+      result-wbci3_ 
+      result-wbci4_ 
+      result-wbsc1_ 
+      result-wbsc3_ 
+      result-wbsc4_ 
+      result-wbsc5_ 
+      
+      aux1          
+      aux2          
+      aux3          
+      aux4          
+      aux5          
+      aux6            
+    )
   )
 )
   
-  
+(check-sat)  
