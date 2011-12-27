@@ -1572,17 +1572,25 @@
             pstall
           ) ; end complete-pipeline (ci)
         
-          (instruction-in-reference
-            ; "inputs" to macro (state before the instruction)
-            pREGFILEci4_
-            pDMEMci4_
-            pIMEMci4_
-            pPCci4_
-          
-            ; "outputs" of macro (state after the instruction)
-            pREGFILEci5_
-            pDMEMci5_
-            pPCci5_
+          (ite
+            pstall
+            (instruction-in-reference
+              ; "inputs" to macro (state before the instruction)
+              pREGFILEci4_
+              pDMEMci4_
+              pIMEMci4_
+              pPCci4_
+            
+              ; "outputs" of macro (state after the instruction)
+              pREGFILEci5_
+              pDMEMci5_
+              pPCci5_
+            )
+            (and ; stall. Keep values
+              (= pPCci4_ pPCci5_)
+              (= pREGFILEci4_ pREGFILEci5_)
+              (= pDMEMci4_ pDMEMci5_)
+            )
           ) ; end instruction-in-reference
           
           (step-in-pipeline
@@ -1740,7 +1748,7 @@
 (assert
   (main-formula
     stall
-    force-stall-issue
+    false ;force-stall-issue
     
     REGFILE       
     REGFILEci1_   
