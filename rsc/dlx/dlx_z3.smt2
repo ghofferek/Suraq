@@ -73,7 +73,7 @@
 ;    inputs the (current) values of the WB stage registers and produces outputs
 ;    that should be stored in the register file.
 
-
+(set-option :produce-assignments true)
 ;(set-logic Suraq)
 ;(set-logic ArraysEx) ; for z3
 (declare-sort Value 0) ; for z3
@@ -1854,3 +1854,5 @@
 )
   
 (check-sat)  
+(get-info :name)
+(get-model)
