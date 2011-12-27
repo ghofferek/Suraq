@@ -240,6 +240,116 @@
 (declare-fun result-wbsc5_   () Value)
 
 
+; auxiliary constants to state commutativity and associativity of PLUS
+(declare-fun aux1            () Value :no_dependence)
+(declare-fun aux2            () Value :no_dependence)
+(declare-fun aux3            () Value :no_dependence)
+(declare-fun aux4            () Value :no_dependence)
+(declare-fun aux5            () Value :no_dependence)
+
+; auxiliary constants to state properti4es of the is-XXX predicates
+(declare-fun aux6            () Value :no_dependence)
+
+
+
+; Properties of PLUS (commutativity and asscciativity)
+(define-fun plus-properties
+  ( ; parameters
+    (a Value)
+    (b Value)
+    (c Value)
+    (d Value)
+    (e Value)  
+  )
+  Bool ; return type of macro
+  ; main expression:
+  (
+    (and
+      (=
+        (PLUS a b)
+        (PLUS b a)
+      )
+      (=
+        (PLUS (PLUS c d) e)
+        (PLUS c (PLUS d e))
+      )
+    )
+  )
+)
+
+; Properties of is-XXX predicates
+; (always exactly one is true)
+(define-fun is-properties
+  ( ; parameters
+    (opcode Value)  
+  )
+  Bool ; return type of macro
+  ; main expression:
+  (
+    (and
+      (=>
+        (is-load opcode)
+        (and
+          (not (is-store     opcode))
+          (not (is-J         opcode))
+          (not (is-BEQZ      opcode))
+          (not (is-alu-immed opcode))
+        )  
+      )
+    
+      (=>
+        (is-store opcode)
+        (and
+          (not (is-load      opcode))
+          (not (is-J         opcode))
+          (not (is-BEQZ      opcode))
+          (not (is-alu-immed opcode))
+        )  
+      )
+      
+      (=>
+        (is-J opcode)
+        (and
+          (not (is-load      opcode))
+          (not (is-store     opcode))
+          (not (is-BEQZ      opcode))
+          (not (is-alu-immed opcode))
+        )  
+      )
+    
+      (=>
+        (is-BEQZ opcode)
+        (and
+          (not (is-load      opcode))
+          (not (is-store     opcode))       
+          (not (is-J         opcode))
+          (not (is-alu-immed opcode))
+        )  
+      )
+      
+      (=>
+        (is-alu-immed opcode)
+        (and
+          (not (is-load      opcode))
+          (not (is-store     opcode))       
+          (not (is-J         opcode))
+          (not (is-BEQZ      opcode))
+        )  
+      )
+      
+      (or
+        (is-load      opcode)
+        (is-store     opcode)
+        (is-J         opcode)
+        (is-BEQZ      opcode)
+        (is-alu-immed opcode)
+      )
+    )
+  )
+)
+
+
+
 
 ; Equivalence Criterion:
 ; The programmer-visible state of the processor is the REGFILE, the DMEM and
@@ -1229,3 +1339,145 @@
   ) ; END main expression
 ) ; END of complete-pipeline macro
 
+
+
+; ------------------------------------------------------------------------------
+; MAIN FORMULA
+; putting everything together
+(define-fun main-formula
+  ( ; paramters
+    (REGFILE       (Array Value Value))
+    (REGFILEci1_   (Array Value Value))
+    (REGFILEci2_   (Array Value Value))
+    (REGFILEci3_   (Array Value Value))
+    (REGFILEci4_   (Array Value Value))
+    (REGFILEci5_   (Array Value Value))
+    (REGFILEsc1_   (Array Value Value))
+    (REGFILEsc2_   (Array Value Value))
+    (REGFILEsc3_   (Array Value Value))
+    (REGFILEsc4_   (Array Value Value))
+    (REGFILEsc5_   (Array Value Value))
+    
+    (DMEM          (Array Value Value))
+    (DMEMci2_      (Array Value Value))
+    (DMEMci3_      (Array Value Value))
+    (DMEMci4_      (Array Value Value))
+    (DMEMci5_      (Array Value Value))
+    (DMEMsc1_      (Array Value Value))
+    (DMEMsc3_      (Array Value Value))
+    (DMEMsc4_      (Array Value Value))
+    (DMEMsc5_      (Array Value Value))
+    
+    (IMEM          (Array Value Value))  
+    
+    (PC      Value               )  
+    (PCci4_  Value)  
+    (PCci5_  Value)
+    (PCsc1_  Value)  
+    (PCsc5_  Value)
+    
+    (inst-id              Value               )
+    (inst-idsc1_          Value)
+    
+    (bubble-id            Bool )
+    (bubble-idsc1_        Bool )
+    
+    (bubble-ex            Bool                )
+    (bubble-exci4_        Bool )
+    (bubble-exsc1_        Bool )
+    (bubble-exsc5_        Bool )
+    
+    (short-immed-ex       Value               )
+    (short-immed-exci4_   Value)
+    (short-immed-exsc1_   Value)
+    (short-immed-exsc5_   Value)
+    
+    (dest-ex              Value               )
+    (dest-exci4_          Value)
+    (dest-exsc1_          Value)
+    (dest-exsc5_          Value)
+    
+    (opcode-ex            Value               )
+    (opcode-exci4_        Value)
+    (opcode-exsc1_        Value)
+    (opcode-exsc5_        Value)
+    
+    (operand-a            Value               )
+    (operand-aci4_        Value )
+    (operand-asc1_        Value )
+    (operand-asc5_        Value )
+    
+    (operand-b            Value               )
+    (operand-bci4_        Value )
+    (operand-bsc1_        Value )
+    (operand-bsc5_        Value )
+    
+    (dest-mem         Value)
+    (dest-memci3_     Value)
+    (dest-memci4_     Value)
+    (dest-memsc1_     Value)
+    (dest-memsc4_     Value)
+    (dest-memsc5_     Value)
+    
+    (result-mem       Value)
+    (result-memci3_   Value)
+    (result-memci4_   Value)
+    (result-memsc1_   Value)
+    (result-memsc4_   Value)
+    (result-memsc5_   Value)
+    
+    (mar              Value)
+    (marci3_          Value)
+    (marci4_          Value)
+    (marsc1_          Value)
+    (marsc4_          Value)
+    (marsc5_          Value)
+    
+    (load-flag        Bool )
+    (load-flagci3_    Bool )
+    (load-flagci4_    Bool )
+    (load-flagsc1_    Bool )
+    (load-flagsc4_    Bool )
+    (load-flagsc5_    Bool )
+    
+    (store-flag       Bool )
+    (store-flagci3_   Bool )
+    (store-flagci4_   Bool )
+    (store-flagsc1_   Bool )
+    (store-flagsc4_   Bool )
+    (store-flagsc5_   Bool )
+    
+    (dest-wb          Value)
+    (dest-wbci2_      Value)
+    (dest-wbci3_      Value)
+    (dest-wbci4_      Value)
+    (dest-wbsc1_      Value)
+    (dest-wbsc3_     Value)
+    (dest-wbsc4_      Value)
+    (dest-wbsc5_      Value)
+    
+    (result-wb        Value)
+    (result-wbci2_    Value)
+    (result-wbci3_    Value)
+    (result-wbci4_    Value)
+    (result-wbsc1_    Value)
+    (result-wbsc3_    Value)
+    (result-wbsc4_    Value)
+    (result-wbsc5_    Value)
+    
+    
+    (aux1             Value)
+    (aux2             Value)
+    (aux3             Value)
+    (aux4             Value)
+    (aux5             Value)
+    (aux6             Value)  
+  )
+  Bool ; return type of macro
+  ; main expression:
+  (
+    
+  ) ; end main expression
+) ; end macro main-formula
+  
+  
