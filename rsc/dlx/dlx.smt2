@@ -1053,21 +1053,17 @@
     (REGFILEo         (Array Value Value))
     (DMEMo            (Array Value Value))
    ;(IMEMo            (Array Value Value))
-    (PCo              Value              )
+    
      
      
     ; intermediate ("transient") values
     (REGFILEt1_       (Array Value Value))
     (REGFILEt2_       (Array Value Value))
     (REGFILEt3_       (Array Value Value))
-    (REGFILEt4_       (Array Value Value))
-
+    
     (DMEMt2_          (Array Value Value))
     (DMEMt3_          (Array Value Value))
-    (DMEMt4_          (Array Value Value))
-  
-    (PCt4_            Value              )
-  
+    
     (bubble-ext4_     Bool               )
     
     (short-immed-ext4_ Value             )
@@ -1112,8 +1108,123 @@
   ; main expression
   (
     (and ; conjunction over all parts
+      
+      ; "Clearing" WB registers
+      (step-in-WB
+        REGFILEi
+        dest-wbi
+        result-wbi
+        REGFILEt1_
+      )
+      ; ----------------------------------
+      ; "Clearing" MEM registers
+      (step-in-MEM
+        DMEMi      
+        dest-memi  
+        result-memi
+        mari       
+        load-flagi 
+        store-flagi
+        DMEMt2_        
+        dest-wbt2_  
+        result-wbt2_
+      )
     
+      (step-in-WB
+        REGFILEt1_
+        dest-wbt2_
+        result-wbt2_
+        REGFILEt2_
+      )
+      ; ----------------------------------
+      ; "Clearing" EX registers
+      (step-in-EX 
+        bubble-exi      
+        short-immed-exi 
+        dest-exi        
+        opcode-exi       
+        operand-ai       
+        operand-bi         
+        dest-memt3_      
+        result-memt3_    
+        mart3_           
+        load-flagt3_     
+        store-flagt3_
+      ) 
+      
+      (step-in-MEM
+        DMEMt2_      
+        dest-memt3_  
+        result-memt3_
+        mart3_       
+        load-flagt3_ 
+        store-flagt3_
+        DMEMt3_        
+        dest-wbt3_  
+        result-wbt3_
+      )
     
+      (step-in-WB
+        REGFILEt2_
+        dest-wbt3_
+        result-wbt3_
+        REGFILEt3_
+      )
+      
+      ; ----------------------------------
+      ; "Clearing" ID registers
+      (step-in-ID
+        REGFILEi        
+        inst-idi                       
+        bubble-idi
+        bubble-exi ; forwarded value                      
+        dest-exi ; forwarded value                       
+        result-exi ; forwarded value                     
+        dest-memi ; forwarded value                      
+        result-memi ; forwarded value                    
+        dest-wbi ; forwarded value                       
+        result-wbi ; forwarded value                     
+        bubble-ext4_                      
+        short-immed-ext4_                
+        dest-ext4_                       
+        opcode-ext4_                     
+        operand-at4_                     
+        operand-bt4_                     
+        force-stall-issue                   
+      )
+    
+      (step-in-EX 
+        bubble-ext4_      
+        short-immed-ext4_ 
+        dest-ext4_        
+        opcode-ext4_       
+        operand-at4_       
+        operand-bt4_         
+        dest-memt4_      
+        result-memt4_    
+        mart4_           
+        load-flagt4_     
+        store-flagt4_
+      ) 
+      
+      (step-in-MEM
+        DMEMt3_      
+        dest-memt4_  
+        result-memt4_
+        mart4_       
+        load-flagt4_ 
+        store-flagt4_
+        DMEMo        
+        dest-wbt4_  
+        result-wbt4_
+      )
+    
+      (step-in-WB
+        REGFILEt3_
+        dest-wbt4_
+        result-wbt4_
+        REGFILEo
+      )
     ) ; END conjunction over all parts 
   ) ; END main expression
 ) ; END of complete-pipeline macro
