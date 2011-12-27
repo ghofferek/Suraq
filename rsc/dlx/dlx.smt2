@@ -76,6 +76,9 @@
 
 (set-logic Suraq)
 
+; primary inputs
+(declare-fun stall             () Bool)
+(declare-fun force-stall-issue () Bool)
 
 ; Declare arrays
 ; (and copies for ci and sc paths)
@@ -118,7 +121,6 @@
 (declare-fun PCci4_ () Value :no_dependence)  
 (declare-fun PCci5_ () Value :no_dependence)
 (declare-fun PCsc1_ () Value :no_dependence)  
-(declare-fun PCsc5_ () Value :no_dependence)
   
 
 ; Declare uninterpreted functions of the datapath
@@ -1339,145 +1341,532 @@
   ) ; END main expression
 ) ; END of complete-pipeline macro
 
-
-
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
 ; ------------------------------------------------------------------------------
 ; MAIN FORMULA
 ; putting everything together
 (define-fun main-formula
   ( ; paramters
-    (REGFILE       (Array Value Value))
-    (REGFILEci1_   (Array Value Value))
-    (REGFILEci2_   (Array Value Value))
-    (REGFILEci3_   (Array Value Value))
-    (REGFILEci4_   (Array Value Value))
-    (REGFILEci5_   (Array Value Value))
-    (REGFILEsc1_   (Array Value Value))
-    (REGFILEsc2_   (Array Value Value))
-    (REGFILEsc3_   (Array Value Value))
-    (REGFILEsc4_   (Array Value Value))
-    (REGFILEsc5_   (Array Value Value))
+    ; "p" (for parameter) is prepended to all names to avoid name clashes  
+    ; between "local" and "global" variabels
     
-    (DMEM          (Array Value Value))
-    (DMEMci2_      (Array Value Value))
-    (DMEMci3_      (Array Value Value))
-    (DMEMci4_      (Array Value Value))
-    (DMEMci5_      (Array Value Value))
-    (DMEMsc1_      (Array Value Value))
-    (DMEMsc3_      (Array Value Value))
-    (DMEMsc4_      (Array Value Value))
-    (DMEMsc5_      (Array Value Value))
+    (pstall         Bool)
+    (pforce-stall-issue Bool)
     
-    (IMEM          (Array Value Value))  
+    (pREGFILE       (Array Value Value))
+    (pREGFILEci1_   (Array Value Value))
+    (pREGFILEci2_   (Array Value Value))
+    (pREGFILEci3_   (Array Value Value))
+    (pREGFILEci4_   (Array Value Value))
+    (pREGFILEci5_   (Array Value Value))
+    (pREGFILEsc1_   (Array Value Value))
+    (pREGFILEsc2_   (Array Value Value))
+    (pREGFILEsc3_   (Array Value Value))
+    (pREGFILEsc4_   (Array Value Value))
+    (pREGFILEsc5_   (Array Value Value))
     
-    (PC      Value               )  
-    (PCci4_  Value)  
-    (PCci5_  Value)
-    (PCsc1_  Value)  
-    (PCsc5_  Value)
+    (pDMEM          (Array Value Value))
+    (pDMEMci2_      (Array Value Value))
+    (pDMEMci3_      (Array Value Value))
+    (pDMEMci4_      (Array Value Value))
+    (pDMEMci5_      (Array Value Value))
+    (pDMEMsc1_      (Array Value Value))
+    (pDMEMsc3_      (Array Value Value))
+    (pDMEMsc4_      (Array Value Value))
+    (pDMEMsc5_      (Array Value Value))
     
-    (inst-id              Value               )
-    (inst-idsc1_          Value)
+    (pIMEM          (Array Value Value))  
     
-    (bubble-id            Bool )
-    (bubble-idsc1_        Bool )
+    (pPC      Value               )  
+    (pPCci4_  Value)  
+    (pPCci5_  Value)
+    (pPCsc1_  Value)  
     
-    (bubble-ex            Bool                )
-    (bubble-exci4_        Bool )
-    (bubble-exsc1_        Bool )
-    (bubble-exsc5_        Bool )
+    (pinst-id              Value               )
+    (pinst-idsc1_          Value)
     
-    (short-immed-ex       Value               )
-    (short-immed-exci4_   Value)
-    (short-immed-exsc1_   Value)
-    (short-immed-exsc5_   Value)
+    (pbubble-id            Bool )
+    (pbubble-idsc1_        Bool )
     
-    (dest-ex              Value               )
-    (dest-exci4_          Value)
-    (dest-exsc1_          Value)
-    (dest-exsc5_          Value)
+    (pbubble-ex            Bool                )
+    (pbubble-exci4_        Bool )
+    (pbubble-exsc1_        Bool )
+    (pbubble-exsc5_        Bool )
     
-    (opcode-ex            Value               )
-    (opcode-exci4_        Value)
-    (opcode-exsc1_        Value)
-    (opcode-exsc5_        Value)
+    (pshort-immed-ex       Value               )
+    (pshort-immed-exci4_   Value)
+    (pshort-immed-exsc1_   Value)
+    (pshort-immed-exsc5_   Value)
     
-    (operand-a            Value               )
-    (operand-aci4_        Value )
-    (operand-asc1_        Value )
-    (operand-asc5_        Value )
+    (pdest-ex              Value               )
+    (pdest-exci4_          Value)
+    (pdest-exsc1_          Value)
+    (pdest-exsc5_          Value)
     
-    (operand-b            Value               )
-    (operand-bci4_        Value )
-    (operand-bsc1_        Value )
-    (operand-bsc5_        Value )
+    (popcode-ex            Value               )
+    (popcode-exci4_        Value)
+    (popcode-exsc1_        Value)
+    (popcode-exsc5_        Value)
     
-    (dest-mem         Value)
-    (dest-memci3_     Value)
-    (dest-memci4_     Value)
-    (dest-memsc1_     Value)
-    (dest-memsc4_     Value)
-    (dest-memsc5_     Value)
+    (poperand-a            Value               )
+    (poperand-aci4_        Value )
+    (poperand-asc1_        Value )
+    (poperand-asc5_        Value )
     
-    (result-mem       Value)
-    (result-memci3_   Value)
-    (result-memci4_   Value)
-    (result-memsc1_   Value)
-    (result-memsc4_   Value)
-    (result-memsc5_   Value)
+    (poperand-b            Value               )
+    (poperand-bci4_        Value )
+    (poperand-bsc1_        Value )
+    (poperand-bsc5_        Value )
     
-    (mar              Value)
-    (marci3_          Value)
-    (marci4_          Value)
-    (marsc1_          Value)
-    (marsc4_          Value)
-    (marsc5_          Value)
+    (pdest-mem         Value)
+    (pdest-memci3_     Value)
+    (pdest-memci4_     Value)
+    (pdest-memsc1_     Value)
+    (pdest-memsc4_     Value)
+    (pdest-memsc5_     Value)
     
-    (load-flag        Bool )
-    (load-flagci3_    Bool )
-    (load-flagci4_    Bool )
-    (load-flagsc1_    Bool )
-    (load-flagsc4_    Bool )
-    (load-flagsc5_    Bool )
+    (presult-mem       Value)
+    (presult-memci3_   Value)
+    (presult-memci4_   Value)
+    (presult-memsc1_   Value)
+    (presult-memsc4_   Value)
+    (presult-memsc5_   Value)
     
-    (store-flag       Bool )
-    (store-flagci3_   Bool )
-    (store-flagci4_   Bool )
-    (store-flagsc1_   Bool )
-    (store-flagsc4_   Bool )
-    (store-flagsc5_   Bool )
+    (pmar              Value)
+    (pmarci3_          Value)
+    (pmarci4_          Value)
+    (pmarsc1_          Value)
+    (pmarsc4_          Value)
+    (pmarsc5_          Value)
     
-    (dest-wb          Value)
-    (dest-wbci2_      Value)
-    (dest-wbci3_      Value)
-    (dest-wbci4_      Value)
-    (dest-wbsc1_      Value)
-    (dest-wbsc3_     Value)
-    (dest-wbsc4_      Value)
-    (dest-wbsc5_      Value)
+    (pload-flag        Bool )
+    (pload-flagci3_    Bool )
+    (pload-flagci4_    Bool )
+    (pload-flagsc1_    Bool )
+    (pload-flagsc4_    Bool )
+    (pload-flagsc5_    Bool )
     
-    (result-wb        Value)
-    (result-wbci2_    Value)
-    (result-wbci3_    Value)
-    (result-wbci4_    Value)
-    (result-wbsc1_    Value)
-    (result-wbsc3_    Value)
-    (result-wbsc4_    Value)
-    (result-wbsc5_    Value)
+    (pstore-flag       Bool )
+    (pstore-flagci3_   Bool )
+    (pstore-flagci4_   Bool )
+    (pstore-flagsc1_   Bool )
+    (pstore-flagsc4_   Bool )
+    (pstore-flagsc5_   Bool )
+    
+    (pdest-wb          Value)
+    (pdest-wbci2_      Value)
+    (pdest-wbci3_      Value)
+    (pdest-wbci4_      Value)
+    (pdest-wbsc1_      Value)
+    (pdest-wbsc3_      Value)
+    (pdest-wbsc4_      Value)
+    (pdest-wbsc5_      Value)
+    
+    (presult-wb        Value)
+    (presult-wbci2_    Value)
+    (presult-wbci3_    Value)
+    (presult-wbci4_    Value)
+    (presult-wbsc1_    Value)
+    (presult-wbsc3_    Value)
+    (presult-wbsc4_    Value)
+    (presult-wbsc5_    Value)
     
     
-    (aux1             Value)
-    (aux2             Value)
-    (aux3             Value)
-    (aux4             Value)
-    (aux5             Value)
-    (aux6             Value)  
+    (paux1             Value)
+    (paux2             Value)
+    (paux3             Value)
+    (paux4             Value)
+    (paux5             Value)
+    (paux6             Value)  
   )
   Bool ; return type of macro
   ; main expression:
   (
-    
+    (=> ; properties imply
+      (and
+        (is-properties aux6)
+        (plus-properties aux1 aux2 aux3 aux4 aux5)
+      )
+      (=> ; update implies
+        (and ; main update part
+          (complete-pipeline
+            ; "inputs" to macro (state before the step)
+            pREGFILE
+            pDMEM   
+            pIMEM   
+            pPC     
+          
+            pinst-id
+            pbubble-id
+            
+            pbubble-ex
+            pshort-immed-ex
+            pdest-ex
+            popcode-ex
+            poperand-a
+            poperand-b
+            
+            pdest-mem
+            presult-mem
+            pmar
+            pload-flag
+            pstore-flag
+            
+            pdest-wb
+            presult-wb
+              
+            ; "outputs" of macro (state after the step)
+            pREGFILEci4_
+            pDMEMci4_
+             
+            ; intermediate ("transient") values
+            REGFILEci1_ 
+            REGFILEci2_ 
+            REGFILEci3_ 
+            
+            pDMEMci2_ 
+            pDMEMci3_ 
+            
+            pbubble-exci4_
+            
+            pshort-immed-exci4_
+            
+            pdest-exci4_
+             
+            popcode-exci4_
+            
+            poperand-aci4_
+             
+            poperand-bci4_
+             
+            pdest-memci3_
+            pdest-memci4_ 
+          
+            presult-memci3_
+            presult-memci4_
+            
+            pmarci3_
+            pmarci4_
+            
+            pload-flagci3_
+            pload-flagci4_
+            
+            pstore-flagci3_
+            pstore-flagci4_
+          
+            pdest-wbci2_
+            pdest-wbci3_
+            pdest-wbci4_
+          
+            presult-wbci2_
+            presult-wbci3_
+            presult-wbci4_
+                     
+            ; primary inputs
+            pforce-stall-issue
+            pstall
+          ) ; end complete-pipeline (ci)
+        
+          (instruction-in-reference
+            ; "inputs" to macro (state before the instruction)
+            pREGFILEci4_
+            pDMEMci4_
+            pIMEMci4_
+            pPCci4_
+          
+            ; "outputs" of macro (state after the instruction)
+            pREGFILEci5_
+            pDMEMci5_
+            pPCci5_
+          ) ; end instruction-in-reference
+          
+          (step-in-pipeline
+            ; "inputs" to macro (state before the step)
+            pREGFILE
+            pDMEM
+            pIMEM
+            pPC
+          
+            pinst-id
+            pbubble-id
+            
+            pbubble-ex
+            pshort-immed-ex
+            pdest-ex
+            popcode-ex
+            poperand-a
+            poperand-b
+            
+            pdest-mem
+            presult-mem
+            pmar
+            pload-flag
+            pstore-flag
+            
+            pdest-wb
+            presult-wb
+              
+            ; "outputs" of macro (state after the step)
+            pREGFILEsc1_
+            pDMEMsc1_
+            pPCsc1_
+            
+            pinst-idsc1_
+            pbubble-idsc1_
+            
+            pbubble-exsc1_
+            pshort-immed-exsc1_
+            pdest-exsc1_
+            popcode-exsc1_
+            poperand-asc1_
+            poperand-bsc1_
+            
+            pdest-memsc1_
+            presult-memsc1_
+            pmarsc1_
+            pload-flagsc1_
+            pstore-flagsc1_
+            
+            pdest-wbsc1_
+            presult-wbsc1_
+          
+            ; primary inputs
+            pforce-stall-issue
+            pstall            
+          ) ; end step-in-pipeline
+          
+          (complete-pipeline  
+            ; "inputs" to macro (state before the step)
+            pREGFILEsc1_
+            pDMEMsc1_
+            pIMEMsc1_
+            pPCsc1_
+          
+            pinst-idsc1_
+            pbubble-idsc1_
+            
+            pbubble-exsc1_
+            pshort-immed-exsc1_
+            pdest-exsc1_
+            popcode-exsc1_
+            poperand-asc1_
+            poperand-bsc1_
+            
+            pdest-memsc1_
+            presult-memsc1_
+            pmarsc1_
+            pload-flagsc1_
+            pstore-flagsc1_
+            
+            pdest-wbsc1_
+            presult-wbsc1_
+              
+            ; "outputs" of macro (state after the step)
+            pREGFILEsc5_
+            pDMEMsc5_
+             
+            ; intermediate ("transient") values
+            pREGFILEsc2_
+            pREGFILEsc3_
+            pREGFILEsc4_
+            
+            pDMEMsc3_
+            pDMEMsc4_
+            
+            pbubble-exsc5_
+            
+            pshort-immed-exsc5_
+            
+            pdest-exsc5_
+             
+            popcode-exsc5_
+            
+            poperand-asc5_
+             
+            poperand-bsc5_
+             
+            pdest-memsc4_
+            pdest-memtsc5_
+          
+            presult-memsc4_
+            presult-memsc5_
+            
+            pmarsc4_
+            pmarsc5_
+            
+            pload-flagsc4_
+            pload-flagsc5_
+            
+            pstore-flagsc4_
+            pstore-flagsc5_
+          
+            pdest-wbsc3_
+            pdest-wbsc4_
+            pdest-wbsc5_
+          
+            presult-wbsc3_
+            presult-wbsc4_
+            presult-wbsc5_
+          
+            
+            ; primary inputs
+            pforce-stall-issue
+            pstall            
+          ) ; end complete-pipeline (sc)
+        ) ; end conjunction of update parts
+        (
+          equiv pREGFILEci5_ pREGFILEsc5_ pDMEMci5_ pDMEMsc5_ pPCci5_ pPCsc1_
+        )
+      ) ; end of update implies 
+    ) ; end of properties imply
   ) ; end main expression
 ) ; end macro main-formula
+
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ##############################################################################
+; ------------------------------------------------------------------------------
+;
+; The actual assert statement
+
+(assert
+  (main-formula
+    stall
+    force-stall-issue
+    
+    REGFILE       
+    REGFILEci1_   
+    REGFILEci2_   
+    REGFILEci3_   
+    REGFILEci4_   
+    REGFILEci5_   
+    REGFILEsc1_   
+    REGFILEsc2_   
+    REGFILEsc3_   
+    REGFILEsc4_   
+    REGFILEsc5_   
+    
+    DMEM          
+    DMEMci2_      
+    DMEMci3_      
+    DMEMci4_      
+    DMEMci5_      
+    DMEMsc1_      
+    DMEMsc3_      
+    DMEMsc4_      
+    DMEMsc5_      
+    
+    IMEM            
+    
+    PC       
+    PCci4_   
+    PCci5_ 
+    PCsc1_   
+    
+    inst-id
+    inst-idsc1_
+    
+    bubble-id
+    bubble-idsc1_
+    
+    bubble-ex    
+    bubble-exci4_
+    bubble-exsc1_
+    bubble-exsc5_
+    
+    short-immed-ex 
+    short-immed-exci4_
+    short-immed-exsc1_
+    short-immed-exsc5_
+    
+    dest-ex           
+    dest-exci4_       
+    dest-exsc1_       
+    dest-exsc5_       
+    
+    opcode-ex         
+    opcode-exci4_     
+    opcode-exsc1_     
+    opcode-exsc5_     
+    
+    operand-a         
+    operand-aci4_     
+    operand-asc1_     
+    operand-asc5_     
+    
+    operand-b         
+    operand-bci4_     
+    operand-bsc1_   
+    operand-bsc5_   
+    
+    dest-mem        
+    dest-memci3_    
+    dest-memci4_    
+    dest-memsc1_    
+    dest-memsc4_    
+    dest-memsc5_    
+    
+    result-mem      
+    result-memci3_  
+    result-memci4_  
+    result-memsc1_  
+    result-memsc4_  
+    result-memsc5_  
+    
+    mar             
+    marci3_         
+    marci4_         
+    marsc1_         
+    marsc4_         
+    marsc5_         
+    
+    load-flag       
+    load-flagci3_   
+    load-flagci4_   
+    load-flagsc1_   
+    load-flagsc4_   
+    load-flagsc5_   
+    
+    store-flag      
+    store-flagci3_  
+    store-flagci4_  
+    store-flagsc1_  
+    store-flagsc4_  
+    store-flagsc5_  
+    
+    dest-wb         
+    dest-wbci2_     
+    dest-wbci3_     
+    dest-wbci4_     
+    dest-wbsc1_     
+    dest-wbsc3_     
+    dest-wbsc4_   
+    dest-wbsc5_   
+    
+    result-wb     
+    result-wbci2_ 
+    result-wbci3_ 
+    result-wbci4_ 
+    result-wbsc1_ 
+    result-wbsc3_ 
+    result-wbsc4_ 
+    result-wbsc5_ 
+    
+    aux1          
+    aux2          
+    aux3          
+    aux4          
+    aux5          
+    aux6            
+  )
+)
   
   
