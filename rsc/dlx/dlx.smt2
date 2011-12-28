@@ -61,7 +61,7 @@
 ;    instantiated with inputs "*sc1_" and outputs "*sc2_". Next, the macros for
 ;    the second-to-last stage and the last stage are instantiated. The second-to-last
 ;    stage macro uses inputs "*sc1_" and outputs "*sc2_". This last stage macro 
-;    uses "*sc2" as inputs and "*sc3_" as outputs. The remainin completion
+;    uses "*sc2" as inputs and "*sc3_" as outputs. The remaining completion
 ;    proceeds analogously. 
 ;
 ; *) During completion, forwarding signals from stages that are already completed
@@ -243,40 +243,40 @@
 
 
 ; auxiliary constants to state commutativity and associativity of PLUS
-(declare-fun aux1            () Value :no_dependence)
-(declare-fun aux2            () Value :no_dependence)
-(declare-fun aux3            () Value :no_dependence)
-(declare-fun aux4            () Value :no_dependence)
-(declare-fun aux5            () Value :no_dependence)
+; (declare-fun aux1            () Value :no_dependence)
+; (declare-fun aux2            () Value :no_dependence)
+; (declare-fun aux3            () Value :no_dependence)
+; (declare-fun aux4            () Value :no_dependence)
+; (declare-fun aux5            () Value :no_dependence)
 
 ; auxiliary constants to state properti4es of the is-XXX predicates
-(declare-fun aux6            () Value :no_dependence)
+; (declare-fun aux6            () Value :no_dependence)
 
 
 
 ; Properties of PLUS (commutativity and asscciativity)
-(define-fun plus-properties
-  ( ; parameters
-    (a Value)
-    (b Value)
-    (c Value)
-    (d Value)
-    (e Value)  
-  )
-  Bool ; return type of macro
-  ; main expression:
-  (
-    and
-    (=
-      (PLUS a b)
-      (PLUS b a)
-    )
-    (=
-      (PLUS (PLUS c d) e)
-      (PLUS c (PLUS d e))
-    )
-  )
-)
+; (define-fun plus-properties
+;   ( ; parameters
+;     (a Value)
+;     (b Value)
+;     (c Value)
+;     (d Value)
+;     (e Value)  
+;   )
+;   Bool ; return type of macro
+;   ; main expression:
+;   (
+;     and
+;     (=
+;       (PLUS a b)
+;       (PLUS b a)
+;     )
+;     (=
+;       (PLUS (PLUS c d) e)
+;       (PLUS c (PLUS d e))
+;     )
+;   )
+; )
 
 ; Properties of is-XXX predicates
 ; (always exactly one is true)
@@ -876,8 +876,6 @@
     (operand-af       Value              )  ; the value at the *input* (not the output!!) of operand-a register
           
     ; "outputs" of macro (state after the step)
-    (PCo              Value              )
-    
     (inst-ido         Value              )
     (bubble-ido       Bool               )
       
@@ -930,7 +928,36 @@
         )
       )
     )
+  ) ; END main expression
+) ; END of step-in-IF macro
+
+;-------------------------------------------------------------------------------
+
+(define-fun step-PC ; steps the program counter
+  ( ; parameters
   
+    ; "inputs" to macro (state before the step)
+    (PCi              Value              )
+  
+    (inst-idf         Value              )
+    (bubble-idf       Bool               )
+  
+    (bubble-exf       Bool               )
+    (dest-exf         Value              )
+    
+    (operand-af       Value              )  ; the value at the *input* (not the output!!) of operand-a register
+          
+    ; "outputs" of macro (state after the step)
+    (PCo              Value              )
+      
+    ; primary inputs
+    (force-stall-issue Bool              )
+    (stall             Bool              )
+  )
+  Bool ; return type
+  ; main expression
+  (and ; conjunction over all parts
+   
     ; update of PC
     (=
       PCo
@@ -961,8 +988,7 @@
       )
     ) 
   ) ; END main expression
-) ; END of step-in-IF macro
-
+) ; END of step-PC macro
 
 
 ; ------------------------------------------------------------------------------
@@ -1093,13 +1119,28 @@
       bubble-idi       
       bubble-exi       
       dest-exi
-      operand-ai         
-      PCo              
+      operand-ao ; the value at the *input* (not the output!!) of operand-a register         
+                 ; i.e., the new value for operand-a, as it is outputted by this macro.
+                 ; (therefore: operand-ao              
       inst-ido         
       bubble-ido       
       force-stall-issue 
       stall            
     )    
+    
+    (step-PC
+      PCi
+      inst-idi
+      bubble-idi
+      bubble-exi
+      dest-exi
+      operand-ao ; the value at the *input* (not the output!!) of operand-a register         
+                 ; i.e., the new value for operand-a, as it is outputted by this macro.
+                 ; (therefore: operand-ao              
+      PCo
+      force-stall-issue
+      stall
+    )
   ) ; END main expression
 ) ; END of step-in-pipeline macro
 
@@ -1312,6 +1353,23 @@
       result-wbt4_
       REGFILEo
     ) 
+    
+    ; ----------------------------------
+    ; Updating program counter
+    (step-PC
+      PCi
+      inst-idi
+      bubble-idi
+      bubble-exi
+      dest-exi
+      operand-at4_ ; The new value that operand-a register would have received
+                   ; if this were a normal step (= the one that results from
+                   ; clearing the ID stage)
+      PCo
+      force-stall-issue
+      stall    
+    )
+    
   ) ; END main expression
 ) ; END of complete-pipeline macro
 
