@@ -84,26 +84,26 @@
 ; (and copies for ci and sc paths)
 
 (declare-fun REGFILE      () (Array Int Int))
-(declare-fun REGFILEci1_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEci2_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEci3_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEci4_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEci5_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEsc1_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEsc2_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEsc3_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEsc4_  () (Array Int Int) :no_dependence)
-(declare-fun REGFILEsc5_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEci1_  () (Array Int Int) )
+(declare-fun REGFILEci2_  () (Array Int Int) )
+(declare-fun REGFILEci3_  () (Array Int Int) )
+(declare-fun REGFILEci4_  () (Array Int Int) )
+(declare-fun REGFILEci5_  () (Array Int Int) )
+(declare-fun REGFILEsc1_  () (Array Int Int) )
+(declare-fun REGFILEsc2_  () (Array Int Int) )
+(declare-fun REGFILEsc3_  () (Array Int Int) )
+(declare-fun REGFILEsc4_  () (Array Int Int) )
+(declare-fun REGFILEsc5_  () (Array Int Int) )
 
 (declare-fun DMEM         () (Array Int Int))
-(declare-fun DMEMci2_     () (Array Int Int) :no_dependence)
-(declare-fun DMEMci3_     () (Array Int Int) :no_dependence)
-(declare-fun DMEMci4_     () (Array Int Int) :no_dependence)
-(declare-fun DMEMci5_     () (Array Int Int) :no_dependence)
-(declare-fun DMEMsc1_     () (Array Int Int) :no_dependence)
-(declare-fun DMEMsc3_     () (Array Int Int) :no_dependence)
-(declare-fun DMEMsc4_     () (Array Int Int) :no_dependence)
-(declare-fun DMEMsc5_     () (Array Int Int) :no_dependence)
+(declare-fun DMEMci2_     () (Array Int Int) )
+(declare-fun DMEMci3_     () (Array Int Int) )
+(declare-fun DMEMci4_     () (Array Int Int) )
+(declare-fun DMEMci5_     () (Array Int Int) )
+(declare-fun DMEMsc1_     () (Array Int Int) )
+(declare-fun DMEMsc3_     () (Array Int Int) )
+(declare-fun DMEMsc4_     () (Array Int Int) )
+(declare-fun DMEMsc5_     () (Array Int Int) )
 
 (declare-fun IMEM         () (Array Int Int))  ; IMEM is never written. Thus no need for more copies.
 
@@ -118,9 +118,9 @@
 ; (and copies for ci and sc paths)
 
 (declare-fun PC     () Int               )  ; Program counter
-(declare-fun PCci4_ () Int :no_dependence)  
-(declare-fun PCci5_ () Int :no_dependence)
-(declare-fun PCsc1_ () Int :no_dependence)  
+(declare-fun PCci4_ () Int )  
+(declare-fun PCci5_ () Int )
+(declare-fun PCsc1_ () Int )  
   
 
 ; Declare uninterpreted functions of the datapath
@@ -149,41 +149,41 @@
 
 ; ID stage
 (declare-fun inst-id             () Int               )
-(declare-fun inst-idsc1_         () Int :no_dependence)
+(declare-fun inst-idsc1_         () Int )
 
-(declare-fun bubble-id           () Bool  :no_dependence)
-(declare-fun bubble-idsc1_       () Bool  :no_dependence)
+(declare-fun bubble-id           () Bool  )
+(declare-fun bubble-idsc1_       () Bool  )
 
 ; EX stage
 (declare-fun bubble-ex           () Bool                )
-(declare-fun bubble-exci4_       () Bool  :no_dependence)
-(declare-fun bubble-exsc1_       () Bool  :no_dependence)
-(declare-fun bubble-exsc5_       () Bool  :no_dependence)
+(declare-fun bubble-exci4_       () Bool  )
+(declare-fun bubble-exsc1_       () Bool  )
+(declare-fun bubble-exsc5_       () Bool  )
 
 (declare-fun short-immed-ex      () Int               )
-(declare-fun short-immed-exci4_  () Int :no_dependence)
-(declare-fun short-immed-exsc1_  () Int :no_dependence)
-(declare-fun short-immed-exsc5_  () Int :no_dependence)
+(declare-fun short-immed-exci4_  () Int )
+(declare-fun short-immed-exsc1_  () Int )
+(declare-fun short-immed-exsc5_  () Int )
 
 (declare-fun dest-ex             () Int               )
-(declare-fun dest-exci4_         () Int :no_dependence)
-(declare-fun dest-exsc1_         () Int :no_dependence)
-(declare-fun dest-exsc5_         () Int :no_dependence)
+(declare-fun dest-exci4_         () Int )
+(declare-fun dest-exsc1_         () Int )
+(declare-fun dest-exsc5_         () Int )
 
 (declare-fun opcode-ex           () Int               )
-(declare-fun opcode-exci4_       () Int :no_dependence)
-(declare-fun opcode-exsc1_       () Int :no_dependence)
-(declare-fun opcode-exsc5_       () Int :no_dependence)
+(declare-fun opcode-exci4_       () Int )
+(declare-fun opcode-exsc1_       () Int )
+(declare-fun opcode-exsc5_       () Int )
 
 (declare-fun operand-a           () Int               )
-(declare-fun operand-aci4_       () Int  :no_dependence)
-(declare-fun operand-asc1_       () Int  :no_dependence)
-(declare-fun operand-asc5_       () Int  :no_dependence)
+(declare-fun operand-aci4_       () Int  )
+(declare-fun operand-asc1_       () Int  )
+(declare-fun operand-asc5_       () Int  )
 
 (declare-fun operand-b           () Int               )
-(declare-fun operand-bci4_       () Int  :no_dependence)
-(declare-fun operand-bsc1_       () Int  :no_dependence)
-(declare-fun operand-bsc5_       () Int  :no_dependence)
+(declare-fun operand-bci4_       () Int  )
+(declare-fun operand-bsc1_       () Int  )
+(declare-fun operand-bsc5_       () Int  )
 
 ; MEM stage
 (declare-fun dest-mem        () Int)
@@ -243,14 +243,14 @@
 
 
 ; auxiliary constants to state commutativity and associativity of PLUS
-; (declare-fun aux1            () Int :no_dependence)
-; (declare-fun aux2            () Int :no_dependence)
-; (declare-fun aux3            () Int :no_dependence)
-; (declare-fun aux4            () Int :no_dependence)
-; (declare-fun aux5            () Int :no_dependence)
+; (declare-fun aux1            () Int )
+; (declare-fun aux2            () Int )
+; (declare-fun aux3            () Int )
+; (declare-fun aux4            () Int )
+; (declare-fun aux5            () Int )
 
 ; auxiliary constants to state properti4es of the is-XXX predicates
-; (declare-fun aux6            () Int :no_dependence)
+; (declare-fun aux6            () Int )
 
 
 
