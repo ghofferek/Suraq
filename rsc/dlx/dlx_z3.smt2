@@ -1616,8 +1616,20 @@
         ) ; end complete-pipeline (ci)
       
         (ite
-          pstall
-          (instruction-in-reference
+          (and ; perform ISA step only if the pipeline actually fetched a *new* instruction.
+               ; i.e., if stall=F and stall-issue=F
+            (not pstall)
+            (not
+              (stall-issue
+                force-stall-issue
+                bubble-ex
+                dest-ex
+                bubble-id
+                inst-id
+              )
+            )
+          ) ; end condition about stalling
+          (instruction-in-reference ; then-branch (no stalling)
             ; "inputs" to macro (state before the instruction)
             pREGFILEci4_
             pDMEMci4_
