@@ -956,6 +956,11 @@
     ; primary inputs
     (force-stall-issue Bool              )
     (stall             Bool              )
+  
+    ; auxiliary input indicating that the macro is used for completion and 
+    ; thus the value of stall-issue (which is computed internally) should be
+    ; ignored.
+    (completion        Bool              )
   )
   Bool ; return type
   ; main expression
@@ -972,7 +977,10 @@
           (PLUS PCi FOUR)
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
+          (and
+            (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
+            (not completion)
+          )
           PCi
           (ite
             stall
@@ -1143,6 +1151,8 @@
       PCo
       force-stall-issue
       stall
+      
+      false ; completion 
     )
   ) ; END main expression
 ) ; END of step-in-pipeline macro
@@ -1370,8 +1380,10 @@
                    ; if this were a normal step (= the one that results from
                    ; clearing the ID stage)
       PCo
-      force-stall-issue
-      stall    
+      false ;force-stall-issue
+      false ;stall 
+      
+      true ; completion   
     )
     
   ) ; END main expression
