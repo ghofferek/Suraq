@@ -118,9 +118,10 @@
 ; (and copies for ci and sc paths)
 
 (declare-fun PC     () Int               )  ; Program counter
-(declare-fun PCci4_ () Int )  
-(declare-fun PCci5_ () Int )
-(declare-fun PCsc1_ () Int )  
+(declare-fun PCci4_ () Int )
+(declare-fun PCci5_ () Int )  
+(declare-fun PCsc1_ () Int )
+(declare-fun PCsc5_ () Int )  
   
 
 ; Declare uninterpreted functions of the datapath
@@ -968,7 +969,7 @@
         (ite
           (or (not bubble-idf) stall)
           PCi
-          (PLUS FOUR PCi)
+          (PLUS PCi FOUR)
         )
         (ite
           (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
@@ -983,7 +984,7 @@
             (ite
               (branch-taken bubble-idf inst-idf operand-af)
               (TA inst-idf PCi)
-              (PLUS FOUR PCi)
+              (PLUS PCi FOUR)
             )
           )
         )
@@ -1179,6 +1180,7 @@
     ; "outputs" of macro (state after the step)
     (REGFILEo         (Array Int Int))
     (DMEMo            (Array Int Int))
+    (PCo              Int            )
    ;(IMEMo            (Array Int Int))
     
      
@@ -1419,7 +1421,8 @@
     (pPC      Int               )  
     (pPCci4_  Int)  
     (pPCci5_  Int)
-    (pPCsc1_  Int)  
+    (pPCsc1_  Int)
+    (pPCsc5_  Int)  
     
     (pinst-id              Int               )
     (pinst-idsc1_          Int)
@@ -1562,6 +1565,7 @@
           ; "outputs" of macro (state after the step)
           pREGFILEci4_
           pDMEMci4_
+          pPCci4_
            
           ; intermediate ("transient") values
           REGFILEci1_ 
@@ -1716,6 +1720,7 @@
           ; "outputs" of macro (state after the step)
           pREGFILEsc5_
           pDMEMsc5_
+          pPCsc5_
            
           ; intermediate ("transient") values
           pREGFILEsc2_
@@ -1816,7 +1821,8 @@
       PC       
       PCci4_   
       PCci5_ 
-      PCsc1_   
+      PCsc1_
+      PCsc5_   
       
       inst-id
       inst-idsc1_
