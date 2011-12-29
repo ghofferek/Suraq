@@ -337,13 +337,15 @@
       )  
     )
     
-    (or
-      (is-load      opcode)
-      (is-store     opcode)
-      (is-J         opcode)
-      (is-BEQZ      opcode)
-      (is-alu-immed opcode)
-    )
+;     (or
+;       (is-load      opcode)
+;       (is-store     opcode)
+;       (is-J         opcode)
+;       (is-BEQZ      opcode)
+;       (is-alu-immed opcode)
+;     )
+
+      ; if none of these is true, it is a three-register instruction. 
   )
 )
 
@@ -1509,19 +1511,25 @@
     (presult-wbsc5_    Value)
     
     
-    (paux1             Value)
-    (paux2             Value)
-    (paux3             Value)
-    (paux4             Value)
-    (paux5             Value)
-    (paux6             Value)  
+;     (paux1             Value)
+;     (paux2             Value)
+;     (paux3             Value)
+;     (paux4             Value)
+;     (paux5             Value)
+;     (paux6             Value)  
   )
   Bool ; return type of macro
   ; main expression:
   (=> ; properties imply
     (and
-      (is-properties aux6)
-      (plus-properties aux1 aux2 aux3 aux4 aux5)
+      (is-properties (opcode-of (select pIMEM pPCci4_)))
+      (is-properties popcode-ex)
+      (is-properties popcode-exsc1_)
+      (is-properties (opcode-of pinst-id))
+      (is-properties (opcode-of pinst-idsc1_))
+      (is-properties popcode-exsc5_)
+      (is-properties popcode-exci4_)
+      ;(plus-properties aux1 aux2 aux3 aux4 aux5)
     )
     (=> ; update implies
       (and ; main update part
@@ -1898,12 +1906,12 @@
     result-wbsc4_ 
     result-wbsc5_ 
     
-    aux1          
-    aux2          
-    aux3          
-    aux4          
-    aux5          
-    aux6            
+;     aux1          
+;     aux2          
+;     aux3          
+;     aux4          
+;     aux5          
+;     aux6            
   )
 )
   
