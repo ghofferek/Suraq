@@ -61,7 +61,7 @@
 ;    instantiated with inputs "*sc1_" and outputs "*sc2_". Next, the macros for
 ;    the second-to-last stage and the last stage are instantiated. The second-to-last
 ;    stage macro uses inputs "*sc1_" and outputs "*sc2_". This last stage macro 
-;    uses "*sc2" as inputs and "*sc3_" as outputs. The remainin completion
+;    uses "*sc2" as inputs and "*sc3_" as outputs. The remaining completion
 ;    proceeds analogously. 
 ;
 ; *) During completion, forwarding signals from stages that are already completed
@@ -73,10 +73,8 @@
 ;    inputs the (current) values of the WB stage registers and produces outputs
 ;    that should be stored in the register file.
 
-(set-option :produce-assignments true)
+
 ;(set-logic Suraq)
-;(set-logic ArraysEx) ; for z3
-;(declare-sort Value 0) ; for z3
 
 ; primary inputs
 (declare-fun stall             () Bool)
@@ -86,26 +84,26 @@
 ; (and copies for ci and sc paths)
 
 (declare-fun REGFILE      () (Array Int Int))
-(declare-fun REGFILEci1_  () (Array Int Int) )
-(declare-fun REGFILEci2_  () (Array Int Int) )
-(declare-fun REGFILEci3_  () (Array Int Int) )
-(declare-fun REGFILEci4_  () (Array Int Int) )
-(declare-fun REGFILEci5_  () (Array Int Int) )
-(declare-fun REGFILEsc1_  () (Array Int Int) )
-(declare-fun REGFILEsc2_  () (Array Int Int) )
-(declare-fun REGFILEsc3_  () (Array Int Int) )
-(declare-fun REGFILEsc4_  () (Array Int Int) )
-(declare-fun REGFILEsc5_  () (Array Int Int) )
+(declare-fun REGFILEci1_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEci2_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEci3_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEci4_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEci5_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEsc1_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEsc2_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEsc3_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEsc4_  () (Array Int Int) :no_dependence)
+(declare-fun REGFILEsc5_  () (Array Int Int) :no_dependence)
 
 (declare-fun DMEM         () (Array Int Int))
-(declare-fun DMEMci2_     () (Array Int Int) )
-(declare-fun DMEMci3_     () (Array Int Int) )
-(declare-fun DMEMci4_     () (Array Int Int) )
-(declare-fun DMEMci5_     () (Array Int Int) )
-(declare-fun DMEMsc1_     () (Array Int Int) )
-(declare-fun DMEMsc3_     () (Array Int Int) )
-(declare-fun DMEMsc4_     () (Array Int Int) )
-(declare-fun DMEMsc5_     () (Array Int Int) )
+(declare-fun DMEMci2_     () (Array Int Int) :no_dependence)
+(declare-fun DMEMci3_     () (Array Int Int) :no_dependence)
+(declare-fun DMEMci4_     () (Array Int Int) :no_dependence)
+(declare-fun DMEMci5_     () (Array Int Int) :no_dependence)
+(declare-fun DMEMsc1_     () (Array Int Int) :no_dependence)
+(declare-fun DMEMsc3_     () (Array Int Int) :no_dependence)
+(declare-fun DMEMsc4_     () (Array Int Int) :no_dependence)
+(declare-fun DMEMsc5_     () (Array Int Int) :no_dependence)
 
 (declare-fun IMEM         () (Array Int Int))  ; IMEM is never written. Thus no need for more copies.
 
@@ -120,9 +118,9 @@
 ; (and copies for ci and sc paths)
 
 (declare-fun PC     () Int               )  ; Program counter
-(declare-fun PCci4_ () Int )  
-(declare-fun PCci5_ () Int )
-(declare-fun PCsc1_ () Int )  
+(declare-fun PCci4_ () Int :no_dependence)  
+(declare-fun PCci5_ () Int :no_dependence)
+(declare-fun PCsc1_ () Int :no_dependence)  
   
 
 ; Declare uninterpreted functions of the datapath
@@ -151,41 +149,41 @@
 
 ; ID stage
 (declare-fun inst-id             () Int               )
-(declare-fun inst-idsc1_         () Int )
+(declare-fun inst-idsc1_         () Int :no_dependence)
 
-(declare-fun bubble-id           () Bool  )
-(declare-fun bubble-idsc1_       () Bool  )
+(declare-fun bubble-id           () Bool  :no_dependence)
+(declare-fun bubble-idsc1_       () Bool  :no_dependence)
 
 ; EX stage
 (declare-fun bubble-ex           () Bool                )
-(declare-fun bubble-exci4_       () Bool  )
-(declare-fun bubble-exsc1_       () Bool  )
-(declare-fun bubble-exsc5_       () Bool  )
+(declare-fun bubble-exci4_       () Bool  :no_dependence)
+(declare-fun bubble-exsc1_       () Bool  :no_dependence)
+(declare-fun bubble-exsc5_       () Bool  :no_dependence)
 
 (declare-fun short-immed-ex      () Int               )
-(declare-fun short-immed-exci4_  () Int )
-(declare-fun short-immed-exsc1_  () Int )
-(declare-fun short-immed-exsc5_  () Int )
+(declare-fun short-immed-exci4_  () Int :no_dependence)
+(declare-fun short-immed-exsc1_  () Int :no_dependence)
+(declare-fun short-immed-exsc5_  () Int :no_dependence)
 
 (declare-fun dest-ex             () Int               )
-(declare-fun dest-exci4_         () Int )
-(declare-fun dest-exsc1_         () Int )
-(declare-fun dest-exsc5_         () Int )
+(declare-fun dest-exci4_         () Int :no_dependence)
+(declare-fun dest-exsc1_         () Int :no_dependence)
+(declare-fun dest-exsc5_         () Int :no_dependence)
 
 (declare-fun opcode-ex           () Int               )
-(declare-fun opcode-exci4_       () Int )
-(declare-fun opcode-exsc1_       () Int )
-(declare-fun opcode-exsc5_       () Int )
+(declare-fun opcode-exci4_       () Int :no_dependence)
+(declare-fun opcode-exsc1_       () Int :no_dependence)
+(declare-fun opcode-exsc5_       () Int :no_dependence)
 
 (declare-fun operand-a           () Int               )
-(declare-fun operand-aci4_       () Int  )
-(declare-fun operand-asc1_       () Int  )
-(declare-fun operand-asc5_       () Int  )
+(declare-fun operand-aci4_       () Int  :no_dependence)
+(declare-fun operand-asc1_       () Int  :no_dependence)
+(declare-fun operand-asc5_       () Int  :no_dependence)
 
 (declare-fun operand-b           () Int               )
-(declare-fun operand-bci4_       () Int  )
-(declare-fun operand-bsc1_       () Int  )
-(declare-fun operand-bsc5_       () Int  )
+(declare-fun operand-bci4_       () Int  :no_dependence)
+(declare-fun operand-bsc1_       () Int  :no_dependence)
+(declare-fun operand-bsc5_       () Int  :no_dependence)
 
 ; MEM stage
 (declare-fun dest-mem        () Int)
@@ -245,40 +243,40 @@
 
 
 ; auxiliary constants to state commutativity and associativity of PLUS
-(declare-fun aux1            () Int )
-(declare-fun aux2            () Int )
-(declare-fun aux3            () Int )
-(declare-fun aux4            () Int )
-(declare-fun aux5            () Int )
+; (declare-fun aux1            () Int :no_dependence)
+; (declare-fun aux2            () Int :no_dependence)
+; (declare-fun aux3            () Int :no_dependence)
+; (declare-fun aux4            () Int :no_dependence)
+; (declare-fun aux5            () Int :no_dependence)
 
 ; auxiliary constants to state properti4es of the is-XXX predicates
-(declare-fun aux6            () Int )
+; (declare-fun aux6            () Int :no_dependence)
 
 
 
 ; Properties of PLUS (commutativity and asscciativity)
-(define-fun plus-properties
-  ( ; parameters
-    (a Int)
-    (b Int)
-    (c Int)
-    (d Int)
-    (e Int)  
-  )
-  Bool ; return type of macro
-  ; main expression:
-  (
-    and
-    (=
-      (PLUS a b)
-      (PLUS b a)
-    )
-    (=
-      (PLUS (PLUS c d) e)
-      (PLUS c (PLUS d e))
-    )
-  )
-)
+; (define-fun plus-properties
+;   ( ; parameters
+;     (a Int)
+;     (b Int)
+;     (c Int)
+;     (d Int)
+;     (e Int)  
+;   )
+;   Bool ; return type of macro
+;   ; main expression:
+;   (
+;     and
+;     (=
+;       (PLUS a b)
+;       (PLUS b a)
+;     )
+;     (=
+;       (PLUS (PLUS c d) e)
+;       (PLUS c (PLUS d e))
+;     )
+;   )
+; )
 
 ; Properties of is-XXX predicates
 ; (always exactly one is true)
@@ -339,13 +337,15 @@
       )  
     )
     
-    (or
-      (is-load      opcode)
-      (is-store     opcode)
-      (is-J         opcode)
-      (is-BEQZ      opcode)
-      (is-alu-immed opcode)
-    )
+;     (or
+;       (is-load      opcode)
+;       (is-store     opcode)
+;       (is-J         opcode)
+;       (is-BEQZ      opcode)
+;       (is-alu-immed opcode)
+;     )
+
+      ; if none of these is true, it is a three-register instruction. 
   )
 )
 
@@ -878,8 +878,6 @@
     (operand-af       Int              )  ; the value at the *input* (not the output!!) of operand-a register
           
     ; "outputs" of macro (state after the step)
-    (PCo              Int              )
-    
     (inst-ido         Int              )
     (bubble-ido       Bool               )
       
@@ -932,7 +930,36 @@
         )
       )
     )
+  ) ; END main expression
+) ; END of step-in-IF macro
+
+;-------------------------------------------------------------------------------
+
+(define-fun step-PC ; steps the program counter
+  ( ; parameters
   
+    ; "inputs" to macro (state before the step)
+    (PCi              Int              )
+  
+    (inst-idf         Int              )
+    (bubble-idf       Bool               )
+  
+    (bubble-exf       Bool               )
+    (dest-exf         Int              )
+    
+    (operand-af       Int              )  ; the value at the *input* (not the output!!) of operand-a register
+          
+    ; "outputs" of macro (state after the step)
+    (PCo              Int              )
+      
+    ; primary inputs
+    (force-stall-issue Bool              )
+    (stall             Bool              )
+  )
+  Bool ; return type
+  ; main expression
+  (and ; conjunction over all parts
+   
     ; update of PC
     (=
       PCo
@@ -963,8 +990,7 @@
       )
     ) 
   ) ; END main expression
-) ; END of step-in-IF macro
-
+) ; END of step-PC macro
 
 
 ; ------------------------------------------------------------------------------
@@ -1095,13 +1121,28 @@
       bubble-idi       
       bubble-exi       
       dest-exi
-      operand-ai         
-      PCo              
+      operand-ao ; the value at the *input* (not the output!!) of operand-a register         
+                 ; i.e., the new value for operand-a, as it is outputted by this macro.
+                 ; (therefore: operand-ao              
       inst-ido         
       bubble-ido       
       force-stall-issue 
       stall            
     )    
+    
+    (step-PC
+      PCi
+      inst-idi
+      bubble-idi
+      bubble-exi
+      dest-exi
+      operand-ao ; the value at the *input* (not the output!!) of operand-a register         
+                 ; i.e., the new value for operand-a, as it is outputted by this macro.
+                 ; (therefore: operand-ao              
+      PCo
+      force-stall-issue
+      stall
+    )
   ) ; END main expression
 ) ; END of step-in-pipeline macro
 
@@ -1314,6 +1355,23 @@
       result-wbt4_
       REGFILEo
     ) 
+    
+    ; ----------------------------------
+    ; Updating program counter
+    (step-PC
+      PCi
+      inst-idi
+      bubble-idi
+      bubble-exi
+      dest-exi
+      operand-at4_ ; The new value that operand-a register would have received
+                   ; if this were a normal step (= the one that results from
+                   ; clearing the ID stage)
+      PCo
+      force-stall-issue
+      stall    
+    )
+    
   ) ; END main expression
 ) ; END of complete-pipeline macro
 
@@ -1453,19 +1511,25 @@
     (presult-wbsc5_    Int)
     
     
-    (paux1             Int)
-    (paux2             Int)
-    (paux3             Int)
-    (paux4             Int)
-    (paux5             Int)
-    (paux6             Int)  
+;     (paux1             Int)
+;     (paux2             Int)
+;     (paux3             Int)
+;     (paux4             Int)
+;     (paux5             Int)
+;     (paux6             Int)  
   )
   Bool ; return type of macro
   ; main expression:
   (=> ; properties imply
     (and
-      (is-properties aux6)
-      (plus-properties aux1 aux2 aux3 aux4 aux5)
+      (is-properties (opcode-of (select pIMEM pPCci4_)))
+      (is-properties popcode-ex)
+      (is-properties popcode-exsc1_)
+      (is-properties (opcode-of pinst-id))
+      (is-properties (opcode-of pinst-idsc1_))
+      (is-properties popcode-exsc5_)
+      (is-properties popcode-exci4_)
+      ;(plus-properties aux1 aux2 aux3 aux4 aux5)
     )
     (=> ; update implies
       (and ; main update part
@@ -1843,12 +1907,12 @@
       result-wbsc4_ 
       result-wbsc5_ 
       
-      aux1          
-      aux2          
-      aux3          
-      aux4          
-      aux5          
-      aux6            
+;       aux1          
+;       aux2          
+;       aux3          
+;       aux4          
+;       aux5          
+;       aux6            
     )
   )
 )
