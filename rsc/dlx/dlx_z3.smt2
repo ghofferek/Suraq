@@ -369,11 +369,12 @@
   )
   Bool ; return type of macro
   ; main expression: 
-  ( and
-     (= REGFILEci REGFILEsc)
-     (= DMEMci    DMEMsc   )
-     (= PCci      PCsc     )
-  )
+;   ( and
+;      (= REGFILEci REGFILEsc)
+;      (= DMEMci    DMEMsc   )
+;      (= PCci      PCsc     )
+;   )
+    (= PCci      PCsc     )
 )
 
 
