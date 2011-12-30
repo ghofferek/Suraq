@@ -74,6 +74,8 @@
 ;    that should be stored in the register file.
 
 
+(set-option :model-compact true)
+
 ;(set-logic Suraq)
 
 ; primary inputs
@@ -959,17 +961,20 @@
     (stall             Bool              )
   
     ; auxiliary input indicating that the macro is used for completion and 
-    ; thus the value of stall-issue (which is computed internally) should be
-    ; ignored.
+    ; thus only jumps and branches should be done (no increment)
     (completion        Bool              )
   )
   Bool ; return type
   ; main expression
-  (and ; conjunction over all parts
-   
-    ; update of PC
-    (=
-      PCo
+  (=     ; update of PC
+    PCo
+    (ite
+      completion
+      (ite
+        (branch-taken bubble-idf inst-idf operand-af)
+        (TA inst-idf PCi)
+        PCi
+      )
       (ite
         force-stall-issue
         (ite
@@ -978,10 +983,7 @@
           (PLUS PCi FOUR)
         )
         (ite
-          (and
-            (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
-            (not completion)
-          )
+          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
           PCi
           (ite
             stall
@@ -1954,3 +1956,8 @@
 (check-sat)  
 (get-info :name)
 (get-model)
+(get-value ((select IMEM PC)))
+;(get-value ((= (select IMEM PCci4_) (select IMEM PC))))
+;(get-value ((= (is-J (select IMEM PCci4_)) (is-J (select IMEM PC)))))
+;(get-value (PC))
+;(get-value (PCsc5_))
