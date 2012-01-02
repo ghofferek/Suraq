@@ -1818,137 +1818,180 @@
 ;
 ; The actual assert statement
 
+; (assert
+;   (not
+;     (main-formula
+;       stall
+;       false ;force-stall-issue
+;       
+;       REGFILE       
+;       REGFILEci1_   
+;       REGFILEci2_   
+;       REGFILEci3_   
+;       REGFILEci4_   
+;       REGFILEci5_   
+;       REGFILEsc1_   
+;       REGFILEsc2_   
+;       REGFILEsc3_   
+;       REGFILEsc4_   
+;       REGFILEsc5_   
+;       
+;       DMEM          
+;       DMEMci2_      
+;       DMEMci3_      
+;       DMEMci4_      
+;       DMEMci5_      
+;       DMEMsc1_      
+;       DMEMsc3_      
+;       DMEMsc4_      
+;       DMEMsc5_      
+;       
+;       IMEM            
+;       
+;       PC       
+;       PCci4_   
+;       PCci5_ 
+;       PCsc1_
+;       PCsc5_   
+;       
+;       inst-id
+;       inst-idsc1_
+;       
+;       bubble-id
+;       bubble-idsc1_
+;       
+;       bubble-ex    
+;       bubble-exci4_
+;       bubble-exsc1_
+;       bubble-exsc5_
+;       
+;       short-immed-ex 
+;       short-immed-exci4_
+;       short-immed-exsc1_
+;       short-immed-exsc5_
+;       
+;       dest-ex           
+;       dest-exci4_       
+;       dest-exsc1_       
+;       dest-exsc5_       
+;       
+;       opcode-ex         
+;       opcode-exci4_     
+;       opcode-exsc1_     
+;       opcode-exsc5_     
+;       
+;       operand-a         
+;       operand-aci4_     
+;       operand-asc1_     
+;       operand-asc5_     
+;       
+;       operand-b         
+;       operand-bci4_     
+;       operand-bsc1_   
+;       operand-bsc5_   
+;       
+;       dest-mem        
+;       dest-memci3_    
+;       dest-memci4_    
+;       dest-memsc1_    
+;       dest-memsc4_    
+;       dest-memsc5_    
+;       
+;       result-mem      
+;       result-memci3_  
+;       result-memci4_  
+;       result-memsc1_  
+;       result-memsc4_  
+;       result-memsc5_  
+;       
+;       mar             
+;       marci3_         
+;       marci4_         
+;       marsc1_         
+;       marsc4_         
+;       marsc5_         
+;       
+;       load-flag       
+;       load-flagci3_   
+;       load-flagci4_   
+;       load-flagsc1_   
+;       load-flagsc4_   
+;       load-flagsc5_   
+;       
+;       store-flag      
+;       store-flagci3_  
+;       store-flagci4_  
+;       store-flagsc1_  
+;       store-flagsc4_  
+;       store-flagsc5_  
+;       
+;       dest-wb         
+;       dest-wbci2_     
+;       dest-wbci3_     
+;       dest-wbci4_     
+;       dest-wbsc1_     
+;       dest-wbsc3_     
+;       dest-wbsc4_   
+;       dest-wbsc5_   
+;       
+;       result-wb     
+;       result-wbci2_ 
+;       result-wbci3_ 
+;       result-wbci4_ 
+;       result-wbsc1_ 
+;       result-wbsc3_ 
+;       result-wbsc4_ 
+;       result-wbsc5_ 
+;       
+; ;       aux1          
+; ;       aux2          
+; ;       aux3          
+; ;       aux4          
+; ;       aux5          
+; ;       aux6            
+;     )
+;   )
+; )
+
+; (assert
+;   (=>
+;     (=
+;       PC
+;       (PLUS ZERO FOUR)
+;     )
+;     (and
+;       (=
+;         IMEM
+;         (store DMEM 1 0)
+;       )
+;       (=
+;         (select IMEM PC)
+;         1
+;       )
+;     )
+;   )
+; )
+
+; (assert
+;   (and
+;     (=
+;       (select IMEM PC)
+;       PC
+;     )
+;     (= PC (PLUS ZERO FOUR))
+;   )
+; )
+;(assert ((= PC (PLUS ZERO FOUR))))
+
 (assert
-  (not
-    (main-formula
-      stall
-      false ;force-stall-issue
-      
-      REGFILE       
-      REGFILEci1_   
-      REGFILEci2_   
-      REGFILEci3_   
-      REGFILEci4_   
-      REGFILEci5_   
-      REGFILEsc1_   
-      REGFILEsc2_   
-      REGFILEsc3_   
-      REGFILEsc4_   
-      REGFILEsc5_   
-      
-      DMEM          
-      DMEMci2_      
-      DMEMci3_      
-      DMEMci4_      
-      DMEMci5_      
-      DMEMsc1_      
-      DMEMsc3_      
-      DMEMsc4_      
-      DMEMsc5_      
-      
-      IMEM            
-      
-      PC       
-      PCci4_   
-      PCci5_ 
-      PCsc1_
-      PCsc5_   
-      
-      inst-id
-      inst-idsc1_
-      
-      bubble-id
-      bubble-idsc1_
-      
-      bubble-ex    
-      bubble-exci4_
-      bubble-exsc1_
-      bubble-exsc5_
-      
-      short-immed-ex 
-      short-immed-exci4_
-      short-immed-exsc1_
-      short-immed-exsc5_
-      
-      dest-ex           
-      dest-exci4_       
-      dest-exsc1_       
-      dest-exsc5_       
-      
-      opcode-ex         
-      opcode-exci4_     
-      opcode-exsc1_     
-      opcode-exsc5_     
-      
-      operand-a         
-      operand-aci4_     
-      operand-asc1_     
-      operand-asc5_     
-      
-      operand-b         
-      operand-bci4_     
-      operand-bsc1_   
-      operand-bsc5_   
-      
-      dest-mem        
-      dest-memci3_    
-      dest-memci4_    
-      dest-memsc1_    
-      dest-memsc4_    
-      dest-memsc5_    
-      
-      result-mem      
-      result-memci3_  
-      result-memci4_  
-      result-memsc1_  
-      result-memsc4_  
-      result-memsc5_  
-      
-      mar             
-      marci3_         
-      marci4_         
-      marsc1_         
-      marsc4_         
-      marsc5_         
-      
-      load-flag       
-      load-flagci3_   
-      load-flagci4_   
-      load-flagsc1_   
-      load-flagsc4_   
-      load-flagsc5_   
-      
-      store-flag      
-      store-flagci3_  
-      store-flagci4_  
-      store-flagsc1_  
-      store-flagsc4_  
-      store-flagsc5_  
-      
-      dest-wb         
-      dest-wbci2_     
-      dest-wbci3_     
-      dest-wbci4_     
-      dest-wbsc1_     
-      dest-wbsc3_     
-      dest-wbsc4_   
-      dest-wbsc5_   
-      
-      result-wb     
-      result-wbci2_ 
-      result-wbci3_ 
-      result-wbci4_ 
-      result-wbsc1_ 
-      result-wbsc3_ 
-      result-wbsc4_ 
-      result-wbsc5_ 
-      
-;       aux1          
-;       aux2          
-;       aux3          
-;       aux4          
-;       aux5          
-;       aux6            
+  (and
+    (=
+      (PLUS 0 1)
+      (PLUS 1 0)
+    )
+    (distinct
+      (select IMEM (PLUS 0 1))
+      (select IMEM (PLUS 1 0))
     )
   )
 )
@@ -1957,6 +2000,7 @@
 (get-info :name)
 (get-model)
 (get-value ((select IMEM PC)))
+(get-value (PC))
 ;(get-value ((= (select IMEM PCci4_) (select IMEM PC))))
 ;(get-value ((= (is-J (select IMEM PCci4_)) (is-J (select IMEM PC)))))
 ;(get-value (PC))
