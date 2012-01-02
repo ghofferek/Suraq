@@ -435,6 +435,7 @@
   ( ; parameters
     (force-stall-issue  Bool )
     (bubble-ex          Bool )
+    (opcode-ex          Int)
     (dest-ex            Int)
     (bubble-id          Bool )
     (inst-id            Int)
@@ -448,7 +449,7 @@
         (= (rf1-of inst-id) dest-ex)
         (= (rf2-of inst-id) dest-ex)
       )
-      (is-load (opcode-of inst-id))
+      (is-load opcode-ex)
       (not bubble-ex)
       (not bubble-id)
     )
@@ -764,6 +765,7 @@
     (bubble-idi       Bool               )
     
     (bubble-exf       Bool               )  ; f = forward
+    (opcode-exf       Int              )
     (dest-exf         Int              )
     (result-exf       Int              )
     
@@ -793,7 +795,7 @@
     (=
       bubble-exo
       (or
-        (stall-issue force-stall-issue bubble-exf dest-exf bubble-idi inst-idi) 
+        (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idi inst-idi) 
         bubble-idi
         (is-J    (opcode-of inst-idi))
         (is-BEQZ (opcode-of inst-idi))
@@ -877,6 +879,7 @@
     (bubble-idf       Bool               )
   
     (bubble-exf       Bool               )
+    (opcode-exf       Int              )
     (dest-exf         Int              )
     
     (operand-af       Int              )  ; the value at the *input* (not the output!!) of operand-a register
@@ -904,7 +907,7 @@
           false
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
+          (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           bubble-idf
           (ite
             stall
@@ -924,7 +927,7 @@
           (select IMEMi PCi)
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
+          (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           inst-idf
           (ite
             stall
@@ -949,6 +952,7 @@
     (bubble-idf       Bool               )
   
     (bubble-exf       Bool               )
+    (opcode-exf       Int              )
     (dest-exf         Int              )
     
     (operand-af       Int              )  ; the value at the *input* (not the output!!) of operand-a register
@@ -983,7 +987,7 @@
           (PLUS PCi FOUR)
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
+          (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           PCi
           (ite
             stall
@@ -1106,7 +1110,8 @@
       REGFILEi        
       inst-idi                       
       bubble-idi
-      bubble-exi ; forwarded value                      
+      bubble-exi ; forwarded value
+      opcode-exi ; forwarded value                      
       dest-exi ; forwarded value                       
       (ite
         (or (is-load opcode-exi) (is-store opcode-exi))
@@ -1131,7 +1136,8 @@
       PCi              
       inst-idi         
       bubble-idi       
-      bubble-exi       
+      bubble-exi
+      bubble-exi        
       dest-exi
       operand-ao ; the value at the *input* (not the output!!) of operand-a register         
                  ; i.e., the new value for operand-a, as it is outputted by this macro.
@@ -1147,6 +1153,7 @@
       inst-idi
       bubble-idi
       bubble-exi
+      opcode-exi
       dest-exi
       operand-ao ; the value at the *input* (not the output!!) of operand-a register         
                  ; i.e., the new value for operand-a, as it is outputted by this macro.
@@ -1319,6 +1326,7 @@
       inst-idi                       
       bubble-idi
       bubble-exi ; forwarded value                      
+      opcode-exi ; forwarded value
       dest-exi ; forwarded value                       
       (ite
         (or (is-load opcode-exi) (is-store opcode-exi))
@@ -1378,6 +1386,7 @@
       inst-idi
       bubble-idi
       bubble-exi
+      opcode-exi 
       dest-exi
       operand-at4_ ; The new value that operand-a register would have received
                    ; if this were a normal step (= the one that results from
@@ -1966,3 +1975,10 @@
 (get-value (PCsc5_))
 (get-value ((= PCci5_ PCsc5_)))
 (get-value ((equivalence REGFILEci5_ REGFILEsc5_ DMEMci5_ DMEMsc5_ PCci5_ PCsc5_)))
+(get-value ((stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id)))
+(get-value (bubble-ex))
+(get-value (dest-ex))
+(get-value (bubble-id))
+(get-value (inst-id))
+(get-value ((opcode-of inst-id)))
+(get-value ((is-load (opcode-of inst-id))))
