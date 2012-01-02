@@ -1802,7 +1802,7 @@
         ) ; end complete-pipeline (sc)
       ) ; end conjunction of update parts
       (
-        equivalence pREGFILEci5_ pREGFILEsc5_ pDMEMci5_ pDMEMsc5_ pPCci5_ pPCsc1_
+        equivalence pREGFILEci5_ pREGFILEsc5_ pDMEMci5_ pDMEMsc5_ pPCci5_ pPCsc5_
       )
     ) ; end of update implies 
   ) ; end main expression
@@ -1960,7 +1960,9 @@
 (get-model)
 (get-value ((select IMEM PC)))
 (get-value (PC))
-;(get-value ((= (select IMEM PCci4_) (select IMEM PC))))
-;(get-value ((= (is-J (select IMEM PCci4_)) (is-J (select IMEM PC)))))
-;(get-value (PC))
-;(get-value (PCsc5_))
+(get-value (PCci4_))
+(get-value (PCci5_))
+(get-value (PCsc1_))
+(get-value (PCsc5_))
+(get-value ((= PCci5_ PCsc5_)))
+(get-value ((equivalence REGFILEci5_ REGFILEsc5_ DMEMci5_ DMEMsc5_ PCci5_ PCsc5_)))
