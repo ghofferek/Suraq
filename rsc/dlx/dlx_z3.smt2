@@ -1118,8 +1118,12 @@
         (PLUS operand-ai short-immed-exi)
         (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
       ) ;result-exi ; forwarded value                     
-      dest-memi ; forwarded value                      
-      result-memi ; forwarded value                    
+      dest-memi ; forwarded value
+      (ite
+        load-flagi
+        (select DMEMi mari)
+        result-memi                      
+      );result-memi ; forwarded value                    
       dest-wbi ; forwarded value                       
       result-wbi ; forwarded value                     
       bubble-exo                      
@@ -1334,7 +1338,11 @@
         (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
       );result-exi ; forwarded value                     
       dest-memi ; forwarded value                      
-      result-memi ; forwarded value                    
+      (ite
+        load-flagi
+        (select DMEMi mari)
+        result-memi                      
+      );result-memi ; forwarded value                    
       dest-wbi ; forwarded value                       
       result-wbi ; forwarded value                     
       bubble-ext4_                      
@@ -2007,3 +2015,22 @@
     )
   )
 )))
+(get-value ((branch-taken bubble-id inst-id operand-aci4_)))
+(get-value ((branch-taken bubble-id inst-id operand-asc5_)))
+(get-value (operand-aci4_))
+(get-value (operand-asc5_))
+(get-value (dest-ex))
+(get-value (dest-mem))
+(get-value (dest-wb))
+(get-value (dest-exsc1_))
+(get-value (dest-memsc1_))
+(get-value (dest-wbsc1_))
+(get-value (result-mem))
+(get-value ((select REGFILEci2_ (rf1-of inst-id))))
+(get-value ((select REGFILEci3_ (rf1-of inst-id))))
+(get-value ((select REGFILEci4_ (rf1-of inst-id))))
+(get-value ((select REGFILEci5_ (rf1-of inst-id))))
+(get-value (dest-wbci2_))
+(get-value (result-wbci2_))
+(get-value (load-flag))
+(get-value (load-flagsc1_))
