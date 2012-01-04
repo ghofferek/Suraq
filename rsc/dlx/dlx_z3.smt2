@@ -1643,15 +1643,15 @@
                ; perform ISA step only if the pipeline actually fetched a *new* instruction.
                ; i.e., if not bubble-id after one step and there was no stall-issue;
           (and 
-            (not bubble-idsc1_)
+            (not pbubble-idsc1_)
             (not
               (stall-issue
-                force-stall-issue
-                bubble-ex
-                opcode-ex
-                dest-ex
-                bubble-id
-                inst-id
+                pforce-stall-issue
+                pbubble-ex
+                popcode-ex
+                pdest-ex
+                pbubble-id
+                pinst-id
               )
             )
           ) ; end condition about stalling
@@ -1985,6 +1985,25 @@
 (get-value (inst-id))
 (get-value ((opcode-of inst-id)))
 (get-value ((is-load (opcode-of inst-id))))
-(get-value ((is-load opcode-ex)))
+(get-value ((is-store (opcode-of inst-id))))
+(get-value ((is-J (opcode-of inst-id))))
+(get-value ((is-BEQZ (opcode-of inst-id))))
+(get-value ((is-alu-immed opcode-ex)))
 (get-value ((rf1-of inst-id)))
 (get-value ((rf2-of inst-id)))
+(get-value ((not bubble-idsc1_)))
+(get-value ((not (stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id))))
+(get-value (
+(and 
+  (not bubble-idsc1_)
+  (not
+    (stall-issue
+      force-stall-issue
+      bubble-ex
+      opcode-ex
+      dest-ex
+      bubble-id
+      inst-id
+    )
+  )
+)))
