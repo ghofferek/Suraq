@@ -426,7 +426,7 @@
       (is-load  opcode)
       (is-store opcode)
     )
-    (PLUS short-immed operand-a)
+    (PLUS operand-a short-immed)
     (ALU (alu-op-of opcode) operand-a operand-b)
   )
 ) 
@@ -2011,47 +2011,25 @@
 (get-value ((select REGFILEsc4_ (rf1-of inst-idsc1_))))
 (get-value ((short-immed-of inst-idsc1_)))
 (get-value ((PLUS PCsc1_ (short-immed-of inst-idsc1_))))
-(get-value (
-(ite 
-  (is-J (opcode-of (select IMEM PCci4_))) 
-  (PLUS
-    (PLUS PCci4_ FOUR)
-    (long-immed-of (select IMEM PCci4_)) 
-  ) 
-  (ite
-    (and
-      (is-BEQZ (opcode-of (select IMEM PCci4_)))
-      (= 
-        ZERO
-        (rf1data REGFILEci4_ IMEM PCci4_)
-      )
-    )
-    (PLUS
-      (PLUS PCci4_ FOUR)
-      (short-immed-of (opcode-of (select IMEM PCci4_))) 
-    )
-    (PLUS PCci4_ FOUR)
-  )
-)))
-(get-value ((is-J (opcode-of (select IMEM PCci4_)))))
+(get-value (operand-a))
+(get-value (operand-asc1_))
+(get-value (operand-asc5_))
+(get-value (operand-aci4_))
+(get-value ((rf1-of (select IMEM PCci4_))))
+(get-value ((rf1-of inst-idsc1_)))
+(get-value (dest-wbsc1_))
+(get-value (dest-exsc1_))
+(get-value (dest-memsc1_))
 (get-value (
 (ite
-  (and
-    (is-BEQZ (opcode-of (select IMEM PCci4_)))
-    (= 
-      ZERO
-      (rf1data REGFILEci4_ IMEM PCci4_)
-    )
-  )
-  (PLUS
-    (PLUS PCci4_ FOUR)
-    (short-immed-of (opcode-of (select IMEM PCci4_))) 
-  )
-  (PLUS PCci4_ FOUR)
-))) 
-(get-value (
-  (PLUS
-    (PLUS PCci4_ FOUR)
-    (short-immed-of (opcode-of (select IMEM PCci4_))) 
-  )
-))
+  (or (is-load opcode-exsc1_) (is-store opcode-exsc1_))
+  (PLUS operand-asc1_ short-immed-exsc1_)
+  (alu-result operand-asc1_ operand-bsc1_ opcode-exsc1_ short-immed-exsc1_)
+)))
+(get-value ((select REGFILE 36)))
+(get-value ((select REGFILEsc1_ 36)))
+(get-value ((select REGFILEsc2_ 36)))
+(get-value ((select REGFILEsc3_ 36)))
+(get-value ((select REGFILEsc4_ 36)))
+(get-value ((select REGFILEsc5_ 36)))
+
