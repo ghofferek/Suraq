@@ -1640,22 +1640,22 @@
         ) ; end complete-pipeline (ci)
       
         (ite
-;           (and 
-;             (not pstall)
-;             (not
-;               (stall-issue
-;                 force-stall-issue
-;                 bubble-ex
-;                 dest-ex
-;                 bubble-id
-;                 inst-id
-;               )
-;             )
-;           ) ; end condition about stalling
-           
                ; perform ISA step only if the pipeline actually fetched a *new* instruction.
-               ; i.e., if not bubble-id after one step
-            (not pbubble-idsc1_)   
+               ; i.e., if not bubble-id after one step and there was no stall-issue;
+          (and 
+            (not bubble-idsc1_)
+            (not
+              (stall-issue
+                force-stall-issue
+                bubble-ex
+                opcode-ex
+                dest-ex
+                bubble-id
+                inst-id
+              )
+            )
+          ) ; end condition about stalling
+   
           (instruction-in-reference ; then-branch (no stalling)
             ; "inputs" to macro (state before the instruction)
             pREGFILEci4_
@@ -1967,13 +1967,15 @@
 (check-sat)  
 (get-info :name)
 (get-model)
-(get-value ((select IMEM PC)))
 (get-value (PC))
 (get-value (PCci4_))
 (get-value (PCci5_))
 (get-value (PCsc1_))
 (get-value (PCsc5_))
 (get-value ((= PCci5_ PCsc5_)))
+(get-value (FOUR))
+(get-value (ZERO))
+(get-value (bubble-idsc1_))
 (get-value ((equivalence REGFILEci5_ REGFILEsc5_ DMEMci5_ DMEMsc5_ PCci5_ PCsc5_)))
 (get-value ((stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id)))
 (get-value (bubble-ex))
@@ -1983,3 +1985,6 @@
 (get-value (inst-id))
 (get-value ((opcode-of inst-id)))
 (get-value ((is-load (opcode-of inst-id))))
+(get-value ((is-load opcode-ex)))
+(get-value ((rf1-of inst-id)))
+(get-value ((rf2-of inst-id)))
