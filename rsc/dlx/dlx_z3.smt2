@@ -548,8 +548,8 @@
         (store
           DMEMi
           (PLUS
-            (short-immed-of (select IMEMi PCi))
             (rf1data REGFILEi IMEMi PCi)
+            (short-immed-of (select IMEMi PCi))
           )
           (rf2data REGFILEi IMEMi PCi)
         )
@@ -2033,3 +2033,6 @@
 (get-value ((select REGFILEsc4_ 36)))
 (get-value ((select REGFILEsc5_ 36)))
 
+(get-value (load-flagsc1_))
+(get-value ((select DMEMsc1_ marsc1_)))
+(get-value (marsc1_))
