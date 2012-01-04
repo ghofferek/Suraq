@@ -533,7 +533,7 @@
           )
           (PLUS
             (PLUS PCi FOUR)
-            (short-immed-of (opcode-of (select IMEMi PCi))) 
+            (short-immed-of (select IMEMi PCi)) 
           )
           (PLUS PCi FOUR)
         )
@@ -1991,46 +1991,67 @@
 (get-value (dest-ex))
 (get-value (bubble-id))
 (get-value (inst-id))
-(get-value ((opcode-of inst-id)))
-(get-value ((is-load (opcode-of inst-id))))
-(get-value ((is-store (opcode-of inst-id))))
-(get-value ((is-J (opcode-of inst-id))))
-(get-value ((is-BEQZ (opcode-of inst-id))))
-(get-value ((is-alu-immed opcode-ex)))
+
 (get-value ((rf1-of inst-id)))
 (get-value ((rf2-of inst-id)))
 (get-value ((not bubble-idsc1_)))
 (get-value ((not (stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id))))
+
+(get-value (inst-idsc1_))
+(get-value ((select IMEM PCci4_)))
+
+(get-value ((opcode-of inst-idsc1_)))
+(get-value ((is-load (opcode-of inst-idsc1_))))
+(get-value ((is-store (opcode-of inst-idsc1_))))
+(get-value ((is-J (opcode-of inst-idsc1_))))
+(get-value ((is-BEQZ (opcode-of inst-idsc1_))))
+(get-value ((is-alu-immed (opcode-of inst-idsc1_))))
+(get-value ((rf1-of inst-idsc1_)))
+(get-value ((select REGFILEci4_ (rf1-of inst-idsc1_))))
+(get-value ((select REGFILEsc4_ (rf1-of inst-idsc1_))))
+(get-value ((short-immed-of inst-idsc1_)))
+(get-value ((PLUS PCsc1_ (short-immed-of inst-idsc1_))))
 (get-value (
-(and 
-  (not bubble-idsc1_)
-  (not
-    (stall-issue
-      force-stall-issue
-      bubble-ex
-      opcode-ex
-      dest-ex
-      bubble-id
-      inst-id
+(ite 
+  (is-J (opcode-of (select IMEM PCci4_))) 
+  (PLUS
+    (PLUS PCci4_ FOUR)
+    (long-immed-of (select IMEM PCci4_)) 
+  ) 
+  (ite
+    (and
+      (is-BEQZ (opcode-of (select IMEM PCci4_)))
+      (= 
+        ZERO
+        (rf1data REGFILEci4_ IMEM PCci4_)
+      )
     )
+    (PLUS
+      (PLUS PCci4_ FOUR)
+      (short-immed-of (opcode-of (select IMEM PCci4_))) 
+    )
+    (PLUS PCci4_ FOUR)
   )
 )))
-(get-value ((branch-taken bubble-id inst-id operand-aci4_)))
-(get-value ((branch-taken bubble-id inst-id operand-asc5_)))
-(get-value (operand-aci4_))
-(get-value (operand-asc5_))
-(get-value (dest-ex))
-(get-value (dest-mem))
-(get-value (dest-wb))
-(get-value (dest-exsc1_))
-(get-value (dest-memsc1_))
-(get-value (dest-wbsc1_))
-(get-value (result-mem))
-(get-value ((select REGFILEci2_ (rf1-of inst-id))))
-(get-value ((select REGFILEci3_ (rf1-of inst-id))))
-(get-value ((select REGFILEci4_ (rf1-of inst-id))))
-(get-value ((select REGFILEci5_ (rf1-of inst-id))))
-(get-value (dest-wbci2_))
-(get-value (result-wbci2_))
-(get-value (load-flag))
-(get-value (load-flagsc1_))
+(get-value ((is-J (opcode-of (select IMEM PCci4_)))))
+(get-value (
+(ite
+  (and
+    (is-BEQZ (opcode-of (select IMEM PCci4_)))
+    (= 
+      ZERO
+      (rf1data REGFILEci4_ IMEM PCci4_)
+    )
+  )
+  (PLUS
+    (PLUS PCci4_ FOUR)
+    (short-immed-of (opcode-of (select IMEM PCci4_))) 
+  )
+  (PLUS PCci4_ FOUR)
+))) 
+(get-value (
+  (PLUS
+    (PLUS PCci4_ FOUR)
+    (short-immed-of (opcode-of (select IMEM PCci4_))) 
+  )
+))
