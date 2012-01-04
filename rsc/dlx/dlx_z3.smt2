@@ -1137,7 +1137,7 @@
       inst-idi         
       bubble-idi       
       bubble-exi
-      bubble-exi        
+      opcode-exi        
       dest-exi
       operand-ao ; the value at the *input* (not the output!!) of operand-a register         
                  ; i.e., the new value for operand-a, as it is outputted by this macro.
@@ -1977,6 +1977,7 @@
 (get-value ((equivalence REGFILEci5_ REGFILEsc5_ DMEMci5_ DMEMsc5_ PCci5_ PCsc5_)))
 (get-value ((stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id)))
 (get-value (bubble-ex))
+(get-value (opcode-ex))
 (get-value (dest-ex))
 (get-value (bubble-id))
 (get-value (inst-id))
