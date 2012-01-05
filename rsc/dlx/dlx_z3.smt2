@@ -736,7 +736,7 @@
       result-memo
       (ite
         (or (is-load opcode-exi) (is-store opcode-exi))
-        (PLUS operand-ai short-immed-exi)
+        operand-bi
         (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
       )
     )
@@ -2090,3 +2090,7 @@
 (get-value (result-memsc5_))
 (get-value ((select DMEMsc5_ marsc5_)))
 (get-value (marsc5_))
+
+(get-value (operand-asc5_))
+(get-value (operand-bsc5_))
+(get-value ((alu-result operand-asc5_ operand-bsc5_ opcode-exsc5_ short-immed-exsc5_)))
