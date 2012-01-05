@@ -1326,7 +1326,7 @@
     ; ----------------------------------
     ; "Clearing" ID registers
     (step-in-ID
-      REGFILEi        
+      REGFILEt3_        
       inst-idi                       
       bubble-idi
       true ; bubble-exi ; forwarded value                      
@@ -1972,23 +1972,35 @@
 (get-value (PCci5_))
 (get-value (PCsc1_))
 (get-value (PCsc5_))
-(get-value ((= PCci5_ PCsc5_)))
+
 (get-value (FOUR))
 (get-value (ZERO))
+
+(get-value (bubble-id))
 (get-value (bubble-idsc1_))
-(get-value ((equivalence REGFILEci5_ REGFILEsc5_ DMEMci5_ DMEMsc5_ PCci5_ PCsc5_)))
-(get-value ((stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id)))
 (get-value (bubble-ex))
+(get-value (bubble-exsc1_))
+
+(get-value ((stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id)))
+
 (get-value (opcode-ex))
 (get-value ((is-load opcode-ex)))
 (get-value (dest-ex))
-(get-value (bubble-id))
 (get-value (inst-id))
 
 (get-value ((rf1-of inst-id)))
 (get-value ((rf2-of inst-id)))
-(get-value ((not bubble-idsc1_)))
-(get-value ((not (stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id))))
+(get-value ((opcode-of inst-id)))
+(get-value ((is-load (opcode-of inst-id))))
+(get-value ((is-store (opcode-of inst-id))))
+(get-value ((is-J (opcode-of inst-id))))
+(get-value ((is-BEQZ (opcode-of inst-id))))
+(get-value ((is-alu-immed (opcode-of inst-id))))
+
+(get-value (operand-a))
+(get-value (operand-asc1_))
+(get-value (operand-asc5_))
+(get-value (operand-aci4_))
 
 (get-value (inst-idsc1_))
 (get-value ((select IMEM PCci4_)))
@@ -2004,32 +2016,11 @@
 (get-value ((select REGFILEsc4_ (rf1-of inst-idsc1_))))
 (get-value ((short-immed-of inst-idsc1_)))
 (get-value ((PLUS PCsc1_ (short-immed-of inst-idsc1_))))
-(get-value (operand-a))
-(get-value (operand-asc1_))
-(get-value (operand-asc5_))
-(get-value (operand-aci4_))
 (get-value ((rf1-of (select IMEM PCci4_))))
 (get-value ((rf1-of inst-idsc1_)))
 (get-value (dest-wbsc1_))
 (get-value (dest-memsc1_))
 (get-value (dest-exsc1_))
-(get-value (
-(ite
-  (or (is-load opcode-exsc1_) (is-store opcode-exsc1_))
-  (PLUS operand-asc1_ short-immed-exsc1_)
-  (alu-result operand-asc1_ operand-bsc1_ opcode-exsc1_ short-immed-exsc1_)
-)))
-(get-value ((select REGFILE (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEsc1_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEsc2_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEsc3_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEsc4_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEsc5_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEci1_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEci2_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEci3_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEci4_ (rf1-of inst-idsc1_))))
-(get-value ((select REGFILEci5_ (rf1-of inst-idsc1_))))
 
 (get-value (load-flagsc1_))
 (get-value ((select DMEMsc1_ marsc1_)))
@@ -2039,11 +2030,31 @@
 (get-value (dest-mem))
 (get-value (dest-ex))
 
-(get-value (
-(ite
-  (or (is-load opcode-ex) (is-store opcode-ex))
-  (PLUS operand-a short-immed-ex)
-  (alu-result operand-a operand-b opcode-ex short-immed-ex)
-)))
+
 (get-value (bubble-exsc1_))
 (get-value (bubble-exci4_))
+
+(get-value (
+(ite
+  (branch-taken bubble-id inst-id operand-aci4_)
+  (TA inst-id PC)
+  PC
+)))
+(get-value (
+(ite
+  (branch-taken bubble-id inst-id operand-asc1_)
+  (TA inst-id PC)
+  PC
+)))
+(get-value (result-wb))
+(get-value ((select REGFILE (rf1-of inst-id))))
+(get-value ((select REGFILEci1_ (rf1-of inst-id))))
+(get-value ((select REGFILEci2_ (rf1-of inst-id))))
+(get-value ((select REGFILEci3_ (rf1-of inst-id))))
+(get-value ((select REGFILEci4_ (rf1-of inst-id))))
+(get-value ((select REGFILEci5_ (rf1-of inst-id))))
+(get-value ((select REGFILEsc1_ (rf1-of inst-id))))
+(get-value ((select REGFILEsc2_ (rf1-of inst-id))))
+(get-value ((select REGFILEsc3_ (rf1-of inst-id))))
+(get-value ((select REGFILEsc4_ (rf1-of inst-id))))
+(get-value ((select REGFILEsc5_ (rf1-of inst-id))))
