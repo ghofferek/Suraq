@@ -371,12 +371,11 @@
   )
   Bool ; return type of macro
   ; main expression: 
-;   ( and
-;      (= REGFILEci REGFILEsc)
-;      (= DMEMci    DMEMsc   )
-;      (= PCci      PCsc     )
-;   )
-    (= PCci      PCsc     )
+  ( and
+     (= REGFILEci REGFILEsc)
+     (= DMEMci    DMEMsc   )
+     (= PCci      PCsc     )
+  )
 )
 
 
@@ -426,7 +425,7 @@
       (is-load  opcode)
       (is-store opcode)
     )
-    (PLUS operand-a short-immed)
+    (PLUS short-immed operand-a)
     (ALU (alu-op-of opcode) operand-a operand-b)
   )
 ) 
@@ -548,8 +547,8 @@
         (store
           DMEMi
           (PLUS
-            (rf1data REGFILEi IMEMi PCi)
             (short-immed-of (select IMEMi PCi))
+            (rf1data REGFILEi IMEMi PCi)
           )
           (rf2data REGFILEi IMEMi PCi)
         )
@@ -1972,6 +1971,10 @@
 (get-value (PCci5_))
 (get-value (PCsc1_))
 (get-value (PCsc5_))
+(get-value ((= PCci5_ PCsc5_)))
+(get-value ((= DMEMci5_ DMEMsc5_)))
+(get-value ((= REGFILEci5_ REGFILEsc5_)))
+
 
 (get-value (FOUR))
 (get-value (ZERO))
@@ -2030,31 +2033,60 @@
 (get-value (dest-mem))
 (get-value (dest-ex))
 
+(get-value (REGFILE))
+(get-value (REGFILEci1_))
+(get-value (REGFILEsc1_))
+(get-value (REGFILEci2_))
+(get-value (REGFILEsc2_))
+(get-value (REGFILEci3_))
+(get-value (REGFILEsc3_))
+(get-value (REGFILEci4_))
+(get-value (REGFILEsc4_))
+(get-value (REGFILEci5_))
+(get-value (REGFILEsc5_))
 
-(get-value (bubble-exsc1_))
-(get-value (bubble-exci4_))
+(get-value (DMEM))
+(get-value (DMEMsc1_))
+(get-value (DMEMci2_))
+(get-value (DMEMsc3_))
+(get-value (DMEMci4_))
+(get-value (DMEMsc4_))
+(get-value (DMEMci5_))
+(get-value (DMEMsc5_))
 
-(get-value (
-(ite
-  (branch-taken bubble-id inst-id operand-aci4_)
-  (TA inst-id PC)
-  PC
-)))
-(get-value (
-(ite
-  (branch-taken bubble-id inst-id operand-asc1_)
-  (TA inst-id PC)
-  PC
-)))
-(get-value (result-wb))
-(get-value ((select REGFILE (rf1-of inst-id))))
-(get-value ((select REGFILEci1_ (rf1-of inst-id))))
-(get-value ((select REGFILEci2_ (rf1-of inst-id))))
-(get-value ((select REGFILEci3_ (rf1-of inst-id))))
-(get-value ((select REGFILEci4_ (rf1-of inst-id))))
-(get-value ((select REGFILEci5_ (rf1-of inst-id))))
-(get-value ((select REGFILEsc1_ (rf1-of inst-id))))
-(get-value ((select REGFILEsc2_ (rf1-of inst-id))))
-(get-value ((select REGFILEsc3_ (rf1-of inst-id))))
-(get-value ((select REGFILEsc4_ (rf1-of inst-id))))
-(get-value ((select REGFILEsc5_ (rf1-of inst-id))))
+(get-value ((select IMEM PCci4_)))
+(get-value ((opcode-of (select IMEM PCci4_))))
+(get-value ((rf1-of (select IMEM PCci4_))))
+(get-value ((rf2-of (select IMEM PCci4_))))
+(get-value ((rf3-of (select IMEM PCci4_))))
+(get-value ((select REGFILEci4_ (rf1-of (select IMEM PCci4_)))))
+(get-value ((select REGFILEci4_ (rf2-of (select IMEM PCci4_)))))
+(get-value ((select REGFILEci4_ (rf3-of (select IMEM PCci4_)))))
+(get-value ((short-immed-of (select IMEM PCci4_))))
+(get-value ((long-immed-of (select IMEM PCci4_))))
+(get-value ((is-load (opcode-of (select IMEM PCci4_)))))
+(get-value ((is-store (opcode-of (select IMEM PCci4_)))))
+(get-value ((is-J (opcode-of (select IMEM PCci4_)))))
+(get-value ((is-BEQZ (opcode-of (select IMEM PCci4_)))))
+(get-value ((is-alu-immed (opcode-of (select IMEM PCci4_)))))
+
+
+(get-value (DMEMci4_))
+(get-value (DMEMsc4_))
+(get-value ((PLUS (short-immed-of (select IMEM PCci4_)) (select REGFILEci4_ (rf1-of (select IMEM PCci4_))))))
+(get-value ((select DMEMci4_ (PLUS (short-immed-of (select IMEM PCci4_)) (select REGFILEci4_ (rf1-of (select IMEM PCci4_)))))))
+(get-value ((select DMEMci4_ 24)))
+(get-value ((select REGFILEci4_ 4)))
+(get-value ((rf1data REGFILEci4_ IMEM PCci4_)))
+(get-value ((rf2data REGFILEci4_ IMEM PCci4_)))
+(get-value ((PLUS 36 35)))
+(get-value ((PLUS 36 4)))
+(get-value ((store REGFILEci4_ 39 41)))
+(get-value ((select DMEMci4_ 41)))
+
+(get-value (dest-wbsc5_))
+(get-value (result-wbsc5_))
+(get-value (dest-memsc5_))
+(get-value (result-memsc5_))
+(get-value ((select DMEMsc5_ marsc5_)))
+(get-value (marsc5_))
