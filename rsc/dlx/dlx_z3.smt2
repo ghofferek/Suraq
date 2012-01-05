@@ -1329,22 +1329,14 @@
       REGFILEi        
       inst-idi                       
       bubble-idi
-      bubble-exi ; forwarded value                      
-      opcode-exi ; forwarded value
-      dest-exi ; forwarded value                       
-      (ite
-        (or (is-load opcode-exi) (is-store opcode-exi))
-        (PLUS operand-ai short-immed-exi)
-        (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
-      );result-exi ; forwarded value                     
-      dest-memi ; forwarded value                      
-      (ite
-        load-flagi
-        (select DMEMi mari)
-        result-memi                      
-      );result-memi ; forwarded value                    
-      dest-wbi ; forwarded value                       
-      result-wbi ; forwarded value                     
+      true ; bubble-exi ; forwarded value                      
+      ZERO ; opcode-exi; forwarded value (arbitrary, as bubble-ex is set to true)
+      ZERO ; dest-exi ; forwarded value ("invalid" address)                       
+      ZERO ; result-exi ; forwarded value (arbitrary, as bubble-ex is set to true)                    
+      ZERO ; dest-memi ; forwarded value  
+      ZERO ;result-memi ; forwarded value (arbitrary, as dest-mem is ZERO)                    
+      ZERO ; dest-wbi ; forwarded value                       
+      ZERO ; result-wbi ; forwarded value (arbitrary, as dest-wb is ZERO)                     
       bubble-ext4_                      
       short-immed-ext4_                
       dest-ext4_                       
@@ -1393,9 +1385,9 @@
       PCi
       inst-idi
       bubble-idi
-      bubble-exi
-      opcode-exi 
-      dest-exi
+      true ; bubble-exi
+      ZERO ; opcode-exi ; arbitrary since bubble-ex 
+      ZERO ; dest-exi
       operand-at4_ ; The new value that operand-a register would have received
                    ; if this were a normal step (= the one that results from
                    ; clearing the ID stage)
@@ -2053,3 +2045,5 @@
   (PLUS operand-a short-immed-ex)
   (alu-result operand-a operand-b opcode-ex short-immed-ex)
 )))
+(get-value (bubble-exsc1_))
+(get-value (bubble-exci4_))
