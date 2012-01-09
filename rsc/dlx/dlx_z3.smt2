@@ -740,7 +740,10 @@
     (= 
       dest-memo 
       (ite
-        bubble-exi
+        (or
+          bubble-exi
+          (is-store opcode-exi)
+        )
         ZERO
         dest-exi
       )
@@ -839,6 +842,7 @@
           (and
             (= (rf1-of inst-idi) dest-exf)
             (not bubble-exf)
+            (not (is-store opcode-exf))
           )
           result-exf
           (ite ; forward from MEM?
@@ -865,6 +869,7 @@
             (and
               (= (rf2-of inst-idi) dest-exf)
               (not bubble-exf)
+              (not (is-store opcode-exf))
             )
             result-exf
             (ite ; forward from MEM?
