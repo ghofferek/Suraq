@@ -1123,7 +1123,11 @@
         (PLUS operand-ai short-immed-exi)
         (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
       ) ;result-exi ; forwarded value                     
-      dest-memi ; forwarded value
+      (ite
+        store-flagi
+        ZERO
+        dest-memi 
+      ) ; dest-memi ; forwarded value
       (ite
         load-flagi
         (select DMEMi mari)
