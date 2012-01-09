@@ -694,7 +694,13 @@
     )
   
     ; update of WB stage registers
-    (= dest-wbo dest-memi)
+    (= dest-wbo
+      (ite 
+        store-flagi
+        ZERO
+        dest-memi
+      )
+    )
     (= 
       result-wbo
       (ite
@@ -1993,6 +1999,7 @@
 
 (get-value ((rf1-of inst-id)))
 (get-value ((rf2-of inst-id)))
+(get-value ((rf3-of inst-id)))
 (get-value ((opcode-of inst-id)))
 (get-value ((is-load (opcode-of inst-id))))
 (get-value ((is-store (opcode-of inst-id))))
@@ -2094,3 +2101,29 @@
 (get-value (operand-asc5_))
 (get-value (operand-bsc5_))
 (get-value ((alu-result operand-asc5_ operand-bsc5_ opcode-exsc5_ short-immed-exsc5_)))
+
+(get-value ((ALU (alu-op-of opcode-exsc1_) operand-asc1_ operand-bsc1_)))
+(get-value ((alu-op-of opcode-exsc1_)))
+(get-value (operand-asc1_))
+(get-value (operand-bsc1_))
+(get-value ((ALU (alu-op-of opcode-exci4_) operand-aci4_ operand-bci4_)))
+(get-value ((alu-op-of opcode-exci4_)))
+(get-value (operand-aci4_))
+(get-value (operand-bci4_))
+(get-value ((select REGFILEci3_ (rf1-of inst-id))))
+(get-value ((select REGFILEsc3_ (rf1-of inst-id))))
+
+(get-value (dest-ex))
+(get-value (dest-mem))
+(get-value (dest-wb))
+(get-value (dest-exsc1_))
+(get-value (dest-memsc1_))
+(get-value (dest-wbsc1_))
+(get-value (result-wb))
+(get-value (result-mem))
+(get-value (result-wbsc1_))
+(get-value (result-memsc1_))
+
+(get-value ((alu-result operand-a operand-b opcode-ex short-immed-ex)))
+(get-value ((is-load opcode-ex)))
+(get-value ((is-store opcode-ex)))
