@@ -829,7 +829,10 @@
         (= ZERO (rf1-of inst-idi))
         ZERO
         (ite ; forward from EX?
-          (= (rf1-of inst-idi) dest-exf)
+          (and
+            (= (rf1-of inst-idi) dest-exf)
+            (not bubble-exf)
+          )
           result-exf
           (ite ; forward from MEM?
             (= (rf1-of inst-idi) dest-memf)
