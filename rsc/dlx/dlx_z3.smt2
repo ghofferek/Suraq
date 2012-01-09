@@ -737,7 +737,14 @@
   (and ; conjunction over all parts
       
     ; update of MEM stage registers
-    (= dest-memo dest-exi)
+    (= 
+      dest-memo 
+      (ite
+        bubble-exi
+        ZERO
+        dest-exi
+      )
+    )
     (= 
       result-memo
       (ite
