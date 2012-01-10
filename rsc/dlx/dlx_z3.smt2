@@ -254,6 +254,8 @@
 (declare-fun forward-b-from-mem () Bool)
 (declare-fun forward-b-from-wb  () Bool)
 
+(declare-fun do-stall-issue     () Bool)
+
 ; auxiliary constants to state commutativity and associativity of PLUS
 ; (declare-fun aux1            () Int )
 ; (declare-fun aux2            () Int )
@@ -822,7 +824,7 @@
     (=
       bubble-exo
       (or
-        (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idi inst-idi) 
+        do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idi inst-idi) 
         bubble-idi
         (is-J    (opcode-of inst-idi))
         (is-BEQZ (opcode-of inst-idi))
@@ -943,7 +945,7 @@
           false
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
+          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           bubble-idf
           (ite
             stall
@@ -963,7 +965,7 @@
           (select IMEMi PCi)
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
+          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           inst-idf
           (ite
             stall
@@ -1023,7 +1025,7 @@
           (PLUS PCi FOUR)
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
+          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           PCi
           (ite
             stall
@@ -1687,14 +1689,14 @@
           (and 
             (not pbubble-idsc1_)
             (not
-              (stall-issue
-                pforce-stall-issue
-                pbubble-ex
-                popcode-ex
-                pdest-ex
-                pbubble-id
-                pinst-id
-              )
+              do-stall-issue ; (stall-issue
+;                 pforce-stall-issue
+;                 pbubble-ex
+;                 popcode-ex
+;                 pdest-ex
+;                 pbubble-id
+;                 pinst-id
+;               )
             )
           ) ; end condition about stalling
    
@@ -2075,6 +2077,21 @@
   )
 )
 
+;-------------------------------------------------------------------------------
+; do-stall-issue
+(assert
+  (=
+    do-stall-issue
+    (stall-issue
+      force-stall-issue  
+      bubble-ex          
+      opcode-ex          
+      dest-ex            
+      bubble-id          
+      inst-id            
+    )
+  )
+)
 
 (get-info :name)
 (check-sat)  
