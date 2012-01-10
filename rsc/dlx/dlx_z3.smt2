@@ -250,6 +250,9 @@
 (declare-fun forward-a-from-mem () Bool)
 (declare-fun forward-a-from-wb  () Bool)
 
+(declare-fun forward-b-from-ex  () Bool)
+(declare-fun forward-b-from-mem () Bool)
+(declare-fun forward-b-from-wb  () Bool)
 
 ; auxiliary constants to state commutativity and associativity of PLUS
 ; (declare-fun aux1            () Int )
@@ -875,20 +878,20 @@
         (ite ; load from REGFILE[0]?
           (= ZERO (rf2-of inst-idi))
           ZERO
-          (ite ; forward from EX?
-            (and
-              (= (rf2-of inst-idi) dest-exf)
-              (not bubble-exf)
-              (not (is-store opcode-exf))
-            )
-            result-exf
-            (ite ; forward from MEM?
-              (= (rf2-of inst-idi) dest-memf)
-              result-memf
-              (ite ; forward from WB?
-                (= (rf2-of inst-idi) dest-wbf)
-                result-wbf
-                (select REGFILEi (rf2-of inst-idi)) ; normal read
+          (ite 
+            completion 
+            (select REGFILEi (rf2-of inst-idi)) ; normal read during completion
+            (ite ; forward from EX?
+              forward-b-from-ex
+              result-exf
+              (ite ; forward from MEM?
+                forward-b-from-mem ; (= (rf2-of inst-idi) dest-memf)
+                result-memf
+                (ite ; forward from WB?
+                  forward-b-from-wb ; (= (rf2-of inst-idi) dest-wbf)
+                  result-wbf
+                  (select REGFILEi (rf2-of inst-idi)) ; normal read
+                )
               )
             )
           )
@@ -2038,182 +2041,40 @@
   )
 )
 
+;-------------------------------------------------------------------------------
+; forward-b-from-ex
+(assert 
+  (=
+    forward-b-from-ex
+    (and
+      (= (rf2-of inst-id) dest-ex)
+      (not bubble-ex)
+      (not (is-store opcode-ex))
+    )
+  )
+)
 
-  
-(check-sat)  
+;-------------------------------------------------------------------------------
+; forward-b-from-mem
+(assert
+  (=
+    forward-b-from-mem
+    (and
+      (= (rf2-of inst-id) dest-mem)
+      (not store-flag)
+    )
+  )
+)
+
+;-------------------------------------------------------------------------------
+; forward-b-from-wb
+(assert
+  (=
+    forward-b-from-wb
+    (= (rf2-of inst-id) dest-wb)
+  )
+)
+
+
 (get-info :name)
-(get-model)
-(get-value (forward-a-from-ex))
-(get-value (forward-a-from-mem))
-(get-value (forward-a-from-wb))
-
-(get-value (PC))
-(get-value (PCci4_))
-(get-value (PCci5_))
-(get-value (PCsc1_))
-(get-value (PCsc5_))
-(get-value ((= PCci5_ PCsc5_)))
-(get-value ((= DMEMci5_ DMEMsc5_)))
-(get-value ((= REGFILEci5_ REGFILEsc5_)))
-
-
-(get-value (FOUR))
-(get-value (ZERO))
-
-(get-value ((rf1-of inst-id)))
-(get-value ((rf2-of inst-id)))
-(get-value ((rf3-of inst-id)))
-
-(get-value (dest-ex))
-(get-value (dest-mem))
-(get-value (dest-wb))
-(get-value (dest-exsc1_))
-(get-value (dest-memsc1_))
-(get-value (dest-wbsc1_))
-(get-value (result-wb))
-(get-value (result-mem))
-(get-value (result-wbsc1_))
-(get-value (result-memsc1_))
- 
-; (get-value (bubble-id))
-; (get-value (bubble-idsc1_))
-; (get-value (bubble-ex))
-; (get-value (bubble-exsc1_))
-; 
-; (get-value ((stall-issue force-stall-issue bubble-ex opcode-ex dest-ex bubble-id inst-id)))
-; 
-; (get-value (opcode-ex))
-; (get-value ((is-load opcode-ex)))
-; (get-value (dest-ex))
-; (get-value (inst-id))
-; 
-; (get-value ((rf1-of inst-id)))
-; (get-value ((rf2-of inst-id)))
-; (get-value ((rf3-of inst-id)))
-; (get-value ((opcode-of inst-id)))
-; (get-value ((is-load (opcode-of inst-id))))
-; (get-value ((is-store (opcode-of inst-id))))
-; (get-value ((is-J (opcode-of inst-id))))
-; (get-value ((is-BEQZ (opcode-of inst-id))))
-; (get-value ((is-alu-immed (opcode-of inst-id))))
-; 
-; (get-value (operand-a))
-; (get-value (operand-asc1_))
-; (get-value (operand-asc5_))
-; (get-value (operand-aci4_))
-; 
-; (get-value (inst-idsc1_))
-; (get-value ((select IMEM PCci4_)))
-; 
-; (get-value ((opcode-of inst-idsc1_)))
-; (get-value ((is-load (opcode-of inst-idsc1_))))
-; (get-value ((is-store (opcode-of inst-idsc1_))))
-; (get-value ((is-J (opcode-of inst-idsc1_))))
-; (get-value ((is-BEQZ (opcode-of inst-idsc1_))))
-; (get-value ((is-alu-immed (opcode-of inst-idsc1_))))
-; (get-value ((rf1-of inst-idsc1_)))
-; (get-value ((select REGFILEci4_ (rf1-of inst-idsc1_))))
-; (get-value ((select REGFILEsc4_ (rf1-of inst-idsc1_))))
-; (get-value ((short-immed-of inst-idsc1_)))
-; (get-value ((PLUS PCsc1_ (short-immed-of inst-idsc1_))))
-; (get-value ((rf1-of (select IMEM PCci4_))))
-; (get-value ((rf1-of inst-idsc1_)))
-; (get-value (dest-wbsc1_))
-; (get-value (dest-memsc1_))
-; (get-value (dest-exsc1_))
-; 
-; (get-value (load-flagsc1_))
-; (get-value ((select DMEMsc1_ marsc1_)))
-; (get-value (marsc1_))
-; 
-; (get-value (dest-wb))
-; (get-value (dest-mem))
-; (get-value (dest-ex))
-; 
-; (get-value (REGFILE))
-; (get-value (REGFILEci1_))
-; (get-value (REGFILEsc1_))
-; (get-value (REGFILEci2_))
-; (get-value (REGFILEsc2_))
-; (get-value (REGFILEci3_))
-; (get-value (REGFILEsc3_))
-; (get-value (REGFILEci4_))
-; (get-value (REGFILEsc4_))
-; (get-value (REGFILEci5_))
-; (get-value (REGFILEsc5_))
-; 
-; (get-value (DMEM))
-; (get-value (DMEMsc1_))
-; (get-value (DMEMci2_))
-; (get-value (DMEMsc3_))
-; (get-value (DMEMci4_))
-; (get-value (DMEMsc4_))
-; (get-value (DMEMci5_))
-; (get-value (DMEMsc5_))
-; 
-; (get-value ((select IMEM PCci4_)))
-; (get-value ((opcode-of (select IMEM PCci4_))))
-; (get-value ((rf1-of (select IMEM PCci4_))))
-; (get-value ((rf2-of (select IMEM PCci4_))))
-; (get-value ((rf3-of (select IMEM PCci4_))))
-; (get-value ((select REGFILEci4_ (rf1-of (select IMEM PCci4_)))))
-; (get-value ((select REGFILEci4_ (rf2-of (select IMEM PCci4_)))))
-; (get-value ((select REGFILEci4_ (rf3-of (select IMEM PCci4_)))))
-; (get-value ((short-immed-of (select IMEM PCci4_))))
-; (get-value ((long-immed-of (select IMEM PCci4_))))
-; (get-value ((is-load (opcode-of (select IMEM PCci4_)))))
-; (get-value ((is-store (opcode-of (select IMEM PCci4_)))))
-; (get-value ((is-J (opcode-of (select IMEM PCci4_)))))
-; (get-value ((is-BEQZ (opcode-of (select IMEM PCci4_)))))
-; (get-value ((is-alu-immed (opcode-of (select IMEM PCci4_)))))
-; 
-; 
-; (get-value (DMEMci4_))
-; (get-value (DMEMsc4_))
-; (get-value ((PLUS (short-immed-of (select IMEM PCci4_)) (select REGFILEci4_ (rf1-of (select IMEM PCci4_))))))
-; (get-value ((select DMEMci4_ (PLUS (short-immed-of (select IMEM PCci4_)) (select REGFILEci4_ (rf1-of (select IMEM PCci4_)))))))
-; (get-value ((select DMEMci4_ 24)))
-; (get-value ((select REGFILEci4_ 4)))
-; (get-value ((rf1data REGFILEci4_ IMEM PCci4_)))
-; (get-value ((rf2data REGFILEci4_ IMEM PCci4_)))
-; (get-value ((PLUS 36 35)))
-; (get-value ((PLUS 36 4)))
-; (get-value ((store REGFILEci4_ 39 41)))
-; (get-value ((select DMEMci4_ 41)))
-; 
-; (get-value (dest-wbsc5_))
-; (get-value (result-wbsc5_))
-; (get-value (dest-memsc5_))
-; (get-value (result-memsc5_))
-; (get-value ((select DMEMsc5_ marsc5_)))
-; (get-value (marsc5_))
-; 
-; (get-value (operand-asc5_))
-; (get-value (operand-bsc5_))
-; (get-value ((alu-result operand-asc5_ operand-bsc5_ opcode-exsc5_ short-immed-exsc5_)))
-; 
-; (get-value ((ALU (alu-op-of opcode-exsc1_) operand-asc1_ operand-bsc1_)))
-; (get-value ((alu-op-of opcode-exsc1_)))
-; (get-value (operand-asc1_))
-; (get-value (operand-bsc1_))
-; (get-value ((ALU (alu-op-of opcode-exci4_) operand-aci4_ operand-bci4_)))
-; (get-value ((alu-op-of opcode-exci4_)))
-; (get-value (operand-aci4_))
-; (get-value (operand-bci4_))
-; (get-value ((select REGFILEci3_ (rf1-of inst-id))))
-; (get-value ((select REGFILEsc3_ (rf1-of inst-id))))
-; 
-; (get-value (dest-ex))
-; (get-value (dest-mem))
-; (get-value (dest-wb))
-; (get-value (dest-exsc1_))
-; (get-value (dest-memsc1_))
-; (get-value (dest-wbsc1_))
-; (get-value (result-wb))
-; (get-value (result-mem))
-; (get-value (result-wbsc1_))
-; (get-value (result-memsc1_))
-; 
-; (get-value ((alu-result operand-a operand-b opcode-ex short-immed-ex)))
-; (get-value ((is-load opcode-ex)))
-; (get-value ((is-store opcode-ex)))
+(check-sat)  
