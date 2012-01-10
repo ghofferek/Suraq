@@ -245,6 +245,12 @@
 (declare-fun result-wbsc5_   () Int)
 
 
+; Control signals
+(declare-fun forward-a-from-ex  () Bool)
+(declare-fun forward-a-from-mem () Bool)
+(declare-fun forward-a-from-wb  () Bool)
+
+
 ; auxiliary constants to state commutativity and associativity of PLUS
 ; (declare-fun aux1            () Int )
 ; (declare-fun aux2            () Int )
@@ -252,7 +258,7 @@
 ; (declare-fun aux4            () Int )
 ; (declare-fun aux5            () Int )
 
-; auxiliary constants to state properti4es of the is-XXX predicates
+; auxiliary constants to state properties of the is-XXX predicates
 ; (declare-fun aux6            () Int )
 
 
@@ -801,6 +807,9 @@
     
     ; primary inputs
     (force-stall-issue Bool              )
+    
+    ; auxiliary signal
+    (completion        Bool            )
   )
   Bool ; return type
   ; main expression
@@ -838,25 +847,26 @@
       (ite ; load from REGFILE[0]? 
         (= ZERO (rf1-of inst-idi))
         ZERO
-        (ite ; forward from EX?
-          (and
-            (= (rf1-of inst-idi) dest-exf)
-            (not bubble-exf)
-            (not (is-store opcode-exf))
-          )
-          result-exf
-          (ite ; forward from MEM?
-            (= (rf1-of inst-idi) dest-memf)
-            result-memf
-            (ite ; forward from WB?
-              (= (rf1-of inst-idi) dest-wbf)
-              result-wbf
-              (select REGFILEi (rf1-of inst-idi)) ; normal read
+        (ite 
+          completion 
+          (select REGFILEi (rf1-of inst-idi)) ; normal read during completion
+          (ite ; forward from EX?
+            forward-a-from-ex
+            result-exf
+            (ite ; forward from MEM?
+              forward-a-from-mem ; (= (rf1-of inst-idi) dest-memf)
+              result-memf
+              (ite ; forward from WB?
+                forward-a-from-wb ; (= (rf1-of inst-idi) dest-wbf)
+                result-wbf
+                (select REGFILEi (rf1-of inst-idi)) ; normal read
+              )
             )
           )
         )
       )
     )
+  
     (=
       operand-bo
       (ite ; load immed from inst?
@@ -1159,7 +1169,8 @@
       opcode-exo                     
       operand-ao                     
       operand-bo                     
-      force-stall-issue                   
+      force-stall-issue     
+      false ; completion              
     )
     
     (step-in-IF
@@ -1370,7 +1381,8 @@
       opcode-ext4_                     
       operand-at4_                     
       operand-bt4_                     
-      force-stall-issue                   
+      force-stall-issue          
+      true ; completion         
     )
   
     (step-in-EX 
@@ -1989,24 +2001,80 @@
   )
 )
 
+;-------------------------------------------------------------------------------
+; "implementation" of control signals
+
+;-------------------------------------------------------------------------------
+; forward-a-from-ex
+(assert 
+  (=
+    forward-a-from-ex
+    (and
+      (= (rf1-of inst-id) dest-ex)
+      (not bubble-ex)
+      (not (is-store opcode-ex))
+    )
+  )
+)
+
+;-------------------------------------------------------------------------------
+; forward-a-from-mem
+(assert
+  (=
+    forward-a-from-mem
+    (and
+      (= (rf1-of inst-id) dest-mem)
+      (not store-flag)
+    )
+  )
+)
+
+;-------------------------------------------------------------------------------
+; forward-a-from-wb
+(assert
+  (=
+    forward-a-from-wb
+    (= (rf1-of inst-id) dest-wb)
+  )
+)
+
 
   
 (check-sat)  
 (get-info :name)
-; (get-model)
-; (get-value (PC))
-; (get-value (PCci4_))
-; (get-value (PCci5_))
-; (get-value (PCsc1_))
-; (get-value (PCsc5_))
-; (get-value ((= PCci5_ PCsc5_)))
-; (get-value ((= DMEMci5_ DMEMsc5_)))
-; (get-value ((= REGFILEci5_ REGFILEsc5_)))
-; 
-; 
-; (get-value (FOUR))
-; (get-value (ZERO))
-; 
+(get-model)
+(get-value (forward-a-from-ex))
+(get-value (forward-a-from-mem))
+(get-value (forward-a-from-wb))
+
+(get-value (PC))
+(get-value (PCci4_))
+(get-value (PCci5_))
+(get-value (PCsc1_))
+(get-value (PCsc5_))
+(get-value ((= PCci5_ PCsc5_)))
+(get-value ((= DMEMci5_ DMEMsc5_)))
+(get-value ((= REGFILEci5_ REGFILEsc5_)))
+
+
+(get-value (FOUR))
+(get-value (ZERO))
+
+(get-value ((rf1-of inst-id)))
+(get-value ((rf2-of inst-id)))
+(get-value ((rf3-of inst-id)))
+
+(get-value (dest-ex))
+(get-value (dest-mem))
+(get-value (dest-wb))
+(get-value (dest-exsc1_))
+(get-value (dest-memsc1_))
+(get-value (dest-wbsc1_))
+(get-value (result-wb))
+(get-value (result-mem))
+(get-value (result-wbsc1_))
+(get-value (result-memsc1_))
+ 
 ; (get-value (bubble-id))
 ; (get-value (bubble-idsc1_))
 ; (get-value (bubble-ex))
