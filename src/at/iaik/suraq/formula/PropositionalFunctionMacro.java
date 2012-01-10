@@ -17,24 +17,13 @@ import at.iaik.suraq.sexp.Token;
 /**
  * This class represents a (Boolean) function macro. It represents the
  * "define-fun" part of the input. Do not confuse it with
- * <code>PropositionalFunctionMacroInstance</code> which is an actual instance of a macro.
+ * <code>PropositionalFunctionMacroInstance</code> which is an actual instance
+ * of a macro.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class PropositionalFunctionMacro {
-
-    /**
-     * The name of this macro.
-     */
-    private final Token name;
-
-    private final List<Token> parameters;
-
-    /**
-     * The map of parameters to their types.
-     */
-    private final Map<Token, SExpression> paramMap;
+public class PropositionalFunctionMacro extends FunctionMacro {
 
     /**
      * The body of this macro.
@@ -42,7 +31,8 @@ public class PropositionalFunctionMacro {
     private Formula body;
 
     /**
-     * Constructs a new <code>PropositionalFunctionMacro</code> with the given values.
+     * Constructs a new <code>PropositionalFunctionMacro</code> with the given
+     * values.
      * 
      * @param name
      *            the name of this macro.
@@ -59,114 +49,20 @@ public class PropositionalFunctionMacro {
     public PropositionalFunctionMacro(Token name, List<Token> parameters,
             Map<Token, SExpression> paramMap, Formula body)
             throws InvalidParametersException {
-        if (parameters.size() != paramMap.size())
-            throw new InvalidParametersException();
-        for (Token parameter : parameters) {
-            if (!paramMap.containsKey(parameter))
-                throw new InvalidParametersException();
-            if (paramMap.get(parameter) == null)
-                throw new InvalidParametersException();
-        }
-        this.name = name;
-        this.parameters = new ArrayList<Token>(parameters);
-        this.paramMap = new HashMap<Token, SExpression>(paramMap);
+        super(name, parameters, paramMap);
         this.body = body;
     }
 
     /**
-     * Constructs a new <code>PropositionalFunctionMacro</code>, which is a deep copy of the
-     * given one
+     * Constructs a new <code>PropositionalFunctionMacro</code>, which is a deep
+     * copy of the given one
      * 
      * @param macro
      *            the macro to (deep) copy.
      */
     public PropositionalFunctionMacro(PropositionalFunctionMacro macro) {
-
-        this.name = (Token) macro.name.deepCopy();
-        this.parameters = new ArrayList<Token>();
-        for (Token parameter : macro.parameters)
-            this.parameters.add((Token) parameter.deepCopy());
-        this.paramMap = new HashMap<Token, SExpression>();
-        for (Token token : macro.paramMap.keySet())
-            this.paramMap.put((Token) token.deepCopy(),
-                    macro.paramMap.get(token).deepCopy());
+        super(macro);
         this.body = macro.body.deepFormulaCopy();
-    }
-
-    /**
-     * @return the <code>name</code>
-     */
-    public Token getName() {
-        return name;
-    }
-
-    /**
-     * Returns a copy of the list of parameters.
-     * 
-     * @return the <code>parameters</code> (copy)
-     */
-    public List<Token> getParameters() {
-        return new ArrayList<Token>(parameters);
-    }
-
-    /**
-     * Returns a copy of the map from parameters to values.
-     * 
-     * @return the <code>paramMap</code>
-     */
-    public Map<Token, SExpression> getParamMap() {
-        return new HashMap<Token, SExpression>(paramMap);
-    }
-
-    /**
-     * Returns the number of parameters of this macro.
-     * 
-     * @return the number of parameters.
-     */
-    public int getNumParams() {
-        assert (parameters.size() == paramMap.size());
-        return parameters.size();
-    }
-
-    /**
-     * Returns the type of the parameter with index <code>count</code>, or
-     * <code>null</code> if the index is out of bounds.
-     * 
-     * @param index
-     *            the index of the parameter to look up.
-     * @return the type of the parameter with the given index, or
-     *         <code>null</code> if no such parameter exists.
-     */
-    public SExpression getParamType(int index) {
-        try {
-            return paramMap.get(parameters.get(index));
-        } catch (IndexOutOfBoundsException exc) {
-            return null;
-        }
-    }
-
-    /**
-     * Returns the type of the parameter with the given name, or
-     * <code>null</code> if no such parameter exists..
-     * 
-     * @param param
-     *            the name of the parameter to look up.
-     * @return the type of the parameter with the given name, or
-     *         <code>null</code> if no such parameter exists.
-     */
-    public SExpression getParamType(Token param) {
-        return paramMap.get(param);
-    }
-
-    /**
-     * Returns the parameter name with the given index.
-     * 
-     * @param index
-     *            the index to look up
-     * @return the parameter name with the given index.
-     */
-    public Token getParam(int index) {
-        return parameters.get(index);
     }
 
     /**
@@ -186,7 +82,8 @@ public class PropositionalFunctionMacro {
      *             if conversion to NNF fails (e.g. due to invalid array
      *             properties)
      */
-    public PropositionalFunctionMacro negationNormalForm() throws SuraqException {
+    public PropositionalFunctionMacro negationNormalForm()
+            throws SuraqException {
         assert (!name.toString().endsWith("NNF"));
 
         Token nnfName = new Token(name.toString() + "NNF");
@@ -196,7 +93,8 @@ public class PropositionalFunctionMacro {
 
         Formula nnfBody = body.negationNormalForm();
 
-        return new PropositionalFunctionMacro(nnfName, nnfParameters, nnfParamMap, nnfBody);
+        return new PropositionalFunctionMacro(nnfName, nnfParameters,
+                nnfParamMap, nnfBody);
     }
 
     /**
@@ -241,6 +139,7 @@ public class PropositionalFunctionMacro {
     /**
      * Removes array equalities from the body of the macro.
      */
+    @Override
     public void removeArrayEqualities() {
         if (body instanceof ArrayEq)
             body = ((ArrayEq) body).toArrayProperties();
@@ -254,6 +153,7 @@ public class PropositionalFunctionMacro {
      * @param indexSet
      *            the index set.
      */
+    @Override
     public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         if (body instanceof ArrayProperty)
             body = ((ArrayProperty) body).toFiniteConjunction(indexSet);
@@ -264,6 +164,7 @@ public class PropositionalFunctionMacro {
     /**
      * Simplifies the body of the macro.
      */
+    @Override
     public void simplify() {
         body = body.simplify();
     }
@@ -290,5 +191,4 @@ public class PropositionalFunctionMacro {
 
         return null;
     }
-
 }
