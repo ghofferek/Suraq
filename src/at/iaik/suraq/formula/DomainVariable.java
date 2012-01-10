@@ -119,12 +119,12 @@ public class DomainVariable extends DomainTerm {
      * @see at.iaik.suraq.formula.Term#getFunctionMacroNames()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        return new HashSet<FunctionMacro>();
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
+        return new HashSet<PropositionalFunctionMacro>();
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
+     * @see at.iaik.suraq.formula.Term#getPropositionalFunctionMacros()
      */
     @Override
     public Set<String> getFunctionMacroNames() {

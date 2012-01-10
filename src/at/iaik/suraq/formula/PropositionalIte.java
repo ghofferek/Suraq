@@ -164,13 +164,13 @@ public class PropositionalIte extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = thenBranch.getFunctionMacros();
-        result.addAll(elseBranch.getFunctionMacros());
-        result.addAll(condition.getFunctionMacros());
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
+        Set<PropositionalFunctionMacro> result = thenBranch.getPropositionalFunctionMacros();
+        result.addAll(elseBranch.getPropositionalFunctionMacros());
+        result.addAll(condition.getPropositionalFunctionMacros());
         return result;
     }
 

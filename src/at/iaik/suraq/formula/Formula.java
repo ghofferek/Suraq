@@ -66,7 +66,7 @@ public interface Formula {
      * 
      * @return a set of all function macros used in this formula.
      */
-    public Set<FunctionMacro> getFunctionMacros();
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros();
 
     /**
      * Computes the index set of this formula. (Cf. Bradley/Manna, p. 295) The

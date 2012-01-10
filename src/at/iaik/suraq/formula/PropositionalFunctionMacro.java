@@ -17,12 +17,12 @@ import at.iaik.suraq.sexp.Token;
 /**
  * This class represents a (Boolean) function macro. It represents the
  * "define-fun" part of the input. Do not confuse it with
- * <code>FunctionMacroInstance</code> which is an actual instance of a macro.
+ * <code>PropositionalFunctionMacroInstance</code> which is an actual instance of a macro.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class FunctionMacro {
+public class PropositionalFunctionMacro {
 
     /**
      * The name of this macro.
@@ -42,7 +42,7 @@ public class FunctionMacro {
     private Formula body;
 
     /**
-     * Constructs a new <code>FunctionMacro</code> with the given values.
+     * Constructs a new <code>PropositionalFunctionMacro</code> with the given values.
      * 
      * @param name
      *            the name of this macro.
@@ -56,7 +56,7 @@ public class FunctionMacro {
      *             if the size of the parameter list and the type map do not
      *             match.
      */
-    public FunctionMacro(Token name, List<Token> parameters,
+    public PropositionalFunctionMacro(Token name, List<Token> parameters,
             Map<Token, SExpression> paramMap, Formula body)
             throws InvalidParametersException {
         if (parameters.size() != paramMap.size())
@@ -74,13 +74,13 @@ public class FunctionMacro {
     }
 
     /**
-     * Constructs a new <code>FunctionMacro</code>, which is a deep copy of the
+     * Constructs a new <code>PropositionalFunctionMacro</code>, which is a deep copy of the
      * given one
      * 
      * @param macro
      *            the macro to (deep) copy.
      */
-    public FunctionMacro(FunctionMacro macro) {
+    public PropositionalFunctionMacro(PropositionalFunctionMacro macro) {
 
         this.name = (Token) macro.name.deepCopy();
         this.parameters = new ArrayList<Token>();
@@ -186,7 +186,7 @@ public class FunctionMacro {
      *             if conversion to NNF fails (e.g. due to invalid array
      *             properties)
      */
-    public FunctionMacro negationNormalForm() throws SuraqException {
+    public PropositionalFunctionMacro negationNormalForm() throws SuraqException {
         assert (!name.toString().endsWith("NNF"));
 
         Token nnfName = new Token(name.toString() + "NNF");
@@ -196,7 +196,7 @@ public class FunctionMacro {
 
         Formula nnfBody = body.negationNormalForm();
 
-        return new FunctionMacro(nnfName, nnfParameters, nnfParamMap, nnfBody);
+        return new PropositionalFunctionMacro(nnfName, nnfParameters, nnfParamMap, nnfBody);
     }
 
     /**
@@ -205,7 +205,7 @@ public class FunctionMacro {
      * @return a macro with a negated body, put in NNF.
      * @throws SuraqException
      */
-    public FunctionMacro negatedMacro() throws SuraqException {
+    public PropositionalFunctionMacro negatedMacro() throws SuraqException {
         Token negatedName = new Token(name.toString() + "Negated");
         Map<Token, SExpression> negatedParamMap = new HashMap<Token, SExpression>(
                 paramMap);
@@ -213,7 +213,7 @@ public class FunctionMacro {
 
         Formula negatedBody = (new NotFormula(body)).negationNormalForm();
 
-        return new FunctionMacro(negatedName, negatedParameters,
+        return new PropositionalFunctionMacro(negatedName, negatedParameters,
                 negatedParamMap, negatedBody);
     }
 
@@ -222,9 +222,9 @@ public class FunctionMacro {
      */
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof FunctionMacro))
+        if (!(obj instanceof PropositionalFunctionMacro))
             return false;
-        FunctionMacro other = (FunctionMacro) obj;
+        PropositionalFunctionMacro other = (PropositionalFunctionMacro) obj;
         return other.name.equals(name) && other.parameters.equals(parameters)
                 && other.paramMap.equals(paramMap) && other.body.equals(body);
     }

@@ -150,13 +150,13 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
+     * @see at.iaik.suraq.formula.Term#getPropositionalFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = new HashSet<FunctionMacro>();
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
+        Set<PropositionalFunctionMacro> result = new HashSet<PropositionalFunctionMacro>();
         for (Term term : parameters)
-            result.addAll(term.getFunctionMacros());
+            result.addAll(term.getPropositionalFunctionMacros());
         return result;
     }
 

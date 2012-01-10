@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import at.iaik.suraq.exceptions.ParseError;
-import at.iaik.suraq.formula.FunctionMacroInstance;
+import at.iaik.suraq.formula.PropositionalFunctionMacroInstance;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
@@ -65,7 +65,7 @@ public class LogicParserTest {
         Assert.assertEquals(5, logicParser.getNoDependenceVariables().size());
 
         Assert.assertNotNull(logicParser.getMainFormula());
-        Assert.assertTrue(logicParser.getMainFormula() instanceof FunctionMacroInstance);
+        Assert.assertTrue(logicParser.getMainFormula() instanceof PropositionalFunctionMacroInstance);
 
     }
 }

@@ -162,12 +162,12 @@ public class NotFormula extends BooleanCombinationFormula {
         }
 
         // MacroInstance
-        if (formula instanceof FunctionMacroInstance) {
-            FunctionMacro negatedMacro = ((FunctionMacroInstance) formula)
+        if (formula instanceof PropositionalFunctionMacroInstance) {
+            PropositionalFunctionMacro negatedMacro = ((PropositionalFunctionMacroInstance) formula)
                     .getMacro().negatedMacro();
             Map<Token, Term> paramMap = new HashMap<Token, Term>(
-                    ((FunctionMacroInstance) formula).getParamMap());
-            return new FunctionMacroInstance(negatedMacro, paramMap);
+                    ((PropositionalFunctionMacroInstance) formula).getParamMap());
+            return new PropositionalFunctionMacroInstance(negatedMacro, paramMap);
         }
 
         // PropositionalITE
@@ -204,11 +204,11 @@ public class NotFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        return formula.getFunctionMacros();
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
+        return formula.getPropositionalFunctionMacros();
     }
 
     /**

@@ -110,8 +110,8 @@ public class PropositionalConstant extends PropositionalTerm {
      * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        return new HashSet<FunctionMacro>();
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
+        return new HashSet<PropositionalFunctionMacro>();
     }
 
     /**

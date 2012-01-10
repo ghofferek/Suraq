@@ -150,13 +150,13 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
+        Set<PropositionalFunctionMacro> macros = new HashSet<PropositionalFunctionMacro>();
         for (Formula formula : formulas)
-            macros.addAll(formula.getFunctionMacros());
+            macros.addAll(formula.getPropositionalFunctionMacros());
         return macros;
     }
 

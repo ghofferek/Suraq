@@ -19,12 +19,12 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class FunctionMacroInstance implements Formula {
+public class PropositionalFunctionMacroInstance implements Formula {
 
     /**
      * The macro of which this is an instance.
      */
-    private final FunctionMacro macro;
+    private final PropositionalFunctionMacro macro;
 
     /**
      * A map from parameter names to the terms.
@@ -32,7 +32,7 @@ public class FunctionMacroInstance implements Formula {
     private final Map<Token, Term> paramMap;
 
     /**
-     * Constructs a new <code>FunctionMacroInstance</code>.
+     * Constructs a new <code>PropositionalFunctionMacroInstance</code>.
      * 
      * @param macro
      *            the function macro of which this will be an instance.
@@ -42,7 +42,7 @@ public class FunctionMacroInstance implements Formula {
      *             if the given map either misses a parameter or the type of the
      *             term in the map disagrees with the macro.
      */
-    public FunctionMacroInstance(FunctionMacro macro, Map<Token, Term> paramMap)
+    public PropositionalFunctionMacroInstance(PropositionalFunctionMacro macro, Map<Token, Term> paramMap)
             throws InvalidParametersException {
 
         for (Token parameter : macro.getParameters()) {
@@ -64,7 +64,7 @@ public class FunctionMacroInstance implements Formula {
      * 
      * @return the <code>macro</code>
      */
-    public FunctionMacro getMacro() {
+    public PropositionalFunctionMacro getMacro() {
         return macro;
     }
 
@@ -94,14 +94,14 @@ public class FunctionMacroInstance implements Formula {
      */
     @Override
     public Formula deepFormulaCopy() {
-        FunctionMacro macro = new FunctionMacro(this.macro);
+        PropositionalFunctionMacro macro = new PropositionalFunctionMacro(this.macro);
         Map<Token, Term> paramMap = new HashMap<Token, Term>();
         for (Token token : this.paramMap.keySet())
             paramMap.put((Token) token.deepCopy(), this.paramMap.get(token)
                     .deepTermCopy());
 
         try {
-            return new FunctionMacroInstance(macro, paramMap);
+            return new PropositionalFunctionMacroInstance(macro, paramMap);
         } catch (InvalidParametersException exc) {
             // This should never happen!
             assert (false);
@@ -150,7 +150,7 @@ public class FunctionMacroInstance implements Formula {
     @Override
     public Formula negationNormalForm() throws SuraqException {
         Map<Token, Term> paramMap = new HashMap<Token, Term>(this.paramMap);
-        return new FunctionMacroInstance(macro.negationNormalForm(), paramMap);
+        return new PropositionalFunctionMacroInstance(macro.negationNormalForm(), paramMap);
     }
 
     /**
@@ -178,14 +178,14 @@ public class FunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> macroNames = new HashSet<FunctionMacro>();
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
+        Set<PropositionalFunctionMacro> macroNames = new HashSet<PropositionalFunctionMacro>();
         macroNames.add(macro);
         for (Term term : paramMap.values())
-            macroNames.addAll(term.getFunctionMacros());
+            macroNames.addAll(term.getPropositionalFunctionMacros());
         return macroNames;
     }
 
@@ -194,10 +194,10 @@ public class FunctionMacroInstance implements Formula {
      */
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof FunctionMacroInstance))
+        if (!(obj instanceof PropositionalFunctionMacroInstance))
             return false;
-        return ((FunctionMacroInstance) obj).macro.equals(macro)
-                && ((FunctionMacroInstance) obj).paramMap.equals(paramMap);
+        return ((PropositionalFunctionMacroInstance) obj).macro.equals(macro)
+                && ((PropositionalFunctionMacroInstance) obj).paramMap.equals(paramMap);
     }
 
     /**
@@ -233,10 +233,10 @@ public class FunctionMacroInstance implements Formula {
                     .substituteTerm(paramMap));
 
         try {
-            return new FunctionMacroInstance(macro, convertedMap);
+            return new PropositionalFunctionMacroInstance(macro, convertedMap);
         } catch (InvalidParametersException exc) {
             throw new RuntimeException(
-                    "Unexpected exception while converting FunctionMacroInstance to caller scope.",
+                    "Unexpected exception while converting PropositionalFunctionMacroInstance to caller scope.",
                     exc);
         }
     }

@@ -30,8 +30,8 @@ import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.EqualityFormula;
 import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.FunctionMacro;
-import at.iaik.suraq.formula.FunctionMacroInstance;
+import at.iaik.suraq.formula.PropositionalFunctionMacro;
+import at.iaik.suraq.formula.PropositionalFunctionMacroInstance;
 import at.iaik.suraq.formula.ImpliesFormula;
 import at.iaik.suraq.formula.NotFormula;
 import at.iaik.suraq.formula.OrFormula;
@@ -90,7 +90,7 @@ public class LogicParser extends Parser {
     /**
      * The function macros found during parsing, indexed by name tokens
      */
-    private final Map<Token, FunctionMacro> macros = new HashMap<Token, FunctionMacro>();
+    private final Map<Token, PropositionalFunctionMacro> macros = new HashMap<Token, PropositionalFunctionMacro>();
 
     /**
      * The root of the s-expression to be parsed.
@@ -268,9 +268,9 @@ public class LogicParser extends Parser {
             this.currentLocals = null;
         }
 
-        FunctionMacro macro;
+        PropositionalFunctionMacro macro;
         try {
-            macro = new FunctionMacro(name, paramsList, paramMap, body);
+            macro = new PropositionalFunctionMacro(name, paramsList, paramMap, body);
         } catch (InvalidParametersException exc) {
             throw new RuntimeException(
                     "Unexpected situation while parsing macro parameters", exc);
@@ -458,7 +458,7 @@ public class LogicParser extends Parser {
             }
         }
 
-        FunctionMacro macro = isMacroInstance(expression);
+        PropositionalFunctionMacro macro = isMacroInstance(expression);
         if (macro != null) {
             List<SExpression> paramExpressions = expression.getChildren()
                     .subList(1, expression.getChildren().size());
@@ -483,7 +483,7 @@ public class LogicParser extends Parser {
                 paramMap.put(macro.getParam(count), paramTerm);
             }
             try {
-                return new FunctionMacroInstance(macro, paramMap);
+                return new PropositionalFunctionMacroInstance(macro, paramMap);
             } catch (InvalidParametersException exc) {
                 throw new RuntimeException(
                         "Unexpected condition while creating function macro.",
@@ -867,7 +867,7 @@ public class LogicParser extends Parser {
      * @return the macro instantiated by this expression, or <code>null</code>
      *         if this is not a macro instance
      */
-    private FunctionMacro isMacroInstance(SExpression expression) {
+    private PropositionalFunctionMacro isMacroInstance(SExpression expression) {
         if (expression instanceof Token)
             return null;
         if (expression.getChildren().size() < 2)
@@ -1304,7 +1304,7 @@ public class LogicParser extends Parser {
      * 
      * @return a copy of the <code>macros</code>
      */
-    public List<FunctionMacro> getMacros() {
-        return new ArrayList<FunctionMacro>(macros.values());
+    public List<PropositionalFunctionMacro> getMacros() {
+        return new ArrayList<PropositionalFunctionMacro>(macros.values());
     }
 }

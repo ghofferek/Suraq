@@ -116,7 +116,7 @@ public abstract class Term {
      * 
      * @return a set of all function macros used in this term.
      */
-    public abstract Set<FunctionMacro> getFunctionMacros();
+    public abstract Set<PropositionalFunctionMacro> getPropositionalFunctionMacros();
 
     /**
      * Returns a set of all uninterpreted function names used in this formula.

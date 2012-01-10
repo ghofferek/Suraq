@@ -213,13 +213,13 @@ public abstract class EqualityFormula implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     * @see at.iaik.suraq.formula.Formula#getPropositionalFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
+        Set<PropositionalFunctionMacro> macros = new HashSet<PropositionalFunctionMacro>();
         for (Term term : terms)
-            macros.addAll(term.getFunctionMacros());
+            macros.addAll(term.getPropositionalFunctionMacros());
         return macros;
     }
 
