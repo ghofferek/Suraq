@@ -204,11 +204,11 @@ public class NotFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getPropositionalFunctionMacros()
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
-        return formula.getPropositionalFunctionMacros();
+    public Set<FunctionMacro> getFunctionMacros() {
+        return formula.getFunctionMacros();
     }
 
     /**

@@ -348,12 +348,12 @@ public class ArrayProperty implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getPropositionalFunctionMacros()
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
-        Set<PropositionalFunctionMacro> result = indexGuard.getPropositionalFunctionMacros();
-        result.addAll(valueConstraint.getPropositionalFunctionMacros());
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = indexGuard.getFunctionMacros();
+        result.addAll(valueConstraint.getFunctionMacros());
         return result;
     }
 

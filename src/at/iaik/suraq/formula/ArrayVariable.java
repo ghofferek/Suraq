@@ -115,11 +115,11 @@ public class ArrayVariable extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getPropositionalFunctionMacros()
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
      */
     @Override
-    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
-        return new HashSet<PropositionalFunctionMacro>();
+    public Set<FunctionMacro> getFunctionMacros() {
+        return new HashSet<FunctionMacro>();
     }
 
     /**

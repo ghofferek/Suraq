@@ -121,12 +121,12 @@ public class ArrayRead extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getPropositionalFunctionMacros()
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
      */
     @Override
-    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
-        Set<PropositionalFunctionMacro> result = arrayTerm.getPropositionalFunctionMacros();
-        result.addAll(indexTerm.getPropositionalFunctionMacros());
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = arrayTerm.getFunctionMacros();
+        result.addAll(indexTerm.getFunctionMacros());
         return result;
     }
 

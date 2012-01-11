@@ -167,9 +167,4 @@ public abstract class FunctionMacro {
     public abstract void arrayPropertiesToFiniteConjunctions(
             Set<DomainTerm> indexSet);
 
-    /**
-     * Simplifies the body of the macro.
-     */
-    public abstract void simplify();
-
 }

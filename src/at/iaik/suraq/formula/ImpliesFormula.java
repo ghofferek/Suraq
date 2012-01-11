@@ -143,12 +143,12 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getPropositionalFunctionMacros()
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
-        Set<PropositionalFunctionMacro> result = leftSide.getPropositionalFunctionMacros();
-        result.addAll(rightSide.getPropositionalFunctionMacros());
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = leftSide.getFunctionMacros();
+        result.addAll(rightSide.getFunctionMacros());
         return result;
     }
 

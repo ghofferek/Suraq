@@ -134,13 +134,13 @@ public class ArrayWrite extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getPropositionalFunctionMacros()
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
      */
     @Override
-    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
-        Set<PropositionalFunctionMacro> result = arrayTerm.getPropositionalFunctionMacros();
-        result.addAll(indexTerm.getPropositionalFunctionMacros());
-        result.addAll(valueTerm.getPropositionalFunctionMacros());
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = arrayTerm.getFunctionMacros();
+        result.addAll(indexTerm.getFunctionMacros());
+        result.addAll(valueTerm.getFunctionMacros());
         return result;
     }
 

@@ -136,13 +136,13 @@ public class ArrayIte extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getPropositionalFunctionMacros()
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
      */
     @Override
-    public Set<PropositionalFunctionMacro> getPropositionalFunctionMacros() {
-        Set<PropositionalFunctionMacro> result = thenBranch.getPropositionalFunctionMacros();
-        result.addAll(elseBranch.getPropositionalFunctionMacros());
-        result.addAll(condition.getPropositionalFunctionMacros());
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = thenBranch.getFunctionMacros();
+        result.addAll(elseBranch.getFunctionMacros());
+        result.addAll(condition.getFunctionMacros());
         return result;
     }
 

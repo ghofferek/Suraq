@@ -19,12 +19,11 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class PropositionalFunctionMacroInstance implements Formula {
-
+public class TermFunctionMacroInstance extends Term {
     /**
      * The macro of which this is an instance.
      */
-    private final PropositionalFunctionMacro macro;
+    private final TermFunctionMacro macro;
 
     /**
      * A map from parameter names to the terms.
@@ -32,7 +31,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     private final Map<Token, Term> paramMap;
 
     /**
-     * Constructs a new <code>PropositionalFunctionMacroInstance</code>.
+     * Constructs a new <code>TermFunctionMacroInstance</code>.
      * 
      * @param macro
      *            the function macro of which this will be an instance.
@@ -42,7 +41,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
      *             if the given map either misses a parameter or the type of the
      *             term in the map disagrees with the macro.
      */
-    public PropositionalFunctionMacroInstance(PropositionalFunctionMacro macro,
+    public TermFunctionMacroInstance(TermFunctionMacro macro,
             Map<Token, Term> paramMap) throws InvalidParametersException {
 
         for (Token parameter : macro.getParameters()) {
@@ -64,7 +63,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * 
      * @return the <code>macro</code>
      */
-    public PropositionalFunctionMacro getMacro() {
+    public TermFunctionMacro getMacro() {
         return macro;
     }
 
@@ -90,19 +89,26 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     * @see at.iaik.suraq.formula.Term#getType()
      */
     @Override
-    public Formula deepFormulaCopy() {
-        PropositionalFunctionMacro macro = new PropositionalFunctionMacro(
-                this.macro);
+    public SExpression getType() {
+        return macro.getType();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        TermFunctionMacro macro = new TermFunctionMacro(this.macro);
         Map<Token, Term> paramMap = new HashMap<Token, Term>();
         for (Token token : this.paramMap.keySet())
             paramMap.put((Token) token.deepCopy(), this.paramMap.get(token)
                     .deepTermCopy());
 
         try {
-            return new PropositionalFunctionMacroInstance(macro, paramMap);
+            return new TermFunctionMacroInstance(macro, paramMap);
         } catch (InvalidParametersException exc) {
             // This should never happen!
             assert (false);
@@ -113,7 +119,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getArrayVariables()
+     * @see at.iaik.suraq.formula.Term#getArrayVariables()
      */
     @Override
     public Set<ArrayVariable> getArrayVariables() {
@@ -124,7 +130,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getDomainVariables()
+     * @see at.iaik.suraq.formula.Term#getDomainVariables()
      */
     @Override
     public Set<DomainVariable> getDomainVariables() {
@@ -135,7 +141,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getPropositionalVariables()
+     * @see at.iaik.suraq.formula.Term#getPropositionalVariables()
      */
     @Override
     public Set<PropositionalVariable> getPropositionalVariables() {
@@ -146,29 +152,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
-     */
-    @Override
-    public Formula negationNormalForm() throws SuraqException {
-        Map<Token, Term> paramMap = new HashMap<Token, Term>(this.paramMap);
-        return new PropositionalFunctionMacroInstance(
-                macro.negationNormalForm(), paramMap);
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
-     */
-    @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> functionNames = new HashSet<String>();
-        functionNames.addAll(macro.getBody().getUninterpretedFunctionNames());
-        for (Term term : paramMap.values())
-            functionNames.addAll(term.getUninterpretedFunctionNames());
-        return functionNames;
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
+     * @see at.iaik.suraq.formula.Term#getFunctionMacroNames()
      */
     @Override
     public Set<String> getFunctionMacroNames() {
@@ -181,7 +165,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
+     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
      */
     @Override
     public Set<FunctionMacro> getFunctionMacros() {
@@ -193,27 +177,39 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see java.lang.Object#equals(java.lang.Object)
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof PropositionalFunctionMacroInstance))
-            return false;
-        return ((PropositionalFunctionMacroInstance) obj).macro.equals(macro)
-                && ((PropositionalFunctionMacroInstance) obj).paramMap
-                        .equals(paramMap);
+    public Set<String> getUninterpretedFunctionNames() {
+        Set<String> functionNames = new HashSet<String>();
+        functionNames.addAll(macro.getBody().getUninterpretedFunctionNames());
+        for (Term term : paramMap.values())
+            functionNames.addAll(term.getUninterpretedFunctionNames());
+        return functionNames;
     }
 
     /**
-     * @see java.lang.Object#hashCode()
+     * @see at.iaik.suraq.formula.Term#substituteTerm(java.util.Map)
      */
     @Override
-    public int hashCode() {
-        return macro.hashCode() ^ paramMap.hashCode();
+    public Term substituteTerm(Map<Token, Term> paramMap) {
+        Map<Token, Term> convertedMap = new HashMap<Token, Term>();
+
+        for (Token token : this.paramMap.keySet())
+            convertedMap.put(token, paramMap.get(token)
+                    .substituteTerm(paramMap));
+
+        try {
+            return new TermFunctionMacroInstance(macro, convertedMap);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while converting TermFunctionMacroInstance to caller scope.",
+                    exc);
+        }
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#getIndexSet()
+     * @see at.iaik.suraq.formula.Term#getIndexSet()
      */
     @Override
     public Set<DomainTerm> getIndexSet() throws SuraqException {
@@ -226,66 +222,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
-     */
-    @Override
-    public Formula substituteFormula(Map<Token, Term> paramMap) {
-        Map<Token, Term> convertedMap = new HashMap<Token, Term>();
-
-        for (Token token : this.paramMap.keySet())
-            convertedMap.put(token, paramMap.get(token)
-                    .substituteTerm(paramMap));
-
-        try {
-            return new PropositionalFunctionMacroInstance(macro, convertedMap);
-        } catch (InvalidParametersException exc) {
-            throw new RuntimeException(
-                    "Unexpected exception while converting PropositionalFunctionMacroInstance to caller scope.",
-                    exc);
-        }
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
-     */
-    @Override
-    public void removeArrayEqualities() {
-        macro.removeArrayEqualities();
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
-     */
-
-    @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        macro.arrayPropertiesToFiniteConjunctions(indexSet);
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#simplify()
-     */
-    @Override
-    public Formula simplify() {
-        macro.simplify();
-
-        Boolean simplification = macro.simplify(paramMap);
-        if (simplification != null)
-            return new PropositionalConstant(simplification);
-
-        return this;
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#flatten()
-     */
-    @Override
-    public Formula flatten() {
-        return macro.getBody().substituteFormula(paramMap).flatten();
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
+     * @see at.iaik.suraq.formula.Term#toSmtlibV2()
      */
     @Override
     public SExpression toSmtlibV2() {
@@ -295,5 +232,4 @@ public class PropositionalFunctionMacroInstance implements Formula {
             expr.add(paramMap.get(param).toSmtlibV2());
         return new SExpression(expr);
     }
-
 }

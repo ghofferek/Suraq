@@ -164,7 +164,6 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     /**
      * Simplifies the body of the macro.
      */
-    @Override
     public void simplify() {
         body = body.simplify();
     }
