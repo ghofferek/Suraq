@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -226,4 +227,40 @@ public class ArrayRead extends DomainTerm {
         indexTerm.removeArrayWrites(topLevelFormula, constraints);
     }
 
+    /**
+     * Returns an <code>UninterpretedFunctionInstance</code> that is
+     * "equivalent" to this <code>ArrayRead</code>.
+     * 
+     * @return an <code>UninterpretedFunctionInstance</code> that is
+     *         "equivalent" to this <code>ArrayRead</code>.
+     */
+    public UninterpretedFunctionInstance toUninterpretedFunctionInstance() {
+        try {
+            String functionName = arrayTerm.toSmtlibV2().toString()
+                    .replaceAll("\\W", "");
+
+            DomainTerm term = indexTerm;
+
+            if (term instanceof ArrayRead)
+                term = ((ArrayRead) term).toUninterpretedFunctionInstance();
+            else
+                term.arrayReadsToUninterpretedFunctions();
+
+            return new UninterpretedFunctionInstance(new UninterpretedFunction(
+                    functionName, 1), term);
+        } catch (WrongNumberOfParametersException exc) {
+            throw new RuntimeException(
+                    "Could not replace array-reads with uninterpreted functions",
+                    exc);
+        }
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        throw new RuntimeException(
+                "arrayReadsToUninterpretedFunctions cannot be called on an ArrayWrite.\nUse toUninterpretedFunctionInstance instead.");
+    }
 }

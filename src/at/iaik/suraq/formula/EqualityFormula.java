@@ -391,4 +391,14 @@ public abstract class EqualityFormula implements Formula {
         for (Term term : terms)
             term.removeArrayWrites(topLevelFormula, constraints);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        for (Term term : terms)
+            term.arrayReadsToUninterpretedFunctions();
+    }
+
 }

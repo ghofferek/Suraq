@@ -11,10 +11,13 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.DomainTerm;
+import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.util.Util;
 
 /**
  * 
@@ -30,6 +33,12 @@ public class Suraq implements Runnable {
      * synthesize.
      */
     private LogicParser logicParser;
+
+    /**
+     * The special variable that is used for reducing array properties to finite
+     * conjunctions.
+     */
+    private DomainVariable lambda;
 
     /**
      * Constructs a new <code>Suraq</code>.
@@ -111,38 +120,45 @@ public class Suraq implements Runnable {
         if (options.isVerbose())
             System.out.println("Parsing completed successfully!");
 
-        boolean result;
+        boolean noErrors = true;
 
         try {
-            result = doMainWork();
+            doMainWork();
         } catch (SuraqException exc) {
-            result = false;
+            noErrors = false;
             if (exc.getMessage() != null)
                 System.out.println(exc.getMessage());
         }
 
         // All done :-)
-        printEnd(result);
+        printEnd(noErrors);
         return;
     }
 
     /**
      * Performs the main work.
      * 
-     * @return <code>true</code> if there were no errors, <code>false</code>
-     *         otherwise.
      * @throws SuraqException
      *             if something goes wrong
      */
-    private boolean doMainWork() throws SuraqException {
+    private void doMainWork() throws SuraqException {
 
-        Formula formula = logicParser.getMainFormula();
+        Formula formula = logicParser.getMainFormula().deepFormulaCopy();
+
         Set<Formula> constraints = new HashSet<Formula>();
         formula.removeArrayWrites(formula, constraints);
-        formula.removeArrayEqualities();
-        Set<DomainTerm> indexSet = formula.getIndexSet();
+        constraints.add(formula);
+        formula = new AndFormula(constraints);
 
-        return true;
+        formula.removeArrayEqualities();
+
+        Set<DomainTerm> indexSet = formula.getIndexSet();
+        lambda = new DomainVariable(Util.freshVarName(formula, "lambda"));
+        indexSet.add(lambda);
+        formula.arrayPropertiesToFiniteConjunctions(indexSet);
+
+        formula.arrayReadsToUninterpretedFunctions();
+
     }
 
     /**

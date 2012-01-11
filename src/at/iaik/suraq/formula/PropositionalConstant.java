@@ -191,4 +191,13 @@ public class PropositionalConstant extends PropositionalTerm {
         // nothing to do
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        // nothing to do
+        return;
+    }
 }

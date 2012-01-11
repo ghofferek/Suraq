@@ -284,4 +284,14 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             formula.removeArrayWrites(topLevelFormula, constraints);
 
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        for (Formula formula : formulas)
+            formula.arrayReadsToUninterpretedFunctions();
+    }
+
 }

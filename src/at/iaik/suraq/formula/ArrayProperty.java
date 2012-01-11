@@ -533,4 +533,13 @@ public class ArrayProperty implements Formula {
         return;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        indexGuard.arrayReadsToUninterpretedFunctions();
+        valueConstraint.arrayReadsToUninterpretedFunctions();
+    }
+
 }

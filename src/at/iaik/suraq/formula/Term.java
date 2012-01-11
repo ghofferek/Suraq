@@ -188,4 +188,9 @@ public abstract class Term {
     public abstract void removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints);
 
+    /**
+     * Replaces array-read expressions with uninterpreted function instances.
+     */
+    public abstract void arrayReadsToUninterpretedFunctions();
+
 }

@@ -102,4 +102,11 @@ public class TermFunctionMacro extends FunctionMacro {
         body.removeArrayWrites(topLevelFormula, constraints);
         return constraints;
     }
+
+    /**
+     * Replaces array-read expressions with uninterpreted function instances
+     */
+    public void arrayReadsToUninterpretedFunctions() {
+        body.arrayReadsToUninterpretedFunctions();
+    }
 }

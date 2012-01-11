@@ -286,4 +286,14 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         rightSide.removeArrayWrites(topLevelFormula, constraints);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        leftSide.arrayReadsToUninterpretedFunctions();
+        rightSide.arrayReadsToUninterpretedFunctions();
+
+    }
+
 }

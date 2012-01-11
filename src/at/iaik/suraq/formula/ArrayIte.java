@@ -291,4 +291,14 @@ public class ArrayIte extends ArrayTerm {
             elseBranch.removeArrayWrites(topLevelFormula, constraints);
 
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        condition.arrayReadsToUninterpretedFunctions();
+        thenBranch.arrayReadsToUninterpretedFunctions();
+        elseBranch.arrayReadsToUninterpretedFunctions();
+    }
 }

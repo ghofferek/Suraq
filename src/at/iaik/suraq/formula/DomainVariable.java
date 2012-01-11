@@ -194,4 +194,13 @@ public class DomainVariable extends DomainTerm {
         return;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        // nothing to do
+        return;
+    }
+
 }

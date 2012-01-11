@@ -56,6 +56,28 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
+     * Constructs a new <code>UninterpretedFunctionInstance</code> with just one
+     * parameter.
+     * 
+     * @param function
+     *            the function that is applied
+     * @param term
+     *            the single parameter of the function.
+     * @throws WrongNumberOfParametersException
+     *             if the number of parameters of the function does not match
+     *             the size of <code>parameters</code>.
+     */
+    public UninterpretedFunctionInstance(UninterpretedFunction function,
+            DomainTerm term) throws WrongNumberOfParametersException {
+        if (function.getNumParams() != 1)
+            throw new WrongNumberOfParametersException();
+        this.function = function;
+        List<DomainTerm> params = new ArrayList<DomainTerm>();
+        params.add(term);
+        this.parameters = params;
+    }
+
+    /**
      * Returns the function of which this is an instance
      * 
      * @return the <code>function</code>
@@ -268,5 +290,14 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         for (Term param : parameters)
             param.removeArrayWrites(topLevelFormula, constraints);
 
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        for (DomainTerm term : parameters)
+            term.arrayReadsToUninterpretedFunctions();
     }
 }

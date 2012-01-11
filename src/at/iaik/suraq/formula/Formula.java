@@ -159,4 +159,10 @@ public interface Formula {
      */
     public void removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints);
+
+    /**
+     * Replaces all array-read expressions with uninterpreted function instances
+     * of the same name.
+     */
+    public void arrayReadsToUninterpretedFunctions();
 }

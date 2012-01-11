@@ -69,4 +69,21 @@ public class DomainEq extends EqualityFormula {
         return indexSet;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.EqualityFormula#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        for (DomainTerm term : getDomainTerms()) {
+            if (term instanceof ArrayRead) {
+                while (terms.remove(term))
+                    ;
+                terms.add(((ArrayRead) term).toUninterpretedFunctionInstance());
+
+            } else
+                term.arrayReadsToUninterpretedFunctions();
+
+        }
+    }
+
 }

@@ -290,4 +290,14 @@ public class DomainIte extends DomainTerm {
         thenBranch.removeArrayWrites(topLevelFormula, constraints);
         elseBranch.removeArrayWrites(topLevelFormula, constraints);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        condition.arrayReadsToUninterpretedFunctions();
+        thenBranch.arrayReadsToUninterpretedFunctions();
+        elseBranch.arrayReadsToUninterpretedFunctions();
+    }
 }

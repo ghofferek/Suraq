@@ -185,4 +185,13 @@ public class ArrayVariable extends ArrayTerm {
         return;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        // nothing to do
+        return;
+    }
+
 }

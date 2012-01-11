@@ -29,12 +29,12 @@ public class ArrayWrite extends ArrayTerm {
     /**
      * The index to which this expression writes.
      */
-    private final DomainTerm indexTerm;
+    private DomainTerm indexTerm;
 
     /**
      * The value that is written.
      */
-    private final DomainTerm valueTerm;
+    private DomainTerm valueTerm;
 
     /**
      * Constructs a new <code>ArrayWrite</code>.
@@ -296,5 +296,26 @@ public class ArrayWrite extends ArrayTerm {
         }
 
         return newVar;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        arrayTerm.arrayReadsToUninterpretedFunctions();
+
+        if (indexTerm instanceof ArrayRead)
+            indexTerm = ((ArrayRead) indexTerm)
+                    .toUninterpretedFunctionInstance();
+        else
+            indexTerm.arrayReadsToUninterpretedFunctions();
+
+        if (valueTerm instanceof ArrayRead)
+            valueTerm = ((ArrayRead) valueTerm)
+                    .toUninterpretedFunctionInstance();
+        else
+            valueTerm.arrayReadsToUninterpretedFunctions();
+
     }
 }

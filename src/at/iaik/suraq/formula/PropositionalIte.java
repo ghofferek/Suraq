@@ -316,4 +316,14 @@ public class PropositionalIte extends BooleanCombinationFormula {
         thenBranch.removeArrayWrites(topLevelFormula, constraints);
         elseBranch.removeArrayWrites(topLevelFormula, constraints);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
+     */
+    @Override
+    public void arrayReadsToUninterpretedFunctions() {
+        condition.arrayReadsToUninterpretedFunctions();
+        thenBranch.arrayReadsToUninterpretedFunctions();
+        elseBranch.arrayReadsToUninterpretedFunctions();
+    }
 }
