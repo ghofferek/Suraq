@@ -250,7 +250,10 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public Set<DomainTerm> getIndexSet() throws SuraqException {
-        return new HashSet<DomainTerm>();
+        Set<DomainTerm> indexSet = new HashSet<DomainTerm>();
+        for (Term term : terms)
+            indexSet.addAll(term.getIndexSet());
+        return indexSet;
     }
 
     /**
@@ -284,10 +287,12 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public void removeArrayEqualities() {
-        // Nothing to do.
         // If this equality is an array equality, it will be dealt with on a
         // higher level.
-        // Other equalities do not need transformation.
+        // For other equalities, recurse on their terms.
+        for (Term term : terms) {
+            term.removeArrayEqualities();
+        }
         return;
     }
 
@@ -296,9 +301,10 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        // Nothing to do here.
-        // Equality formulas do not have subformulas.
-        // Array Equalities should already have been removed.
+        // recurse on terms (ITE terms may have formulas in them)
+        for (Term term : terms) {
+            term.arrayPropertiesToFiniteConjunctions(indexSet);
+        }
         return;
     }
 

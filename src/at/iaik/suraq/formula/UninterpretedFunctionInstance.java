@@ -240,4 +240,22 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             expr.add(term.toSmtlibV2());
         return new SExpression(expr);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        for (Term param : parameters)
+            param.arrayPropertiesToFiniteConjunctions(indexSet);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        for (Term param : parameters)
+            param.removeArrayEqualities();
+    }
 }

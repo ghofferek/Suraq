@@ -158,4 +158,21 @@ public abstract class Term {
      */
     public abstract SExpression toSmtlibV2();
 
+    /**
+     * Reduces all array properties in this formula to finite conjunctions over
+     * the given index set. The index set must already include the special
+     * variable lambda.
+     * 
+     * @param indexSet
+     *            the index set.
+     */
+    public abstract void arrayPropertiesToFiniteConjunctions(
+            Set<DomainTerm> indexSet);
+
+    /**
+     * Replaces all array equalities in this formula by equivalent array
+     * properties.
+     */
+    public abstract void removeArrayEqualities();
+
 }

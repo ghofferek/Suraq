@@ -193,4 +193,22 @@ public class ArrayRead extends DomainTerm {
         return new SExpression(expr);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        arrayTerm.arrayPropertiesToFiniteConjunctions(indexSet);
+        indexTerm.arrayPropertiesToFiniteConjunctions(indexSet);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        arrayTerm.removeArrayEqualities();
+        indexTerm.removeArrayEqualities();
+    }
+
 }

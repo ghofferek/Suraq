@@ -232,4 +232,24 @@ public class TermFunctionMacroInstance extends Term {
             expr.add(paramMap.get(param).toSmtlibV2());
         return new SExpression(expr);
     }
+
+    /**
+     * Removes array equalities from the body of the macro.
+     */
+    @Override
+    public void removeArrayEqualities() {
+        macro.removeArrayEqualities();
+    }
+
+    /**
+     * Converts array properties in the body of the macro to finite conjunctions
+     * 
+     * @param indexSet
+     *            the index set.
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        macro.arrayPropertiesToFiniteConjunctions(indexSet);
+    }
+
 }

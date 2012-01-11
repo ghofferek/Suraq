@@ -157,4 +157,22 @@ public class ArrayVariable extends ArrayTerm {
         return new Token(varName);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        // nothing to do here
+        return;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        // nothing to do here
+        return;
+    }
+
 }

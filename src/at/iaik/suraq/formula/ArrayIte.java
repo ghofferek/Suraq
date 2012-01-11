@@ -249,4 +249,24 @@ public class ArrayIte extends ArrayTerm {
         expr[3] = elseBranch.toSmtlibV2();
         return new SExpression(expr);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        condition.arrayPropertiesToFiniteConjunctions(indexSet);
+        thenBranch.arrayPropertiesToFiniteConjunctions(indexSet);
+        elseBranch.arrayPropertiesToFiniteConjunctions(indexSet);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        condition.removeArrayEqualities();
+        thenBranch.removeArrayEqualities();
+        elseBranch.removeArrayEqualities();
+    }
 }
