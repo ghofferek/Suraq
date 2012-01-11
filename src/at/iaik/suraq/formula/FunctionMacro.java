@@ -167,4 +167,11 @@ public abstract class FunctionMacro {
     public abstract void arrayPropertiesToFiniteConjunctions(
             Set<DomainTerm> indexSet);
 
+    /**
+     * Returns the type of this macro.
+     * 
+     * @return the type of this macro.
+     */
+    public abstract SExpression getType();
+
 }

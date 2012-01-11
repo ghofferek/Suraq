@@ -30,15 +30,18 @@ import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.EqualityFormula;
 import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.PropositionalFunctionMacro;
-import at.iaik.suraq.formula.PropositionalFunctionMacroInstance;
+import at.iaik.suraq.formula.FunctionMacro;
 import at.iaik.suraq.formula.ImpliesFormula;
 import at.iaik.suraq.formula.NotFormula;
 import at.iaik.suraq.formula.OrFormula;
 import at.iaik.suraq.formula.PropositionalConstant;
+import at.iaik.suraq.formula.PropositionalFunctionMacro;
+import at.iaik.suraq.formula.PropositionalFunctionMacroInstance;
 import at.iaik.suraq.formula.PropositionalIte;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
+import at.iaik.suraq.formula.TermFunctionMacro;
+import at.iaik.suraq.formula.TermFunctionMacroInstance;
 import at.iaik.suraq.formula.UninterpretedFunction;
 import at.iaik.suraq.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.formula.XorFormula;
@@ -90,7 +93,7 @@ public class LogicParser extends Parser {
     /**
      * The function macros found during parsing, indexed by name tokens
      */
-    private final Map<Token, PropositionalFunctionMacro> macros = new HashMap<Token, PropositionalFunctionMacro>();
+    private final Map<Token, FunctionMacro> macros = new HashMap<Token, FunctionMacro>();
 
     /**
      * The root of the s-expression to be parsed.
@@ -256,30 +259,58 @@ public class LogicParser extends Parser {
             throw new RuntimeException(
                     "Unexpected situation while parsing macro parameters", exc);
         }
-        if (!type.equals(SExpressionConstants.BOOL_TYPE)) {
-            // Only Bool macros allowed at this time
+        if (type.equals(SExpressionConstants.BOOL_TYPE)) {
+            // Handle Bool macro
+            Formula body;
+            this.currentLocals = paramMap;
+            try {
+                body = parseFormulaBody(expression.getChildren().get(4));
+            } finally {
+                this.currentLocals = null;
+            }
+
+            PropositionalFunctionMacro macro;
+            try {
+                macro = new PropositionalFunctionMacro(name, paramsList,
+                        paramMap, body);
+            } catch (InvalidParametersException exc) {
+                throw new RuntimeException(
+                        "Unexpected situation while parsing macro parameters",
+                        exc);
+            }
+            if (macros.containsKey(name))
+                throw new ParseError(name, "Duplicate macro definition: "
+                        + name.toString());
+            else
+                macros.put(name, macro);
+        } else if (type.equals(SExpressionConstants.VALUE_TYPE)
+                || type.equals(SExpressionConstants.ARRAY_TYPE)) {
+            // Handle Term macro
+            Term body;
+            this.currentLocals = paramMap;
+            try {
+                body = parseTerm(expression.getChildren().get(4));
+            } finally {
+                this.currentLocals = null;
+            }
+
+            TermFunctionMacro macro;
+            try {
+                macro = new TermFunctionMacro(name, paramsList, paramMap, body);
+            } catch (InvalidParametersException exc) {
+                throw new RuntimeException(
+                        "Unexpected situation while parsing macro parameters",
+                        exc);
+            }
+            if (macros.containsKey(name))
+                throw new ParseError(name, "Duplicate macro definition: "
+                        + name.toString());
+            else
+                macros.put(name, macro);
+        } else {
+            // Only Bool, Value, and (Array Value Value) macros are allowed
             throw new ParseError(type, "Unsupported type: " + type.toString());
         }
-        Formula body;
-        this.currentLocals = paramMap;
-        try {
-            body = parseFormulaBody(expression.getChildren().get(4));
-        } finally {
-            this.currentLocals = null;
-        }
-
-        PropositionalFunctionMacro macro;
-        try {
-            macro = new PropositionalFunctionMacro(name, paramsList, paramMap, body);
-        } catch (InvalidParametersException exc) {
-            throw new RuntimeException(
-                    "Unexpected situation while parsing macro parameters", exc);
-        }
-        if (macros.containsKey(name))
-            throw new ParseError(name, "Duplicate macro definition: "
-                    + name.toString());
-        else
-            macros.put(name, macro);
 
     }
 
@@ -458,8 +489,12 @@ public class LogicParser extends Parser {
             }
         }
 
-        PropositionalFunctionMacro macro = isMacroInstance(expression);
+        FunctionMacro macro = isMacroInstance(expression);
         if (macro != null) {
+            if (!macro.getType().equals(SExpressionConstants.BOOL_TYPE))
+                throw new ParseError(expression,
+                        "Bool macro expected. Received type: "
+                                + macro.getType().toString());
             List<SExpression> paramExpressions = expression.getChildren()
                     .subList(1, expression.getChildren().size());
             if (paramExpressions.size() != macro.getNumParams())
@@ -483,10 +518,11 @@ public class LogicParser extends Parser {
                 paramMap.put(macro.getParam(count), paramTerm);
             }
             try {
-                return new PropositionalFunctionMacroInstance(macro, paramMap);
+                return new PropositionalFunctionMacroInstance(
+                        (PropositionalFunctionMacro) macro, paramMap);
             } catch (InvalidParametersException exc) {
                 throw new RuntimeException(
-                        "Unexpected condition while creating function macro.",
+                        "Unexpected condition while creating function-macro instance.",
                         exc);
             }
         }
@@ -676,6 +712,46 @@ public class LogicParser extends Parser {
                                 + variable.toString());
             return variable;
         }
+
+        FunctionMacro macro = isMacroInstance(expression);
+        if (macro != null) {
+            if (!(macro.getType().equals(SExpressionConstants.VALUE_TYPE) || macro
+                    .getType().equals(SExpressionConstants.ARRAY_TYPE)))
+                throw new ParseError(expression,
+                        "Term macro expected. Received type: "
+                                + macro.getType().toString());
+            List<SExpression> paramExpressions = expression.getChildren()
+                    .subList(1, expression.getChildren().size());
+            if (paramExpressions.size() != macro.getNumParams())
+                throw new ParseError(expression, "Expected "
+                        + macro.getNumParams() + "parameters for macro "
+                        + macro.getName().toString() + ", got "
+                        + paramExpressions.size() + " instead.");
+
+            Map<Token, Term> paramMap = new HashMap<Token, Term>();
+            assert (paramExpressions.size() != macro.getNumParams());
+            for (int count = 0; count < paramExpressions.size(); count++) {
+                Term paramTerm = parseTerm(paramExpressions.get(count));
+
+                if (!paramTerm.getType().equals(macro.getParamType(count)))
+                    throw new ParseError(paramExpressions.get(count),
+                            "Wrong parameter type. Expected "
+                                    + macro.getParamType(count).toString()
+                                    + ", got " + paramTerm.getType().toString()
+                                    + " instead.");
+
+                paramMap.put(macro.getParam(count), paramTerm);
+            }
+            try {
+                return new TermFunctionMacroInstance((TermFunctionMacro) macro,
+                        paramMap);
+            } catch (InvalidParametersException exc) {
+                throw new RuntimeException(
+                        "Unexpected condition while creating function-macro instance.",
+                        exc);
+            }
+        }
+
         // we have something we cannot handle
         throw new ParseError("General parse error while parsing term "
                 + expression.toString());
@@ -867,7 +943,7 @@ public class LogicParser extends Parser {
      * @return the macro instantiated by this expression, or <code>null</code>
      *         if this is not a macro instance
      */
-    private PropositionalFunctionMacro isMacroInstance(SExpression expression) {
+    private FunctionMacro isMacroInstance(SExpression expression) {
         if (expression instanceof Token)
             return null;
         if (expression.getChildren().size() < 2)
@@ -1304,7 +1380,7 @@ public class LogicParser extends Parser {
      * 
      * @return a copy of the <code>macros</code>
      */
-    public List<PropositionalFunctionMacro> getMacros() {
-        return new ArrayList<PropositionalFunctionMacro>(macros.values());
+    public List<FunctionMacro> getMacros() {
+        return new ArrayList<FunctionMacro>(macros.values());
     }
 }

@@ -12,6 +12,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -189,5 +190,13 @@ public class PropositionalFunctionMacro extends FunctionMacro {
             return ((PropositionalConstant) bodyCopy).getValue();
 
         return null;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.FunctionMacro#getType()
+     */
+    @Override
+    public SExpression getType() {
+        return SExpressionConstants.BOOL_TYPE;
     }
 }

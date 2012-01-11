@@ -88,6 +88,7 @@ public class TermFunctionMacro extends FunctionMacro {
      * 
      * @return the type of the term of this macro's body.
      */
+    @Override
     public SExpression getType() {
         return body.getType();
     }
