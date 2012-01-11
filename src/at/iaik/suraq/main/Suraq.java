@@ -107,20 +107,40 @@ public class Suraq implements Runnable {
         if (options.isVerbose())
             System.out.println("Parsing completed successfully!");
 
+        boolean result = doMainWork();
+
         // All done :-)
-        printSuccessEnd();
+        printEnd(result);
         return;
     }
 
     /**
-     * Prints a success message.
+     * Performs the main work.
+     * 
+     * @return <code>true</code> if there were no errors, <code>false</code>
+     *         otherwise.
      */
-    private void printSuccessEnd() {
+    private boolean doMainWork() {
+        // TODO implement
+        return true;
+    }
+
+    /**
+     * Prints a final message.
+     * 
+     * @param result
+     *            <code>true</code> if there were no errors, <code>false</code>
+     *            otherwise.
+     */
+    private void printEnd(boolean result) {
         System.out
                 .println("################################################################################");
-        System.out.println("Synthesis completed successfully!");
+        // System.out.println("Synthesis completed successfully!");
         System.out.println("");
-        System.out.println("LIVE LONG AND PROSPER!");
+        if (result)
+            System.out.println("LIVE LONG AND PROSPER!");
+        else
+            System.out.println("There were errors.\nRESISTANCE IS FUTILE!");
     }
 
     /**

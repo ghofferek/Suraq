@@ -32,6 +32,9 @@ public class SExpressionConstants {
 
     public static final Token ASSERT = (Token) SExpression.fromString("assert");
 
+    public static final Token ASSERT_PARTITION = (Token) SExpression
+            .fromString("assert-partition");
+
     public static final SExpression SET_LOGIC_SURAQ = SExpression
             .fromString("(set-logic Suraq)");
 
