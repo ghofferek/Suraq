@@ -523,4 +523,14 @@ public class ArrayProperty implements Formula {
         return new SExpression(expr);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        // Does not contain array writes subformulas.
+        return;
+    }
+
 }

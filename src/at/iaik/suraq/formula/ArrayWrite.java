@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * An array write expression.
@@ -228,4 +230,71 @@ public class ArrayWrite extends ArrayTerm {
         valueTerm.removeArrayEqualities();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        throw new RuntimeException(
+                "removeArrayWrites cannot be called on an ArrayWrite.\nUse applyWriteAxiom instead.");
+
+    }
+
+    /**
+     * Applies the write axiom to this <code>ArrayWrite</code> term. I.e.,
+     * returns a (fresh) <code>ArrayVariable</code> to be used instead of this
+     * term.
+     * 
+     * @param topLevelFormula
+     *            the top-level formula (w.r.t. which fresh names are selected)
+     * @param constraints
+     *            A set of formulas to which the constraints of the write
+     *            axiom's application will be added.
+     * @return an <code>ArrayVariable</code> with a fresh name.
+     */
+    public ArrayVariable applyWriteAxiom(Formula topLevelFormula,
+            Set<Formula> constraints) {
+
+        // First, recursively remove writes from sub-parts
+        arrayTerm.removeArrayWrites(topLevelFormula, constraints);
+        indexTerm.removeArrayWrites(topLevelFormula, constraints);
+        valueTerm.removeArrayWrites(topLevelFormula, constraints);
+
+        // now apply axiom
+        String oldVar = "NPWE"; // "Non-Primitive Write Expression"
+        if (arrayTerm instanceof ArrayVariable)
+            oldVar = ((ArrayVariable) arrayTerm).getVarName();
+        ArrayVariable newVar = new ArrayVariable(Util.freshVarName(
+                topLevelFormula, oldVar));
+
+        ArrayRead newRead = new ArrayRead(newVar, indexTerm);
+        Set<DomainTerm> domainTerms = new HashSet<DomainTerm>();
+        domainTerms.add(newRead);
+        domainTerms.add(valueTerm);
+        constraints.add(new DomainEq(domainTerms, true));
+
+        DomainVariable newUVar = new DomainVariable(Util.freshVarName(
+                topLevelFormula, "uVar"));
+        domainTerms.clear();
+        domainTerms.add(indexTerm);
+        domainTerms.add(newUVar);
+        Formula indexGuard = new DomainEq(domainTerms, false);
+
+        domainTerms.clear();
+        domainTerms.add(new ArrayRead(newVar, newUVar));
+        domainTerms.add(new ArrayRead(arrayTerm, newUVar));
+        Formula valueConstraint = new DomainEq(domainTerms, true);
+
+        Set<DomainVariable> uVars = new HashSet<DomainVariable>();
+        uVars.add(newUVar);
+        try {
+            constraints.add(new ArrayProperty(uVars, indexGuard,
+                    valueConstraint));
+        } catch (SuraqException exc) {
+            throw new RuntimeException("Could not apply write axiom.", exc);
+        }
+
+        return newVar;
+    }
 }

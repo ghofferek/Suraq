@@ -273,4 +273,15 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @return The operator token.
      */
     protected abstract Token getOperator();
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        for (Formula formula : this.getSubFormulas())
+            formula.removeArrayWrites(topLevelFormula, constraints);
+
+    }
 }

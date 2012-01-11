@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,5 +92,14 @@ public class TermFunctionMacro extends FunctionMacro {
     @Override
     public SExpression getType() {
         return body.getType();
+    }
+
+    /**
+     * @param topLevelFormula
+     */
+    public Set<Formula> removeArrayWrites(Formula topLevelFormula) {
+        Set<Formula> constraints = new HashSet<Formula>();
+        body.removeArrayWrites(topLevelFormula, constraints);
+        return constraints;
     }
 }

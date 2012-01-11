@@ -276,4 +276,14 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 leftSide.toSmtlibV2(), rightSide.toSmtlibV2());
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        leftSide.removeArrayWrites(topLevelFormula, constraints);
+        rightSide.removeArrayWrites(topLevelFormula, constraints);
+    }
+
 }

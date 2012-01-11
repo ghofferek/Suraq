@@ -175,4 +175,17 @@ public abstract class Term {
      */
     public abstract void removeArrayEqualities();
 
+    /**
+     * Recursively replaces all array writes by applying the write axiom.
+     * 
+     * @param topLevelFormula
+     *            The top-level formula on which the recursion started. (Needed
+     *            to determine fresh variable names.)
+     * @param constraints
+     *            A set to which constraints coming from write-axiom application
+     *            will be added.
+     */
+    public abstract void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints);
+
 }

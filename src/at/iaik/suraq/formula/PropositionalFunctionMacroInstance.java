@@ -251,6 +251,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
     @Override
     public void removeArrayEqualities() {
         macro.removeArrayEqualities();
+        for (Term term : paramMap.values())
+            term.removeArrayEqualities();
     }
 
     /**
@@ -260,6 +262,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
     @Override
     public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         macro.arrayPropertiesToFiniteConjunctions(indexSet);
+        for (Term term : paramMap.values())
+            term.arrayPropertiesToFiniteConjunctions(indexSet);
     }
 
     /**
@@ -294,6 +298,21 @@ public class PropositionalFunctionMacroInstance implements Formula {
         for (Token param : macro.getParameters())
             expr.add(paramMap.get(param).toSmtlibV2());
         return new SExpression(expr);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        Set<Formula> localConstraints = macro
+                .removeArrayWrites(topLevelFormula);
+        for (Formula localConstraint : localConstraints)
+            constraints.add(localConstraint.substituteFormula(paramMap));
+        for (Term term : paramMap.values())
+            term.removeArrayWrites(topLevelFormula, constraints);
+
     }
 
 }

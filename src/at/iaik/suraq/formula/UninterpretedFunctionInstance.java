@@ -258,4 +258,15 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         for (Term param : parameters)
             param.removeArrayEqualities();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        for (Term param : parameters)
+            param.removeArrayWrites(topLevelFormula, constraints);
+
+    }
 }

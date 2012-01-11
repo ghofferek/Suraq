@@ -184,4 +184,14 @@ public class DomainVariable extends DomainTerm {
         return;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        // nothing to do
+        return;
+    }
+
 }

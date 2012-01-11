@@ -28,12 +28,12 @@ public class ArrayIte extends ArrayTerm {
     /**
      * The then-branch.
      */
-    private final ArrayTerm thenBranch;
+    private ArrayTerm thenBranch;
 
     /**
      * The else-branch
      */
-    private final ArrayTerm elseBranch;
+    private ArrayTerm elseBranch;
 
     /**
      * 
@@ -268,5 +268,27 @@ public class ArrayIte extends ArrayTerm {
         condition.removeArrayEqualities();
         thenBranch.removeArrayEqualities();
         elseBranch.removeArrayEqualities();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        condition.removeArrayWrites(topLevelFormula, constraints);
+
+        if (thenBranch instanceof ArrayWrite)
+            thenBranch = ((ArrayWrite) thenBranch).applyWriteAxiom(
+                    topLevelFormula, constraints);
+        else
+            thenBranch.removeArrayWrites(topLevelFormula, constraints);
+
+        if (elseBranch instanceof ArrayWrite)
+            elseBranch = ((ArrayWrite) elseBranch).applyWriteAxiom(
+                    topLevelFormula, constraints);
+        else
+            elseBranch.removeArrayWrites(topLevelFormula, constraints);
+
     }
 }

@@ -181,4 +181,14 @@ public class PropositionalConstant extends PropositionalTerm {
         return constant ? SExpressionConstants.TRUE
                 : SExpressionConstants.FALSE;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        // nothing to do
+        return;
+    }
 }

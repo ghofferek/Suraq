@@ -166,8 +166,10 @@ public class NotFormula extends BooleanCombinationFormula {
             PropositionalFunctionMacro negatedMacro = ((PropositionalFunctionMacroInstance) formula)
                     .getMacro().negatedMacro();
             Map<Token, Term> paramMap = new HashMap<Token, Term>(
-                    ((PropositionalFunctionMacroInstance) formula).getParamMap());
-            return new PropositionalFunctionMacroInstance(negatedMacro, paramMap);
+                    ((PropositionalFunctionMacroInstance) formula)
+                            .getParamMap());
+            return new PropositionalFunctionMacroInstance(negatedMacro,
+                    paramMap);
         }
 
         // PropositionalITE
@@ -328,6 +330,15 @@ public class NotFormula extends BooleanCombinationFormula {
     @Override
     public SExpression toSmtlibV2() {
         return new SExpression(SExpressionConstants.NOT, formula.toSmtlibV2());
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        formula.removeArrayWrites(topLevelFormula, constraints);
     }
 
 }

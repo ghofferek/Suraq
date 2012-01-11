@@ -381,4 +381,14 @@ public abstract class EqualityFormula implements Formula {
             expr.add(term.toSmtlibV2());
         return new SExpression(expr);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        for (Term term : terms)
+            term.removeArrayWrites(topLevelFormula, constraints);
+    }
 }

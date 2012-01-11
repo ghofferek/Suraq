@@ -279,4 +279,15 @@ public class DomainIte extends DomainTerm {
         thenBranch.removeArrayEqualities();
         elseBranch.removeArrayEqualities();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        condition.removeArrayWrites(topLevelFormula, constraints);
+        thenBranch.removeArrayWrites(topLevelFormula, constraints);
+        elseBranch.removeArrayWrites(topLevelFormula, constraints);
+    }
 }

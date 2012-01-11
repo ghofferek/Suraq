@@ -6,9 +6,13 @@ package at.iaik.suraq.main;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.formula.DomainTerm;
+import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
 
@@ -107,7 +111,15 @@ public class Suraq implements Runnable {
         if (options.isVerbose())
             System.out.println("Parsing completed successfully!");
 
-        boolean result = doMainWork();
+        boolean result;
+
+        try {
+            result = doMainWork();
+        } catch (SuraqException exc) {
+            result = false;
+            if (exc.getMessage() != null)
+                System.out.println(exc.getMessage());
+        }
 
         // All done :-)
         printEnd(result);
@@ -119,9 +131,17 @@ public class Suraq implements Runnable {
      * 
      * @return <code>true</code> if there were no errors, <code>false</code>
      *         otherwise.
+     * @throws SuraqException
+     *             if something goes wrong
      */
-    private boolean doMainWork() {
-        // TODO implement
+    private boolean doMainWork() throws SuraqException {
+
+        Formula formula = logicParser.getMainFormula();
+        Set<Formula> constraints = new HashSet<Formula>();
+        formula.removeArrayWrites(formula, constraints);
+        formula.removeArrayEqualities();
+        Set<DomainTerm> indexSet = formula.getIndexSet();
+
         return true;
     }
 

@@ -239,6 +239,8 @@ public class TermFunctionMacroInstance extends Term {
     @Override
     public void removeArrayEqualities() {
         macro.removeArrayEqualities();
+        for (Term term : paramMap.values())
+            term.removeArrayEqualities();
     }
 
     /**
@@ -250,6 +252,23 @@ public class TermFunctionMacroInstance extends Term {
     @Override
     public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         macro.arrayPropertiesToFiniteConjunctions(indexSet);
+        for (Term term : paramMap.values())
+            term.arrayPropertiesToFiniteConjunctions(indexSet);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        Set<Formula> localConstraints = macro
+                .removeArrayWrites(topLevelFormula);
+        for (Formula localConstraint : localConstraints)
+            constraints.add(localConstraint.substituteFormula(paramMap));
+        for (Term term : paramMap.values())
+            term.removeArrayWrites(topLevelFormula, constraints);
+
     }
 
 }

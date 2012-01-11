@@ -91,7 +91,7 @@ public interface Formula {
 
     /**
      * Returns a new formula that is a version of this formula, with
-     * substitutions performed according to the givem map. E.g., the local terms
+     * substitutions performed according to the given map. E.g., the local terms
      * of a function macro's body are converted to the (more) global terms of
      * the macro's instance. Terms which are not found in the map are returned
      * unchanged.
@@ -145,4 +145,18 @@ public interface Formula {
      * @return this formulas as an SMTLIBv2 s-expression.
      */
     public SExpression toSmtlibV2();
+
+    /**
+     * Recursively replaces all array writes by applying the write axiom.
+     * 
+     * @param topLevelFormula
+     *            The top-level formula on which the recursion started. (Needed
+     *            to determine fresh variable names.)
+     * @param constraints
+     *            A set to which constraints coming from write-axiom application
+     *            will be added.
+     * 
+     */
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints);
 }

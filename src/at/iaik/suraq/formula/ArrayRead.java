@@ -22,7 +22,7 @@ public class ArrayRead extends DomainTerm {
     /**
      * The array variable that is read.
      */
-    private final ArrayTerm arrayTerm;
+    private ArrayTerm arrayTerm;
 
     /**
      * The index from which is read.
@@ -209,6 +209,21 @@ public class ArrayRead extends DomainTerm {
     public void removeArrayEqualities() {
         arrayTerm.removeArrayEqualities();
         indexTerm.removeArrayEqualities();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints) {
+        if (arrayTerm instanceof ArrayWrite)
+            arrayTerm = ((ArrayWrite) arrayTerm).applyWriteAxiom(
+                    topLevelFormula, constraints);
+        else
+            arrayTerm.removeArrayWrites(topLevelFormula, constraints);
+
+        indexTerm.removeArrayWrites(topLevelFormula, constraints);
     }
 
 }
