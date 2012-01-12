@@ -126,4 +126,13 @@ public class TermFunctionMacro extends FunctionMacro {
     public SExpression getBodyExpression() {
         return body.toSmtlibV2();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        body.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
 }

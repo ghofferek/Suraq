@@ -316,4 +316,16 @@ public class ArrayIte extends ArrayTerm {
         result.addAll(condition.getUninterpretedFunctions());
         return result;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        condition.substituteUninterpretedFunction(oldFunction, newFunction);
+        thenBranch.substituteUninterpretedFunction(oldFunction, newFunction);
+        elseBranch.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
 }

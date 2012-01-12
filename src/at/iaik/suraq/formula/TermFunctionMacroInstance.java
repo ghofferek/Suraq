@@ -297,4 +297,16 @@ public class TermFunctionMacroInstance extends Term {
         return macro.getUninterpretedFunctions();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        macro.substituteUninterpretedFunction(oldFunction, newFunction);
+        for (Term param : paramMap.values())
+            param.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
 }

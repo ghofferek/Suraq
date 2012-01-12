@@ -309,4 +309,15 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         return result;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        leftSide.substituteUninterpretedFunction(oldFunction, newFunction);
+        rightSide.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
 }

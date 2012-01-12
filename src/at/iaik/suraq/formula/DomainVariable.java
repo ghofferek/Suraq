@@ -211,4 +211,14 @@ public class DomainVariable extends DomainTerm {
         return new HashSet<UninterpretedFunction>();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        return;
+    }
+
 }

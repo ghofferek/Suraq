@@ -553,4 +553,16 @@ public class ArrayProperty implements Formula {
         return result;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        indexGuard.substituteUninterpretedFunction(oldFunction, newFunction);
+        valueConstraint.substituteUninterpretedFunction(oldFunction,
+                newFunction);
+    }
+
 }

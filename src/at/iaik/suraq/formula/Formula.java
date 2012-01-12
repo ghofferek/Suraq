@@ -103,6 +103,19 @@ public interface Formula {
     public Formula substituteFormula(Map<Token, Term> paramMap);
 
     /**
+     * Replaces all instances of <code>oldFunction</code> with instances of
+     * <code>newFunction</code>. The parameters of the functions are not changed
+     * (except for recursive substitutions).
+     * 
+     * @param oldFunction
+     *            the function to replace.
+     * @param newFunction
+     *            the function to put in place.
+     */
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction);
+
+    /**
      * Replaces all array equalities in this formula by equivalent array
      * properties.
      */

@@ -208,4 +208,14 @@ public class PropositionalConstant extends PropositionalTerm {
     public Set<UninterpretedFunction> getUninterpretedFunctions() {
         return new HashSet<UninterpretedFunction>();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        return;
+    }
 }

@@ -26,7 +26,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     /**
      * The function of which this is an instance.
      */
-    private final UninterpretedFunction function;
+    private UninterpretedFunction function;
 
     /**
      * The list of parameters of this instance.
@@ -314,5 +314,18 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         Set<UninterpretedFunction> result = new HashSet<UninterpretedFunction>();
         result.add(function);
         return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        if (function.equals(oldFunction))
+            function = newFunction;
+        for (Term term : parameters)
+            term.substituteUninterpretedFunction(oldFunction, newFunction);
     }
 }

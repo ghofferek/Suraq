@@ -358,4 +358,14 @@ public class NotFormula extends BooleanCombinationFormula {
         return formula.getUninterpretedFunctions();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        formula.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
 }

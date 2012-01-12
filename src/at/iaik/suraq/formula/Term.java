@@ -208,4 +208,11 @@ public abstract class Term {
      */
     public abstract Set<UninterpretedFunction> getUninterpretedFunctions();
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    public abstract void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction);
+
 }

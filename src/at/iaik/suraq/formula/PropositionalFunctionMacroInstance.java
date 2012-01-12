@@ -341,4 +341,16 @@ public class PropositionalFunctionMacroInstance implements Formula {
         return macro.getUninterpretedFunctions();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(
+            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+        macro.substituteUninterpretedFunction(oldFunction, newFunction);
+        for (Term param : paramMap.values())
+            param.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
 }
