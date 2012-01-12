@@ -6,6 +6,7 @@ package at.iaik.suraq.main;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +59,11 @@ public class Suraq implements Runnable {
      * Maps each noDependenceVar to a list of its copies.
      */
     private Map<Token, List<Term>> noDependenceVarsCopies;
+
+    /**
+     * Maps each noDependenceFunction to a list of its copies.
+     */
+    private Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies;
 
     /**
      * Constructs a new <code>Suraq</code>.
@@ -259,6 +265,45 @@ public class Suraq implements Runnable {
 
         // Now dealing with noDependenceVars
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
+        for (Token var : noDependenceVars) {
+            Token type = varTypes.get(var);
+            int numParams = 0;
+            if (functionArity.containsKey(var))
+                numParams = functionArity.get(var);
+
+            List<Term> listOfVarCopies = null;
+            if (noDependenceVarsCopies.containsKey(var))
+                listOfVarCopies = noDependenceVarsCopies.get(var);
+            if (listOfVarCopies == null)
+                listOfVarCopies = new ArrayList<Term>();
+            if (numParams == 0)
+                noDependenceVarsCopies.put(var, listOfVarCopies);
+
+            List<UninterpretedFunction> listOfFunctionCopies = null;
+            if (noDependenceFunctionsCopies.containsKey(var))
+                listOfFunctionCopies = noDependenceFunctionsCopies.get(var);
+            if (listOfFunctionCopies == null)
+                listOfFunctionCopies = new ArrayList<UninterpretedFunction>();
+            if (numParams > 0)
+                noDependenceFunctionsCopies.put(var, listOfFunctionCopies);
+
+            for (int count = 0; count < (1 << numControlSignals); count++) {
+                String name = Util.freshVarName(formula, var.toString()
+                        + "_copy_" + count);
+                outputExpression.addChild(SExpression.makeDeclareFun(new Token(
+                        name), type, numParams));
+                if (numParams == 0) {
+                    if (type.equals(SExpressionConstants.BOOL_TYPE))
+                        listOfVarCopies.add(new PropositionalVariable(name));
+                    else
+                        listOfVarCopies.add(new DomainVariable(name));
+                } else {
+                    listOfFunctionCopies.add(new UninterpretedFunction(name,
+                            numParams, type));
+                }
+
+            }
+        }
 
     }
 
