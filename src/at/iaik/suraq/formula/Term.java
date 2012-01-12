@@ -192,8 +192,14 @@ public abstract class Term {
             Set<Formula> constraints, Set<Token> noDependenceVars);
 
     /**
-     * Replaces array-read expressions with uninterpreted function instances.
+     * Replaces all array-read expressions with uninterpreted function instances
+     * of the same name.
+     * 
+     * @param noDependenceVars
+     *            the variables on which the controller may not depend. New such
+     *            variables are added to this set during recursion.
+     * 
      */
-    public abstract void arrayReadsToUninterpretedFunctions();
-
+    public abstract void arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars);
 }

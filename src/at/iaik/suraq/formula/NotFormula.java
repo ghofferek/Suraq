@@ -346,8 +346,8 @@ public class NotFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
-        formula.arrayReadsToUninterpretedFunctions();
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 
 }

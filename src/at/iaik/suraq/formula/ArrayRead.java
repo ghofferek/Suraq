@@ -13,6 +13,7 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -236,7 +237,8 @@ public class ArrayRead extends DomainTerm {
      * @return an <code>UninterpretedFunctionInstance</code> that is
      *         "equivalent" to this <code>ArrayRead</code>.
      */
-    public UninterpretedFunctionInstance toUninterpretedFunctionInstance() {
+    public UninterpretedFunctionInstance toUninterpretedFunctionInstance(
+            Set<Token> noDependenceVars) {
         try {
             String functionName = arrayTerm.toSmtlibV2().toString()
                     .replaceAll("\\W", "");
@@ -244,9 +246,18 @@ public class ArrayRead extends DomainTerm {
             DomainTerm term = indexTerm;
 
             if (term instanceof ArrayRead)
-                term = ((ArrayRead) term).toUninterpretedFunctionInstance();
+                term = ((ArrayRead) term)
+                        .toUninterpretedFunctionInstance(noDependenceVars);
             else
-                term.arrayReadsToUninterpretedFunctions();
+                term.arrayReadsToUninterpretedFunctions(noDependenceVars);
+
+            // Check if the arrayTerm contained any noDependenceVars.
+            // This is conservative and might not be complete (i.e., may
+            // result unnecessary unrealizability), but
+            // in practice, array reads should only occur on primitive
+            // array expressions, so this should not be a "real" problem.
+            if (Util.termContainsAny(arrayTerm, noDependenceVars))
+                noDependenceVars.add(new Token(functionName));
 
             return new UninterpretedFunctionInstance(new UninterpretedFunction(
                     functionName, 1), term);
@@ -261,7 +272,7 @@ public class ArrayRead extends DomainTerm {
      * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         throw new RuntimeException(
                 "arrayReadsToUninterpretedFunctions cannot be called on an ArrayWrite.\nUse toUninterpretedFunctionInstance instead.");
     }

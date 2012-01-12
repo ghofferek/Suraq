@@ -397,9 +397,9 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         for (Term term : terms)
-            term.arrayReadsToUninterpretedFunctions();
+            term.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 
 }

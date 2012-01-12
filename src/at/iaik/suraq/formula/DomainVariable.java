@@ -198,7 +198,7 @@ public class DomainVariable extends DomainTerm {
      * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         // nothing to do
         return;
     }

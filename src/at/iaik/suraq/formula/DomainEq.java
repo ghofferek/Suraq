@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * A formula consisting of the equality of domain terms.
@@ -73,15 +74,16 @@ public class DomainEq extends EqualityFormula {
      * @see at.iaik.suraq.formula.EqualityFormula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         for (DomainTerm term : getDomainTerms()) {
             if (term instanceof ArrayRead) {
                 while (terms.remove(term))
                     ;
-                terms.add(((ArrayRead) term).toUninterpretedFunctionInstance());
+                terms.add(((ArrayRead) term)
+                        .toUninterpretedFunctionInstance(noDependenceVars));
 
             } else
-                term.arrayReadsToUninterpretedFunctions();
+                term.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
         }
     }

@@ -299,9 +299,9 @@ public class ArrayIte extends ArrayTerm {
      * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
-        condition.arrayReadsToUninterpretedFunctions();
-        thenBranch.arrayReadsToUninterpretedFunctions();
-        elseBranch.arrayReadsToUninterpretedFunctions();
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        thenBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        elseBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 }

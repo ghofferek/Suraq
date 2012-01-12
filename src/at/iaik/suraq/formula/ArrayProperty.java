@@ -537,9 +537,9 @@ public class ArrayProperty implements Formula {
      * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
-        indexGuard.arrayReadsToUninterpretedFunctions();
-        valueConstraint.arrayReadsToUninterpretedFunctions();
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        indexGuard.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        valueConstraint.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 
 }

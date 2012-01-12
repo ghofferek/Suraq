@@ -31,7 +31,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     /**
      * The list of parameters of this instance.
      */
-    private final List<? extends DomainTerm> parameters;
+    private final List<DomainTerm> parameters;
 
     /**
      * Constructs a new <code>UninterpretedFunctionInstance</code> with the
@@ -297,8 +297,12 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         for (DomainTerm term : parameters)
-            term.arrayReadsToUninterpretedFunctions();
+            if (term instanceof ArrayRead) {
+                parameters.set(parameters.indexOf(term), ((ArrayRead) term)
+                        .toUninterpretedFunctionInstance(noDependenceVars));
+            } else
+                term.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 }

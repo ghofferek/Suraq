@@ -108,7 +108,7 @@ public class TermFunctionMacro extends FunctionMacro {
     /**
      * Replaces array-read expressions with uninterpreted function instances
      */
-    public void arrayReadsToUninterpretedFunctions() {
-        body.arrayReadsToUninterpretedFunctions();
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        body.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 }

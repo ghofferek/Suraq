@@ -290,9 +290,9 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         for (Formula formula : formulas)
-            formula.arrayReadsToUninterpretedFunctions();
+            formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 
 }

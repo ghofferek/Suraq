@@ -292,9 +292,9 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
-        leftSide.arrayReadsToUninterpretedFunctions();
-        rightSide.arrayReadsToUninterpretedFunctions();
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        leftSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        rightSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
     }
 

@@ -320,15 +320,15 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
-        macro.arrayReadsToUninterpretedFunctions();
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        macro.arrayReadsToUninterpretedFunctions(noDependenceVars);
         for (Token key : paramMap.keySet()) {
             Term term = paramMap.get(key);
             if (term instanceof ArrayRead)
-                paramMap.put(key,
-                        ((ArrayRead) term).toUninterpretedFunctionInstance());
+                paramMap.put(key, ((ArrayRead) term)
+                        .toUninterpretedFunctionInstance(noDependenceVars));
             else
-                term.arrayReadsToUninterpretedFunctions();
+                term.arrayReadsToUninterpretedFunctions(noDependenceVars);
         }
     }
 

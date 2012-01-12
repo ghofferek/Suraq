@@ -311,20 +311,20 @@ public class ArrayWrite extends ArrayTerm {
      * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions() {
-        arrayTerm.arrayReadsToUninterpretedFunctions();
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        arrayTerm.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
         if (indexTerm instanceof ArrayRead)
             indexTerm = ((ArrayRead) indexTerm)
-                    .toUninterpretedFunctionInstance();
+                    .toUninterpretedFunctionInstance(noDependenceVars);
         else
-            indexTerm.arrayReadsToUninterpretedFunctions();
+            indexTerm.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
         if (valueTerm instanceof ArrayRead)
             valueTerm = ((ArrayRead) valueTerm)
-                    .toUninterpretedFunctionInstance();
+                    .toUninterpretedFunctionInstance(noDependenceVars);
         else
-            valueTerm.arrayReadsToUninterpretedFunctions();
+            valueTerm.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
     }
 }

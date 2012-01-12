@@ -167,6 +167,11 @@ public interface Formula {
     /**
      * Replaces all array-read expressions with uninterpreted function instances
      * of the same name.
+     * 
+     * @param noDependenceVars
+     *            the variables on which the controller may not depend. New such
+     *            variables are added to this set during recursion.
+     * 
      */
-    public void arrayReadsToUninterpretedFunctions();
+    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars);
 }

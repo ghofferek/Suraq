@@ -160,7 +160,7 @@ public class Suraq implements Runnable {
         indexSet.add(lambda);
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
 
-        formula.arrayReadsToUninterpretedFunctions();
+        formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
     }
 
