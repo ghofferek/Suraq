@@ -1192,12 +1192,14 @@ public class LogicParser extends Parser {
                 throw new ParseError(token, "Unsupported function argument: "
                         + token.toString());
         }
-        if (!(type.equals(SExpressionConstants.VALUE_TYPE)))
+        if (!(type.equals(SExpressionConstants.VALUE_TYPE) || type
+                .equals(SExpressionConstants.BOOL_TYPE)))
             throw new ParseError(type, "Unsupported function type: "
                     + type.toString());
         assert (type instanceof Token);
 
-        if (!functions.add(new UninterpretedFunction(name, param_list.size()))) {
+        if (!functions.add(new UninterpretedFunction(name, param_list.size(),
+                (Token) type))) {
             throw new ParseError(name, "Duplicate function definition: "
                     + name.toString());
         }
