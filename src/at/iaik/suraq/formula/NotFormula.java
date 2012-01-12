@@ -350,4 +350,12 @@ public class NotFormula extends BooleanCombinationFormula {
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        return formula.getUninterpretedFunctions();
+    }
+
 }

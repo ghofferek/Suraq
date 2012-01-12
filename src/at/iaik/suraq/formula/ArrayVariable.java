@@ -194,4 +194,12 @@ public class ArrayVariable extends ArrayTerm {
         return;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        return new HashSet<UninterpretedFunction>();
+    }
+
 }

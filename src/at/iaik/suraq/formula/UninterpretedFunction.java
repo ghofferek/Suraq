@@ -8,7 +8,8 @@ import at.iaik.suraq.sexp.Token;
 /**
  * This class represents uninterpreted functions. It stores the name of the
  * function and the number of parameters. All parameters need to be of sort
- * <code>Value</code>.
+ * <code>Value</code>. The return type may be <code>Value</code> or
+ * <code>Bool</code>.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
@@ -26,6 +27,11 @@ public class UninterpretedFunction {
     private final Token name;
 
     /**
+     * The return type of the function.
+     */
+    private final Token type;
+
+    /**
      * 
      * Constructs a new <code>UninterpretedFunction</code>.
      * 
@@ -33,10 +39,14 @@ public class UninterpretedFunction {
      *            the name of the function
      * @param numParams
      *            the number of parameters.
+     * @param type
+     *            the return type of the function (<code>Value</code> or
+     *            <code>Bool</code>).
      */
-    public UninterpretedFunction(String name, int numParams) {
+    public UninterpretedFunction(String name, int numParams, Token type) {
         this.name = new Token(name);
         this.numParams = numParams;
+        this.type = type;
     }
 
     /**
@@ -47,10 +57,14 @@ public class UninterpretedFunction {
      *            the name of the function
      * @param numParams
      *            the number of parameters.
+     * @param type
+     *            the return type of the function (<code>Value</code> or
+     *            <code>Bool</code>).
      */
-    public UninterpretedFunction(Token name, int numParams) {
+    public UninterpretedFunction(Token name, int numParams, Token type) {
         this.name = name;
         this.numParams = numParams;
+        this.type = type;
     }
 
     /**
@@ -63,7 +77,8 @@ public class UninterpretedFunction {
      */
     public UninterpretedFunction(UninterpretedFunction original) {
         this.numParams = original.numParams;
-        this.name = (Token) original.name.deepCopy();
+        this.name = new Token(original.name);
+        this.type = new Token(original.type);
     }
 
     /**
@@ -82,6 +97,15 @@ public class UninterpretedFunction {
      */
     public Token getName() {
         return name;
+    }
+
+    /**
+     * Returns the type of this function.
+     * 
+     * @return the <code>name</code>
+     */
+    public Token getType() {
+        return type;
     }
 
     /**

@@ -327,4 +327,16 @@ public class ArrayWrite extends ArrayTerm {
             valueTerm.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        Set<UninterpretedFunction> result = arrayTerm
+                .getUninterpretedFunctions();
+        result.addAll(indexTerm.getUninterpretedFunctions());
+        result.addAll(valueTerm.getUninterpretedFunctions());
+        return result;
+    }
 }

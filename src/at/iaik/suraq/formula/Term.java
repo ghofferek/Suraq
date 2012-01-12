@@ -202,4 +202,10 @@ public abstract class Term {
      */
     public abstract void arrayReadsToUninterpretedFunctions(
             Set<Token> noDependenceVars);
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctions()
+     */
+    public abstract Set<UninterpretedFunction> getUninterpretedFunctions();
+
 }

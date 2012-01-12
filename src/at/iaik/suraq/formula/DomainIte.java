@@ -303,4 +303,16 @@ public class DomainIte extends DomainTerm {
         thenBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
         elseBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        Set<UninterpretedFunction> result = thenBranch
+                .getUninterpretedFunctions();
+        result.addAll(elseBranch.getUninterpretedFunctions());
+        result.addAll(condition.getUninterpretedFunctions());
+        return result;
+    }
 }

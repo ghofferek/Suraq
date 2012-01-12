@@ -200,4 +200,12 @@ public class PropositionalConstant extends PropositionalTerm {
         // nothing to do
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        return new HashSet<UninterpretedFunction>();
+    }
 }

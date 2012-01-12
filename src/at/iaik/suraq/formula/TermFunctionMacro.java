@@ -111,4 +111,11 @@ public class TermFunctionMacro extends FunctionMacro {
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         body.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctions()
+     */
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        return body.getUninterpretedFunctions();
+    }
 }

@@ -298,4 +298,15 @@ public class ImpliesFormula extends BooleanCombinationFormula {
 
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        Set<UninterpretedFunction> result = leftSide
+                .getUninterpretedFunctions();
+        result.addAll(rightSide.getUninterpretedFunctions());
+        return result;
+    }
+
 }

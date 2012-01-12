@@ -288,4 +288,12 @@ public class TermFunctionMacroInstance extends Term {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        return macro.getUninterpretedFunctions();
+    }
+
 }

@@ -218,4 +218,11 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         body.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctions()
+     */
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        return body.getUninterpretedFunctions();
+    }
 }

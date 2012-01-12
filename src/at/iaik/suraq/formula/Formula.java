@@ -174,4 +174,13 @@ public interface Formula {
      * 
      */
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars);
+
+    /**
+     * Returns all uninterpreted functions used in this formula. Don't confuse
+     * with <code>getUninterpretedFunctionNames()</code> which just collects the
+     * names of the functions, and not the function objects itself.
+     * 
+     * @return a set of all uninterpreted functions used in this formula.
+     */
+    public Set<UninterpretedFunction> getUninterpretedFunctions();
 }

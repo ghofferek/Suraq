@@ -402,4 +402,15 @@ public abstract class EqualityFormula implements Formula {
             term.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        Set<UninterpretedFunction> functions = new HashSet<UninterpretedFunction>();
+        for (Term term : terms)
+            functions.addAll(term.getUninterpretedFunctions());
+        return functions;
+    }
+
 }

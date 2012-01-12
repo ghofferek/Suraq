@@ -260,7 +260,7 @@ public class ArrayRead extends DomainTerm {
                 noDependenceVars.add(new Token(functionName));
 
             return new UninterpretedFunctionInstance(new UninterpretedFunction(
-                    functionName, 1), term);
+                    functionName, 1, SExpressionConstants.VALUE_TYPE), term);
         } catch (WrongNumberOfParametersException exc) {
             throw new RuntimeException(
                     "Could not replace array-reads with uninterpreted functions",
@@ -275,5 +275,16 @@ public class ArrayRead extends DomainTerm {
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         throw new RuntimeException(
                 "arrayReadsToUninterpretedFunctions cannot be called on an ArrayWrite.\nUse toUninterpretedFunctionInstance instead.");
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        Set<UninterpretedFunction> result = arrayTerm
+                .getUninterpretedFunctions();
+        result.addAll(indexTerm.getUninterpretedFunctions());
+        return result;
     }
 }

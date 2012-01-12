@@ -305,4 +305,14 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             } else
                 term.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        Set<UninterpretedFunction> result = new HashSet<UninterpretedFunction>();
+        result.add(function);
+        return result;
+    }
 }

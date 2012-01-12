@@ -542,4 +542,15 @@ public class ArrayProperty implements Formula {
         valueConstraint.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctions()
+     */
+    @Override
+    public Set<UninterpretedFunction> getUninterpretedFunctions() {
+        Set<UninterpretedFunction> result = indexGuard
+                .getUninterpretedFunctions();
+        result.addAll(valueConstraint.getUninterpretedFunctions());
+        return result;
+    }
+
 }
