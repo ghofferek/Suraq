@@ -108,12 +108,12 @@ public interface Formula {
      * (except for recursive substitutions).
      * 
      * @param oldFunction
-     *            the function to replace.
+     *            the name of the function to replace.
      * @param newFunction
      *            the function to put in place.
      */
-    public void substituteUninterpretedFunction(
-            UninterpretedFunction oldFunction, UninterpretedFunction newFunction);
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction);
 
     /**
      * Replaces all array equalities in this formula by equivalent array

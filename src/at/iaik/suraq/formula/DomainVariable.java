@@ -212,12 +212,12 @@ public class DomainVariable extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
     public void substituteUninterpretedFunction(
-            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+            Token oldFunction, UninterpretedFunction newFunction) {
         return;
     }
 

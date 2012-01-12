@@ -6,11 +6,13 @@ package at.iaik.suraq.util;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.formula.ArrayVariable;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -163,4 +165,27 @@ public class Util {
         return false;
     }
 
+    /**
+     * Creates a new variable of the given type.
+     * 
+     * @param name
+     *            the name of the variable
+     * @param type
+     *            the type of the variable
+     * @return a new variable with name <code>name</code> and type
+     *         <code>type</code>.
+     * @throws SuraqException
+     *             if the given <code>type</code> does not exist
+     */
+    public static Term variableFactory(Token name, Token type)
+            throws SuraqException {
+        if (type.equals(SExpressionConstants.BOOL_TYPE))
+            return new PropositionalVariable(name);
+        if (type.equals(SExpressionConstants.VALUE_TYPE))
+            return new DomainVariable(name);
+        if (type.equals(SExpressionConstants.ARRAY_TYPE))
+            return new ArrayVariable(name);
+        throw new SuraqException("Cannot create variable of type "
+                + type.toString());
+    }
 }

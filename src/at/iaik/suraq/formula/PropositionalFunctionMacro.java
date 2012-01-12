@@ -235,11 +235,11 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
-    public void substituteUninterpretedFunction(
-            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         body.substituteUninterpretedFunction(oldFunction, newFunction);
     }
 }

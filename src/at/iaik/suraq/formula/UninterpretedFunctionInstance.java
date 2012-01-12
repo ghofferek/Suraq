@@ -317,13 +317,13 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(at.iaik.suraq.formula.UninterpretedFunction,
+     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            UninterpretedFunction oldFunction, UninterpretedFunction newFunction) {
-        if (function.equals(oldFunction))
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
+        if (function.getName().equals(oldFunction))
             function = newFunction;
         for (Term term : parameters)
             term.substituteUninterpretedFunction(oldFunction, newFunction);

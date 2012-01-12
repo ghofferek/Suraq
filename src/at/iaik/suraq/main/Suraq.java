@@ -3,8 +3,10 @@
  */
 package at.iaik.suraq.main;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.FunctionMacro;
+import at.iaik.suraq.formula.PropositionalConstant;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
 import at.iaik.suraq.formula.UninterpretedFunction;
@@ -65,6 +68,11 @@ public class Suraq implements Runnable {
      * Maps each noDependenceFunction to a list of its copies.
      */
     private Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies;
+
+    /**
+     * Mapping variable names to their type.
+     */
+    private Map<Token, Token> varTypes;
 
     /**
      * Constructs a new <code>Suraq</code>.
@@ -150,10 +158,18 @@ public class Suraq implements Runnable {
 
         try {
             doMainWork();
+            File smtfile = new File(options.getSmtfile());
+            FileWriter fstream = new FileWriter(smtfile);
+            BufferedWriter smtfilewriter = new BufferedWriter(fstream);
+            smtfilewriter.write(outputExpression.toString());
+            smtfilewriter.close();
         } catch (SuraqException exc) {
             noErrors = false;
             if (exc.getMessage() != null)
                 System.out.println(exc.getMessage());
+        } catch (IOException exc) {
+            System.err.println("Error while writing to smtfile.");
+            exc.printStackTrace();
         }
 
         // All done :-)
@@ -183,12 +199,18 @@ public class Suraq implements Runnable {
         Set<DomainTerm> indexSet = formula.getIndexSet();
         lambda = new DomainVariable(Util.freshVarName(formula, "lambda"));
         indexSet.add(lambda);
+        noDependenceVars.add(new Token(lambda.getVarName()));
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
 
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
+
+        if (controlSignals.size() > 30) {
+            throw new SuraqException(
+                    "Current implementation cannot handle more than 30 control signals.");
+        }
 
         outputExpression = new SExpression();
         outputExpression.addChild(new SExpression(
@@ -201,6 +223,72 @@ public class Suraq implements Runnable {
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
 
+        writeAssertPartitions(formula, noDependenceVars, controlSignals);
+
+        outputExpression.addChild(SExpressionConstants.CHECK_SAT);
+
+        outputExpression.addChild(SExpressionConstants.EXIT);
+
+    }
+
+    /**
+     * Writes the assert-partitions for the expanded formula to the
+     * <code>outputExpression</code>.
+     * 
+     * @param formula
+     *            the main formula to expand
+     * @param noDependenceVars
+     *            the variables (and functions) on which the controller may not
+     *            depend
+     * @param controlSignals
+     *            the control signals
+     * @throws SuraqException
+     *             if something goes wrong
+     */
+    private void writeAssertPartitions(Formula formula,
+            Set<Token> noDependenceVars,
+            List<PropositionalVariable> controlSignals) throws SuraqException {
+
+        if (outputExpression == null)
+            throw new SuraqException("outputExpression not initialized!");
+
+        for (int count = 0; count < (1 << controlSignals.size()); count++) {
+            Formula tempFormula = formula.deepFormulaCopy();
+            Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
+            for (Token var : noDependenceVars) {
+                if (noDependenceFunctionsCopies.containsKey(var))
+                    // it's a variable
+                    variableSubstitutions.put(var,
+                            noDependenceVarsCopies.get(var).get(count));
+                else if (noDependenceFunctionsCopies.containsKey(var))
+                    // it's an uninterpreted function
+                    tempFormula.substituteUninterpretedFunction(var,
+                            noDependenceFunctionsCopies.get(var).get(count));
+                else
+                    throw new SuraqException(
+                            "noDependenceVar "
+                                    + var.toString()
+                                    + "is neither a variabel nor an uninterpreted function.");
+            }
+
+            int currentCount = count;
+            int mask = 1;
+            for (int signalCount = 0; signalCount < controlSignals.size(); signalCount++) {
+                variableSubstitutions
+                        .put(new Token(controlSignals.get(signalCount)
+                                .getVarName()), new PropositionalConstant(
+                                (currentCount & mask) != 0));
+                currentCount = currentCount >> 1;
+            }
+
+            tempFormula = tempFormula.substituteFormula(variableSubstitutions);
+
+            SExpression assertPartitionExpression = new SExpression();
+            assertPartitionExpression
+                    .addChild(SExpressionConstants.ASSERT_PARTITION);
+            assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
+            outputExpression.addChild(assertPartitionExpression);
+        }
     }
 
     /**
@@ -225,7 +313,7 @@ public class Suraq implements Runnable {
         if (outputExpression == null)
             throw new SuraqException("outputExpression not initialized!");
 
-        Map<Token, Token> varTypes = new HashMap<Token, Token>();
+        varTypes = new HashMap<Token, Token>();
         Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
 
         for (PropositionalVariable var : formula.getPropositionalVariables()) {
@@ -307,7 +395,6 @@ public class Suraq implements Runnable {
 
         for (FunctionMacro macro : formula.getFunctionMacros())
             outputExpression.addChild(macro.toSmtlibV2());
-
     }
 
     /**

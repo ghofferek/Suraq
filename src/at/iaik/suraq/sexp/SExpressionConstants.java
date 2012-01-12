@@ -48,7 +48,7 @@ public class SExpressionConstants {
             .fromString("(declare-sort " + SExpressionConstants.VALUE_TYPE
                     + " 0)");
 
-    public static final Token CHECK_SAT = (Token) SExpression
+    public static final SExpression CHECK_SAT = SExpression
             .fromString("(check-sat)");
 
     public static final Token TRUE = (Token) SExpression.fromString("true");
@@ -82,5 +82,7 @@ public class SExpressionConstants {
             .fromString(":no_dependence");
 
     public static final SExpression EMPTY = SExpression.fromString("()");
+
+    public static final SExpression EXIT = SExpression.fromString("(exit)");
 
 }
