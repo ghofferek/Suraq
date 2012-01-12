@@ -38,6 +38,19 @@ public class SExpressionConstants {
     public static final SExpression SET_LOGIC_SURAQ = SExpression
             .fromString("(set-logic Suraq)");
 
+    public static final SExpression SET_LOGIC_QF_UF = SExpression
+            .fromString("(set-logic QF_UF)");
+
+    public static final SExpression SET_OPTION_PRODUCE_INTERPOLANT = SExpression
+            .fromString("(set-option :produce-interpolants true)");
+
+    public static final SExpression DECLARE_SORT_VALUE = SExpression
+            .fromString("(declare-sort " + SExpressionConstants.VALUE_TYPE
+                    + " 0)");
+
+    public static final Token CHECK_SAT = (Token) SExpression
+            .fromString("(check-sat)");
+
     public static final Token TRUE = (Token) SExpression.fromString("true");
 
     public static final Token FALSE = (Token) SExpression.fromString("false");
@@ -67,5 +80,7 @@ public class SExpressionConstants {
 
     public static final Token NO_DEPENDENCE = (Token) SExpression
             .fromString(":no_dependence");
+
+    public static final SExpression EMPTY = SExpression.fromString("()");
 
 }

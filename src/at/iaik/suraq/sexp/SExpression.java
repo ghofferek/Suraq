@@ -12,7 +12,6 @@ import at.iaik.suraq.parser.SExpParser;
 
 /**
  * This class represents s-expressions. It consists of a list of subexpressions.
- * <code>SExpression</code>s are immutable objects.
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
@@ -312,4 +311,35 @@ public class SExpression {
         this.columnNumber = columnNumber;
     }
 
+    /**
+     * Creates an SExpression for a function declaration. Produces something of
+     * the form <code>(declare-fun name () type)</code>. If
+     * <code>numParams > 0</code> the corresponding number if <code>Value</code>
+     * parameters will be added. E.g. for <code>numParams==2</code>:
+     * <code>(declare-fun name (Value Value) type)</code>.
+     * 
+     * @param name
+     *            the name of the function
+     * @param type
+     *            the type of the function
+     * @param numParams
+     *            the number of parameters (all of type <code>Value</code>).
+     *            Negative values will be treated as zero.
+     * @return an <code>SExpression</code> declaring the specified function.
+     */
+    public static SExpression makeDeclareFun(Token name, Token type,
+            int numParams) {
+        SExpression result = new SExpression();
+        result.addChild(SExpressionConstants.DECLARE_FUN);
+        result.addChild(name);
+        if (numParams > 0) {
+            SExpression params = new SExpression();
+            for (int count = 0; count < numParams; count++)
+                params.addChild(SExpressionConstants.VALUE_TYPE);
+            result.addChild(params);
+        } else
+            result.addChild(SExpressionConstants.EMPTY);
+        result.addChild(type);
+        return result;
+    }
 }

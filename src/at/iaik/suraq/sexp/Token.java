@@ -53,6 +53,16 @@ public class Token extends SExpression {
     }
 
     /**
+     * Constructs a new <code>Token</code>, which is a copy of the given one.
+     * 
+     * @param original
+     *            the <code>Token</code> to copy.
+     */
+    public Token(Token original) {
+        this.token = new String(original.token);
+    }
+
+    /**
      * @see at.iaik.suraq.sexp.SExpression#size()
      */
     @Override
