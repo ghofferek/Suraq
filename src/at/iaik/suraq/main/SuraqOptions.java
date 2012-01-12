@@ -37,6 +37,16 @@ public class SuraqOptions {
     private final String inputValue;
 
     /**
+     * Default value for smtfile option.
+     */
+    private static final String smtfileDefault = "suraq_qf_uf.smt2";
+
+    /**
+     * The value of the smtfile option.
+     */
+    private final String smtfileValue;
+
+    /**
      * The parser that stores the (parsed) command-line options.
      */
     private final CmdLineParser cmdLineParser = new CmdLineParser();
@@ -64,6 +74,7 @@ public class SuraqOptions {
             args = new String[0];
 
         Option inputOption = cmdLineParser.addStringOption('i', "input");
+        Option smtfileOption = cmdLineParser.addStringOption('s', "smtfile");
         Option verboseOption = cmdLineParser.addBooleanOption('v', "verbose");
 
         try {
@@ -74,6 +85,7 @@ public class SuraqOptions {
 
         inputValue = (String) cmdLineParser.getOptionValue(inputOption);
         verboseValue = (Boolean) cmdLineParser.getOptionValue(verboseOption);
+        smtfileValue = (String) cmdLineParser.getOptionValue(smtfileOption);
 
     }
 
@@ -125,5 +137,15 @@ public class SuraqOptions {
      */
     public String getInput() {
         return inputValue != null ? inputValue : SuraqOptions.inputDefault;
+    }
+
+    /**
+     * Returns the value of the smtfile option.
+     * 
+     * @return the value of the smtfile option.
+     */
+    public String getSmtfile() {
+        return smtfileValue != null ? smtfileValue
+                : SuraqOptions.smtfileDefault;
     }
 }

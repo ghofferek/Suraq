@@ -6,7 +6,10 @@ package at.iaik.suraq.main;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
@@ -15,8 +18,13 @@ import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
+import at.iaik.suraq.formula.PropositionalVariable;
+import at.iaik.suraq.formula.Term;
+import at.iaik.suraq.formula.UninterpretedFunction;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.Util;
 
@@ -40,6 +48,16 @@ public class Suraq implements Runnable {
      * conjunctions.
      */
     private DomainVariable lambda;
+
+    /**
+     * The expression that will be written to the output.
+     */
+    private SExpression outputExpression;
+
+    /**
+     * Maps each noDependenceVar to a list of its copies.
+     */
+    private Map<Token, List<Term>> noDependenceVarsCopies;
 
     /**
      * Constructs a new <code>Suraq</code>.
@@ -161,6 +179,86 @@ public class Suraq implements Runnable {
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
 
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
+
+        List<PropositionalVariable> controlSignals = logicParser
+                .getControlVariables();
+
+        outputExpression = new SExpression();
+        outputExpression.addChild(new SExpression(
+                SExpressionConstants.SET_LOGIC_QF_UF));
+        outputExpression.addChild(new SExpression(
+                SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT));
+        outputExpression.addChild(new SExpression(
+                SExpressionConstants.DECLARE_SORT_VALUE));
+
+        writeDeclarationsAndDefinitions(formula, noDependenceVars,
+                controlSignals.size());
+
+    }
+
+    /**
+     * Writes the declarations of all domain variables, propositional variables,
+     * uninterpreted functions, as well as the definition of all macros in
+     * <code>formula</code>. For <code>noDependenceVars</code>, 2^
+     * <code>numControlSignals</code> copies are declared.
+     * 
+     * @param formula
+     *            The formula for which to write the definitions.
+     * @param noDependenceVars
+     *            the set of variables on which the controller may not depend.
+     * @param numControlSignals
+     *            the number of control signals.
+     * @throws SuraqException
+     *             if something goes wrong.
+     */
+    private void writeDeclarationsAndDefinitions(Formula formula,
+            Set<Token> noDependenceVars, int numControlSignals)
+            throws SuraqException {
+
+        if (outputExpression == null)
+            throw new SuraqException("outputExpression not initialized!");
+
+        Map<Token, Token> varTypes = new HashMap<Token, Token>();
+        Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
+
+        for (PropositionalVariable var : formula.getPropositionalVariables()) {
+            if (noDependenceVars.contains(var.toSmtlibV2())) {
+                varTypes.put(new Token(var.getVarName()),
+                        SExpressionConstants.BOOL_TYPE);
+                continue; // noDependenceVars will be handled later.
+            }
+            outputExpression
+                    .addChild(SExpression.makeDeclareFun(
+                            (Token) var.toSmtlibV2(),
+                            SExpressionConstants.BOOL_TYPE, 0));
+        }
+
+        for (DomainVariable var : formula.getDomainVariables()) {
+            if (noDependenceVars.contains(var.toSmtlibV2())) {
+                varTypes.put(new Token(var.getVarName()),
+                        SExpressionConstants.VALUE_TYPE);
+                continue; // noDependenceVars will be handled later.
+            }
+            outputExpression.addChild(SExpression.makeDeclareFun(
+                    (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
+                    0));
+        }
+
+        for (UninterpretedFunction function : formula
+                .getUninterpretedFunctions()) {
+            if (noDependenceVars.contains(function.getName())) {
+                varTypes.put(new Token(function.getType()),
+                        SExpressionConstants.VALUE_TYPE);
+                functionArity.put(function.getName(), function.getNumParams());
+                continue; // noDependenceVars will be handled later.
+            }
+            outputExpression.addChild(SExpression.makeDeclareFun(
+                    function.getName(), SExpressionConstants.VALUE_TYPE,
+                    function.getNumParams()));
+        }
+
+        // Now dealing with noDependenceVars
+        noDependenceVarsCopies = new HashMap<Token, List<Term>>();
 
     }
 
