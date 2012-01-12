@@ -225,4 +225,12 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     public Set<UninterpretedFunction> getUninterpretedFunctions() {
         return body.getUninterpretedFunctions();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.FunctionMacro#getBodyExpression()
+     */
+    @Override
+    public SExpression getBodyExpression() {
+        return body.toSmtlibV2();
+    }
 }

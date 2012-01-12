@@ -185,11 +185,12 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> macroNames = new HashSet<FunctionMacro>();
-        macroNames.add(macro);
+        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+        macros.add(macro);
         for (Term term : paramMap.values())
-            macroNames.addAll(term.getFunctionMacros());
-        return macroNames;
+            macros.addAll(term.getFunctionMacros());
+        macros.addAll(macro.getBody().getFunctionMacros());
+        return macros;
     }
 
     /**

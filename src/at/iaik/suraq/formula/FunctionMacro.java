@@ -11,6 +11,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -168,10 +169,44 @@ public abstract class FunctionMacro {
             Set<DomainTerm> indexSet);
 
     /**
+     * Returns an <code>SExpression</code> representing the body of the macro.
+     * 
+     * @return an <code>SExpression</code> representing the body of the macro.
+     */
+    public abstract SExpression getBodyExpression();
+
+    /**
      * Returns the type of this macro.
      * 
      * @return the type of this macro.
      */
     public abstract SExpression getType();
+
+    /**
+     * Creates a define-fun expression for this macro.
+     * 
+     * @return a define-fun expression for this macro.
+     */
+    public SExpression toSmtlibV2() {
+        SExpression result = new SExpression();
+
+        result.addChild(SExpressionConstants.DEFINE_FUN);
+
+        SExpression allParametersExpression = new SExpression();
+        for (Token currentParam : parameters) {
+            SExpression currentParamExpression = new SExpression();
+            currentParamExpression.addChild(currentParam);
+            currentParamExpression.addChild(paramMap.get(currentParam));
+            allParametersExpression.addChild(currentParamExpression);
+        }
+
+        result.addChild(allParametersExpression);
+
+        result.addChild(getType());
+
+        result.addChild(getBodyExpression());
+
+        return result;
+    }
 
 }

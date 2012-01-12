@@ -19,6 +19,7 @@ import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
+import at.iaik.suraq.formula.FunctionMacro;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
 import at.iaik.suraq.formula.UninterpretedFunction;
@@ -301,9 +302,11 @@ public class Suraq implements Runnable {
                     listOfFunctionCopies.add(new UninterpretedFunction(name,
                             numParams, type));
                 }
-
             }
         }
+
+        for (FunctionMacro macro : formula.getFunctionMacros())
+            outputExpression.addChild(macro.toSmtlibV2());
 
     }
 
