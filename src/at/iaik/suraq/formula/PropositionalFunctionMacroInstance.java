@@ -305,13 +305,14 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
-        Set<Formula> localConstraints = macro
-                .removeArrayWrites(topLevelFormula);
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        Set<Formula> localConstraints = macro.removeArrayWrites(
+                topLevelFormula, noDependenceVars);
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
         for (Term term : paramMap.values())
-            term.removeArrayWrites(topLevelFormula, constraints);
+            term.removeArrayWrites(topLevelFormula, constraints,
+                    noDependenceVars);
 
     }
 

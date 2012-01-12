@@ -275,20 +275,23 @@ public class ArrayIte extends ArrayTerm {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
-        condition.removeArrayWrites(topLevelFormula, constraints);
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        condition.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
 
         if (thenBranch instanceof ArrayWrite)
             thenBranch = ((ArrayWrite) thenBranch).applyWriteAxiom(
-                    topLevelFormula, constraints);
+                    topLevelFormula, constraints, noDependenceVars);
         else
-            thenBranch.removeArrayWrites(topLevelFormula, constraints);
+            thenBranch.removeArrayWrites(topLevelFormula, constraints,
+                    noDependenceVars);
 
         if (elseBranch instanceof ArrayWrite)
             elseBranch = ((ArrayWrite) elseBranch).applyWriteAxiom(
-                    topLevelFormula, constraints);
+                    topLevelFormula, constraints, noDependenceVars);
         else
-            elseBranch.removeArrayWrites(topLevelFormula, constraints);
+            elseBranch.removeArrayWrites(topLevelFormula, constraints,
+                    noDependenceVars);
 
     }
 

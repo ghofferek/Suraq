@@ -281,9 +281,11 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
-        leftSide.removeArrayWrites(topLevelFormula, constraints);
-        rightSide.removeArrayWrites(topLevelFormula, constraints);
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        leftSide.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
+        rightSide.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
     }
 
     /**

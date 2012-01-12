@@ -387,9 +387,10 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         for (Term term : terms)
-            term.removeArrayWrites(topLevelFormula, constraints);
+            term.removeArrayWrites(topLevelFormula, constraints,
+                    noDependenceVars);
     }
 
     /**

@@ -528,7 +528,7 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         // Does not contain array writes subformulas.
         return;
     }

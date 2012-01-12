@@ -217,14 +217,16 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         if (arrayTerm instanceof ArrayWrite)
             arrayTerm = ((ArrayWrite) arrayTerm).applyWriteAxiom(
-                    topLevelFormula, constraints);
+                    topLevelFormula, constraints, noDependenceVars);
         else
-            arrayTerm.removeArrayWrites(topLevelFormula, constraints);
+            arrayTerm.removeArrayWrites(topLevelFormula, constraints,
+                    noDependenceVars);
 
-        indexTerm.removeArrayWrites(topLevelFormula, constraints);
+        indexTerm.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
     }
 
     /**

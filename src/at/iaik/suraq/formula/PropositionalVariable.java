@@ -207,7 +207,7 @@ public class PropositionalVariable extends PropositionalTerm {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         // nothing to do
         return;
     }

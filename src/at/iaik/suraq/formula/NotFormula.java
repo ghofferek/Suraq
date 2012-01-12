@@ -337,8 +337,9 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
-        formula.removeArrayWrites(topLevelFormula, constraints);
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        formula.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
     }
 
     /**

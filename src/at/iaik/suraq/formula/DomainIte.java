@@ -285,10 +285,13 @@ public class DomainIte extends DomainTerm {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
-        condition.removeArrayWrites(topLevelFormula, constraints);
-        thenBranch.removeArrayWrites(topLevelFormula, constraints);
-        elseBranch.removeArrayWrites(topLevelFormula, constraints);
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        condition.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
+        thenBranch.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
+        elseBranch.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
     }
 
     /**

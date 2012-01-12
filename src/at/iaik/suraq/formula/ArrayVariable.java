@@ -180,7 +180,7 @@ public class ArrayVariable extends ArrayTerm {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         // nothing to do
         return;
     }

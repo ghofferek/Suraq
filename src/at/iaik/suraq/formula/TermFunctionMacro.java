@@ -95,11 +95,13 @@ public class TermFunctionMacro extends FunctionMacro {
     }
 
     /**
-     * @param topLevelFormula
+     * @see at.iaik.suraq.formula.EqualityFormula#removeArrayWrites(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
      */
-    public Set<Formula> removeArrayWrites(Formula topLevelFormula) {
+    public Set<Formula> removeArrayWrites(Formula topLevelFormula,
+            Set<Token> noDependenceVars) {
         Set<Formula> constraints = new HashSet<Formula>();
-        body.removeArrayWrites(topLevelFormula, constraints);
+        body.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
         return constraints;
     }
 

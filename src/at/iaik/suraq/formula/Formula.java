@@ -155,10 +155,14 @@ public interface Formula {
      * @param constraints
      *            A set to which constraints coming from write-axiom application
      *            will be added.
+     * @param noDependenceVars
+     *            A set of variables on which the controller may not depend.
+     *            Newly created variables on which the controller may not depend
+     *            are added to this set during recursion.
      * 
      */
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints);
+            Set<Formula> constraints, Set<Token> noDependenceVars);
 
     /**
      * Replaces all array-read expressions with uninterpreted function instances

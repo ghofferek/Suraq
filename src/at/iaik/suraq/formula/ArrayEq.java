@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -122,4 +123,24 @@ public class ArrayEq extends EqualityFormula {
         throw new RuntimeException(
                 "arrayPropertiesToFiniteConjunctions cannot be called on an ArrayEq.\nRemove array equalities before reducing properties to conjunctions.");
     }
+
+    /**
+     * @see at.iaik.suraq.formula.EqualityFormula#removeArrayWrites(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public void removeArrayWrites(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        for (Term term : terms) {
+            if (term instanceof ArrayWrite) {
+                terms.remove(term);
+                terms.add(((ArrayWrite) term).applyWriteAxiom(topLevelFormula,
+                        constraints, noDependenceVars));
+            } else
+                term.removeArrayWrites(topLevelFormula, constraints,
+                        noDependenceVars);
+        }
+
+    }
+
 }

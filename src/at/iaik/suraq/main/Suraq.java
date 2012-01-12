@@ -17,6 +17,7 @@ import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -144,9 +145,11 @@ public class Suraq implements Runnable {
     private void doMainWork() throws SuraqException {
 
         Formula formula = logicParser.getMainFormula().deepFormulaCopy();
+        Set<Token> noDependenceVars = new HashSet<Token>(
+                logicParser.getNoDependenceVariables());
 
         Set<Formula> constraints = new HashSet<Formula>();
-        formula.removeArrayWrites(formula, constraints);
+        formula.removeArrayWrites(formula, constraints, noDependenceVars);
         constraints.add(formula);
         formula = new AndFormula(constraints);
 

@@ -286,9 +286,10 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         for (Term param : parameters)
-            param.removeArrayWrites(topLevelFormula, constraints);
+            param.removeArrayWrites(topLevelFormula, constraints,
+                    noDependenceVars);
 
     }
 

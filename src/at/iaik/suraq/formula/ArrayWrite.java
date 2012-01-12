@@ -235,7 +235,7 @@ public class ArrayWrite extends ArrayTerm {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         throw new RuntimeException(
                 "removeArrayWrites cannot be called on an ArrayWrite.\nUse applyWriteAxiom instead.");
 
@@ -254,17 +254,18 @@ public class ArrayWrite extends ArrayTerm {
      * @return an <code>ArrayVariable</code> with a fresh name.
      */
     public ArrayVariable applyWriteAxiom(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
 
         // First, recursively remove writes from sub-parts
-        arrayTerm.removeArrayWrites(topLevelFormula, constraints);
-        indexTerm.removeArrayWrites(topLevelFormula, constraints);
-        valueTerm.removeArrayWrites(topLevelFormula, constraints);
+        arrayTerm.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
+        indexTerm.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
+        valueTerm.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars);
 
         // now apply axiom
-        String oldVar = "NPWE"; // "Non-Primitive Write Expression"
-        if (arrayTerm instanceof ArrayVariable)
-            oldVar = ((ArrayVariable) arrayTerm).getVarName();
+        String oldVar = arrayTerm.toSmtlibV2().toString().replaceAll("\\W", "");
         ArrayVariable newVar = new ArrayVariable(Util.freshVarName(
                 topLevelFormula, oldVar));
 
@@ -294,6 +295,14 @@ public class ArrayWrite extends ArrayTerm {
         } catch (SuraqException exc) {
             throw new RuntimeException("Could not apply write axiom.", exc);
         }
+
+        // Check if the arrayTerm contained any noDependenceVars.
+        // This is conservative and might not be complete (i.e., may
+        // result unnecessary unrealizability), but
+        // in practice, array writes should only occur on primitive
+        // array expressions, so this should not be a "real" problem.
+        if (Util.termContainsAny(arrayTerm, noDependenceVars))
+            noDependenceVars.add(new Token(newVar.getVarName()));
 
         return newVar;
     }

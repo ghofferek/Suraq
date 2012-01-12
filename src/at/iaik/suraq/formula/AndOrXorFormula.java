@@ -279,9 +279,10 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         for (Formula formula : this.getSubFormulas())
-            formula.removeArrayWrites(topLevelFormula, constraints);
+            formula.removeArrayWrites(topLevelFormula, constraints,
+                    noDependenceVars);
 
     }
 
