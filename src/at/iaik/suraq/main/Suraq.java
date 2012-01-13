@@ -23,6 +23,7 @@ import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.FunctionMacro;
+import at.iaik.suraq.formula.NotFormula;
 import at.iaik.suraq.formula.PropositionalConstant;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
@@ -304,7 +305,7 @@ public class Suraq implements Runnable {
             }
 
             tempFormula = tempFormula.substituteFormula(variableSubstitutions);
-
+            tempFormula = new NotFormula(tempFormula);
             SExpression assertPartitionExpression = new SExpression();
             assertPartitionExpression
                     .addChild(SExpressionConstants.ASSERT_PARTITION);
