@@ -181,6 +181,12 @@ public interface Formula {
      * Replaces all array-read expressions with uninterpreted function instances
      * of the same name.
      * 
+     * FIXME: This does not deal with <code>define-fun</code> macros right, if
+     * array variables are used as macro parameters. Since uninterpreted
+     * functions cannot be used as macro parameters, one would have something
+     * more complex, such as making copies of macros.
+     * 
+     * 
      * @param noDependenceVars
      *            the variables on which the controller may not depend. New such
      *            variables are added to this set during recursion.
