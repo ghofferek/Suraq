@@ -221,6 +221,7 @@ public class Suraq implements Runnable {
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
 
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        noDependenceVars.removeAll(logicParser.getArrayVariables());
 
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
