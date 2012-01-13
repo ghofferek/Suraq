@@ -18,6 +18,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.formula.AndFormula;
+import at.iaik.suraq.formula.ArrayVariable;
 import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
@@ -220,8 +221,11 @@ public class Suraq implements Runnable {
         noDependenceVars.add(new Token(lambda.getVarName()));
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
 
+        Set<Token> currentArrayVariables = new HashSet<Token>();
+        for (ArrayVariable var : formula.getArrayVariables())
+            currentArrayVariables.add(new Token(var.getVarName()));
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        noDependenceVars.removeAll(logicParser.getArrayVariables());
+        noDependenceVars.removeAll(currentArrayVariables);
 
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
@@ -275,7 +279,7 @@ public class Suraq implements Runnable {
             Formula tempFormula = formula.deepFormulaCopy();
             Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
             for (Token var : noDependenceVars) {
-                if (noDependenceFunctionsCopies.containsKey(var))
+                if (noDependenceVarsCopies.containsKey(var))
                     // it's a variable
                     variableSubstitutions.put(var,
                             noDependenceVarsCopies.get(var).get(count));
@@ -287,7 +291,7 @@ public class Suraq implements Runnable {
                     throw new SuraqException(
                             "noDependenceVar "
                                     + var.toString()
-                                    + "is neither a variabel nor an uninterpreted function.");
+                                    + " is neither a variable nor an uninterpreted function.");
             }
 
             int currentCount = count;
