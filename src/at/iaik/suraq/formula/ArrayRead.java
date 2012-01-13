@@ -149,8 +149,8 @@ public class ArrayRead extends DomainTerm {
     public boolean equals(Object obj) {
         if (!(obj instanceof ArrayRead))
             return false;
-        return arrayTerm.equals(((ArrayRead) obj).equals(arrayTerm))
-                && indexTerm.equals(((ArrayRead) obj).equals(indexTerm));
+        return arrayTerm.equals(((ArrayRead) obj).arrayTerm)
+                && indexTerm.equals(((ArrayRead) obj).indexTerm);
     }
 
     /**
@@ -293,8 +293,8 @@ public class ArrayRead extends DomainTerm {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         arrayTerm.substituteUninterpretedFunction(oldFunction, newFunction);
         indexTerm.substituteUninterpretedFunction(oldFunction, newFunction);
     }

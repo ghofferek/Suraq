@@ -45,8 +45,8 @@ public class Util {
         Set<String> macroNames = formula.getFunctionMacroNames();
 
         int count = -1;
-        while (count++ >= 0) {
-            String name = prefix + (count == 0 ? ("_fresh" + count) : "");
+        while (++count >= 0) {
+            String name = prefix + (count > 0 ? ("_fresh" + count) : "");
             if (arrayVars.contains(new ArrayVariable(name)))
                 continue;
             if (domainVars.contains(new DomainVariable(name)))

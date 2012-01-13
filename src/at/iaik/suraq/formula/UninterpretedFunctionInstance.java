@@ -300,7 +300,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         for (DomainTerm term : parameters)
             if (term instanceof ArrayRead) {
-                parameters.set(parameters.indexOf(term), ((ArrayRead) term)
+                int index = parameters.indexOf(term);
+                parameters.set(index, ((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars));
             } else
                 term.arrayReadsToUninterpretedFunctions(noDependenceVars);

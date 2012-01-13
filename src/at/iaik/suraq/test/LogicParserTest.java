@@ -66,6 +66,8 @@ public class LogicParserTest {
 
         Assert.assertNotNull(logicParser.getMainFormula());
         Assert.assertTrue(logicParser.getMainFormula() instanceof PropositionalFunctionMacroInstance);
+        Assert.assertTrue(logicParser.getMainFormula().equals(
+                logicParser.getMainFormula()));
 
     }
 }
