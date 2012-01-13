@@ -229,10 +229,13 @@ public class SExpression {
         buffer.append("(\n  ");
         for (SExpression child : children) {
             buffer.append((child instanceof Token ? child.toString() + "\n"
-                    : child.toString()).replace("\n", "\n  "));
+                    : child.toString() + ((child.size() > 1) ? "" : "\n"))
+                    .replace("\n", "\n  "));
         }
         if (buffer.substring(buffer.length() - 2).equals("  "))
             buffer = buffer.delete(buffer.length() - 2, buffer.length());
+        else
+            buffer.append("\n");
         buffer.append(")\n");
         return buffer.toString();
     }
