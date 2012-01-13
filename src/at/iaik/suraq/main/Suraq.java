@@ -236,12 +236,10 @@ public class Suraq implements Runnable {
         }
 
         outputExpression = new SExpression();
-        outputExpression.addChild(new SExpression(
-                SExpressionConstants.SET_LOGIC_QF_UF));
-        outputExpression.addChild(new SExpression(
-                SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT));
-        outputExpression.addChild(new SExpression(
-                SExpressionConstants.DECLARE_SORT_VALUE));
+        outputExpression.addChild(SExpressionConstants.SET_LOGIC_QF_UF);
+        outputExpression
+                .addChild(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
+        outputExpression.addChild(SExpressionConstants.DECLARE_SORT_VALUE);
 
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
