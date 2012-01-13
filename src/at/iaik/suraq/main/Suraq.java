@@ -372,6 +372,7 @@ public class Suraq implements Runnable {
 
         // Now dealing with noDependenceVars
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
+        noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();
         for (Token var : noDependenceVars) {
             Token type = varTypes.get(var);
             int numParams = 0;
