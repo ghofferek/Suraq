@@ -332,6 +332,8 @@ public class Suraq implements Runnable {
             throw new SuraqException("outputExpression not initialized!");
 
         varTypes = new HashMap<Token, Token>();
+        varTypes.put(new Token(lambda.getVarName()),
+                SExpressionConstants.VALUE_TYPE);
         Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
 
         for (PropositionalVariable var : formula.getPropositionalVariables()) {
@@ -375,6 +377,7 @@ public class Suraq implements Runnable {
         noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();
         for (Token var : noDependenceVars) {
             Token type = varTypes.get(var);
+            assert (type != null);
             int numParams = 0;
             if (functionArity.containsKey(var))
                 numParams = functionArity.get(var);
