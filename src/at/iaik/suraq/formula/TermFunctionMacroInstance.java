@@ -216,8 +216,8 @@ public class TermFunctionMacroInstance extends Term {
         Map<Token, Term> convertedMap = new HashMap<Token, Term>();
 
         for (Token token : this.paramMap.keySet())
-            convertedMap.put(token, paramMap.get(token)
-                    .substituteTerm(paramMap));
+            convertedMap.put(token,
+                    this.paramMap.get(token).substituteTerm(paramMap));
 
         try {
             return new TermFunctionMacroInstance(macro, convertedMap);

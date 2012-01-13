@@ -234,8 +234,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
         Map<Token, Term> convertedMap = new HashMap<Token, Term>();
 
         for (Token token : this.paramMap.keySet())
-            convertedMap.put(token, paramMap.get(token)
-                    .substituteTerm(paramMap));
+            convertedMap.put(token,
+                    this.paramMap.get(token).substituteTerm(paramMap));
 
         try {
             return new PropositionalFunctionMacroInstance(macro, convertedMap);
@@ -346,8 +346,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         macro.substituteUninterpretedFunction(oldFunction, newFunction);
         for (Term param : paramMap.values())
             param.substituteUninterpretedFunction(oldFunction, newFunction);
