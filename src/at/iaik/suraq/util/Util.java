@@ -147,21 +147,24 @@ public class Util {
      * Increments the given list of (modular) counters.
      * 
      * @param counters
+     *            the list of counters
+     * @param modulus
+     *            the modulus
      * @return <code>true</code> if the counters did not (overall) overflow,
      *         <code>false</code> otherwise.
      */
-    public static boolean incrementCounters(List<Integer> counters) {
-        int k = counters.size();
+    public static boolean incrementCounters(List<Integer> counters, int modulus) {
         int count = 0;
         do {
-            if (counters.get(count) == k - 1) {
+            assert (counters.get(count) < modulus);
+            if (counters.get(count) == modulus - 1) {
                 counters.set(count, 0);
                 count++;
             } else {
                 counters.set(count, counters.get(count) + 1);
                 return true;
             }
-        } while (count < k);
+        } while (count < counters.size());
         return false;
     }
 

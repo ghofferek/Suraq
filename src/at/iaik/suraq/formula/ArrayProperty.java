@@ -447,6 +447,7 @@ public class ArrayProperty implements Formula {
      * @return the finite conjunction
      */
     public AndFormula toFiniteConjunction(Set<DomainTerm> indexSet) {
+        assert (indexSet.size() > 0);
         List<Formula> conjuncts = new ArrayList<Formula>();
         List<DomainTerm> indices = new ArrayList<DomainTerm>(indexSet);
         List<Integer> counters = new ArrayList<Integer>();
@@ -464,7 +465,7 @@ public class ArrayProperty implements Formula {
                         exc);
             }
 
-        } while (Util.incrementCounters(counters));
+        } while (Util.incrementCounters(counters, indices.size()));
         return new AndFormula(conjuncts);
     }
 
