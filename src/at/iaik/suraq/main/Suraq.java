@@ -75,6 +75,11 @@ public class Suraq implements Runnable {
     private Map<Token, Token> varTypes;
 
     /**
+     * Stores whether or not any (serious) errors occurred.
+     */
+    private boolean noErrors = true;
+
+    /**
      * Constructs a new <code>Suraq</code>.
      */
     public Suraq(String[] args) {
@@ -85,6 +90,16 @@ public class Suraq implements Runnable {
                     .println("Error in parsing options. Unparseable options will be overriden by defaults. Details follow.");
             exc.printStackTrace();
         }
+    }
+
+    /**
+     * Checks whether everything was successful.
+     * 
+     * @return <code>false</code> if there were errors, <code>true</code>
+     *         otherwise.
+     */
+    public boolean success() {
+        return noErrors;
     }
 
     /**
@@ -126,10 +141,12 @@ public class Suraq implements Runnable {
         } catch (FileNotFoundException exc) {
             System.err.println("ERROR: File " + sourceFile.getPath()
                     + " not found!");
+            noErrors = false;
             return;
         } catch (IOException exc) {
             System.err.println("ERROR: Could not read from file "
                     + sourceFile.getPath());
+            noErrors = false;
             return;
         }
 
@@ -138,6 +155,7 @@ public class Suraq implements Runnable {
             assert (sExpParser.wasParsingSuccessfull());
         } catch (ParseError exc) {
             handleParseError(exc);
+            noErrors = false;
             return;
         }
 
@@ -148,13 +166,12 @@ public class Suraq implements Runnable {
             assert (logicParser.wasParsingSuccessfull());
         } catch (ParseError exc) {
             handleParseError(exc);
+            noErrors = false;
             return;
         }
         // Parsing complete
         if (options.isVerbose())
             System.out.println("Parsing completed successfully!");
-
-        boolean noErrors = true;
 
         try {
             doMainWork();
@@ -170,6 +187,7 @@ public class Suraq implements Runnable {
         } catch (IOException exc) {
             System.err.println("Error while writing to smtfile.");
             exc.printStackTrace();
+            noErrors = false;
         }
 
         // All done :-)
