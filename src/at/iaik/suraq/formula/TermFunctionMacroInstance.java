@@ -178,6 +178,25 @@ public class TermFunctionMacroInstance extends Term {
     }
 
     /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof PropositionalFunctionMacroInstance))
+            return false;
+        return ((TermFunctionMacroInstance) obj).macro.equals(macro)
+                && ((TermFunctionMacroInstance) obj).paramMap.equals(paramMap);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return macro.hashCode() ^ paramMap.hashCode();
+    }
+
+    /**
      * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
@@ -302,8 +321,8 @@ public class TermFunctionMacroInstance extends Term {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         macro.substituteUninterpretedFunction(oldFunction, newFunction);
         for (Term param : paramMap.values())
             param.substituteUninterpretedFunction(oldFunction, newFunction);
