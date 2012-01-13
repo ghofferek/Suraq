@@ -206,7 +206,10 @@ public class Suraq implements Runnable {
      */
     private void doMainWork() throws SuraqException {
 
-        Formula formula = logicParser.getMainFormula().deepFormulaCopy();
+        // Flattening formula, because macros cause problems when
+        // replacing arrays with uninterpreted functions
+        // (functions cannot be macro parameters)
+        Formula formula = logicParser.getMainFormula().flatten();
         Set<Token> noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
 
@@ -228,6 +231,11 @@ public class Suraq implements Runnable {
             currentArrayVariables.add(new Token(var.getVarName()));
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
         noDependenceVars.removeAll(currentArrayVariables);
+        System.out.println("noDependenceVariables:"); // DEBUG
+        System.out.println("----------------------"); // DEBUG
+        for (Token var : noDependenceVars)
+            // DEBUG
+            System.out.println(var.toString()); // DEBUG
 
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();

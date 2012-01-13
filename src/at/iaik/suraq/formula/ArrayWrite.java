@@ -267,7 +267,7 @@ public class ArrayWrite extends ArrayTerm {
         // now apply axiom
         String oldVar = arrayTerm.toSmtlibV2().toString().replaceAll("\\W", "");
         ArrayVariable newVar = new ArrayVariable(Util.freshVarName(
-                topLevelFormula, oldVar));
+                topLevelFormula, oldVar + "_store"));
 
         ArrayRead newRead = new ArrayRead(newVar, indexTerm);
         Set<DomainTerm> domainTerms = new HashSet<DomainTerm>();
@@ -345,8 +345,8 @@ public class ArrayWrite extends ArrayTerm {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         arrayTerm.substituteUninterpretedFunction(oldFunction, newFunction);
         indexTerm.substituteUninterpretedFunction(oldFunction, newFunction);
     }
