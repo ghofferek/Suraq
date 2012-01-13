@@ -558,11 +558,19 @@ public class ArrayProperty implements Formula {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         indexGuard.substituteUninterpretedFunction(oldFunction, newFunction);
         valueConstraint.substituteUninterpretedFunction(oldFunction,
                 newFunction);
     }
 
+    /**
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return this.toSmtlibV2().toString();
+    }
 }

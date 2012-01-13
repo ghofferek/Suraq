@@ -418,11 +418,19 @@ public abstract class EqualityFormula implements Formula {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         for (Term term : terms)
             term.substituteUninterpretedFunction(oldFunction, newFunction);
 
     }
 
+    /**
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return this.toSmtlibV2().toString();
+    }
 }

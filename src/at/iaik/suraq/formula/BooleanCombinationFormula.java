@@ -22,4 +22,13 @@ public abstract class BooleanCombinationFormula implements Formula {
      *         <code>BoolenCombinationFormula</code>.
      */
     public abstract Collection<Formula> getSubFormulas();
+
+    /**
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return this.toSmtlibV2().toString();
+    }
 }

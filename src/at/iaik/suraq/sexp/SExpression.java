@@ -220,7 +220,7 @@ public class SExpression {
     @Override
     public String toString() {
         if (isEmpty())
-            return "( )";
+            return "()";
 
         if (size() == 1)
             return "(" + children.get(0).toString() + ")";

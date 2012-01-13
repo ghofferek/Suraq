@@ -196,4 +196,11 @@ public interface Formula {
      * @return a set of all uninterpreted functions used in this formula.
      */
     public Set<UninterpretedFunction> getUninterpretedFunctions();
+
+    /**
+     * 
+     * @return a String representation of this formula
+     */
+    @Override
+    public String toString();
 }

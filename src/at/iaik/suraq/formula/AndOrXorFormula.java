@@ -327,4 +327,12 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             formula.substituteUninterpretedFunction(oldFunction, newFunction);
     }
 
+    /**
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return this.toSmtlibV2().toString();
+    }
 }

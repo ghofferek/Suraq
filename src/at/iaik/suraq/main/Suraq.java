@@ -56,9 +56,9 @@ public class Suraq implements Runnable {
     private DomainVariable lambda;
 
     /**
-     * The expression that will be written to the output.
+     * The expressions that will be written to the output.
      */
-    private SExpression outputExpression;
+    private List<SExpression> outputExpressions;
 
     /**
      * Maps each noDependenceVar to a list of its copies.
@@ -179,7 +179,8 @@ public class Suraq implements Runnable {
             File smtfile = new File(options.getSmtfile());
             FileWriter fstream = new FileWriter(smtfile);
             BufferedWriter smtfilewriter = new BufferedWriter(fstream);
-            smtfilewriter.write(outputExpression.toString());
+            for (SExpression expr : outputExpressions)
+                smtfilewriter.write(expr.toString() + "\n");
             smtfilewriter.close();
         } catch (SuraqException exc) {
             noErrors = false;
@@ -235,26 +236,26 @@ public class Suraq implements Runnable {
                     "Current implementation cannot handle more than 30 control signals.");
         }
 
-        outputExpression = new SExpression();
-        outputExpression.addChild(SExpressionConstants.SET_LOGIC_QF_UF);
-        outputExpression
-                .addChild(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
-        outputExpression.addChild(SExpressionConstants.DECLARE_SORT_VALUE);
+        outputExpressions = new ArrayList<SExpression>();
+        outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
+        outputExpressions
+                .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
+        outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
 
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
 
         writeAssertPartitions(formula, noDependenceVars, controlSignals);
 
-        outputExpression.addChild(SExpressionConstants.CHECK_SAT);
+        outputExpressions.add(SExpressionConstants.CHECK_SAT);
 
-        outputExpression.addChild(SExpressionConstants.EXIT);
+        outputExpressions.add(SExpressionConstants.EXIT);
 
     }
 
     /**
      * Writes the assert-partitions for the expanded formula to the
-     * <code>outputExpression</code>.
+     * <code>outputExpressions</code>.
      * 
      * @param formula
      *            the main formula to expand
@@ -270,8 +271,8 @@ public class Suraq implements Runnable {
             Set<Token> noDependenceVars,
             List<PropositionalVariable> controlSignals) throws SuraqException {
 
-        if (outputExpression == null)
-            throw new SuraqException("outputExpression not initialized!");
+        if (outputExpressions == null)
+            throw new SuraqException("outputExpressions not initialized!");
 
         for (int count = 0; count < (1 << controlSignals.size()); count++) {
             Formula tempFormula = formula.deepFormulaCopy();
@@ -308,7 +309,7 @@ public class Suraq implements Runnable {
             assertPartitionExpression
                     .addChild(SExpressionConstants.ASSERT_PARTITION);
             assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
-            outputExpression.addChild(assertPartitionExpression);
+            outputExpressions.add(assertPartitionExpression);
         }
     }
 
@@ -331,8 +332,8 @@ public class Suraq implements Runnable {
             Set<Token> noDependenceVars, int numControlSignals)
             throws SuraqException {
 
-        if (outputExpression == null)
-            throw new SuraqException("outputExpression not initialized!");
+        if (outputExpressions == null)
+            throw new SuraqException("outputExpressions not initialized!");
 
         varTypes = new HashMap<Token, Token>();
         varTypes.put(new Token(lambda.getVarName()),
@@ -345,9 +346,8 @@ public class Suraq implements Runnable {
                         SExpressionConstants.BOOL_TYPE);
                 continue; // noDependenceVars will be handled later.
             }
-            outputExpression
-                    .addChild(SExpression.makeDeclareFun(
-                            (Token) var.toSmtlibV2(),
+            outputExpressions
+                    .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
                             SExpressionConstants.BOOL_TYPE, 0));
         }
 
@@ -357,7 +357,7 @@ public class Suraq implements Runnable {
                         SExpressionConstants.VALUE_TYPE);
                 continue; // noDependenceVars will be handled later.
             }
-            outputExpression.addChild(SExpression.makeDeclareFun(
+            outputExpressions.add(SExpression.makeDeclareFun(
                     (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
                     0));
         }
@@ -370,7 +370,7 @@ public class Suraq implements Runnable {
                 functionArity.put(function.getName(), function.getNumParams());
                 continue; // noDependenceVars will be handled later.
             }
-            outputExpression.addChild(SExpression.makeDeclareFun(
+            outputExpressions.add(SExpression.makeDeclareFun(
                     function.getName(), SExpressionConstants.VALUE_TYPE,
                     function.getNumParams()));
         }
@@ -404,8 +404,8 @@ public class Suraq implements Runnable {
             for (int count = 0; count < (1 << numControlSignals); count++) {
                 String name = Util.freshVarName(formula, var.toString()
                         + "_copy_" + count);
-                outputExpression.addChild(SExpression.makeDeclareFun(new Token(
-                        name), type, numParams));
+                outputExpressions.add(SExpression.makeDeclareFun(
+                        new Token(name), type, numParams));
                 if (numParams == 0) {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))
                         listOfVarCopies.add(new PropositionalVariable(name));
@@ -419,7 +419,7 @@ public class Suraq implements Runnable {
         }
 
         for (FunctionMacro macro : formula.getFunctionMacros())
-            outputExpression.addChild(macro.toSmtlibV2());
+            outputExpressions.add(macro.toSmtlibV2());
     }
 
     /**

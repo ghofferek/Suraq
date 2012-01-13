@@ -212,7 +212,16 @@ public abstract class Term {
      * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
-    public abstract void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction);
+    public abstract void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction);
+
+    /**
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return this.toSmtlibV2().toString();
+    }
 
 }
