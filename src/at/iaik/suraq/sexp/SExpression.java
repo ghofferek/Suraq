@@ -231,7 +231,8 @@ public class SExpression {
             buffer.append((child instanceof Token ? child.toString() + "\n"
                     : child.toString()).replace("\n", "\n  "));
         }
-        buffer = buffer.delete(buffer.length() - 2, buffer.length());
+        if (buffer.substring(buffer.length() - 2).equals("  "))
+            buffer = buffer.delete(buffer.length() - 2, buffer.length());
         buffer.append(")\n");
         return buffer.toString();
     }
