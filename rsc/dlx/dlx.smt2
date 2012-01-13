@@ -118,9 +118,10 @@
 ; (and copies for ci and sc paths)
 
 (declare-fun PC     () Value               )  ; Program counter
-(declare-fun PCci4_ () Value :no_dependence)  
-(declare-fun PCci5_ () Value :no_dependence)
-(declare-fun PCsc1_ () Value :no_dependence)  
+(declare-fun PCci4_ () Value :no_dependence)
+(declare-fun PCci5_ () Value :no_dependence)  
+(declare-fun PCsc1_ () Value :no_dependence)
+(declare-fun PCsc5_ () Value :no_dependence)  
   
 
 ; Declare uninterpreted functions of the datapath
@@ -151,7 +152,7 @@
 (declare-fun inst-id             () Value               )
 (declare-fun inst-idsc1_         () Value :no_dependence)
 
-(declare-fun bubble-id           () Bool  :no_dependence)
+(declare-fun bubble-id           () Bool                )
 (declare-fun bubble-idsc1_       () Bool  :no_dependence)
 
 ; EX stage
@@ -175,7 +176,7 @@
 (declare-fun opcode-exsc1_       () Value :no_dependence)
 (declare-fun opcode-exsc5_       () Value :no_dependence)
 
-(declare-fun operand-a           () Value               )
+(declare-fun operand-a           () Value                )
 (declare-fun operand-aci4_       () Value  :no_dependence)
 (declare-fun operand-asc1_       () Value  :no_dependence)
 (declare-fun operand-asc5_       () Value  :no_dependence)
@@ -186,100 +187,77 @@
 (declare-fun operand-bsc5_       () Value  :no_dependence)
 
 ; MEM stage
-(declare-fun dest-mem        () Value)
-(declare-fun dest-memci3_    () Value)
-(declare-fun dest-memci4_    () Value)
-(declare-fun dest-memsc1_    () Value)
-(declare-fun dest-memsc4_    () Value)
-(declare-fun dest-memsc5_    () Value)
+(declare-fun dest-mem        () Value               )
+(declare-fun dest-memci3_    () Value :no_dependence)
+(declare-fun dest-memci4_    () Value :no_dependence)
+(declare-fun dest-memsc1_    () Value :no_dependence)
+(declare-fun dest-memsc4_    () Value :no_dependence)
+(declare-fun dest-memsc5_    () Value :no_dependence)
 
-(declare-fun result-mem      () Value)
-(declare-fun result-memci3_  () Value)
-(declare-fun result-memci4_  () Value)
-(declare-fun result-memsc1_  () Value)
-(declare-fun result-memsc4_  () Value)
-(declare-fun result-memsc5_  () Value)
+(declare-fun result-mem      () Value               )
+(declare-fun result-memci3_  () Value :no_dependence)
+(declare-fun result-memci4_  () Value :no_dependence)
+(declare-fun result-memsc1_  () Value :no_dependence)
+(declare-fun result-memsc4_  () Value :no_dependence)
+(declare-fun result-memsc5_  () Value :no_dependence)
 
-(declare-fun mar             () Value)
-(declare-fun marci3_         () Value)
-(declare-fun marci4_         () Value)
-(declare-fun marsc1_         () Value)
-(declare-fun marsc4_         () Value)
-(declare-fun marsc5_         () Value)
+(declare-fun mar             () Value               )
+(declare-fun marci3_         () Value :no_dependence)
+(declare-fun marci4_         () Value :no_dependence)
+(declare-fun marsc1_         () Value :no_dependence)
+(declare-fun marsc4_         () Value :no_dependence)
+(declare-fun marsc5_         () Value :no_dependence)
 
 (declare-fun load-flag       () Bool )
-(declare-fun load-flagci3_   () Bool )
-(declare-fun load-flagci4_   () Bool )
-(declare-fun load-flagsc1_   () Bool )
-(declare-fun load-flagsc4_   () Bool )
-(declare-fun load-flagsc5_   () Bool )
+(declare-fun load-flagci3_   () Bool :no_dependence)
+(declare-fun load-flagci4_   () Bool :no_dependence)
+(declare-fun load-flagsc1_   () Bool :no_dependence)
+(declare-fun load-flagsc4_   () Bool :no_dependence)
+(declare-fun load-flagsc5_   () Bool :no_dependence)
 
 (declare-fun store-flag      () Bool )
-(declare-fun store-flagci3_  () Bool )
-(declare-fun store-flagci4_  () Bool )
-(declare-fun store-flagsc1_  () Bool )
-(declare-fun store-flagsc4_  () Bool )
-(declare-fun store-flagsc5_  () Bool )
+(declare-fun store-flagci3_  () Bool :no_dependence)
+(declare-fun store-flagci4_  () Bool :no_dependence)
+(declare-fun store-flagsc1_  () Bool :no_dependence)
+(declare-fun store-flagsc4_  () Bool :no_dependence)
+(declare-fun store-flagsc5_  () Bool :no_dependence)
 
 
 ; WB stage
-(declare-fun dest-wb         () Value)
-(declare-fun dest-wbci2_     () Value)
-(declare-fun dest-wbci3_     () Value)
-(declare-fun dest-wbci4_     () Value)
-(declare-fun dest-wbsc1_     () Value)
-(declare-fun dest-wbsc3_    () Value)
-(declare-fun dest-wbsc4_     () Value)
-(declare-fun dest-wbsc5_     () Value)
+(declare-fun dest-wb         () Value               )
+(declare-fun dest-wbci2_     () Value :no_dependence)
+(declare-fun dest-wbci3_     () Value :no_dependence)
+(declare-fun dest-wbci4_     () Value :no_dependence)
+(declare-fun dest-wbsc1_     () Value :no_dependence)
+(declare-fun dest-wbsc3_     () Value :no_dependence)
+(declare-fun dest-wbsc4_     () Value :no_dependence)
+(declare-fun dest-wbsc5_     () Value :no_dependence)
 
-(declare-fun result-wb       () Value)
-(declare-fun result-wbci2_   () Value)
-(declare-fun result-wbci3_   () Value)
-(declare-fun result-wbci4_   () Value)
-(declare-fun result-wbsc1_   () Value)
-(declare-fun result-wbsc3_   () Value)
-(declare-fun result-wbsc4_   () Value)
-(declare-fun result-wbsc5_   () Value)
-
-
-; auxiliary constants to state commutativity and associativity of PLUS
-; (declare-fun aux1            () Value :no_dependence)
-; (declare-fun aux2            () Value :no_dependence)
-; (declare-fun aux3            () Value :no_dependence)
-; (declare-fun aux4            () Value :no_dependence)
-; (declare-fun aux5            () Value :no_dependence)
-
-; auxiliary constants to state properti4es of the is-XXX predicates
-; (declare-fun aux6            () Value :no_dependence)
+(declare-fun result-wb       () Value               )
+(declare-fun result-wbci2_   () Value :no_dependence)
+(declare-fun result-wbci3_   () Value :no_dependence)
+(declare-fun result-wbci4_   () Value :no_dependence)
+(declare-fun result-wbsc1_   () Value :no_dependence)
+(declare-fun result-wbsc3_   () Value :no_dependence)
+(declare-fun result-wbsc4_   () Value :no_dependence)
+(declare-fun result-wbsc5_   () Value :no_dependence)
 
 
+; Control signals
+(declare-fun forward-a-from-ex  () Control)
+(declare-fun forward-a-from-mem () Control)
+(declare-fun forward-a-from-wb  () Control)
 
-; Properties of PLUS (commutativity and asscciativity)
-; (define-fun plus-properties
-;   ( ; parameters
-;     (a Value)
-;     (b Value)
-;     (c Value)
-;     (d Value)
-;     (e Value)  
-;   )
-;   Bool ; return type of macro
-;   ; main expression:
-;   (
-;     and
-;     (=
-;       (PLUS a b)
-;       (PLUS b a)
-;     )
-;     (=
-;       (PLUS (PLUS c d) e)
-;       (PLUS c (PLUS d e))
-;     )
-;   )
-; )
+(declare-fun forward-b-from-ex  () Control)
+(declare-fun forward-b-from-mem () Control)
+(declare-fun forward-b-from-wb  () Control)
 
-; Properties of is-XXX predicates
-; (always exactly one is true)
+(declare-fun do-stall-issue     () Control)
+
+
+; Properties of is-XXX predicates:
+; no more than one is true
+; if none of these is true, it is a three-register instruction.
 (define-fun is-properties
   ( ; parameters
     (opcode Value)  
@@ -335,17 +313,7 @@
         (not (is-J         opcode))
         (not (is-BEQZ      opcode))
       )  
-    )
-    
-;     (or
-;       (is-load      opcode)
-;       (is-store     opcode)
-;       (is-J         opcode)
-;       (is-BEQZ      opcode)
-;       (is-alu-immed opcode)
-;     )
-
-      ; if none of these is true, it is a three-register instruction. 
+    ) 
   )
 )
 
@@ -431,6 +399,7 @@
   ( ; parameters
     (force-stall-issue  Bool )
     (bubble-ex          Bool )
+    (opcode-ex          Value)
     (dest-ex            Value)
     (bubble-id          Bool )
     (inst-id            Value)
@@ -444,7 +413,7 @@
         (= (rf1-of inst-id) dest-ex)
         (= (rf2-of inst-id) dest-ex)
       )
-      (is-load (opcode-of inst-id))
+      (is-load opcode-ex)
       (not bubble-ex)
       (not bubble-id)
     )
@@ -528,7 +497,7 @@
           )
           (PLUS
             (PLUS PCi FOUR)
-            (short-immed-of (opcode-of (select IMEMi PCi))) 
+            (short-immed-of (select IMEMi PCi)) 
           )
           (PLUS PCi FOUR)
         )
@@ -690,7 +659,13 @@
     )
   
     ; update of WB stage registers
-    (= dest-wbo dest-memi)
+    (= dest-wbo
+      (ite 
+        store-flagi
+        ZERO
+        dest-memi
+      )
+    )
     (= 
       result-wbo
       (ite
@@ -727,12 +702,22 @@
   (and ; conjunction over all parts
       
     ; update of MEM stage registers
-    (= dest-memo dest-exi)
+    (= 
+      dest-memo 
+      (ite
+        (or
+          bubble-exi
+          (is-store opcode-exi)
+        )
+        ZERO
+        dest-exi
+      )
+    )
     (= 
       result-memo
       (ite
         (or (is-load opcode-exi) (is-store opcode-exi))
-        (PLUS operand-ai short-immed-exi)
+        operand-bi
         (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
       )
     )
@@ -760,6 +745,7 @@
     (bubble-idi       Bool               )
     
     (bubble-exf       Bool               )  ; f = forward
+    (opcode-exf       Value              )
     (dest-exf         Value              )
     (result-exf       Value              )
     
@@ -780,6 +766,9 @@
     
     ; primary inputs
     (force-stall-issue Bool              )
+    
+    ; auxiliary signal
+    (completion        Bool            )
   )
   Bool ; return type
   ; main expression
@@ -789,7 +778,7 @@
     (=
       bubble-exo
       (or
-        (stall-issue force-stall-issue bubble-exf dest-exf bubble-idi inst-idi) 
+        do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idi inst-idi) 
         bubble-idi
         (is-J    (opcode-of inst-idi))
         (is-BEQZ (opcode-of inst-idi))
@@ -817,21 +806,26 @@
       (ite ; load from REGFILE[0]? 
         (= ZERO (rf1-of inst-idi))
         ZERO
-        (ite ; forward from EX?
-          (= (rf1-of inst-idi) dest-exf)
-          result-exf
-          (ite ; forward from MEM?
-            (= (rf1-of inst-idi) dest-memf)
-            result-memf
-            (ite ; forward from WB?
-              (= (rf1-of inst-idi) dest-wbf)
-              result-wbf
-              (select REGFILEi (rf1-of inst-idi)) ; normal read
+        (ite 
+          completion 
+          (select REGFILEi (rf1-of inst-idi)) ; normal read during completion
+          (ite ; forward from EX?
+            forward-a-from-ex
+            result-exf
+            (ite ; forward from MEM?
+              forward-a-from-mem ; (= (rf1-of inst-idi) dest-memf)
+              result-memf
+              (ite ; forward from WB?
+                forward-a-from-wb ; (= (rf1-of inst-idi) dest-wbf)
+                result-wbf
+                (select REGFILEi (rf1-of inst-idi)) ; normal read
+              )
             )
           )
         )
       )
     )
+  
     (=
       operand-bo
       (ite ; load immed from inst?
@@ -840,16 +834,20 @@
         (ite ; load from REGFILE[0]?
           (= ZERO (rf2-of inst-idi))
           ZERO
-          (ite ; forward from EX?
-            (= (rf2-of inst-idi) dest-exf)
-            result-exf
-            (ite ; forward from MEM?
-              (= (rf2-of inst-idi) dest-memf)
-              result-memf
-              (ite ; forward from WB?
-                (= (rf2-of inst-idi) dest-wbf)
-                result-wbf
-                (select REGFILEi (rf2-of inst-idi)) ; normal read
+          (ite 
+            completion 
+            (select REGFILEi (rf2-of inst-idi)) ; normal read during completion
+            (ite ; forward from EX?
+              forward-b-from-ex
+              result-exf
+              (ite ; forward from MEM?
+                forward-b-from-mem ; (= (rf2-of inst-idi) dest-memf)
+                result-memf
+                (ite ; forward from WB?
+                  forward-b-from-wb ; (= (rf2-of inst-idi) dest-wbf)
+                  result-wbf
+                  (select REGFILEi (rf2-of inst-idi)) ; normal read
+                )
               )
             )
           )
@@ -873,6 +871,7 @@
     (bubble-idf       Bool               )
   
     (bubble-exf       Bool               )
+    (opcode-exf       Value              )
     (dest-exf         Value              )
     
     (operand-af       Value              )  ; the value at the *input* (not the output!!) of operand-a register
@@ -900,7 +899,7 @@
           false
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
+          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           bubble-idf
           (ite
             stall
@@ -920,7 +919,7 @@
           (select IMEMi PCi)
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
+          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           inst-idf
           (ite
             stall
@@ -945,6 +944,7 @@
     (bubble-idf       Bool               )
   
     (bubble-exf       Bool               )
+    (opcode-exf       Value              )
     (dest-exf         Value              )
     
     (operand-af       Value              )  ; the value at the *input* (not the output!!) of operand-a register
@@ -955,23 +955,31 @@
     ; primary inputs
     (force-stall-issue Bool              )
     (stall             Bool              )
+  
+    ; auxiliary input indicating that the macro is used for completion and 
+    ; thus only jumps and branches should be done (no increment)
+    (completion        Bool              )
   )
   Bool ; return type
   ; main expression
-  (and ; conjunction over all parts
-   
-    ; update of PC
-    (=
-      PCo
+  (=     ; update of PC
+    PCo
+    (ite
+      completion
+      (ite
+        (branch-taken bubble-idf inst-idf operand-af)
+        (TA inst-idf PCi)
+        PCi
+      )
       (ite
         force-stall-issue
         (ite
           (or (not bubble-idf) stall)
           PCi
-          (PLUS FOUR PCi)
+          (PLUS PCi FOUR)
         )
         (ite
-          (stall-issue force-stall-issue bubble-exf dest-exf bubble-idf inst-idf)
+          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
           PCi
           (ite
             stall
@@ -983,7 +991,7 @@
             (ite
               (branch-taken bubble-idf inst-idf operand-af)
               (TA inst-idf PCi)
-              (PLUS FOUR PCi)
+              (PLUS PCi FOUR)
             )
           )
         )
@@ -1094,15 +1102,24 @@
       REGFILEi        
       inst-idi                       
       bubble-idi
-      bubble-exi ; forwarded value                      
+      bubble-exi ; forwarded value
+      opcode-exi ; forwarded value                      
       dest-exi ; forwarded value                       
       (ite
         (or (is-load opcode-exi) (is-store opcode-exi))
         (PLUS operand-ai short-immed-exi)
         (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
       ) ;result-exi ; forwarded value                     
-      dest-memi ; forwarded value                      
-      result-memi ; forwarded value                    
+      (ite
+        store-flagi
+        ZERO
+        dest-memi 
+      ) ; dest-memi ; forwarded value
+      (ite
+        load-flagi
+        (select DMEMi mari)
+        result-memi                      
+      );result-memi ; forwarded value                    
       dest-wbi ; forwarded value                       
       result-wbi ; forwarded value                     
       bubble-exo                      
@@ -1111,7 +1128,8 @@
       opcode-exo                     
       operand-ao                     
       operand-bo                     
-      force-stall-issue                   
+      force-stall-issue     
+      false ; completion              
     )
     
     (step-in-IF
@@ -1119,7 +1137,8 @@
       PCi              
       inst-idi         
       bubble-idi       
-      bubble-exi       
+      bubble-exi
+      opcode-exi        
       dest-exi
       operand-ao ; the value at the *input* (not the output!!) of operand-a register         
                  ; i.e., the new value for operand-a, as it is outputted by this macro.
@@ -1135,6 +1154,7 @@
       inst-idi
       bubble-idi
       bubble-exi
+      opcode-exi
       dest-exi
       operand-ao ; the value at the *input* (not the output!!) of operand-a register         
                  ; i.e., the new value for operand-a, as it is outputted by this macro.
@@ -1142,6 +1162,8 @@
       PCo
       force-stall-issue
       stall
+      
+      false ; completion 
     )
   ) ; END main expression
 ) ; END of step-in-pipeline macro
@@ -1179,6 +1201,7 @@
     ; "outputs" of macro (state after the step)
     (REGFILEo         (Array Value Value))
     (DMEMo            (Array Value Value))
+    (PCo              Value            )
    ;(IMEMo            (Array Value Value))
     
      
@@ -1300,27 +1323,25 @@
     ; ----------------------------------
     ; "Clearing" ID registers
     (step-in-ID
-      REGFILEi        
+      REGFILEt3_        
       inst-idi                       
       bubble-idi
-      bubble-exi ; forwarded value                      
-      dest-exi ; forwarded value                       
-      (ite
-        (or (is-load opcode-exi) (is-store opcode-exi))
-        (PLUS operand-ai short-immed-exi)
-        (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
-      );result-exi ; forwarded value                     
-      dest-memi ; forwarded value                      
-      result-memi ; forwarded value                    
-      dest-wbi ; forwarded value                       
-      result-wbi ; forwarded value                     
+      true ; bubble-exi ; forwarded value                      
+      ZERO ; opcode-exi; forwarded value (arbitrary, as bubble-ex is set to true)
+      ZERO ; dest-exi ; forwarded value ("invalid" address)                       
+      ZERO ; result-exi ; forwarded value (arbitrary, as bubble-ex is set to true)                    
+      ZERO ; dest-memi ; forwarded value  
+      ZERO ;result-memi ; forwarded value (arbitrary, as dest-mem is ZERO)                    
+      ZERO ; dest-wbi ; forwarded value                       
+      ZERO ; result-wbi ; forwarded value (arbitrary, as dest-wb is ZERO)                     
       bubble-ext4_                      
       short-immed-ext4_                
       dest-ext4_                       
       opcode-ext4_                     
       operand-at4_                     
       operand-bt4_                     
-      force-stall-issue                   
+      force-stall-issue          
+      true ; completion         
     )
   
     (step-in-EX 
@@ -1362,14 +1383,17 @@
       PCi
       inst-idi
       bubble-idi
-      bubble-exi
-      dest-exi
+      true ; bubble-exi
+      ZERO ; opcode-exi ; arbitrary since bubble-ex 
+      ZERO ; dest-exi
       operand-at4_ ; The new value that operand-a register would have received
                    ; if this were a normal step (= the one that results from
                    ; clearing the ID stage)
       PCo
-      force-stall-issue
-      stall    
+      false ;force-stall-issue
+      false ;stall 
+      
+      true ; completion   
     )
     
   ) ; END main expression
@@ -1419,7 +1443,8 @@
     (pPC      Value               )  
     (pPCci4_  Value)  
     (pPCci5_  Value)
-    (pPCsc1_  Value)  
+    (pPCsc1_  Value)
+    (pPCsc5_  Value)  
     
     (pinst-id              Value               )
     (pinst-idsc1_          Value)
@@ -1508,15 +1533,7 @@
     (presult-wbsc1_    Value)
     (presult-wbsc3_    Value)
     (presult-wbsc4_    Value)
-    (presult-wbsc5_    Value)
-    
-    
-;     (paux1             Value)
-;     (paux2             Value)
-;     (paux3             Value)
-;     (paux4             Value)
-;     (paux5             Value)
-;     (paux6             Value)  
+    (presult-wbsc5_    Value)  
   )
   Bool ; return type of macro
   ; main expression:
@@ -1529,7 +1546,6 @@
       (is-properties (opcode-of pinst-idsc1_))
       (is-properties popcode-exsc5_)
       (is-properties popcode-exci4_)
-      ;(plus-properties aux1 aux2 aux3 aux4 aux5)
     )
     (=> ; update implies
       (and ; main update part
@@ -1562,6 +1578,7 @@
           ; "outputs" of macro (state after the step)
           pREGFILEci4_
           pDMEMci4_
+          pPCci4_
            
           ; intermediate ("transient") values
           REGFILEci1_ 
@@ -1612,8 +1629,23 @@
         ) ; end complete-pipeline (ci)
       
         (ite
-          pstall
-          (instruction-in-reference
+               ; perform ISA step only if the pipeline actually fetched a *new* instruction.
+               ; i.e., if not bubble-id after one step and there was no stall-issue;
+          (and 
+            (not pbubble-idsc1_)
+            (not
+              do-stall-issue ; (stall-issue
+;                 pforce-stall-issue
+;                 pbubble-ex
+;                 popcode-ex
+;                 pdest-ex
+;                 pbubble-id
+;                 pinst-id
+;               )
+            )
+          ) ; end condition about stalling
+   
+          (instruction-in-reference ; then-branch (no stalling)
             ; "inputs" to macro (state before the instruction)
             pREGFILEci4_
             pDMEMci4_
@@ -1716,6 +1748,7 @@
           ; "outputs" of macro (state after the step)
           pREGFILEsc5_
           pDMEMsc5_
+          pPCsc5_
            
           ; intermediate ("transient") values
           pREGFILEsc2_
@@ -1767,7 +1800,7 @@
         ) ; end complete-pipeline (sc)
       ) ; end conjunction of update parts
       (
-        equivalence pREGFILEci5_ pREGFILEsc5_ pDMEMci5_ pDMEMsc5_ pPCci5_ pPCsc1_
+        equivalence pREGFILEci5_ pREGFILEsc5_ pDMEMci5_ pDMEMsc5_ pPCci5_ pPCsc5_
       )
     ) ; end of update implies 
   ) ; end main expression
@@ -1784,135 +1817,129 @@
 ; The actual assert statement
 
 (assert
-  (main-formula
-    stall
-    false ;force-stall-issue
-    
-    REGFILE       
-    REGFILEci1_   
-    REGFILEci2_   
-    REGFILEci3_   
-    REGFILEci4_   
-    REGFILEci5_   
-    REGFILEsc1_   
-    REGFILEsc2_   
-    REGFILEsc3_   
-    REGFILEsc4_   
-    REGFILEsc5_   
-    
-    DMEM          
-    DMEMci2_      
-    DMEMci3_      
-    DMEMci4_      
-    DMEMci5_      
-    DMEMsc1_      
-    DMEMsc3_      
-    DMEMsc4_      
-    DMEMsc5_      
-    
-    IMEM            
-    
-    PC       
-    PCci4_   
-    PCci5_ 
-    PCsc1_   
-    
-    inst-id
-    inst-idsc1_
-    
-    bubble-id
-    bubble-idsc1_
-    
-    bubble-ex    
-    bubble-exci4_
-    bubble-exsc1_
-    bubble-exsc5_
-    
-    short-immed-ex 
-    short-immed-exci4_
-    short-immed-exsc1_
-    short-immed-exsc5_
-    
-    dest-ex           
-    dest-exci4_       
-    dest-exsc1_       
-    dest-exsc5_       
-    
-    opcode-ex         
-    opcode-exci4_     
-    opcode-exsc1_     
-    opcode-exsc5_     
-    
-    operand-a         
-    operand-aci4_     
-    operand-asc1_     
-    operand-asc5_     
-    
-    operand-b         
-    operand-bci4_     
-    operand-bsc1_   
-    operand-bsc5_   
-    
-    dest-mem        
-    dest-memci3_    
-    dest-memci4_    
-    dest-memsc1_    
-    dest-memsc4_    
-    dest-memsc5_    
-    
-    result-mem      
-    result-memci3_  
-    result-memci4_  
-    result-memsc1_  
-    result-memsc4_  
-    result-memsc5_  
-    
-    mar             
-    marci3_         
-    marci4_         
-    marsc1_         
-    marsc4_         
-    marsc5_         
-    
-    load-flag       
-    load-flagci3_   
-    load-flagci4_   
-    load-flagsc1_   
-    load-flagsc4_   
-    load-flagsc5_   
-    
-    store-flag      
-    store-flagci3_  
-    store-flagci4_  
-    store-flagsc1_  
-    store-flagsc4_  
-    store-flagsc5_  
-    
-    dest-wb         
-    dest-wbci2_     
-    dest-wbci3_     
-    dest-wbci4_     
-    dest-wbsc1_     
-    dest-wbsc3_     
-    dest-wbsc4_   
-    dest-wbsc5_   
-    
-    result-wb     
-    result-wbci2_ 
-    result-wbci3_ 
-    result-wbci4_ 
-    result-wbsc1_ 
-    result-wbsc3_ 
-    result-wbsc4_ 
-    result-wbsc5_ 
-    
-;     aux1          
-;     aux2          
-;     aux3          
-;     aux4          
-;     aux5          
-;     aux6            
+  (not
+    (main-formula
+      stall
+      false ;force-stall-issue
+      
+      REGFILE       
+      REGFILEci1_   
+      REGFILEci2_   
+      REGFILEci3_   
+      REGFILEci4_   
+      REGFILEci5_   
+      REGFILEsc1_   
+      REGFILEsc2_   
+      REGFILEsc3_   
+      REGFILEsc4_   
+      REGFILEsc5_   
+      
+      DMEM          
+      DMEMci2_      
+      DMEMci3_      
+      DMEMci4_      
+      DMEMci5_      
+      DMEMsc1_      
+      DMEMsc3_      
+      DMEMsc4_      
+      DMEMsc5_      
+      
+      IMEM            
+      
+      PC       
+      PCci4_   
+      PCci5_ 
+      PCsc1_
+      PCsc5_   
+      
+      inst-id
+      inst-idsc1_
+      
+      bubble-id
+      bubble-idsc1_
+      
+      bubble-ex    
+      bubble-exci4_
+      bubble-exsc1_
+      bubble-exsc5_
+      
+      short-immed-ex 
+      short-immed-exci4_
+      short-immed-exsc1_
+      short-immed-exsc5_
+      
+      dest-ex           
+      dest-exci4_       
+      dest-exsc1_       
+      dest-exsc5_       
+      
+      opcode-ex         
+      opcode-exci4_     
+      opcode-exsc1_     
+      opcode-exsc5_     
+      
+      operand-a         
+      operand-aci4_     
+      operand-asc1_     
+      operand-asc5_     
+      
+      operand-b         
+      operand-bci4_     
+      operand-bsc1_   
+      operand-bsc5_   
+      
+      dest-mem        
+      dest-memci3_    
+      dest-memci4_    
+      dest-memsc1_    
+      dest-memsc4_    
+      dest-memsc5_    
+      
+      result-mem      
+      result-memci3_  
+      result-memci4_  
+      result-memsc1_  
+      result-memsc4_  
+      result-memsc5_  
+      
+      mar             
+      marci3_         
+      marci4_         
+      marsc1_         
+      marsc4_         
+      marsc5_         
+      
+      load-flag       
+      load-flagci3_   
+      load-flagci4_   
+      load-flagsc1_   
+      load-flagsc4_   
+      load-flagsc5_   
+      
+      store-flag      
+      store-flagci3_  
+      store-flagci4_  
+      store-flagsc1_  
+      store-flagsc4_  
+      store-flagsc5_  
+      
+      dest-wb         
+      dest-wbci2_     
+      dest-wbci3_     
+      dest-wbci4_     
+      dest-wbsc1_     
+      dest-wbsc3_     
+      dest-wbsc4_   
+      dest-wbsc5_   
+      
+      result-wb     
+      result-wbci2_ 
+      result-wbci3_ 
+      result-wbci4_ 
+      result-wbsc1_ 
+      result-wbsc3_ 
+      result-wbsc4_ 
+      result-wbsc5_ 
+    )
   )
 )
-  
-  
