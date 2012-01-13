@@ -29,12 +29,12 @@ public class DomainIte extends DomainTerm {
     /**
      * The then-branch.
      */
-    private final DomainTerm thenBranch;
+    private DomainTerm thenBranch;
 
     /**
      * The else-branch
      */
-    private final DomainTerm elseBranch;
+    private DomainTerm elseBranch;
 
     /**
      * 
@@ -300,8 +300,18 @@ public class DomainIte extends DomainTerm {
     @Override
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        thenBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        elseBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
+
+        if (thenBranch instanceof ArrayRead)
+            thenBranch = ((ArrayRead) thenBranch)
+                    .toUninterpretedFunctionInstance(noDependenceVars);
+        else
+            thenBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
+
+        if (elseBranch instanceof ArrayRead)
+            elseBranch = ((ArrayRead) elseBranch)
+                    .toUninterpretedFunctionInstance(noDependenceVars);
+        else
+            elseBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
 
     /**
@@ -321,8 +331,8 @@ public class DomainIte extends DomainTerm {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         condition.substituteUninterpretedFunction(oldFunction, newFunction);
         thenBranch.substituteUninterpretedFunction(oldFunction, newFunction);
         elseBranch.substituteUninterpretedFunction(oldFunction, newFunction);
