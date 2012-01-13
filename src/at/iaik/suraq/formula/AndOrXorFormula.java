@@ -51,12 +51,22 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     protected AndOrXorFormula create(Collection<? extends Formula> formulas) {
         Class<? extends AndOrXorFormula> myClass = this.getClass();
-        Class<?> listClass = formulas.getClass();
-        AndOrXorFormula instance;
+        // Class<?> listClass = formulas.getClass();
+        AndOrXorFormula instance = null;
         try {
-            Constructor<? extends AndOrXorFormula> constructor = myClass
-                    .getConstructor(listClass);
-            instance = constructor.newInstance(formulas);
+            Constructor<?>[] constructors = myClass.getDeclaredConstructors();
+            if (constructors.length == 0)
+                throw new RuntimeException("No constructors found.");
+            for (Constructor<?> constructor : constructors) {
+                Class<?>[] parameters = constructor.getParameterTypes();
+                if (parameters.length != 1)
+                    continue;
+                if (!(parameters[0].isInstance(formulas)))
+                    continue;
+                instance = (AndOrXorFormula) constructor.newInstance(formulas);
+            }
+            if (instance == null)
+                throw new RuntimeException();
             return instance;
         } catch (Throwable exc) {
             throw new RuntimeException("Unable to create AndOrXorFormula", exc);
@@ -311,8 +321,8 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         for (Formula formula : formulas)
             formula.substituteUninterpretedFunction(oldFunction, newFunction);
     }
