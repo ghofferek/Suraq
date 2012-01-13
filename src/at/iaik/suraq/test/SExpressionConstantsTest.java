@@ -8,6 +8,9 @@ import java.lang.reflect.Field;
 import org.junit.Assert;
 import org.junit.Test;
 
+import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
+
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
@@ -44,5 +47,26 @@ public class SExpressionConstantsTest {
                 Assert.fail();
             }
         }
+    }
+
+    /**
+     * Test the <code>(exit)</code> constant.
+     */
+    @Test
+    public void testExitConstant() {
+        Assert.assertEquals("(exit)", SExpressionConstants.EXIT.toString()
+                .replaceAll("\\s", ""));
+    }
+
+    /**
+     * Test the <code>(exit)</code> constant.
+     */
+    @Test
+    public void testCheckSatExit() {
+        SExpression expression = new SExpression();
+        expression.addChild(SExpressionConstants.CHECK_SAT);
+        expression.addChild(SExpressionConstants.EXIT);
+        Assert.assertEquals("((check-sat)(exit))", expression.toString()
+                .replaceAll("\\s", ""));
     }
 }

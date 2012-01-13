@@ -35,6 +35,54 @@ public class SExpressionTest {
     }
 
     /**
+     * Test method for {@link at.iaik.suraq.parser.SExpression#toString()}.
+     */
+    @Test
+    public void testToStringConstants1() {
+        String expressionString = "(set-logic QF_UF)";
+        SExpression expr = SExpression.fromString(expressionString);
+        String actual = expr.toString();
+        Assert.assertEquals(expressionString.replaceAll("\\s", ""),
+                actual.replaceAll("\\s", ""));
+    }
+
+    /**
+     * Test method for {@link at.iaik.suraq.parser.SExpression#toString()}.
+     */
+    @Test
+    public void testToStringConstants2() {
+        String expressionString = "(define-fun equiv ((A (Array Value Value))(B (Array Value Value))) Bool (  forall ((i Value)) (    = (select A i)      (select B i)    )))";
+        SExpression expr = SExpression.fromString(expressionString);
+        String actual = expr.toString();
+        Assert.assertEquals(expressionString.replaceAll("\\s", ""),
+                actual.replaceAll("\\s", ""));
+    }
+
+    /**
+     * Test method for {@link at.iaik.suraq.parser.SExpression#toString()}.
+     */
+    @Test
+    public void testToStringConstants3() {
+        String expressionString = "(declare-fun REGci_   () (Array Value Value) :no_dependence)";
+        SExpression expr = SExpression.fromString(expressionString);
+        String actual = expr.toString();
+        Assert.assertEquals(expressionString.replaceAll("\\s", ""),
+                actual.replaceAll("\\s", ""));
+    }
+
+    /**
+     * Test method for {@link at.iaik.suraq.parser.SExpression#toString()}.
+     */
+    @Test
+    public void testToStringConstants4() {
+        String expressionString = "(exit)";
+        SExpression expr = SExpression.fromString(expressionString);
+        String actual = expr.toString();
+        Assert.assertEquals(expressionString.replaceAll("\\s", ""),
+                actual.replaceAll("\\s", ""));
+    }
+
+    /**
      * Test method for {@link at.iaik.suraq.parser.SExpression#equals()}.
      */
     @Test
