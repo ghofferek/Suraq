@@ -191,7 +191,7 @@ public abstract class FunctionMacro {
         SExpression result = new SExpression();
 
         result.addChild(SExpressionConstants.DEFINE_FUN);
-
+        result.addChild(name);
         SExpression allParametersExpression = new SExpression();
         for (Token currentParam : parameters) {
             SExpression currentParamExpression = new SExpression();
