@@ -504,7 +504,7 @@ public class LogicParser extends Parser {
                         + paramExpressions.size() + " instead.");
 
             Map<Token, Term> paramMap = new HashMap<Token, Term>();
-            assert (paramExpressions.size() != macro.getNumParams());
+            assert (paramExpressions.size() == macro.getNumParams());
             for (int count = 0; count < paramExpressions.size(); count++) {
                 Term paramTerm = parseTerm(paramExpressions.get(count));
 
