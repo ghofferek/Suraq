@@ -107,5 +107,13 @@ public class LogicParserTest {
         Assert.assertNotNull(logicParser.getMainFormula());
         Assert.assertTrue(logicParser.getMainFormula().equals(
                 logicParser.getMainFormula()));
+
+        Assert.assertTrue(logicParser.getMainFormula()
+                .getUninterpretedFunctionNames().contains("alu-op-of"));
+        Assert.assertFalse(logicParser.getMainFormula()
+                .getUninterpretedFunctionNames().contains("Tintifax"));
+        Assert.assertEquals(logicParser.getMainFormula()
+                .getUninterpretedFunctionNames().size(), logicParser
+                .getMainFormula().getUninterpretedFunctions().size());
     }
 }
