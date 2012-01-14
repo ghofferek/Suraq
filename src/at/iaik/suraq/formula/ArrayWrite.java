@@ -203,7 +203,7 @@ public class ArrayWrite extends ArrayTerm {
     @Override
     public SExpression toSmtlibV2() {
         SExpression[] expr = new SExpression[4];
-        expr[0] = SExpressionConstants.SELECT;
+        expr[0] = SExpressionConstants.STORE;
         expr[1] = arrayTerm.toSmtlibV2();
         expr[2] = indexTerm.toSmtlibV2();
         expr[3] = valueTerm.toSmtlibV2();
