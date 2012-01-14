@@ -1813,7 +1813,7 @@
 ; The actual assert statement
 
 (assert
-  (not
+  ; (not ; for Suraq, we need the valid formula, not the negated unsat one.
     (main-formula
       stall
       false ;force-stall-issue
@@ -1937,5 +1937,5 @@
       result-wbsc4_ 
       result-wbsc5_ 
     )
-  )
+ ; ) this parenthesis belongs to the "not" operator that we do not need for Suraq.
 )
