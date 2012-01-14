@@ -337,6 +337,17 @@ public class LogicParser extends Parser {
             return constant;
         }
 
+        SExpression type = isLocalVariable(expression); // takes precedence over
+                                                        // global variables.
+        if (type != null) {
+            if (!(type.equals(SExpressionConstants.BOOL_TYPE) || type
+                    .equals(SExpressionConstants.CONTROL_TYPE)))
+                throw new ParseError(expression,
+                        "Found non-Boolean local variable where Bool sort was expected: "
+                                + expression.toString());
+            return new PropositionalVariable((Token) expression);
+        }
+
         if (isPropositionalVariable(expression)) {
             return new PropositionalVariable((Token) expression);
         }
