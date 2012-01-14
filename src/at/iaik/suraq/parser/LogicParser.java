@@ -766,11 +766,6 @@ public class LogicParser extends Parser {
 
         FunctionMacro macro = isMacroInstance(expression);
         if (macro != null) {
-            if (!(macro.getType().equals(SExpressionConstants.VALUE_TYPE) || macro
-                    .getType().equals(SExpressionConstants.ARRAY_TYPE)))
-                throw new ParseError(expression,
-                        "Term macro expected. Received type: "
-                                + macro.getType().toString());
             List<SExpression> paramExpressions = expression.getChildren()
                     .subList(1, expression.getChildren().size());
             if (paramExpressions.size() != macro.getNumParams())
@@ -794,8 +789,17 @@ public class LogicParser extends Parser {
                 paramMap.put(macro.getParam(count), paramTerm);
             }
             try {
-                return new TermFunctionMacroInstance((TermFunctionMacro) macro,
-                        paramMap);
+                if (macro.getType().equals(SExpressionConstants.BOOL_TYPE)) {
+                    assert (macro instanceof PropositionalFunctionMacro);
+                    return new FormulaTerm(
+                            new PropositionalFunctionMacroInstance(
+                                    (PropositionalFunctionMacro) macro,
+                                    paramMap));
+                } else {
+                    assert (macro instanceof TermFunctionMacro);
+                    return new TermFunctionMacroInstance(
+                            (TermFunctionMacro) macro, paramMap);
+                }
             } catch (InvalidParametersException exc) {
                 throw new RuntimeException(
                         "Unexpected condition while creating function-macro instance.",
