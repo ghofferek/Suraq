@@ -17,9 +17,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
-import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.ArrayVariable;
-import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.FunctionMacro;
@@ -74,7 +72,7 @@ public class Suraq implements Runnable {
     /**
      * Mapping variable names to their type.
      */
-    private Map<Token, Token> varTypes;
+    private Map<Token, SExpression> varTypes;
 
     /**
      * Stores whether or not any (serious) errors occurred.
@@ -212,31 +210,31 @@ public class Suraq implements Runnable {
         Formula formula = logicParser.getMainFormula().flatten();
         Set<Token> noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
-
-        Set<Formula> constraints = new HashSet<Formula>();
-        formula.removeArrayWrites(formula, constraints, noDependenceVars);
-        constraints.add(formula);
-        formula = new AndFormula(constraints);
-
-        formula.removeArrayEqualities();
-
-        Set<DomainTerm> indexSet = formula.getIndexSet();
+        /*
+         * Set<Formula> constraints = new HashSet<Formula>();
+         * formula.removeArrayWrites(formula, constraints, noDependenceVars);
+         * constraints.add(formula); formula = new AndFormula(constraints);
+         * 
+         * formula.removeArrayEqualities();
+         * 
+         * Set<DomainTerm> indexSet = formula.getIndexSet();
+         */
         lambda = new DomainVariable(Util.freshVarName(formula, "lambda"));
-        indexSet.add(lambda);
+        // indexSet.add(lambda);
         noDependenceVars.add(new Token(lambda.getVarName()));
-        formula.arrayPropertiesToFiniteConjunctions(indexSet);
-
-        Set<Token> currentArrayVariables = new HashSet<Token>();
-        for (ArrayVariable var : formula.getArrayVariables())
-            currentArrayVariables.add(new Token(var.getVarName()));
-        formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        noDependenceVars.removeAll(currentArrayVariables);
-        System.out.println("noDependenceVariables:"); // DEBUG
-        System.out.println("----------------------"); // DEBUG
-        for (Token var : noDependenceVars)
-            // DEBUG
-            System.out.println(var.toString()); // DEBUG
-
+        /*
+         * formula.arrayPropertiesToFiniteConjunctions(indexSet);
+         * 
+         * Set<Token> currentArrayVariables = new HashSet<Token>(); for
+         * (ArrayVariable var : formula.getArrayVariables())
+         * currentArrayVariables.add(new Token(var.getVarName()));
+         * formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
+         * noDependenceVars.removeAll(currentArrayVariables);
+         * System.out.println("noDependenceVariables:"); // DEBUG
+         * System.out.println("----------------------"); // DEBUG for (Token var
+         * : noDependenceVars) // DEBUG System.out.println(var.toString()); //
+         * DEBUG
+         */
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
 
@@ -246,9 +244,11 @@ public class Suraq implements Runnable {
         }
 
         outputExpressions = new ArrayList<SExpression>();
-        outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
-        outputExpressions
-                .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
+        outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
+        // DEBUG
+        // outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
+        // outputExpressions
+        // .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
 
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
@@ -315,8 +315,8 @@ public class Suraq implements Runnable {
             tempFormula = tempFormula.substituteFormula(variableSubstitutions);
             tempFormula = new NotFormula(tempFormula);
             SExpression assertPartitionExpression = new SExpression();
-            assertPartitionExpression
-                    .addChild(SExpressionConstants.ASSERT_PARTITION);
+            assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
+            // .addChild(SExpressionConstants.ASSERT_PARTITION); DEBUG
             assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
             outputExpressions.add(assertPartitionExpression);
         }
@@ -344,7 +344,7 @@ public class Suraq implements Runnable {
         if (outputExpressions == null)
             throw new SuraqException("outputExpressions not initialized!");
 
-        varTypes = new HashMap<Token, Token>();
+        varTypes = new HashMap<Token, SExpression>();
         varTypes.put(new Token(lambda.getVarName()),
                 SExpressionConstants.VALUE_TYPE);
         Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
@@ -371,6 +371,20 @@ public class Suraq implements Runnable {
                     0));
         }
 
+        // DEBUG
+        // For debugging purposes, also handle array variables
+        // (so that performing only some of the reductions can be tested)
+        for (ArrayVariable var : formula.getArrayVariables()) {
+            if (noDependenceVars.contains(var.toSmtlibV2())) {
+                varTypes.put(new Token(var.getVarName()),
+                        SExpressionConstants.ARRAY_TYPE);
+                continue; // noDependenceVars will be handled later.
+            }
+            outputExpressions.add(SExpression.makeDeclareFun(
+                    (Token) var.toSmtlibV2(), SExpressionConstants.ARRAY_TYPE,
+                    0));
+        } // end debug
+
         for (UninterpretedFunction function : formula
                 .getUninterpretedFunctions()) {
             if (noDependenceVars.contains(function.getName())) {
@@ -388,7 +402,7 @@ public class Suraq implements Runnable {
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
         noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();
         for (Token var : noDependenceVars) {
-            Token type = varTypes.get(var);
+            SExpression type = varTypes.get(var);
             assert (type != null);
             int numParams = 0;
             if (functionArity.containsKey(var))
@@ -418,11 +432,16 @@ public class Suraq implements Runnable {
                 if (numParams == 0) {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))
                         listOfVarCopies.add(new PropositionalVariable(name));
-                    else
+                    else if (type.equals(SExpressionConstants.VALUE_TYPE))
                         listOfVarCopies.add(new DomainVariable(name));
+                    else {
+                        assert (type.equals(SExpressionConstants.ARRAY_TYPE));
+                        listOfVarCopies.add(new ArrayVariable(name));
+                    }
                 } else {
+                    assert (type instanceof Token);
                     listOfFunctionCopies.add(new UninterpretedFunction(name,
-                            numParams, type));
+                            numParams, (Token) type));
                 }
             }
         }
