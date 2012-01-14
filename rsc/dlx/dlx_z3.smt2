@@ -654,17 +654,13 @@
   )
   Bool ; return type
   ; main expression
-  (and ; conjunction over all parts
-         
-    ; update of REGFILE
-    (ite
-      (distinct ZERO dest-wbi) ; write-enable
-      (=
-        REGFILEo
-        (store REGFILEi dest-wbi result-wbi)
-      )
-      (= REGFILEo REGFILEi) ; write-enable == False
-    )  
+  (ite ; update of REGFILE
+    (distinct ZERO dest-wbi) ; write-enable
+    (=
+      REGFILEo
+      (store REGFILEi dest-wbi result-wbi)
+    )
+    (= REGFILEo REGFILEi) ; write-enable == False
   ) ; END main expression
 ) ; END of step-in-WB macro
 
