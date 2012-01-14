@@ -39,6 +39,7 @@ import at.iaik.suraq.formula.PropositionalConstant;
 import at.iaik.suraq.formula.PropositionalFunctionMacro;
 import at.iaik.suraq.formula.PropositionalFunctionMacroInstance;
 import at.iaik.suraq.formula.PropositionalIte;
+import at.iaik.suraq.formula.PropositionalTerm;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
 import at.iaik.suraq.formula.TermFunctionMacro;
@@ -660,6 +661,12 @@ public class LogicParser extends Parser {
                     && elseBranch instanceof DomainTerm)
                 return new DomainIte(condition, (DomainTerm) thenBranch,
                         (DomainTerm) elseBranch);
+
+            if (thenBranch instanceof PropositionalTerm
+                    && elseBranch instanceof PropositionalTerm)
+                return new FormulaTerm(new PropositionalIte(condition,
+                        (PropositionalTerm) thenBranch,
+                        (PropositionalTerm) elseBranch));
 
             throw new ParseError(expression,
                     "Incompatible types in 'ite' expression");
