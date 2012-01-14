@@ -30,6 +30,7 @@ import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.EqualityFormula;
 import at.iaik.suraq.formula.Formula;
+import at.iaik.suraq.formula.FormulaTerm;
 import at.iaik.suraq.formula.FunctionMacro;
 import at.iaik.suraq.formula.ImpliesFormula;
 import at.iaik.suraq.formula.NotFormula;
@@ -740,7 +741,7 @@ public class LogicParser extends Parser {
             return new ArrayRead((ArrayTerm) arrayTerm, (DomainTerm) indexTerm);
         }
 
-        if (isPropositional(expression)) {
+        if (isPropositionalConstOrVar(expression)) {
             if (expression.equals(SExpressionConstants.TRUE))
                 return new PropositionalConstant(true);
             else if (expression.equals(SExpressionConstants.FALSE))
@@ -795,9 +796,10 @@ public class LogicParser extends Parser {
             }
         }
 
-        // we have something we cannot handle
-        throw new ParseError("General parse error while parsing term "
-                + expression.toString());
+        // as a last resort, try interpreting the expression as a formula
+        // this will throw a parse error, if it fails.
+        Formula formula = parseFormulaBody(expression);
+        return new FormulaTerm(formula);
     }
 
     /**
@@ -808,7 +810,7 @@ public class LogicParser extends Parser {
      * @return <code>true</code> if the given expression is a propositional
      *         variable or constant, <code>false</code> otherwise.
      */
-    private boolean isPropositional(SExpression expression) {
+    private boolean isPropositionalConstOrVar(SExpression expression) {
         if (!(expression instanceof Token))
             return false;
 
