@@ -346,19 +346,8 @@ public abstract class EqualityFormula implements Formula {
     public Formula flatten() {
         List<Term> termCopies = new ArrayList<Term>();
 
-        for (Term term : terms) {
-            if (term instanceof DomainIte) {
-                termCopies.add(((DomainIte) term).flatten());
-                continue;
-            }
-
-            if (term instanceof ArrayIte) {
-                termCopies.add(((ArrayIte) term).flatten());
-                continue;
-            }
-
-            termCopies.add(term);
-        }
+        for (Term term : terms)
+            termCopies.add(term.flatten());
 
         try {
             return EqualityFormula.create(termCopies, equal);
