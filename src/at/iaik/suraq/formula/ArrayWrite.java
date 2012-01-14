@@ -350,4 +350,14 @@ public class ArrayWrite extends ArrayTerm {
         arrayTerm.substituteUninterpretedFunction(oldFunction, newFunction);
         indexTerm.substituteUninterpretedFunction(oldFunction, newFunction);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#flatten()
+     */
+    @Override
+    public Term flatten() {
+        return new ArrayWrite((ArrayTerm) arrayTerm.flatten(),
+                (DomainTerm) indexTerm.flatten(),
+                (DomainTerm) valueTerm.flatten());
+    }
 }

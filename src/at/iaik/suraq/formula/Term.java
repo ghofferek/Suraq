@@ -224,4 +224,8 @@ public abstract class Term {
         return this.toSmtlibV2().toString();
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    public abstract Term flatten();
 }

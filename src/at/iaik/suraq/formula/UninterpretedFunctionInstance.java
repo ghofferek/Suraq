@@ -21,7 +21,8 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class UninterpretedFunctionInstance extends DomainTerm {
+public class UninterpretedFunctionInstance extends DomainTerm implements
+        Formula {
 
     /**
      * The function of which this is an instance.
@@ -328,5 +329,55 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             function = newFunction;
         for (Term term : parameters)
             term.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
+     */
+    @Override
+    public Formula deepFormulaCopy() {
+        return (Formula) deepTermCopy();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
+     */
+    @Override
+    public Formula negationNormalForm() throws SuraqException {
+        return this.deepFormulaCopy();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
+     */
+    @Override
+    public Formula substituteFormula(Map<Token, Term> paramMap) {
+        return (Formula) substituteTerm(paramMap);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        return this.deepFormulaCopy();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public UninterpretedFunctionInstance flatten() {
+        List<DomainTerm> flattenedParams = new ArrayList<DomainTerm>();
+        for (DomainTerm term : parameters)
+            flattenedParams.add((DomainTerm) term.flatten());
+        try {
+            return new UninterpretedFunctionInstance(function, flattenedParams);
+        } catch (WrongNumberOfParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected error while flattening UninterpretedFunctionInstance.",
+                    exc);
+        }
+
     }
 }

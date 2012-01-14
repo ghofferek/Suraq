@@ -328,4 +328,11 @@ public class TermFunctionMacroInstance extends Term {
             param.substituteUninterpretedFunction(oldFunction, newFunction);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public Term flatten() {
+        return macro.getBody().substituteTerm(paramMap).flatten();
+    }
 }

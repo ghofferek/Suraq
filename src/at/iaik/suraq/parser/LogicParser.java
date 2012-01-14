@@ -489,6 +489,34 @@ public class LogicParser extends Parser {
             }
         }
 
+        UninterpretedFunction function = isUninterpredFunctionInstance(expression);
+        if (function != null) {
+            if (!(function.getType().equals(SExpressionConstants.BOOL_TYPE)))
+                throw new ParseError(
+                        expression,
+                        "Non-Boolean uninterpreted function encountered, where sort Boolean was expected: "
+                                + function.getName().toString());
+
+            if (function.getNumParams() != expression.getChildren().size() - 1)
+                throw new ParseError(expression, "Function '"
+                        + function.getName() + "' expects "
+                        + function.getNumParams() + " parameters.");
+            List<DomainTerm> parameters = new ArrayList<DomainTerm>();
+            for (int count = 0; count < function.getNumParams(); count++) {
+                Term term = parseTerm(expression.getChildren().get(count + 1));
+                if (!(term instanceof DomainTerm))
+                    throw new ParseError(expression.getChildren()
+                            .get(count + 1), "Parameter is not a domain term.");
+                parameters.add((DomainTerm) term);
+            }
+            try {
+                return new UninterpretedFunctionInstance(function, parameters);
+            } catch (WrongNumberOfParametersException exc) {
+                throw new RuntimeException(
+                        "Unexpected situation while parsing uninterpreted function instance.");
+            }
+        }
+
         FunctionMacro macro = isMacroInstance(expression);
         if (macro != null) {
             if (!macro.getType().equals(SExpressionConstants.BOOL_TYPE))
@@ -659,6 +687,10 @@ public class LogicParser extends Parser {
 
         UninterpretedFunction function = isUninterpredFunctionInstance(expression);
         if (function != null) {
+            if (function.getType().equals(SExpressionConstants.BOOL_TYPE))
+                throw new ParseError(expression,
+                        "Boolean uninterpreted function encountered, where Term was expected: "
+                                + function.getName().toString());
             if (function.getNumParams() != expression.getChildren().size() - 1)
                 throw new ParseError(expression, "Function '"
                         + function.getName() + "' expects "

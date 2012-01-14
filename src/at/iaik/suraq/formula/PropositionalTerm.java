@@ -42,4 +42,7 @@ public abstract class PropositionalTerm extends Term implements Formula {
         return this;
     }
 
+    @Override
+    public abstract PropositionalTerm flatten();
+
 }

@@ -231,10 +231,11 @@ public class ArrayIte extends ArrayTerm {
     /**
      * @return a flattened copy of this term.
      */
+    @Override
     public ArrayTerm flatten() {
         return new ArrayIte(condition.flatten(),
-                (ArrayTerm) thenBranch.deepTermCopy(),
-                (ArrayTerm) elseBranch.deepTermCopy());
+                (ArrayTerm) thenBranch.flatten(),
+                (ArrayTerm) elseBranch.flatten());
     }
 
     /**
@@ -322,8 +323,8 @@ public class ArrayIte extends ArrayTerm {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         condition.substituteUninterpretedFunction(oldFunction, newFunction);
         thenBranch.substituteUninterpretedFunction(oldFunction, newFunction);
         elseBranch.substituteUninterpretedFunction(oldFunction, newFunction);

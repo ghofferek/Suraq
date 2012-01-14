@@ -121,6 +121,13 @@ public class SuraqOptions {
     }
 
     /**
+     * Kills the instance.
+     */
+    public static void kill() {
+        SuraqOptions.instance = null;
+    }
+
+    /**
      * Returns the value of the verbose option.
      * 
      * @return the value of the verbose option.

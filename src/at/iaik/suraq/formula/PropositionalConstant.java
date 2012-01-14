@@ -169,8 +169,8 @@ public class PropositionalConstant extends PropositionalTerm {
      * @see at.iaik.suraq.formula.Formula#flatten()
      */
     @Override
-    public Formula flatten() {
-        return this.deepFormulaCopy();
+    public PropositionalConstant flatten() {
+        return new PropositionalConstant(constant);
     }
 
     /**
@@ -214,8 +214,8 @@ public class PropositionalConstant extends PropositionalTerm {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         return;
     }
 }

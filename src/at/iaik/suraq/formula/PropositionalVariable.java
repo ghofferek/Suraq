@@ -190,8 +190,8 @@ public class PropositionalVariable extends PropositionalTerm {
      * @see at.iaik.suraq.formula.Formula#flatten()
      */
     @Override
-    public Formula flatten() {
-        return this.deepFormulaCopy();
+    public PropositionalVariable flatten() {
+        return new PropositionalVariable(varName);
     }
 
     /**
@@ -234,8 +234,8 @@ public class PropositionalVariable extends PropositionalTerm {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         return;
     }
 

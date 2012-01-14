@@ -241,10 +241,11 @@ public class DomainIte extends DomainTerm {
     /**
      * @return a flattened copy of this term.
      */
+    @Override
     public DomainTerm flatten() {
         return new DomainIte(condition.flatten(),
-                (DomainTerm) thenBranch.deepTermCopy(),
-                (DomainTerm) elseBranch.deepTermCopy());
+                (DomainTerm) thenBranch.flatten(),
+                (DomainTerm) elseBranch.flatten());
     }
 
     /**

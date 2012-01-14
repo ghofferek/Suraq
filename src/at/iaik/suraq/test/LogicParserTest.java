@@ -70,4 +70,42 @@ public class LogicParserTest {
                 logicParser.getMainFormula()));
 
     }
+
+    /**
+     * Test method for {@link at.iaik.suraq.parser.LogicParser#parse()}. Just
+     * parses DLX. No further checks except for successful completion.
+     */
+    @Test
+    public void simpleTestParseDLXExample() {
+        LogicParser logicParser = null;
+        try {
+            SExpParser sexpParser = new SExpParser(new File(
+                    "./rsc/dlx/dlx.smt2"));
+            sexpParser.parse();
+            Assert.assertTrue(sexpParser.wasParsingSuccessfull());
+            SExpression result = sexpParser.getRootExpr();
+            Assert.assertNotNull(result);
+
+            logicParser = new LogicParser(result);
+            logicParser.parse();
+            Assert.assertTrue(logicParser.wasParsingSuccessfull());
+
+        } catch (FileNotFoundException exc1) {
+            exc1.printStackTrace();
+            Assert.fail(exc1.getMessage());
+        } catch (IOException exc1) {
+            exc1.printStackTrace();
+            Assert.fail(exc1.getMessage());
+        } catch (ParseError exc) {
+            exc.printStackTrace();
+            Assert.fail(exc.getMessage());
+        }
+
+        // Some more detailed checks
+
+        Assert.assertEquals(7, logicParser.getControlVariables().size());
+        Assert.assertNotNull(logicParser.getMainFormula());
+        Assert.assertTrue(logicParser.getMainFormula().equals(
+                logicParser.getMainFormula()));
+    }
 }

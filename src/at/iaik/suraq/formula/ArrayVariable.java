@@ -207,9 +207,17 @@ public class ArrayVariable extends ArrayTerm {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         return;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#flatten()
+     */
+    @Override
+    public Term flatten() {
+        return new ArrayVariable(varName);
     }
 
 }
