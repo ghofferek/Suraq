@@ -315,6 +315,8 @@ public class UninterpretedFunctionInstance extends DomainTerm implements
     public Set<UninterpretedFunction> getUninterpretedFunctions() {
         Set<UninterpretedFunction> result = new HashSet<UninterpretedFunction>();
         result.add(function);
+        for (Term term : parameters)
+            result.addAll(term.getUninterpretedFunctions());
         return result;
     }
 
