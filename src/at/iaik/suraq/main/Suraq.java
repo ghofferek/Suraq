@@ -17,10 +17,12 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.ArrayVariable;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.FunctionMacro;
+import at.iaik.suraq.formula.ImpliesFormula;
 import at.iaik.suraq.formula.NotFormula;
 import at.iaik.suraq.formula.PropositionalConstant;
 import at.iaik.suraq.formula.PropositionalVariable;
@@ -210,10 +212,13 @@ public class Suraq implements Runnable {
         Formula formula = logicParser.getMainFormula().flatten();
         Set<Token> noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
+
+        Set<Formula> constraints = new HashSet<Formula>();
+        formula.removeArrayWrites(formula, constraints, noDependenceVars);
+        AndFormula arrayConstraints = new AndFormula(constraints);
+        formula = new ImpliesFormula(arrayConstraints, formula);
         /*
-         * Set<Formula> constraints = new HashSet<Formula>();
-         * formula.removeArrayWrites(formula, constraints, noDependenceVars);
-         * constraints.add(formula); formula = new AndFormula(constraints);
+         * DEBUG
          * 
          * formula.removeArrayEqualities();
          * 
@@ -394,7 +399,7 @@ public class Suraq implements Runnable {
                 continue; // noDependenceVars will be handled later.
             }
             outputExpressions.add(SExpression.makeDeclareFun(
-                    function.getName(), SExpressionConstants.VALUE_TYPE,
+                    function.getName(), function.getType(),
                     function.getNumParams()));
         }
 
