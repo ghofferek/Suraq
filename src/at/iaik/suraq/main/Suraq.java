@@ -210,6 +210,7 @@ public class Suraq implements Runnable {
         // replacing arrays with uninterpreted functions
         // (functions cannot be macro parameters)
         Formula formula = logicParser.getMainFormula().flatten();
+        assert (formula.getFunctionMacros().size() == 0);
         Set<Token> noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
 
