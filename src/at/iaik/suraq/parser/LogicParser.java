@@ -1083,7 +1083,7 @@ public class LogicParser extends Parser {
             return false;
         Token token = (Token) expression;
         PropositionalVariable variable = new PropositionalVariable(token);
-        if (domainVariables.contains(variable)
+        if (boolVariables.contains(variable)
                 || controlVariables.contains(variable))
             return true;
         else
