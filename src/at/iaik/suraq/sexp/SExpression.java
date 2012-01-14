@@ -331,7 +331,7 @@ public class SExpression {
      *            Negative values will be treated as zero.
      * @return an <code>SExpression</code> declaring the specified function.
      */
-    public static SExpression makeDeclareFun(Token name, Token type,
+    public static SExpression makeDeclareFun(Token name, SExpression type,
             int numParams) {
         SExpression result = new SExpression();
         result.addChild(SExpressionConstants.DECLARE_FUN);
