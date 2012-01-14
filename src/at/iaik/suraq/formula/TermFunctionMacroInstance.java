@@ -4,6 +4,7 @@
 package at.iaik.suraq.formula;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +20,7 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class TermFunctionMacroInstance extends Term {
+public class TermFunctionMacroInstance extends DomainTerm {
     /**
      * The macro of which this is an instance.
      */
@@ -334,5 +335,13 @@ public class TermFunctionMacroInstance extends Term {
     @Override
     public Term flatten() {
         return macro.getBody().substituteTerm(paramMap).flatten();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#isEvar(java.util.Collection)
+     */
+    @Override
+    public boolean isEvar(Collection<DomainVariable> uVars) {
+        return ((DomainTerm) this.flatten()).isEvar(uVars);
     }
 }
