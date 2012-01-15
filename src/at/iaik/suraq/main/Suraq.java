@@ -233,17 +233,12 @@ public class Suraq implements Runnable {
 
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
 
-        /*
-         * Set<Token> currentArrayVariables = new HashSet<Token>(); for
-         * (ArrayVariable var : formula.getArrayVariables())
-         * currentArrayVariables.add(new Token(var.getVarName()));
-         * formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
-         * noDependenceVars.removeAll(currentArrayVariables);
-         * System.out.println("noDependenceVariables:"); // DEBUG
-         * System.out.println("----------------------"); // DEBUG for (Token var
-         * : noDependenceVars) // DEBUG System.out.println(var.toString()); //
-         * DEBUG
-         */
+        Set<Token> currentArrayVariables = new HashSet<Token>();
+        for (ArrayVariable var : formula.getArrayVariables())
+            currentArrayVariables.add(new Token(var.getVarName()));
+        formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        noDependenceVars.removeAll(currentArrayVariables);
+        System.out.println("noDependenceVariables:");
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
 

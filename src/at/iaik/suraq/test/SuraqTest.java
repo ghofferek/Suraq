@@ -36,7 +36,7 @@ public class SuraqTest {
      * exceptions and that the program terminates normally. No functional
      * correctness is tested.
      */
-    @Test
+    // @Test
     public void simpleRunOnDLXExample() {
         String[] args = { "-i", "./rsc/dlx/dlx.smt2", "-s",
                 "./rsc/dlx/suraq_out_dlx.smt2" };
