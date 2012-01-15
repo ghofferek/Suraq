@@ -238,7 +238,7 @@ public class Suraq implements Runnable {
             currentArrayVariables.add(new Token(var.getVarName()));
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
         noDependenceVars.removeAll(currentArrayVariables);
-        System.out.println("noDependenceVariables:");
+
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
 
@@ -248,11 +248,11 @@ public class Suraq implements Runnable {
         }
 
         outputExpressions = new ArrayList<SExpression>();
-        outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
-        // DEBUG
-        // outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
-        // outputExpressions
-        // .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
+        // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
+
+        outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
+        outputExpressions
+                .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
 
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
@@ -319,8 +319,8 @@ public class Suraq implements Runnable {
             tempFormula = tempFormula.substituteFormula(variableSubstitutions);
             tempFormula = new NotFormula(tempFormula);
             SExpression assertPartitionExpression = new SExpression();
-            assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
-            // .addChild(SExpressionConstants.ASSERT_PARTITION); DEBUG
+            assertPartitionExpression // .addChild(SExpressionConstants.ASSERT);
+                    .addChild(SExpressionConstants.ASSERT_PARTITION);
             assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
             outputExpressions.add(assertPartitionExpression);
         }

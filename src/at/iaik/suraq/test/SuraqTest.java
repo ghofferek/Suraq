@@ -60,6 +60,20 @@ public class SuraqTest {
     }
 
     /**
+     * Lets Suraq run on the DLX example, with just control signals for operand
+     * a. Just checks that there are no exceptions and that the program
+     * terminates normally. No functional correctness is tested.
+     */
+    @Test
+    public void simpleRunOnDLXOnlyBExample() {
+        String[] args = { "-i", "./rsc/dlx/dlx_control_b_only.smt2", "-s",
+                "./rsc/dlx/suraq_out_dlx_control_b_only.smt2" };
+        Suraq suraq = new Suraq(args);
+        suraq.run();
+        Assert.assertTrue(suraq.success());
+    }
+
+    /**
      * Deletes the <code>SuraqOptions</code>.
      * 
      * @throws Exception
