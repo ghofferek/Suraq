@@ -228,11 +228,12 @@ public class Suraq implements Runnable {
         Set<DomainTerm> indexSet = formula.getIndexSet();
 
         lambda = new DomainVariable(Util.freshVarName(formula, "lambda"));
-        // indexSet.add(lambda);
+        indexSet.add(lambda);
         noDependenceVars.add(new Token(lambda.getVarName()));
+
+        formula.arrayPropertiesToFiniteConjunctions(indexSet);
+
         /*
-         * formula.arrayPropertiesToFiniteConjunctions(indexSet);
-         * 
          * Set<Token> currentArrayVariables = new HashSet<Token>(); for
          * (ArrayVariable var : formula.getArrayVariables())
          * currentArrayVariables.add(new Token(var.getVarName()));

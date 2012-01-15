@@ -39,7 +39,7 @@ public class SuraqTest {
     @Test
     public void simpleRunOnDLXExample() {
         String[] args = { "-i", "./rsc/dlx/dlx.smt2", "-s",
-                "./rsc/dlx/suraq_out.smt2" };
+                "./rsc/dlx/suraq_out_dlx.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
         Assert.assertTrue(suraq.success());
@@ -53,7 +53,7 @@ public class SuraqTest {
     @Test
     public void simpleRunOnDLXOnlyAExample() {
         String[] args = { "-i", "./rsc/dlx/dlx_control_a_only.smt2", "-s",
-                "./rsc/dlx/suraq_out.smt2" };
+                "./rsc/dlx/suraq_out_dlx_control_a_only.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
         Assert.assertTrue(suraq.success());
