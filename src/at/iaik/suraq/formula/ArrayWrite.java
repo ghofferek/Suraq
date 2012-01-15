@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -271,6 +273,22 @@ public class ArrayWrite extends ArrayTerm {
 
         index = (DomainTerm) indexTerm.deepTermCopy();
         index.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
+        if (!(index instanceof DomainVariable)) {
+            DomainVariable simpleIndex = new DomainVariable(Util.freshVarName(
+                    topLevelFormula, "read"));
+            List<DomainTerm> terms = new ArrayList<DomainTerm>();
+            terms.add(simpleIndex);
+            terms.add(index);
+            constraints.add(new DomainEq(terms, true));
+
+            // Check if the complex index contained any noDependenceVars.
+            // This might be conservative and might not be complete (i.e., may
+            // result unnecessary unrealizability)
+            if (Util.termContainsAny(index, noDependenceVars))
+                noDependenceVars.add(new Token(simpleIndex.getVarName()));
+            index = simpleIndex;
+        }
+
         value = (DomainTerm) valueTerm.deepTermCopy();
         value.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
 

@@ -216,7 +216,7 @@ public class Suraq implements Runnable {
 
         Set<Formula> constraints = new HashSet<Formula>();
         formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
-        // formula.removeArrayWrites(formula, constraints, noDependenceVars);
+        formula.removeArrayWrites(formula, constraints, noDependenceVars);
         if (constraints.size() > 0) {
             AndFormula arrayConstraints = new AndFormula(constraints);
             formula = new ImpliesFormula(arrayConstraints, formula);
