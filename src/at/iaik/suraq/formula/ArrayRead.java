@@ -322,9 +322,19 @@ public class ArrayRead extends DomainTerm {
         DomainTerm oldIndexTerm = indexTerm;
         indexTerm = new DomainVariable(Util.freshVarName(topLevelFormula,
                 "read"));
+
         List<DomainTerm> list = new ArrayList<DomainTerm>();
         list.add(indexTerm);
         list.add(oldIndexTerm);
         constraints.add(new DomainEq(list, true));
+
+        // Check if the arrayTerm contained any noDependenceVars.
+        // This is conservative and might not be complete (i.e., may
+        // result unnecessary unrealizability), but
+        // in practice, array reads should only occur on primitive
+        // array expressions, so this should not be a "real" problem.
+        if (Util.termContainsAny(arrayTerm, noDependenceVars))
+            noDependenceVars.add(new Token(((DomainVariable) indexTerm)
+                    .getVarName()));
     }
 }
