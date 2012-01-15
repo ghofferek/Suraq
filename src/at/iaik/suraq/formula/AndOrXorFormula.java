@@ -38,6 +38,8 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     protected AndOrXorFormula(Collection<? extends Formula> formulas) {
         this.formulas = new ArrayList<Formula>();
         this.formulas.addAll(formulas);
+        if (formulas.size() < 1)
+            this.formulas.add(new PropositionalConstant(true));
     }
 
     /**
@@ -337,14 +339,15 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(java.util.Set,
-     *      Formula, Set)
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(Formula,
+     *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Set<Formula> constraints,
-            Formula topLevelFormula, Set<Token> noDependenceVars) {
+    public void makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         for (Formula formula : formulas)
-            formula.makeArrayReadsSimple(constraints, topLevelFormula, noDependenceVars);
+            formula.makeArrayReadsSimple(topLevelFormula, constraints,
+                    noDependenceVars);
     }
 
 }

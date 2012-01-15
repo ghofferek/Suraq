@@ -215,9 +215,12 @@ public class Suraq implements Runnable {
                 logicParser.getNoDependenceVariables());
 
         Set<Formula> constraints = new HashSet<Formula>();
-        formula.removeArrayWrites(formula, constraints, noDependenceVars);
-        AndFormula arrayConstraints = new AndFormula(constraints);
-        formula = new ImpliesFormula(arrayConstraints, formula);
+        formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
+        // formula.removeArrayWrites(formula, constraints, noDependenceVars);
+        if (constraints.size() > 0) {
+            AndFormula arrayConstraints = new AndFormula(constraints);
+            formula = new ImpliesFormula(arrayConstraints, formula);
+        }
         /*
          * DEBUG
          * 

@@ -311,12 +311,12 @@ public class ArrayRead extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
-     *      Formula, Set)
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(Formula,
+     *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Set<Formula> constraints,
-            Formula topLevelFormula, Set<Token> noDependenceVars) {
+    public void makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         if (indexTerm instanceof DomainVariable)
             return; // This read is already simple.
         DomainTerm oldIndexTerm = indexTerm;

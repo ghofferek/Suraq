@@ -369,13 +369,13 @@ public class NotFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(java.util.Set,
-     *      at.iaik.suraq.formula.Formula, java.util.Set)
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Set<Formula> constraints,
-            Formula topLevelFormula, Set<Token> noDependenceVars) {
-        formula.makeArrayReadsSimple(constraints, topLevelFormula,
+    public void makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        formula.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
     }
 

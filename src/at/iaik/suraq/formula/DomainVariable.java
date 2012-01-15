@@ -230,12 +230,12 @@ public class DomainVariable extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
-     *      at.iaik.suraq.formula.Formula, java.util.Set)
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Set<Formula> constraints,
-            Formula topLevelFormula, Set<Token> noDependenceVars) {
+    public void makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
         return;
     }
 

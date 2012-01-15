@@ -232,8 +232,8 @@ public abstract class Term {
     /**
      * @param topLevelFormula TODO
      * @param noDependenceVars TODO
-     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(at.iaik.suraq.formula.Formula, Formula, Set)
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(Formula, at.iaik.suraq.formula.Formula, Set)
      */
-    public abstract void makeArrayReadsSimple(Set<Formula> constraints, Formula topLevelFormula, Set<Token> noDependenceVars);
+    public abstract void makeArrayReadsSimple(Formula topLevelFormula, Set<Formula> constraints, Set<Token> noDependenceVars);
 
 }

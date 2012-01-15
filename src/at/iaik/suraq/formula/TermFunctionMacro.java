@@ -142,7 +142,7 @@ public class TermFunctionMacro extends FunctionMacro {
     public Set<Formula> makeArrayReadsSimple(Formula topLevelFormula,
             Set<Token> noDependenceVars) {
         Set<Formula> constraints = new HashSet<Formula>();
-        body.makeArrayReadsSimple(constraints, topLevelFormula,
+        body.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
         return constraints;
     }

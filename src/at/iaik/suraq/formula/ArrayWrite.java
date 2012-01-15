@@ -272,8 +272,7 @@ public class ArrayWrite extends ArrayTerm {
         index = (DomainTerm) indexTerm.deepTermCopy();
         index.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
         value = (DomainTerm) valueTerm.deepTermCopy();
-        valueTerm.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
+        value.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
 
         // now apply axiom
         String oldVar = result.toSmtlibV2().toString().replaceAll("\\W", "");
@@ -281,9 +280,9 @@ public class ArrayWrite extends ArrayTerm {
                 topLevelFormula, oldVar + "_store"));
 
         ArrayRead newRead = new ArrayRead(newVar, index);
-        newRead.makeArrayReadsSimple(constraints, topLevelFormula,
+        newRead.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        value.makeArrayReadsSimple(constraints, topLevelFormula,
+        value.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
         Set<DomainTerm> domainTerms = new HashSet<DomainTerm>();
         domainTerms.add(newRead);
@@ -377,17 +376,17 @@ public class ArrayWrite extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
-     *      at.iaik.suraq.formula.Formula, Set)
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Set<Formula> constraints,
-            Formula topLevelFormula, Set<Token> noDependenceVars) {
-        arrayTerm.makeArrayReadsSimple(constraints, topLevelFormula,
+    public void makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        arrayTerm.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        indexTerm.makeArrayReadsSimple(constraints, topLevelFormula,
+        indexTerm.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        valueTerm.makeArrayReadsSimple(constraints, topLevelFormula,
+        valueTerm.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
 
     }
