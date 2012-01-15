@@ -3,8 +3,10 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,7 +31,7 @@ public class ArrayRead extends DomainTerm {
     /**
      * The index from which is read.
      */
-    private final DomainTerm indexTerm;
+    private DomainTerm indexTerm;
 
     /**
      * Constructs a new <code>ArrayRead</code>.
@@ -306,5 +308,23 @@ public class ArrayRead extends DomainTerm {
     public Term flatten() {
         return new ArrayRead((ArrayTerm) arrayTerm.flatten(),
                 (DomainTerm) indexTerm.flatten());
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
+     *      Formula, Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        if (indexTerm instanceof DomainVariable)
+            return; // This read is already simple.
+        DomainTerm oldIndexTerm = indexTerm;
+        indexTerm = new DomainVariable(Util.freshVarName(topLevelFormula,
+                "read"));
+        List<DomainTerm> list = new ArrayList<DomainTerm>();
+        list.add(indexTerm);
+        list.add(oldIndexTerm);
+        constraints.add(new DomainEq(list, true));
     }
 }

@@ -314,10 +314,23 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         leftSide.substituteUninterpretedFunction(oldFunction, newFunction);
         rightSide.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(java.util.Set,
+     *      at.iaik.suraq.formula.Formula, java.util.Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        leftSide.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        rightSide.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
     }
 
 }

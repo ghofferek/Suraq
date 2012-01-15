@@ -382,4 +382,16 @@ public class UninterpretedFunctionInstance extends DomainTerm implements
         }
 
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
+     *      at.iaik.suraq.formula.Formula, java.util.Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        for (Term param : parameters)
+            param.makeArrayReadsSimple(constraints, topLevelFormula,
+                    noDependenceVars);
+    }
 }

@@ -329,4 +329,16 @@ public class ArrayIte extends ArrayTerm {
         thenBranch.substituteUninterpretedFunction(oldFunction, newFunction);
         elseBranch.substituteUninterpretedFunction(oldFunction, newFunction);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
+     *      Formula, Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        condition.makeArrayReadsSimple(constraints, topLevelFormula, noDependenceVars);
+        thenBranch.makeArrayReadsSimple(constraints, topLevelFormula, noDependenceVars);
+        elseBranch.makeArrayReadsSimple(constraints, topLevelFormula, noDependenceVars);
+    }
 }

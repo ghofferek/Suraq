@@ -338,4 +338,19 @@ public class DomainIte extends DomainTerm {
         thenBranch.substituteUninterpretedFunction(oldFunction, newFunction);
         elseBranch.substituteUninterpretedFunction(oldFunction, newFunction);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
+     *      at.iaik.suraq.formula.Formula, java.util.Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        condition.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        thenBranch.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        elseBranch.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+    }
 }

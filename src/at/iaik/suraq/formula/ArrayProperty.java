@@ -574,4 +574,15 @@ public class ArrayProperty implements Formula {
     public String toString() {
         return this.toSmtlibV2().toString();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(java.util.Set,
+     *      Formula, Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        indexGuard.makeArrayReadsSimple(constraints, topLevelFormula, noDependenceVars);
+        valueConstraint.makeArrayReadsSimple(constraints, topLevelFormula, noDependenceVars);
+    }
 }

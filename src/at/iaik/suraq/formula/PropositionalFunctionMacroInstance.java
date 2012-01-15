@@ -361,4 +361,20 @@ public class PropositionalFunctionMacroInstance implements Formula {
     public String toString() {
         return this.toSmtlibV2().toString();
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(java.util.Set,
+     *      at.iaik.suraq.formula.Formula, java.util.Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        Set<Formula> localConstraints = macro.makeArrayReadsSimple(
+                topLevelFormula, noDependenceVars);
+        for (Formula localConstraint : localConstraints)
+            constraints.add(localConstraint.substituteFormula(paramMap));
+        for (Term term : paramMap.values())
+            term.makeArrayReadsSimple(constraints, topLevelFormula,
+                    noDependenceVars);
+    }
 }

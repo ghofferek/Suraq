@@ -347,10 +347,25 @@ public class PropositionalIte extends BooleanCombinationFormula {
      *      at.iaik.suraq.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(
-            Token oldFunction, UninterpretedFunction newFunction) {
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
         condition.substituteUninterpretedFunction(oldFunction, newFunction);
         thenBranch.substituteUninterpretedFunction(oldFunction, newFunction);
         elseBranch.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(java.util.Set,
+     *      at.iaik.suraq.formula.Formula, java.util.Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        condition.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        thenBranch.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        elseBranch.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
     }
 }

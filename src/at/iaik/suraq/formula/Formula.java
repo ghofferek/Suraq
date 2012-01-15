@@ -209,4 +209,20 @@ public interface Formula {
      */
     @Override
     public String toString();
+
+    /**
+     * Replaces all indices of array reads which are not simple domain variables
+     * with fresh simple domain variables. Corresponding equality constraints
+     * are added to the given set.
+     * 
+     * @param constraints
+     *            the set to add new constraints to.
+     * @param topLevelFormula
+     *            the top level formula (for finding fresh variable names).
+     * @param topLevelFormula
+     *            TODO
+     * @param noDependenceVars TODO
+     */
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars);
 }

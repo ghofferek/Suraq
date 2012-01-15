@@ -220,4 +220,14 @@ public class ArrayVariable extends ArrayTerm {
         return new ArrayVariable(varName);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
+     *      at.iaik.suraq.formula.Formula, Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        return;
+    }
+
 }

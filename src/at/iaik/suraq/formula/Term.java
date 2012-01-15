@@ -228,4 +228,12 @@ public abstract class Term {
      * @see at.iaik.suraq.formula.Formula#flatten()
      */
     public abstract Term flatten();
+
+    /**
+     * @param topLevelFormula TODO
+     * @param noDependenceVars TODO
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(at.iaik.suraq.formula.Formula, Formula, Set)
+     */
+    public abstract void makeArrayReadsSimple(Set<Formula> constraints, Formula topLevelFormula, Set<Token> noDependenceVars);
+
 }

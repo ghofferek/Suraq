@@ -242,4 +242,17 @@ public class PropositionalFunctionMacro extends FunctionMacro {
             UninterpretedFunction newFunction) {
         body.substituteUninterpretedFunction(oldFunction, newFunction);
     }
+
+    /**
+     * @param topLevelFormula
+     * @param noDependenceVars
+     * @return
+     */
+    public Set<Formula> makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Token> noDependenceVars) {
+        Set<Formula> constraints = new HashSet<Formula>();
+        body.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        return constraints;
+    }
 }

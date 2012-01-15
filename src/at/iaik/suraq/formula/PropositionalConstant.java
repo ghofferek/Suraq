@@ -218,4 +218,14 @@ public class PropositionalConstant extends PropositionalTerm {
             UninterpretedFunction newFunction) {
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
+     *      at.iaik.suraq.formula.Formula, java.util.Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        return;
+    }
 }

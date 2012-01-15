@@ -256,35 +256,50 @@ public class ArrayWrite extends ArrayTerm {
     public ArrayVariable applyWriteAxiom(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
 
+        ArrayVariable result;
+        DomainTerm index;
+        DomainTerm value;
+
         // First, recursively remove writes from sub-parts
-        arrayTerm.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
-        indexTerm.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
+        if (arrayTerm instanceof ArrayWrite)
+            result = ((ArrayWrite) arrayTerm).applyWriteAxiom(topLevelFormula,
+                    constraints, noDependenceVars);
+        else {
+            assert (arrayTerm instanceof ArrayVariable);
+            result = (ArrayVariable) arrayTerm;
+        }
+
+        index = (DomainTerm) indexTerm.deepTermCopy();
+        index.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
+        value = (DomainTerm) valueTerm.deepTermCopy();
         valueTerm.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
 
         // now apply axiom
-        String oldVar = arrayTerm.toSmtlibV2().toString().replaceAll("\\W", "");
+        String oldVar = result.toSmtlibV2().toString().replaceAll("\\W", "");
         ArrayVariable newVar = new ArrayVariable(Util.freshVarName(
                 topLevelFormula, oldVar + "_store"));
 
-        ArrayRead newRead = new ArrayRead(newVar, indexTerm);
+        ArrayRead newRead = new ArrayRead(newVar, index);
+        newRead.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        value.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
         Set<DomainTerm> domainTerms = new HashSet<DomainTerm>();
         domainTerms.add(newRead);
-        domainTerms.add(valueTerm);
+        domainTerms.add(value);
         constraints.add(new DomainEq(domainTerms, true));
 
         DomainVariable newUVar = new DomainVariable(Util.freshVarName(
                 topLevelFormula, "uVar"));
         domainTerms.clear();
-        domainTerms.add(indexTerm);
+        domainTerms.add(index);
         domainTerms.add(newUVar);
         Formula indexGuard = new DomainEq(domainTerms, false);
 
         domainTerms.clear();
         domainTerms.add(new ArrayRead(newVar, newUVar));
-        domainTerms.add(new ArrayRead(arrayTerm, newUVar));
+        domainTerms.add(new ArrayRead(result, newUVar));
         Formula valueConstraint = new DomainEq(domainTerms, true);
 
         Set<DomainVariable> uVars = new HashSet<DomainVariable>();
@@ -359,5 +374,21 @@ public class ArrayWrite extends ArrayTerm {
         return new ArrayWrite((ArrayTerm) arrayTerm.flatten(),
                 (DomainTerm) indexTerm.flatten(),
                 (DomainTerm) valueTerm.flatten());
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(java.util.Set,
+     *      at.iaik.suraq.formula.Formula, Set)
+     */
+    @Override
+    public void makeArrayReadsSimple(Set<Formula> constraints,
+            Formula topLevelFormula, Set<Token> noDependenceVars) {
+        arrayTerm.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        indexTerm.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        valueTerm.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+
     }
 }

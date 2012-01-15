@@ -71,8 +71,7 @@ public class TermFunctionMacro extends FunctionMacro {
      */
     @Override
     public void removeArrayEqualities() {
-        // TODO Auto-generated method stub
-
+        body.removeArrayEqualities();
     }
 
     /**
@@ -80,8 +79,7 @@ public class TermFunctionMacro extends FunctionMacro {
      */
     @Override
     public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        // TODO Auto-generated method stub
-
+        body.arrayPropertiesToFiniteConjunctions(indexSet);
     }
 
     /**
@@ -134,5 +132,18 @@ public class TermFunctionMacro extends FunctionMacro {
     public void substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
         body.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
+    /**
+     * @param topLevelFormula
+     * @param noDependenceVars
+     * @return
+     */
+    public Set<Formula> makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Token> noDependenceVars) {
+        Set<Formula> constraints = new HashSet<Formula>();
+        body.makeArrayReadsSimple(constraints, topLevelFormula,
+                noDependenceVars);
+        return constraints;
     }
 }
