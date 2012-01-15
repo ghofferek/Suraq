@@ -19,6 +19,7 @@ import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.ArrayVariable;
+import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.FunctionMacro;
@@ -221,13 +222,11 @@ public class Suraq implements Runnable {
             AndFormula arrayConstraints = new AndFormula(constraints);
             formula = new ImpliesFormula(arrayConstraints, formula);
         }
-        /*
-         * DEBUG
-         * 
-         * formula.removeArrayEqualities();
-         * 
-         * Set<DomainTerm> indexSet = formula.getIndexSet();
-         */
+
+        formula.removeArrayEqualities();
+
+        Set<DomainTerm> indexSet = formula.getIndexSet();
+
         lambda = new DomainVariable(Util.freshVarName(formula, "lambda"));
         // indexSet.add(lambda);
         noDependenceVars.add(new Token(lambda.getVarName()));
