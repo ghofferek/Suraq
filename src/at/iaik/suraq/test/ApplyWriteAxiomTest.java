@@ -86,8 +86,18 @@ public class ApplyWriteAxiomTest {
                 Assert.assertEquals(2,
                         ((DomainEq) (property.getIndexGuard())).numTerms());
                 Assert.assertTrue(((DomainEq) (property.getIndexGuard()))
-                        .getTerms().get(0) instanceof ArrayRead);
+                        .getTerms().get(0) instanceof DomainVariable);
                 Assert.assertTrue(((DomainEq) (property.getIndexGuard()))
+                        .getTerms().get(1) instanceof DomainVariable);
+
+                Assert.assertTrue(property.getValueConstraint() instanceof DomainEq);
+                Assert.assertTrue(((DomainEq) (property.getValueConstraint()))
+                        .isEqual());
+                Assert.assertEquals(2,
+                        ((DomainEq) (property.getIndexGuard())).numTerms());
+                Assert.assertTrue(((DomainEq) (property.getValueConstraint()))
+                        .getTerms().get(0) instanceof ArrayRead);
+                Assert.assertTrue(((DomainEq) (property.getValueConstraint()))
                         .getTerms().get(1) instanceof ArrayRead);
             }
 
