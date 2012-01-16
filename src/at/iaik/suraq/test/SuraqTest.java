@@ -36,7 +36,7 @@ public class SuraqTest {
      * exceptions and that the program terminates normally. No functional
      * correctness is tested.
      */
-    // @Test
+    @Test
     public void simpleRunOnDLXExample() {
         String[] args = { "-i", "./rsc/dlx/dlx.smt2", "-s",
                 "./rsc/dlx/suraq_out_dlx.smt2" };
@@ -68,6 +68,48 @@ public class SuraqTest {
     public void simpleRunOnDLXOnlyBExample() {
         String[] args = { "-i", "./rsc/dlx/dlx_control_b_only.smt2", "-s",
                 "./rsc/dlx/suraq_out_dlx_control_b_only.smt2" };
+        Suraq suraq = new Suraq(args);
+        suraq.run();
+        Assert.assertTrue(suraq.success());
+    }
+
+    /**
+     * Lets Suraq run on the DLX example, with just control signals for operand
+     * a. Just checks that there are no exceptions and that the program
+     * terminates normally. No functional correctness is tested.
+     */
+    @Test
+    public void simpleRunOnDLXAAndStallExample() {
+        String[] args = { "-i", "./rsc/dlx/dlx_control_a_and_stall.smt2", "-s",
+                "./rsc/dlx/suraq_out_dlx_control_a_and_stall.smt2" };
+        Suraq suraq = new Suraq(args);
+        suraq.run();
+        Assert.assertTrue(suraq.success());
+    }
+
+    /**
+     * Lets Suraq run on the DLX example, with just control signals for operand
+     * a. Just checks that there are no exceptions and that the program
+     * terminates normally. No functional correctness is tested.
+     */
+    @Test
+    public void simpleRunOnDLXBAndStallExample() {
+        String[] args = { "-i", "./rsc/dlx/dlx_control_b_and_stall.smt2", "-s",
+                "./rsc/dlx/suraq_out_dlx_control_b_and_stall.smt2" };
+        Suraq suraq = new Suraq(args);
+        suraq.run();
+        Assert.assertTrue(suraq.success());
+    }
+
+    /**
+     * Lets Suraq run on the DLX example, with just control signals for operand
+     * a. Just checks that there are no exceptions and that the program
+     * terminates normally. No functional correctness is tested.
+     */
+    @Test
+    public void simpleRunOnDLXAAndBExample() {
+        String[] args = { "-i", "./rsc/dlx/dlx_control_a_and_b.smt2", "-s",
+                "./rsc/dlx/suraq_out_dlx_control_a_and_b.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
         Assert.assertTrue(suraq.success());
