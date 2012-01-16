@@ -252,7 +252,7 @@
 (declare-fun forward-b-from-mem () Control)
 (declare-fun forward-b-from-wb  () Control)
 
-(declare-fun do-stall-issue     () Control)
+(declare-fun do-stall-issue     () Bool :no_dependence)
 
 
 ; Properties of is-XXX predicates:
@@ -1542,6 +1542,20 @@
       (is-properties (opcode-of pinst-idsc1_))
       (is-properties popcode-exsc5_)
       (is-properties popcode-exci4_)
+    
+      ; implementation of non-synthesized control signals
+      ; do-stall-issue
+      (=
+        do-stall-issue
+        (stall-issue
+          force-stall-issue  
+          bubble-ex          
+          opcode-ex          
+          dest-ex            
+          bubble-id          
+          inst-id            
+        )
+      )
     )
     (=> ; update implies
       (and ; main update part
@@ -1795,18 +1809,8 @@
           pstall            
         ) ; end complete-pipeline (sc)
       ) ; end conjunction of update parts
-      (and
-        (equivalence pREGFILEci5_ pREGFILEsc5_ pDMEMci5_ pDMEMsc5_ pPCci5_ pPCsc5_)
-        (=> ; liveness. disallow stall if there is a bubble in ID or EX, and stall was not forced.
-          (and
-            (not pforce-stall-issue)
-            (or
-              pbubble-id
-              pbubble-ex
-            )
-          )
-          (not do-stall-issue)
-        )
+      (
+        equivalence pREGFILEci5_ pREGFILEsc5_ pDMEMci5_ pDMEMsc5_ pPCci5_ pPCsc5_
       )
     ) ; end of update implies 
   ) ; end main expression

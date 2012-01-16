@@ -244,9 +244,9 @@
 
 
 ; Control signals
-(declare-fun forward-a-from-ex  () Control)
-(declare-fun forward-a-from-mem () Control)
-(declare-fun forward-a-from-wb  () Control)
+(declare-fun forward-a-from-ex  () Bool :no_dependence)
+(declare-fun forward-a-from-mem () Bool :no_dependence)
+(declare-fun forward-a-from-wb  () Bool :no_dependence)
 
 (declare-fun forward-b-from-ex  () Control)
 (declare-fun forward-b-from-mem () Control)
@@ -1542,6 +1542,33 @@
       (is-properties (opcode-of pinst-idsc1_))
       (is-properties popcode-exsc5_)
       (is-properties popcode-exci4_)
+    
+      ; implementation of non-synthesized control signals
+      ; forward-a-from-ex
+      (=
+        forward-a-from-ex
+        (and
+          (= (rf1-of inst-id) dest-ex)
+          (not bubble-ex)
+          (not (is-store opcode-ex))
+        )
+      )
+
+      ; forward-a-from-mem
+      (=
+        forward-a-from-mem
+        (and
+          (= (rf1-of inst-id) dest-mem)
+          (not store-flag)
+        )
+      )
+
+      ; forward-a-from-wb
+      (=
+        forward-a-from-wb
+        (= (rf1-of inst-id) dest-wb)
+      )
+
     )
     (=> ; update implies
       (and ; main update part
