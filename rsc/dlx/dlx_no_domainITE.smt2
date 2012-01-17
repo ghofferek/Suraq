@@ -956,49 +956,6 @@
         REGFILEi
       )
     )
-
-                   
-              
-;           
-;       
-;       (=  ; write to REGFILE
-;         REGFILEo
-;         (store
-;           REGFILEi
-;           (ite    ; write address
-;             (and
-;               (not (is-load       (opcode-of (select IMEMi PCi))))
-;               (not (is-store      (opcode-of (select IMEMi PCi))))
-;               (not (is-J          (opcode-of (select IMEMi PCi))))
-;               (not (is-BEQZ       (opcode-of (select IMEMi PCi))))
-;               (not (is-alu-immed  (opcode-of (select IMEMi PCi))))
-;             )
-;             (rf3-of (select IMEMi PCi))
-;             (rf2-of (select IMEMi PCi))
-;           )       ; END write address
-;           (ite ; write data
-;             (is-load (opcode-of (select IMEMi PCi)))
-;             (select
-;               DMEMi 
-;               (PLUS
-;                 (short-immed-of (select IMEMi PCi))
-;                 (rf1data REGFILEi IMEMi PCi)
-;               )
-;             )
-;             (ALU
-;               (alu-op-of (opcode-of (select IMEMi PCi)))
-;               (rf1data REGFILEi IMEMi PCi)
-;               (ite
-;                 (is-alu-immed (opcode-of (select IMEMi PCi)))
-;                 (short-immed-of (select IMEMi PCi))
-;                 (rf2data REGFILEi IMEMi PCi)
-;               )
-;             )
-;           )    ; END write data
-;         )
-;       )   ; END write to REGFILE
-;       (= REGFILEi REGFILEo) ; write-enable == False
-;     ) 
   ) ; END main expression
 ) ; END instruction-in-reference macro
 
@@ -1073,21 +1030,18 @@
     )
   
     ; update of WB stage registers
-    (= dest-wbo
-      (ite 
-        store-flagi
-        ZERO
-        dest-memi
-      )
+    
+    (ite 
+      store-flagi
+      (= dest-wbo ZERO)
+      (= dest-wbo dest-memi)
     )
-    (= 
-      result-wbo
-      (ite
-        load-flagi
-        (select DMEMi mari)
-        result-memi
-      )
-    )  
+    
+    (ite
+      load-flagi
+      (= result-wbo (select DMEMi mari))
+      (= result-wbo result-memi)
+    )
   ) ; END main expression
 ) ; END of step-in-MEM macro
 
@@ -1116,26 +1070,37 @@
   (and ; conjunction over all parts
       
     ; update of MEM stage registers
-    (= 
-      dest-memo 
+    (ite
+      (or
+        bubble-exi
+        (is-store opcode-exi)
+      )
+      (= dest-memo ZERO)
+      (= dest-memo dest-exi)
+    )
+    
+    (ite
+      (or (is-load opcode-exi) (is-store opcode-exi))
+      (= result-memo operand-bi) 
       (ite
         (or
-          bubble-exi
+          (is-load  opcode-exi)
           (is-store opcode-exi)
         )
-        ZERO
-        dest-exi
+        (= result-memo (PLUS short-immed-exi operand-ai))
+        (= result-memo (ALU (alu-op-of opcode-exi) operand-ai operand-bi))
       )
     )
-    (= 
-      result-memo
-      (ite
-        (or (is-load opcode-exi) (is-store opcode-exi))
-        operand-bi
-        (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
+    
+    (ite
+      (or
+        (is-load  opcode-exi)
+        (is-store opcode-exi)
       )
+      (= maro (PLUS short-immed-exi operand-ai))
+      (= maro (ALU (alu-op-of opcode-exi) operand-ai operand-bi))
     )
-    (= maro (alu-result operand-ai operand-bi opcode-exi short-immed-exi))
+    
     (= 
       load-flago
       (and (is-load opcode-exi) (not bubble-exi))
@@ -2461,4 +2426,4 @@
 ; (get-value ((is-load (opcode-of (select IMEM PCci4_)))))
 ; (get-value ((is-alu-immed (opcode-of (select IMEM PCci4_)))))
 ; (get-value ((= ZERO (rf1-of (select IMEM PCci4_)))))
-; (get-value ((= ZERO (rf2-of (select IMEM PCci4_)))))
+; (get-value ((= ZERO (rf2-of (select IMEM PCci4_)))
