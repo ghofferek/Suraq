@@ -1263,46 +1263,42 @@
   (and ; conjunction over all parts
   
     ; update of ID registers
-    (= 
-      bubble-ido
+    (ite
+      force-stall-issue
       (ite
-        force-stall-issue
+        (or (not bubble-idf) stall)
+        (= bubble-ido bubble-idf)
+        (= bubble-ido false)
+      )
+      (ite
+        do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
+        (= bubble-ido bubble-idf)
         (ite
-          (or (not bubble-idf) stall)
-          bubble-idf
-          false
-        )
-        (ite
-          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
-          bubble-idf
-          (ite
-            stall
-            true
-            (branch-taken bubble-idf inst-idf operand-af)
-          )
+          stall
+          (= bubble-ido true)
+          (= bubble-ido (branch-taken bubble-idf inst-idf operand-af))
         )
       )
     )
-    (=
-      inst-ido
+    
+    (ite
+      force-stall-issue
       (ite
-        force-stall-issue
+        (or (not bubble-idf) stall)
+        (= inst-ido inst-idf)
+        (= inst-ido (select IMEMi PCi))
+      )
+      (ite
+        do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
+        (= inst-ido inst-idf)
         (ite
-          (or (not bubble-idf) stall)
-          inst-idf
-          (select IMEMi PCi)
-        )
-        (ite
-          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
-          inst-idf
-          (ite
-            stall
-            inst-idf
-            (select IMEMi PCi)
-          )
+          stall
+          (= inst-ido inst-idf)
+          (= inst-ido (select IMEMi PCi))
         )
       )
     )
+    
   ) ; END main expression
 ) ; END of step-in-IF macro
 
