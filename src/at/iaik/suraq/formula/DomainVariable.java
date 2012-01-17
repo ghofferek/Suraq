@@ -85,7 +85,7 @@ public class DomainVariable extends DomainTerm {
      * @see at.iaik.suraq.formula.Term#deepTermCopy()
      */
     @Override
-    public Term deepTermCopy() {
+    public DomainTerm deepTermCopy() {
         return new DomainVariable(new String(varName));
     }
 
@@ -237,6 +237,17 @@ public class DomainVariable extends DomainTerm {
     public void makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         return;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return new DomainVariable(varName);
     }
 
 }

@@ -4,9 +4,11 @@
 package at.iaik.suraq.formula;
 
 import java.util.Collection;
+import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * 
@@ -36,5 +38,22 @@ public abstract class DomainTerm extends Term {
     public SExpression getType() {
         return SExpressionConstants.VALUE_TYPE;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public abstract DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars);
+
+    /**
+     * Returns a deep copy of this term.
+     * 
+     * @return a deep copy of this term.
+     */
+    @Override
+    public abstract DomainTerm deepTermCopy();
 
 }

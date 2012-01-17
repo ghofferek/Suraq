@@ -17,7 +17,7 @@ import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
-import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.ArrayIte;
 import at.iaik.suraq.formula.ArrayProperty;
@@ -46,6 +46,7 @@ import at.iaik.suraq.formula.TermFunctionMacro;
 import at.iaik.suraq.formula.TermFunctionMacroInstance;
 import at.iaik.suraq.formula.UninterpretedFunction;
 import at.iaik.suraq.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.formula.XorFormula;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -523,8 +524,8 @@ public class LogicParser extends Parser {
                 parameters.add((DomainTerm) term);
             }
             try {
-                return new UninterpretedFunctionInstance(function, parameters);
-            } catch (WrongNumberOfParametersException exc) {
+                return new UninterpretedPredicateInstance(function, parameters);
+            } catch (SuraqException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing uninterpreted function instance.");
             }
@@ -724,7 +725,7 @@ public class LogicParser extends Parser {
             }
             try {
                 return new UninterpretedFunctionInstance(function, parameters);
-            } catch (WrongNumberOfParametersException exc) {
+            } catch (SuraqException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing uninterpreted function instance.");
             }

@@ -3,8 +3,11 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.Set;
+
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * A propositional term. I.e., either a propositional constant or a
@@ -44,5 +47,14 @@ public abstract class PropositionalTerm extends Term implements Formula {
 
     @Override
     public abstract PropositionalTerm flatten();
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public abstract PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars);
 
 }

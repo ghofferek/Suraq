@@ -379,4 +379,16 @@ public class NotFormula extends BooleanCombinationFormula {
                 noDependenceVars);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return new NotFormula(
+                formula.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars));
+    }
 }

@@ -3,8 +3,11 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.Set;
+
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * 
@@ -23,5 +26,14 @@ public abstract class ArrayTerm extends Term {
     public SExpression getType() {
         return SExpressionConstants.ARRAY_TYPE;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public abstract ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars);
 
 }

@@ -230,10 +230,33 @@ public abstract class Term {
     public abstract Term flatten();
 
     /**
-     * @param topLevelFormula TODO
-     * @param noDependenceVars TODO
-     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(Formula, at.iaik.suraq.formula.Formula, Set)
+     * @param topLevelFormula
+     *            TODO
+     * @param noDependenceVars
+     *            TODO
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(Formula,
+     *      at.iaik.suraq.formula.Formula, Set)
      */
-    public abstract void makeArrayReadsSimple(Formula topLevelFormula, Set<Formula> constraints, Set<Token> noDependenceVars);
+    public abstract void makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars);
+
+    /**
+     * Creates a copy of this term in which instances of uninterpreted
+     * predicates (functions of return type Bool) are replaced with auxiliary
+     * variables and generates corresponding constraints.
+     * 
+     * @param topLeveFormula
+     *            the top level formula (for finding fresh variable names).
+     * @param constraints
+     *            the set to add new constraints to.
+     * @param noDependenceVars
+     *            the set of variables on which the controller may not depend.
+     *            New variables might be added to this set.
+     * @return a new term with uninterpreted predicates replaced by auxiliary
+     *         variables.
+     */
+    public abstract Term uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars);
 
 }

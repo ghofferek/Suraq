@@ -78,9 +78,9 @@ public class ArrayRead extends DomainTerm {
      * @see at.iaik.suraq.formula.Term#deepTermCopy()
      */
     @Override
-    public Term deepTermCopy() {
+    public DomainTerm deepTermCopy() {
         return new ArrayRead((ArrayTerm) arrayTerm.deepTermCopy(),
-                (DomainTerm) indexTerm.deepTermCopy());
+                indexTerm.deepTermCopy());
     }
 
     /**
@@ -336,5 +336,22 @@ public class ArrayRead extends DomainTerm {
         if (Util.termContainsAny(arrayTerm, noDependenceVars))
             noDependenceVars.add(new Token(((DomainVariable) indexTerm)
                     .getVarName()));
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+
+        return new ArrayRead(
+                arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars),
+                indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars));
+
     }
 }

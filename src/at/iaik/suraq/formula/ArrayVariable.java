@@ -230,4 +230,15 @@ public class ArrayVariable extends ArrayTerm {
         return;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.ArrayTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return new ArrayVariable(varName);
+    }
+
 }

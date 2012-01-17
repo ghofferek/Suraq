@@ -582,7 +582,31 @@ public class ArrayProperty implements Formula {
     @Override
     public void makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        indexGuard.makeArrayReadsSimple(topLevelFormula, constraints, noDependenceVars);
-        valueConstraint.makeArrayReadsSimple(topLevelFormula, constraints, noDependenceVars);
+        indexGuard.makeArrayReadsSimple(topLevelFormula, constraints,
+                noDependenceVars);
+        valueConstraint.makeArrayReadsSimple(topLevelFormula, constraints,
+                noDependenceVars);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        try {
+            return new ArrayProperty(uVars,
+                    indexGuard.uninterpretedPredicatesToAuxiliaryVariables(
+                            topLeveFormula, constraints, noDependenceVars),
+                    valueConstraint
+                            .uninterpretedPredicatesToAuxiliaryVariables(
+                                    topLeveFormula, constraints,
+                                    noDependenceVars));
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpectedly unable to create ArrayProperty.", exc);
+        }
     }
 }

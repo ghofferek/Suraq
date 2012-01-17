@@ -377,4 +377,36 @@ public class PropositionalFunctionMacroInstance implements Formula {
             term.makeArrayReadsSimple(topLevelFormula, constraints,
                     noDependenceVars);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        Set<Formula> localConstraints = new HashSet<Formula>();
+        PropositionalFunctionMacro newMacro = macro
+                .uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+                        localConstraints, noDependenceVars);
+        for (Formula localConstraint : localConstraints)
+            constraints.add(localConstraint.substituteFormula(paramMap));
+
+        Map<Token, Term> newParamMap = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet())
+            newParamMap.put(
+                    token,
+                    paramMap.get(token)
+                            .uninterpretedPredicatesToAuxiliaryVariables(
+                                    topLeveFormula, constraints,
+                                    noDependenceVars));
+        try {
+            return new PropositionalFunctionMacroInstance(newMacro, newParamMap);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpectedly unable to create PropositionalFunctionMacroInstance.",
+                    exc);
+        }
+    }
 }

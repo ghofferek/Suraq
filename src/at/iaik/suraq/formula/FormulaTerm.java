@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
-import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
@@ -193,14 +192,14 @@ public class FormulaTerm extends PropositionalTerm {
     @Override
     public void substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        if (formula instanceof UninterpretedFunctionInstance) {
+        if (formula instanceof UninterpretedPredicateInstance) {
             if (((UninterpretedFunctionInstance) formula).getFunction().equals(
                     oldFunction)) {
                 try {
-                    formula = new UninterpretedFunctionInstance(newFunction,
+                    formula = new UninterpretedPredicateInstance(newFunction,
                             ((UninterpretedFunctionInstance) formula)
                                     .getParameters());
-                } catch (WrongNumberOfParametersException exc) {
+                } catch (SuraqException exc) {
                     throw new RuntimeException(
                             "Unexpected situation while subsituting uninterpreted function");
                 }
@@ -222,6 +221,19 @@ public class FormulaTerm extends PropositionalTerm {
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         formula.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public FormulaTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return new FormulaTerm(
+                formula.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars));
     }
 
 }

@@ -214,14 +214,35 @@ public interface Formula {
      * Replaces all indices of array reads which are not simple domain variables
      * with fresh simple domain variables. Corresponding equality constraints
      * are added to the given set.
+     * 
      * @param topLevelFormula
      *            the top level formula (for finding fresh variable names).
-     * @param topLevelFormula
-     *            TODO
      * @param constraints
      *            the set to add new constraints to.
-     * @param noDependenceVars TODO
+     * @param noDependenceVars
+     *            the set of variables on which the controller may not depend.
+     *            New variables might be added to this set.
      */
     public void makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars);
+
+    /**
+     * Creates a copy of this formula in which instances of uninterpreted
+     * predicates (functions of return type Bool) are replaced with auxiliary
+     * variables and generates corresponding constraints.
+     * 
+     * @param topLeveFormula
+     *            the top level formula (for finding fresh variable names).
+     * @param constraints
+     *            the set to add new constraints to.
+     * @param noDependenceVars
+     *            the set of variables on which the controller may not depend.
+     *            New variables might be added to this set.
+     * @return a new formula with uninterpreted predicates replaced by auxiliary
+     *         variables.
+     */
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars);
+
 }

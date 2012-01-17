@@ -146,4 +146,23 @@ public class TermFunctionMacro extends FunctionMacro {
                 noDependenceVars);
         return constraints;
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    public TermFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+
+        Term newBody = body.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, constraints, noDependenceVars);
+        try {
+            return new TermFunctionMacro(name, parameters, paramMap, newBody);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpectedly unable to create TermFunctionMacro.", exc);
+        }
+
+    }
 }

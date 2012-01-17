@@ -431,7 +431,29 @@ public abstract class EqualityFormula implements Formula {
     public void makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         for (Term term : terms)
-            term.makeArrayReadsSimple(topLevelFormula, constraints, noDependenceVars);
+            term.makeArrayReadsSimple(topLevelFormula, constraints,
+                    noDependenceVars);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+
+        List<Term> newTerms = new ArrayList<Term>();
+        for (Term term : terms)
+            newTerms.add(term.uninterpretedPredicatesToAuxiliaryVariables(
+                    topLeveFormula, constraints, noDependenceVars));
+
+        try {
+            return EqualityFormula.create(newTerms, equal);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException("Unexpectedly incomparable terms.", exc);
+        }
     }
 
 }

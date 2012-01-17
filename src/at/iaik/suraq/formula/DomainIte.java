@@ -94,10 +94,9 @@ public class DomainIte extends DomainTerm {
      * @see at.iaik.suraq.formula.Term#deepTermCopy()
      */
     @Override
-    public Term deepTermCopy() {
+    public DomainTerm deepTermCopy() {
         return new DomainIte(condition.deepFormulaCopy(),
-                (DomainTerm) thenBranch.deepTermCopy(),
-                (DomainTerm) elseBranch.deepTermCopy());
+                thenBranch.deepTermCopy(), elseBranch.deepTermCopy());
     }
 
     /**
@@ -352,5 +351,22 @@ public class DomainIte extends DomainTerm {
                 noDependenceVars);
         elseBranch.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return new DomainIte(
+                condition.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars),
+                thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars),
+                elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars));
     }
 }

@@ -88,8 +88,7 @@ public class ArrayWrite extends ArrayTerm {
     @Override
     public Term deepTermCopy() {
         return new ArrayWrite((ArrayTerm) arrayTerm.deepTermCopy(),
-                (DomainTerm) indexTerm.deepTermCopy(),
-                (DomainTerm) valueTerm.deepTermCopy());
+                indexTerm.deepTermCopy(), valueTerm.deepTermCopy());
     }
 
     /**
@@ -271,7 +270,7 @@ public class ArrayWrite extends ArrayTerm {
             result = (ArrayVariable) arrayTerm;
         }
 
-        index = (DomainTerm) indexTerm.deepTermCopy();
+        index = indexTerm.deepTermCopy();
         index.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
         if (!(index instanceof DomainVariable)) {
             DomainVariable simpleIndex = new DomainVariable(Util.freshVarName(
@@ -289,7 +288,7 @@ public class ArrayWrite extends ArrayTerm {
             index = simpleIndex;
         }
 
-        value = (DomainTerm) valueTerm.deepTermCopy();
+        value = valueTerm.deepTermCopy();
         value.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
 
         // now apply axiom
@@ -407,5 +406,22 @@ public class ArrayWrite extends ArrayTerm {
         valueTerm.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
 
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.ArrayTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return new ArrayWrite(
+                arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars),
+                indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars),
+                valueTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars));
     }
 }

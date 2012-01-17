@@ -350,4 +350,21 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
                     noDependenceVars);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        List<Formula> newFormulas = new ArrayList<Formula>();
+        for (Formula formula : formulas)
+            newFormulas.add(formula
+                    .uninterpretedPredicatesToAuxiliaryVariables(
+                            topLeveFormula, constraints, noDependenceVars));
+
+        return this.create(newFormulas);
+    }
+
 }

@@ -101,7 +101,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
      * @see at.iaik.suraq.formula.Term#deepTermCopy()
      */
     @Override
-    public Term deepTermCopy() {
+    public DomainTerm deepTermCopy() {
         TermFunctionMacro macro = new TermFunctionMacro(this.macro);
         Map<Token, Term> paramMap = new HashMap<Token, Term>();
         for (Token token : this.paramMap.keySet())
@@ -360,4 +360,37 @@ public class TermFunctionMacroInstance extends DomainTerm {
             term.makeArrayReadsSimple(topLevelFormula, constraints,
                     noDependenceVars);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        Set<Formula> localConstraints = new HashSet<Formula>();
+        TermFunctionMacro newMacro = macro
+                .uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+                        localConstraints, noDependenceVars);
+        for (Formula localConstraint : localConstraints)
+            constraints.add(localConstraint.substituteFormula(paramMap));
+
+        Map<Token, Term> newParamMap = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet())
+            newParamMap.put(
+                    token,
+                    paramMap.get(token)
+                            .uninterpretedPredicatesToAuxiliaryVariables(
+                                    topLeveFormula, constraints,
+                                    noDependenceVars));
+        try {
+            return new TermFunctionMacroInstance(newMacro, newParamMap);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpectedly unable to create TermFunctionMacroInstance.",
+                    exc);
+        }
+    }
+
 }

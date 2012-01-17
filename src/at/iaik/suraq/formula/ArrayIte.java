@@ -337,8 +337,29 @@ public class ArrayIte extends ArrayTerm {
     @Override
     public void makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        condition.makeArrayReadsSimple(topLevelFormula, constraints, noDependenceVars);
-        thenBranch.makeArrayReadsSimple(topLevelFormula, constraints, noDependenceVars);
-        elseBranch.makeArrayReadsSimple(topLevelFormula, constraints, noDependenceVars);
+        condition.makeArrayReadsSimple(topLevelFormula, constraints,
+                noDependenceVars);
+        thenBranch.makeArrayReadsSimple(topLevelFormula, constraints,
+                noDependenceVars);
+        elseBranch.makeArrayReadsSimple(topLevelFormula, constraints,
+                noDependenceVars);
     }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public ArrayIte uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return new ArrayIte(
+                condition.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars),
+                thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars),
+                elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                        topLeveFormula, constraints, noDependenceVars));
+    }
+
 }

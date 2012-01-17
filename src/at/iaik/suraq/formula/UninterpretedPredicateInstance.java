@@ -4,7 +4,6 @@
 package at.iaik.suraq.formula;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,14 +15,13 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
- * An instance of an uninterpreted function.
- * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class UninterpretedFunctionInstance extends DomainTerm {
+public class UninterpretedPredicateInstance implements Formula {
 
     /**
      * The function of which this is an instance.
@@ -36,7 +34,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     private final List<DomainTerm> parameters;
 
     /**
-     * Constructs a new <code>UninterpretedFunctionInstance</code> with the
+     * Constructs a new <code>UninterpretedPredicateInstance</code> with the
      * given values.
      * 
      * @param function
@@ -50,39 +48,17 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      * @throws WrongFunctionTypeException
      *             if the type of the given function is not <code>Value</code>.
      */
-    public UninterpretedFunctionInstance(UninterpretedFunction function,
+    public UninterpretedPredicateInstance(UninterpretedFunction function,
             List<DomainTerm> parameters)
             throws WrongNumberOfParametersException, WrongFunctionTypeException {
         if (function.getNumParams() != parameters.size())
             throw new WrongNumberOfParametersException();
         this.function = function;
-        if (!function.getType().equals(SExpressionConstants.VALUE_TYPE))
+        if (!function.getType().equals(SExpressionConstants.BOOL_TYPE))
             throw new WrongFunctionTypeException(
                     "Expected a domain function. Received type: "
                             + function.getType().toString());
         this.parameters = new ArrayList<DomainTerm>(parameters);
-    }
-
-    /**
-     * Constructs a new <code>UninterpretedFunctionInstance</code> with just one
-     * parameter.
-     * 
-     * @param function
-     *            the function that is applied
-     * @param term
-     *            the single parameter of the function.
-     * @throws WrongNumberOfParametersException
-     *             if the number of parameters of the function does not match
-     *             the size of <code>parameters</code>.
-     */
-    public UninterpretedFunctionInstance(UninterpretedFunction function,
-            DomainTerm term) throws WrongNumberOfParametersException {
-        if (function.getNumParams() != 1)
-            throw new WrongNumberOfParametersException();
-        this.function = function;
-        List<DomainTerm> params = new ArrayList<DomainTerm>();
-        params.add(term);
-        this.parameters = params;
     }
 
     /**
@@ -104,34 +80,19 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.DomainTerm#isEvar(java.util.Collection)
+     * @see at.iaik.suraq.formula.Formula#deepFormulaCopy()
      */
     @Override
-    public boolean isEvar(Collection<DomainVariable> uVars) {
-        for (DomainTerm term : parameters) {
-            if (!term.isEvar(uVars))
-                return false;
-        }
-        return true;
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Term#deepTermCopy()
-     */
-    @Override
-    public UninterpretedFunctionInstance deepTermCopy() {
-        List<DomainTerm> parameters = new ArrayList<DomainTerm>();
-        for (DomainTerm term : this.parameters)
-            parameters.add(term.deepTermCopy());
+    public UninterpretedPredicateInstance deepFormulaCopy() {
+        List<DomainTerm> parameterCopies = new ArrayList<DomainTerm>();
+        for (DomainTerm term : parameters)
+            parameterCopies.add(term.deepTermCopy());
         try {
-            return new UninterpretedFunctionInstance(new UninterpretedFunction(
-                    function), parameters);
+            return new UninterpretedPredicateInstance(
+                    new UninterpretedFunction(function), parameterCopies);
         } catch (SuraqException exc) {
-            // This should never happen!
-            assert (false);
             throw new RuntimeException(
-                    "Unexpected situation while copying uninterpreted function instance.",
-                    exc);
+                    "Unexpected situation whily copying predicate.", exc);
         }
     }
 
@@ -169,29 +130,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getFunctionMacroNames()
-     */
-    @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> result = new HashSet<String>();
-        for (Term term : parameters)
-            result.addAll(term.getFunctionMacroNames());
-        return result;
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Term#getFunctionMacros()
-     */
-    @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = new HashSet<FunctionMacro>();
-        for (Term term : parameters)
-            result.addAll(term.getFunctionMacros());
-        return result;
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctionNames()
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
     public Set<String> getUninterpretedFunctionNames() {
@@ -203,30 +142,29 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see java.lang.Object#equals(java.lang.Object)
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof UninterpretedFunctionInstance))
-            return false;
-        UninterpretedFunctionInstance other = (UninterpretedFunctionInstance) obj;
-        if (!other.parameters.equals(parameters))
-            return false;
-        if (!other.function.equals(function))
-            return false;
-        return true;
+    public Set<String> getFunctionMacroNames() {
+        Set<String> result = new HashSet<String>();
+        for (Term term : parameters)
+            result.addAll(term.getFunctionMacroNames());
+        return result;
     }
 
     /**
-     * @see java.lang.Object#hashCode()
+     * @see at.iaik.suraq.formula.Formula#getFunctionMacros()
      */
     @Override
-    public int hashCode() {
-        return function.hashCode() ^ parameters.hashCode();
+    public Set<FunctionMacro> getFunctionMacros() {
+        Set<FunctionMacro> result = new HashSet<FunctionMacro>();
+        for (Term term : parameters)
+            result.addAll(term.getFunctionMacros());
+        return result;
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getIndexSet()
+     * @see at.iaik.suraq.formula.Formula#getIndexSet()
      */
     @Override
     public Set<DomainTerm> getIndexSet() throws SuraqException {
@@ -238,18 +176,26 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#substituteTerm(java.util.Map)
+     * @see at.iaik.suraq.formula.Formula#negationNormalForm()
      */
     @Override
-    public Term substituteTerm(Map<Token, Term> paramMap) {
+    public Formula negationNormalForm() throws SuraqException {
+        return deepFormulaCopy();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#substituteFormula(java.util.Map)
+     */
+    @Override
+    public Formula substituteFormula(Map<Token, Term> paramMap) {
         List<DomainTerm> convertedParameters = new ArrayList<DomainTerm>();
         for (int count = 0; count < parameters.size(); count++)
             convertedParameters.add((DomainTerm) parameters.get(count)
                     .substituteTerm(paramMap));
 
-        UninterpretedFunctionInstance result;
+        UninterpretedPredicateInstance result;
         try {
-            result = new UninterpretedFunctionInstance(function,
+            result = new UninterpretedPredicateInstance(function,
                     convertedParameters);
         } catch (SuraqException exc) {
             throw new RuntimeException(
@@ -259,7 +205,66 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#toSmtlibV2()
+     * @see at.iaik.suraq.formula.Formula#substituteUninterpretedFunction(at.iaik.suraq.sexp.Token,
+     *      at.iaik.suraq.formula.UninterpretedFunction)
+     */
+    @Override
+    public void substituteUninterpretedFunction(Token oldFunction,
+            UninterpretedFunction newFunction) {
+        if (function.getName().equals(oldFunction)) {
+            function = newFunction;
+            assert (newFunction.getType()
+                    .equals(SExpressionConstants.BOOL_TYPE));
+        }
+        for (Term term : parameters)
+            term.substituteUninterpretedFunction(oldFunction, newFunction);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#removeArrayEqualities()
+     */
+    @Override
+    public void removeArrayEqualities() {
+        for (Term param : parameters)
+            param.removeArrayEqualities();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
+     */
+    @Override
+    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        for (Term param : parameters)
+            param.arrayPropertiesToFiniteConjunctions(indexSet);
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#simplify()
+     */
+    @Override
+    public Formula simplify() {
+        return deepFormulaCopy();
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#flatten()
+     */
+    @Override
+    public UninterpretedPredicateInstance flatten() {
+        List<DomainTerm> flattenedParams = new ArrayList<DomainTerm>();
+        for (DomainTerm term : parameters)
+            flattenedParams.add((DomainTerm) term.flatten());
+        try {
+            return new UninterpretedPredicateInstance(function, flattenedParams);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected error while flattening UninterpretedFunctionInstance.",
+                    exc);
+        }
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#toSmtlibV2()
      */
     @Override
     public SExpression toSmtlibV2() {
@@ -271,25 +276,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
-     */
-    @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        for (Term param : parameters)
-            param.arrayPropertiesToFiniteConjunctions(indexSet);
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Term#removeArrayEqualities()
-     */
-    @Override
-    public void removeArrayEqualities() {
-        for (Term param : parameters)
-            param.removeArrayEqualities();
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Term#removeArrayWrites(at.iaik.suraq.formula.Formula)
+     * @see at.iaik.suraq.formula.Formula#removeArrayWrites(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
      */
     @Override
     public void removeArrayWrites(Formula topLevelFormula,
@@ -301,7 +289,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#arrayReadsToUninterpretedFunctions()
+     * @see at.iaik.suraq.formula.Formula#arrayReadsToUninterpretedFunctions(java.util.Set)
      */
     @Override
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
@@ -315,7 +303,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#getUninterpretedFunctions()
+     * @see at.iaik.suraq.formula.Formula#getUninterpretedFunctions()
      */
     @Override
     public Set<UninterpretedFunction> getUninterpretedFunctions() {
@@ -327,41 +315,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.Term#substituteUninterpretedFunction(Token,
-     *      at.iaik.suraq.formula.UninterpretedFunction)
-     */
-    @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
-        if (function.getName().equals(oldFunction)) {
-            function = newFunction;
-            assert (newFunction.getType()
-                    .equals(SExpressionConstants.VALUE_TYPE));
-        }
-        for (Term term : parameters)
-            term.substituteUninterpretedFunction(oldFunction, newFunction);
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Formula#flatten()
-     */
-    @Override
-    public UninterpretedFunctionInstance flatten() {
-        List<DomainTerm> flattenedParams = new ArrayList<DomainTerm>();
-        for (DomainTerm term : parameters)
-            flattenedParams.add((DomainTerm) term.flatten());
-        try {
-            return new UninterpretedFunctionInstance(function, flattenedParams);
-        } catch (SuraqException exc) {
-            throw new RuntimeException(
-                    "Unexpected error while flattening UninterpretedFunctionInstance.",
-                    exc);
-        }
-
-    }
-
-    /**
-     * @see at.iaik.suraq.formula.Term#makeArrayReadsSimple(at.iaik.suraq.formula.Formula,
+     * @see at.iaik.suraq.formula.Formula#makeArrayReadsSimple(at.iaik.suraq.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
     @Override
@@ -373,29 +327,20 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
-
-        List<DomainTerm> newParameters = new ArrayList<DomainTerm>();
-        for (DomainTerm term : parameters)
-            newParameters.add(term.uninterpretedPredicatesToAuxiliaryVariables(
-                    topLeveFormula, constraints, noDependenceVars));
-
-        UninterpretedFunctionInstance result;
-        try {
-            result = new UninterpretedFunctionInstance(function, newParameters);
-        } catch (SuraqException exc) {
-            throw new RuntimeException(
-                    "Unexpected error while converting predicates to auxiliary variables.",
-                    exc);
-        }
-
-        return result;
+        PropositionalVariable newVar = new PropositionalVariable(
+                Util.freshVarName(topLeveFormula, "aux"));
+        List<PropositionalTerm> terms = new ArrayList<PropositionalTerm>();
+        terms.add(newVar);
+        terms.add(new FormulaTerm(this.deepFormulaCopy()));
+        constraints.add(new PropositionalEq(terms, true));
+        return newVar;
     }
 
 }
