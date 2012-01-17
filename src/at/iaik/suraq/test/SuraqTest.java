@@ -38,7 +38,7 @@ public class SuraqTest {
      */
     @Test
     public void simpleRunOnDLXExample() {
-        String[] args = { "-i", "./rsc/dlx/dlx.smt2", "-s",
+        String[] args = { "-i", "./rsc/dlx/dlx_no_domainITE.smt2", "-s",
                 "./rsc/dlx/suraq_out_dlx.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
@@ -52,7 +52,8 @@ public class SuraqTest {
      */
     @Test
     public void simpleRunOnDLXOnlyAExample() {
-        String[] args = { "-i", "./rsc/dlx/dlx_control_a_only.smt2", "-s",
+        String[] args = { "-i",
+                "./rsc/dlx/dlx_no_domainITE_control_a_only.smt2", "-s",
                 "./rsc/dlx/suraq_out_dlx_control_a_only.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
@@ -66,7 +67,8 @@ public class SuraqTest {
      */
     @Test
     public void simpleRunOnDLXOnlyBExample() {
-        String[] args = { "-i", "./rsc/dlx/dlx_control_b_only.smt2", "-s",
+        String[] args = { "-i",
+                "./rsc/dlx/dlx_no_domainITE_control_b_only.smt2", "-s",
                 "./rsc/dlx/suraq_out_dlx_control_b_only.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
@@ -80,8 +82,8 @@ public class SuraqTest {
      */
     @Test
     public void simpleRunOnDLXAAndStallExample() {
-        String[] args = { "-i", "./rsc/dlx/dlx_control_a_and_stall.smt2", "-s",
-                "./rsc/dlx/suraq_out_dlx_control_a_and_stall.smt2" };
+        String[] args = { "-i", "./rsc/dlx/dlx_no_domainITE_a_and_stall.smt2",
+                "-s", "./rsc/dlx/suraq_out_dlx_control_a_and_stall.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
         Assert.assertTrue(suraq.success());
@@ -94,8 +96,8 @@ public class SuraqTest {
      */
     @Test
     public void simpleRunOnDLXBAndStallExample() {
-        String[] args = { "-i", "./rsc/dlx/dlx_control_b_and_stall.smt2", "-s",
-                "./rsc/dlx/suraq_out_dlx_control_b_and_stall.smt2" };
+        String[] args = { "-i", "./rsc/dlx/dlx_no_domainITE_b_and_stall.smt2",
+                "-s", "./rsc/dlx/suraq_out_dlx_control_b_and_stall.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
         Assert.assertTrue(suraq.success());
@@ -108,7 +110,8 @@ public class SuraqTest {
      */
     @Test
     public void simpleRunOnDLXAAndBExample() {
-        String[] args = { "-i", "./rsc/dlx/dlx_control_a_and_b.smt2", "-s",
+        String[] args = { "-i",
+                "./rsc/dlx/dlx_no_domainITE_control_a_and_b.smt2", "-s",
                 "./rsc/dlx/suraq_out_dlx_control_a_and_b.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
