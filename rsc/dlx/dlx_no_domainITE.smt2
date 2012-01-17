@@ -1164,75 +1164,70 @@
       )
     )
     (= short-immed-exo (short-immed-of inst-idi))
-    (=
-      dest-exo
+    
+    (ite
+      (or bubble-exo (is-store (opcode-of inst-idi)))
+      (= dest-exo ZERO)
       (ite
-        (or bubble-exo (is-store (opcode-of inst-idi)))
-        ZERO
-        (ite
-          (or
-            (is-alu-immed (opcode-of inst-idi))
-            (is-load      (opcode-of inst-idi))
+        (or
+          (is-alu-immed (opcode-of inst-idi))
+          (is-load      (opcode-of inst-idi))
+        )
+        (= dest-exo (rf2-of inst-idi))
+        (= dest-exo (rf3-of inst-idi))
+      )
+    )
+    
+    (= opcode-exo (opcode-of inst-idi))
+    
+    (ite ; load from REGFILE[0]? 
+      (= ZERO (rf1-of inst-idi))
+      (= operand-ao ZERO)
+      (ite 
+        completion 
+        (= operand-ao (select REGFILEi (rf1-of inst-idi))) ; normal read during completion
+        (ite ; forward from EX?
+          forward-a-from-ex
+          (= operand-ao result-exf)
+          (ite ; forward from MEM?
+            forward-a-from-mem ; (= (rf1-of inst-idi) dest-memf)
+            (= operand-ao result-memf)
+            (ite ; forward from WB?
+              forward-a-from-wb ; (= (rf1-of inst-idi) dest-wbf)
+              (= operand-ao result-wbf)
+              (= operand-ao (select REGFILEi (rf1-of inst-idi))) ; normal read
+            )
           )
-          (rf2-of inst-idi)
-          (rf3-of inst-idi)
         )
       )
     )
-    (= opcode-exo (opcode-of inst-idi))
-    (= 
-      operand-ao
-      (ite ; load from REGFILE[0]? 
-        (= ZERO (rf1-of inst-idi))
-        ZERO
+    
+    (ite ; load immed from inst?
+      (is-alu-immed (opcode-of inst-idi))
+      (= operand-bo (short-immed-of inst-idi))
+      (ite ; load from REGFILE[0]?
+        (= ZERO (rf2-of inst-idi))
+        (= operand-bo ZERO)
         (ite 
           completion 
-          (select REGFILEi (rf1-of inst-idi)) ; normal read during completion
+          (= operand-bo (select REGFILEi (rf2-of inst-idi))) ; normal read during completion
           (ite ; forward from EX?
-            forward-a-from-ex
-            result-exf
+            forward-b-from-ex
+            (= operand-bo result-exf)
             (ite ; forward from MEM?
-              forward-a-from-mem ; (= (rf1-of inst-idi) dest-memf)
-              result-memf
+              forward-b-from-mem ; (= (rf2-of inst-idi) dest-memf)
+              (= operand-bo result-memf)
               (ite ; forward from WB?
-                forward-a-from-wb ; (= (rf1-of inst-idi) dest-wbf)
-                result-wbf
-                (select REGFILEi (rf1-of inst-idi)) ; normal read
+                forward-b-from-wb ; (= (rf2-of inst-idi) dest-wbf)
+                (= operand-bo result-wbf)
+                (= operand-bo (select REGFILEi (rf2-of inst-idi))) ; normal read
               )
             )
           )
         )
       )
     )
-  
-    (=
-      operand-bo
-      (ite ; load immed from inst?
-        (is-alu-immed (opcode-of inst-idi))
-        (short-immed-of inst-idi)
-        (ite ; load from REGFILE[0]?
-          (= ZERO (rf2-of inst-idi))
-          ZERO
-          (ite 
-            completion 
-            (select REGFILEi (rf2-of inst-idi)) ; normal read during completion
-            (ite ; forward from EX?
-              forward-b-from-ex
-              result-exf
-              (ite ; forward from MEM?
-                forward-b-from-mem ; (= (rf2-of inst-idi) dest-memf)
-                result-memf
-                (ite ; forward from WB?
-                  forward-b-from-wb ; (= (rf2-of inst-idi) dest-wbf)
-                  result-wbf
-                  (select REGFILEi (rf2-of inst-idi)) ; normal read
-                )
-              )
-            )
-          )
-        )
-      )
-    ) 
+ 
   ) ; END main expression
 ) ; END of step-in-ID macro
 
