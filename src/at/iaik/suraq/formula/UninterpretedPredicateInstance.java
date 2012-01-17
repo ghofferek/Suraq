@@ -340,6 +340,10 @@ public class UninterpretedPredicateInstance implements Formula {
         terms.add(newVar);
         terms.add(new FormulaTerm(this.deepFormulaCopy()));
         constraints.add(new PropositionalEq(terms, true));
+
+        if (Util.formulaContainsAny(this, noDependenceVars))
+            noDependenceVars.add(new Token(newVar.getVarName()));
+
         return newVar;
     }
 
