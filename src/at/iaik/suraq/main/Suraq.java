@@ -210,19 +210,23 @@ public class Suraq implements Runnable {
         // Flattening formula, because macros cause problems when
         // replacing arrays with uninterpreted functions
         // (functions cannot be macro parameters)
+        System.out.println("Flattening formula...");
         Formula formula = logicParser.getMainFormula().flatten();
         assert (formula.getFunctionMacros().size() == 0);
         Set<Token> noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
 
         Set<Formula> constraints = new HashSet<Formula>();
+        System.out.println("Making array reads simple...");
         formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
+        System.out.println("Removing array writes...");
         formula.removeArrayWrites(formula, constraints, noDependenceVars);
         if (constraints.size() > 0) {
             AndFormula arrayConstraints = new AndFormula(constraints);
             formula = new ImpliesFormula(arrayConstraints, formula);
         }
 
+        System.out.println("Removing array equalities...");
         formula.removeArrayEqualities();
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
@@ -231,11 +235,15 @@ public class Suraq implements Runnable {
         indexSet.add(lambda);
         noDependenceVars.add(new Token(lambda.getVarName()));
 
+        System.out
+                .println("Converting array properties to finite conjunctions...");
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
 
         Set<Token> currentArrayVariables = new HashSet<Token>();
         for (ArrayVariable var : formula.getArrayVariables())
             currentArrayVariables.add(new Token(var.getVarName()));
+        System.out
+                .println("Converting array reads to uninterpreted function calls...");
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
         noDependenceVars.removeAll(currentArrayVariables);
 
@@ -255,6 +263,7 @@ public class Suraq implements Runnable {
                 .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
 
+        System.out.println("Writing declarations...");
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
 
@@ -288,6 +297,7 @@ public class Suraq implements Runnable {
             throw new SuraqException("outputExpressions not initialized!");
 
         for (int count = 0; count < (1 << controlSignals.size()); count++) {
+            System.out.println("Writing assert-partition number " + count);
             Formula tempFormula = formula.deepFormulaCopy();
             Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
             for (Token var : noDependenceVars) {
