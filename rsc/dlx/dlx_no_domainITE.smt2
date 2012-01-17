@@ -526,54 +526,54 @@
 
 ; Helper Macros (to shorten main parts of formula)
 
-(define-fun rf1data
-  ( ; parameters
-    (REGFILE (Array Value Value))
-    (IMEM    (Array Value Value))
-    (PC      Value              )
-  )
-  Value ; return type of macro
-  ; main expression:
-  (ite
-    (= ZERO (rf1-of (select IMEM PC)))
-    ZERO
-    (select REGFILE (rf1-of (select IMEM PC)))
-  )
-) 
+; (define-fun rf1data
+;   ( ; parameters
+;     (REGFILE (Array Value Value))
+;     (IMEM    (Array Value Value))
+;     (PC      Value              )
+;   )
+;   Value ; return type of macro
+;   ; main expression:
+;   (ite
+;     (= ZERO (rf1-of (select IMEM PC)))
+;     ZERO
+;     (select REGFILE (rf1-of (select IMEM PC)))
+;   )
+; ) 
+; 
+; (define-fun rf2data
+;   ( ; parameters
+;     (REGFILE (Array Value Value))
+;     (IMEM    (Array Value Value))
+;     (PC      Value              )
+;   )
+;   Value ; return type of macro
+;   ; main expression:
+;   (ite
+;     (= ZERO (rf2-of (select IMEM PC)))
+;     ZERO
+;     (select REGFILE (rf2-of (select IMEM PC)))
+;   )
+; ) 
 
-(define-fun rf2data
-  ( ; parameters
-    (REGFILE (Array Value Value))
-    (IMEM    (Array Value Value))
-    (PC      Value              )
-  )
-  Value ; return type of macro
-  ; main expression:
-  (ite
-    (= ZERO (rf2-of (select IMEM PC)))
-    ZERO
-    (select REGFILE (rf2-of (select IMEM PC)))
-  )
-) 
-
-(define-fun alu-result
-  ( ; parameters
-    (operand-a    Value)
-    (operand-b    Value)
-    (opcode       Value)
-    (short-immed  Value)
-  )
-  Value ; return type of macro
-  ; main expression:
-  (ite
-    (or
-      (is-load  opcode)
-      (is-store opcode)
-    )
-    (PLUS short-immed operand-a)
-    (ALU (alu-op-of opcode) operand-a operand-b)
-  )
-) 
+; (define-fun alu-result
+;   ( ; parameters
+;     (operand-a    Value)
+;     (operand-b    Value)
+;     (opcode       Value)
+;     (short-immed  Value)
+;   )
+;   Value ; return type of macro
+;   ; main expression:
+;   (ite
+;     (or
+;       (is-load  opcode)
+;       (is-store opcode)
+;     )
+;     (PLUS short-immed operand-a)
+;     (ALU (alu-op-of opcode) operand-a operand-b)
+;   )
+; ) 
 
 (define-fun stall-issue
   ( ; parameters
@@ -620,19 +620,19 @@
   )
 )
 
-(define-fun TA
-  ( ; parameters
-    (inst-id Value)
-    (PC      Value)
-  )
-  Value ; return type of macro
-  ; main expression
-  (ite
-    (is-J (opcode-of inst-id))
-    (PLUS PC (long-immed-of  inst-id))
-    (PLUS PC (short-immed-of inst-id))
-  )
-)
+; (define-fun TA
+;   ( ; parameters
+;     (inst-id Value)
+;     (PC      Value)
+;   )
+;   Value ; return type of macro
+;   ; main expression
+;   (ite
+;     (is-J (opcode-of inst-id))
+;     (PLUS PC (long-immed-of  inst-id))
+;     (PLUS PC (short-immed-of inst-id))
+;   )
+; )
 
 ; ------------------------------------------------------------------------------
 ; One instruction in the reference architecture
@@ -1126,10 +1126,21 @@
     (bubble-exf       Bool               )  ; f = forward
     (opcode-exf       Value              )
     (dest-exf         Value              )
-    (result-exf       Value              )
     
-    (dest-memf        Value              )
-    (result-memf      Value              )
+    ;(result-exf       Value              )
+    (operand-af       Value)
+    (operand-bf       Value)
+    (short-immed-exf  Value)
+    
+    ;(dest-memf        Value              )
+    (store-flagf      Bool)
+    (dest-memf        Value)
+  
+    ;(result-memf      Value              )
+    (load-flagf       Bool)
+    (DMEMf            (Array Value Value))
+    (marf             Value)
+    (result-memf      Value)
     
     (dest-wbf         Value              )
     (result-wbf       Value              )
@@ -1188,10 +1199,25 @@
         (= operand-ao (select REGFILEi (rf1-of inst-idi))) ; normal read during completion
         (ite ; forward from EX?
           forward-a-from-ex
-          (= operand-ao result-exf)
+          (ite
+            (or (is-load opcode-exf) (is-store opcode-exf))
+            (= operand-ao (PLUS operand-af short-immed-exf))
+            (ite
+              (or
+                (is-load  opcode-exf)
+                (is-store opcode-exf)
+              )
+              (= operand-ao (PLUS short-immed-exf operand-af))
+              (= operand-ao (ALU (alu-op-of opcode-exf) operand-af operand-bf))
+            )
+          )
           (ite ; forward from MEM?
             forward-a-from-mem ; (= (rf1-of inst-idi) dest-memf)
-            (= operand-ao result-memf)
+            (ite
+              load-flagf
+              (= operand-ao (select DMEMf marf))
+              (= operand-ao result-memf)
+            )
             (ite ; forward from WB?
               forward-a-from-wb ; (= (rf1-of inst-idi) dest-wbf)
               (= operand-ao result-wbf)
@@ -1213,10 +1239,25 @@
           (= operand-bo (select REGFILEi (rf2-of inst-idi))) ; normal read during completion
           (ite ; forward from EX?
             forward-b-from-ex
-            (= operand-bo result-exf)
+            (ite
+              (or (is-load opcode-exf) (is-store opcode-exf))
+              (= operand-bo (PLUS operand-af short-immed-exf))
+              (ite
+                (or
+                  (is-load  opcode-exf)
+                  (is-store opcode-exf)
+                )
+                (= operand-bo (PLUS short-immed-exf operand-af))
+                (= operand-bo (ALU (alu-op-of opcode-exf) operand-af operand-bf))
+              )
+            ) 
             (ite ; forward from MEM?
               forward-b-from-mem ; (= (rf2-of inst-idi) dest-memf)
-              (= operand-bo result-memf)
+              (ite
+                load-flagf
+                (= operand-bo (select DMEMf marf))
+                (= operand-bo result-memf)
+              )
               (ite ; forward from WB?
                 forward-b-from-wb ; (= (rf2-of inst-idi) dest-wbf)
                 (= operand-bo result-wbf)
@@ -1332,41 +1373,50 @@
   )
   Bool ; return type
   ; main expression
-  (=     ; update of PC
-    PCo
+  (ite ; update of PC
+    completion
     (ite
-      completion
+      (branch-taken bubble-idf inst-idf operand-af)
       (ite
-        (branch-taken bubble-idf inst-idf operand-af)
-        (TA inst-idf PCi)
-        PCi
+        (is-J (opcode-of inst-idf))
+        (= PCo (PLUS PCi (long-immed-of  inst-idf)))
+        (= PCo (PLUS PCi (short-immed-of inst-idf)))
+      )
+      (= PCo PCi)
+    )
+    (ite
+      force-stall-issue
+      (ite
+        (or (not bubble-idf) stall)
+        (= PCo PCi)
+        (= PCo (PLUS PCi FOUR))
       )
       (ite
-        force-stall-issue
+        do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
+        (= PCo PCi)
         (ite
-          (or (not bubble-idf) stall)
-          PCi
-          (PLUS PCi FOUR)
-        )
-        (ite
-          do-stall-issue ; (stall-issue force-stall-issue bubble-exf opcode-exf dest-exf bubble-idf inst-idf)
-          PCi
+          stall
           (ite
-            stall
+            (branch-taken bubble-idf inst-idf operand-af)
             (ite
-              (branch-taken bubble-idf inst-idf operand-af)
-              (TA inst-idf PCi)
-              PCi
+              (is-J (opcode-of inst-idf))
+              (= PCo (PLUS PCi (long-immed-of  inst-idf)))
+              (= PCo (PLUS PCi (short-immed-of inst-idf)))
             )
+            (= PCo PCi)
+          )
+          (ite
+            (branch-taken bubble-idf inst-idf operand-af)
             (ite
-              (branch-taken bubble-idf inst-idf operand-af)
-              (TA inst-idf PCi)
-              (PLUS PCi FOUR)
+              (is-J (opcode-of inst-idf))
+              (= PCo (PLUS PCi (long-immed-of  inst-idf)))
+              (= PCo (PLUS PCi (short-immed-of inst-idf)))
             )
+            (= PCo (PLUS PCi FOUR))
           )
         )
       )
-    ) 
+    )
   ) ; END main expression
 ) ; END of step-PC macro
 
@@ -1474,22 +1524,37 @@
       bubble-idi
       bubble-exi ; forwarded value
       opcode-exi ; forwarded value                      
-      dest-exi ; forwarded value                       
-      (ite
-        (or (is-load opcode-exi) (is-store opcode-exi))
-        (PLUS operand-ai short-immed-exi)
-        (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
-      ) ;result-exi ; forwarded value                     
-      (ite
-        store-flagi
-        ZERO
-        dest-memi 
-      ) ; dest-memi ; forwarded value
-      (ite
-        load-flagi
-        (select DMEMi mari)
-        result-memi                      
-      );result-memi ; forwarded value                    
+      dest-exi ; forwarded value
+      ; BEGIN result-exi params (only the ones which are not yet listed anyway)
+      operand-ai
+      operand-bi
+      short-immed-exi
+      ; END result-exi params                       
+;       (ite
+;         (or (is-load opcode-exi) (is-store opcode-exi))
+;         (PLUS operand-ai short-immed-exi)
+;         (alu-result operand-ai operand-bi opcode-exi short-immed-exi)
+;       ) ;result-exi ; forwarded value
+      ; BEGIN dest-memi params (only the ones which are not yet listed anyway)
+      store-flagi
+      dest-memi
+      ; END dest-memi params                      
+;       (ite
+;         store-flagi
+;         ZERO
+;         dest-memi 
+;       ) ; dest-memi ; forwarded value
+      ; BEGIN result-memi params (only the ones which are not yet listed anyway)
+      load-flagi
+      DMEMi
+      mari
+      result-memi
+      ; END result-memi params
+;       (ite
+;         load-flagi
+;         (select DMEMi mari)
+;         result-memi                      
+;       );result-memi ; forwarded value                    
       dest-wbi ; forwarded value                       
       result-wbi ; forwarded value                     
       bubble-exo                      
@@ -1698,10 +1763,18 @@
       bubble-idi
       true ; bubble-exi ; forwarded value                      
       ZERO ; opcode-exi; forwarded value (arbitrary, as bubble-ex is set to true)
-      ZERO ; dest-exi ; forwarded value ("invalid" address)                       
-      ZERO ; result-exi ; forwarded value (arbitrary, as bubble-ex is set to true)                    
+      ZERO ; dest-exi ; forwarded value ("invalid" address)
+      operand-ai
+      operand-bi
+      short-immed-exi                       
+      ;ZERO ; result-exi ; forwarded value (arbitrary, as bubble-ex is set to true)
+      store-flagi                    
       ZERO ; dest-memi ; forwarded value  
-      ZERO ;result-memi ; forwarded value (arbitrary, as dest-mem is ZERO)                    
+      ;ZERO ;result-memi ; forwarded value (arbitrary, as dest-mem is ZERO)
+      load-flagi
+      DMEMi
+      mari
+      ZERO                  
       ZERO ; dest-wbi ; forwarded value                       
       ZERO ; result-wbi ; forwarded value (arbitrary, as dest-wb is ZERO)                     
       bubble-ext4_                      
