@@ -32,6 +32,20 @@ public class SuraqTest {
     }
 
     /**
+     * Lets Suraq run on the simple_2_controllers.smt2. Just checks that there
+     * are no exceptions and that the program terminates normally. No functional
+     * correctness is tested.
+     */
+    @Test
+    public void simpleRunOnSimple2ControllersExample() {
+        String[] args = { "-i", "./rsc/test/simple_2_controllers.smt2", "-s",
+                "./rsc/test/suraq_out_simple_2_controllers.smt2" };
+        Suraq suraq = new Suraq(args);
+        suraq.run();
+        Assert.assertTrue(suraq.success());
+    }
+
+    /**
      * Lets Suraq run on the DLX example. Just checks that there are no
      * exceptions and that the program terminates normally. No functional
      * correctness is tested.
@@ -62,7 +76,7 @@ public class SuraqTest {
 
     /**
      * Lets Suraq run on the DLX example, with just control signals for operand
-     * a. Just checks that there are no exceptions and that the program
+     * b. Just checks that there are no exceptions and that the program
      * terminates normally. No functional correctness is tested.
      */
     @Test
@@ -77,8 +91,8 @@ public class SuraqTest {
 
     /**
      * Lets Suraq run on the DLX example, with just control signals for operand
-     * a. Just checks that there are no exceptions and that the program
-     * terminates normally. No functional correctness is tested.
+     * a and stall. Just checks that there are no exceptions and that the
+     * program terminates normally. No functional correctness is tested.
      */
     @Test
     public void simpleRunOnDLXAAndStallExample() {
@@ -91,8 +105,8 @@ public class SuraqTest {
 
     /**
      * Lets Suraq run on the DLX example, with just control signals for operand
-     * a. Just checks that there are no exceptions and that the program
-     * terminates normally. No functional correctness is tested.
+     * b and stall. Just checks that there are no exceptions and that the
+     * program terminates normally. No functional correctness is tested.
      */
     @Test
     public void simpleRunOnDLXBAndStallExample() {
@@ -104,8 +118,8 @@ public class SuraqTest {
     }
 
     /**
-     * Lets Suraq run on the DLX example, with just control signals for operand
-     * a. Just checks that there are no exceptions and that the program
+     * Lets Suraq run on the DLX example, with control signals for operands a
+     * and b. Just checks that there are no exceptions and that the program
      * terminates normally. No functional correctness is tested.
      */
     @Test
@@ -113,6 +127,22 @@ public class SuraqTest {
         String[] args = { "-i",
                 "./rsc/dlx/dlx_no_domainITE_control_a_and_b.smt2", "-s",
                 "./rsc/dlx/suraq_out_dlx_control_a_and_b.smt2" };
+        Suraq suraq = new Suraq(args);
+        suraq.run();
+        Assert.assertTrue(suraq.success());
+    }
+
+    /**
+     * Lets Suraq run on the DLX example, with just control signals for
+     * forwarding from EX stage. Just checks that there are no exceptions and
+     * that the program terminates normally. No functional correctness is
+     * tested.
+     */
+    @Test
+    public void simpleRunOnDLX2ControllersExample() {
+        String[] args = { "-i",
+                "./rsc/dlx/dlx_no_domainITE_2_controllers.smt2", "-s",
+                "./rsc/dlx/suraq_out_dlx_2_controllers.smt2" };
         Suraq suraq = new Suraq(args);
         suraq.run();
         Assert.assertTrue(suraq.success());
