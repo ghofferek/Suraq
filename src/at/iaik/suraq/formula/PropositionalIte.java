@@ -298,12 +298,29 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public SExpression toSmtlibV2() {
-        SExpression[] expr = new SExpression[4];
-        expr[0] = SExpressionConstants.ITE;
-        expr[1] = condition.toSmtlibV2();
-        expr[2] = thenBranch.toSmtlibV2();
-        expr[3] = elseBranch.toSmtlibV2();
-        return new SExpression(expr);
+
+        final boolean iteFree = true;
+
+        if (iteFree) {
+            List<Formula> disjuncts = new ArrayList<Formula>();
+            List<Formula> conjunctsThen = new ArrayList<Formula>();
+            List<Formula> conjunctsElse = new ArrayList<Formula>();
+            conjunctsThen.add(condition);
+            conjunctsThen.add(thenBranch);
+            disjuncts.add(new AndFormula(conjunctsThen));
+            conjunctsElse.add(new NotFormula(condition));
+            conjunctsElse.add(elseBranch);
+            disjuncts.add(new AndFormula(conjunctsElse));
+            Formula result = new OrFormula(disjuncts);
+            return result.toSmtlibV2();
+        } else {
+            SExpression[] expr = new SExpression[4];
+            expr[0] = SExpressionConstants.ITE;
+            expr[1] = condition.toSmtlibV2();
+            expr[2] = thenBranch.toSmtlibV2();
+            expr[3] = elseBranch.toSmtlibV2();
+            return new SExpression(expr);
+        }
     }
 
     /**
