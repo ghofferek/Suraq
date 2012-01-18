@@ -75,8 +75,8 @@
 
 
 (set-logic Suraq)
-; (set-logic QF_AUFLIA)
-; (declare-sort Value 0)
+;(set-logic QF_AUFLIA)
+;(declare-sort Value 0)
 
 ; primary inputs
 (declare-fun stall             () Bool)
@@ -250,17 +250,18 @@
 (declare-fun forward-a-from-mem () Control)
 (declare-fun forward-a-from-wb  () Control)
 
-(declare-fun forward-b-from-ex  () Control)
-(declare-fun forward-b-from-mem () Control)
-(declare-fun forward-b-from-wb  () Control)
+(declare-fun forward-b-from-ex  () Bool :no_dependence)
+(declare-fun forward-b-from-mem () Bool :no_dependence)
+(declare-fun forward-b-from-wb  () Bool :no_dependence)
 
 (declare-fun do-stall-issue     () Control)
+
  
 
-
-; Declare arrays
-; (and copies for ci and sc paths)
-
+; 
+; ; Declare arrays
+; ; (and copies for ci and sc paths)
+; 
 ; (declare-fun REGFILE      () (Array Value Value))
 ; (declare-fun REGFILEci1_  () (Array Value Value) )
 ; (declare-fun REGFILEci2_  () (Array Value Value) )
@@ -431,7 +432,7 @@
 ; (declare-fun forward-b-from-wb  () Bool)
 ; 
 ; (declare-fun do-stall-issue     () Bool)
- 
+;  
 
 
 
@@ -691,7 +692,7 @@
           (PLUS PCi FOUR)
         )
       )
-    )  
+    )
   
     ; update of DMEM
     (ite
@@ -1986,6 +1987,33 @@
       (is-properties (opcode-of pinst-idsc1_))
       (is-properties popcode-exsc5_)
       (is-properties popcode-exci4_)
+    
+      ; implementation of non-synthesized control signals
+      ;-------------------------------------------------------------------------------
+      ; forward-b-from-ex 
+      (=
+        forward-b-from-ex
+        (and
+          (= (rf2-of inst-id) dest-ex)
+          (not bubble-ex)
+          (not (is-store opcode-ex))
+        )
+      )
+      
+      ; forward-b-from-mem  
+      (=
+        forward-b-from-mem
+        (and
+          (= (rf2-of inst-id) dest-mem)
+          (not store-flag)
+        )
+      )
+    
+      ; forward-b-from-wb
+      (=
+        forward-b-from-wb
+        (= (rf2-of inst-id) dest-wb)
+      )
     )
     (=> ; update implies
       (and ; main update part
@@ -2251,7 +2279,6 @@
           )
           (not do-stall-issue)
         )
-;           true
       )
     ) ; end of update implies 
   ) ; end main expression
@@ -2482,7 +2509,7 @@
 ;   )
 ; )
 
-; (check-sat)
+;(check-sat)
 ;(get-model)
 ; (get-value ((is-load (opcode-of (select IMEM PCci4_)))))
 ; (get-value ((is-alu-immed (opcode-of (select IMEM PCci4_)))))
