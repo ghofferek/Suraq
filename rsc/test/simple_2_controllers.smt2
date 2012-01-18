@@ -43,6 +43,6 @@
         )
       )
     )
-    (= output1 output2)
+    (= output_1 output_2)
   )
 )
