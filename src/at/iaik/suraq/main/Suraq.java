@@ -19,6 +19,7 @@ import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.formula.AndFormula;
 import at.iaik.suraq.formula.ArrayVariable;
+import at.iaik.suraq.formula.DomainEq;
 import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
 import at.iaik.suraq.formula.Formula;
@@ -232,12 +233,23 @@ public class Suraq implements Runnable {
         Set<DomainTerm> indexSet = formula.getIndexSet();
 
         lambda = new DomainVariable(Util.freshVarName(formula, "lambda"));
+
+        List<Formula> lambdaDisequalities = new ArrayList<Formula>();
+        for (DomainTerm index : indexSet) {
+            List<DomainTerm> domainTerms = new ArrayList<DomainTerm>(2);
+            domainTerms.add(lambda);
+            domainTerms.add(index);
+            lambdaDisequalities.add(new DomainEq(domainTerms, false));
+        }
+        Formula lambdaConstraints = new AndFormula(lambdaDisequalities);
         indexSet.add(lambda);
         noDependenceVars.add(new Token(lambda.getVarName()));
 
         System.out
                 .println("Converting array properties to finite conjunctions...");
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
+
+        formula = new ImpliesFormula(lambdaConstraints, formula);
 
         Set<Token> currentArrayVariables = new HashSet<Token>();
         for (ArrayVariable var : formula.getArrayVariables())
