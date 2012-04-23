@@ -220,6 +220,23 @@ public class Suraq implements Runnable {
 				throw (new RuntimeException(
 						"Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
 			}
+			
+			String proof = z3.getProof(); 
+		
+			SExpParser sExpProofParser = null;
+			sExpProofParser = new SExpParser(proof);
+			
+			try {
+				sExpProofParser.parse();
+				assert (sExpProofParser.wasParsingSuccessfull());
+			} catch (ParseError exc) {
+				handleParseError(exc);
+				noErrors = false;
+				return;
+			}
+
+			SExpression proofRootExp = sExpProofParser.getRootExpr();
+			//not used by now.	
 
 			System.out.println(" done!");
 		}
@@ -301,8 +318,8 @@ public class Suraq implements Runnable {
         // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
 
         outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
-       // outputExpressions.add(SExpressionConstants.AUTO_CONFIG_FALSE);
-       // outputExpressions.add(SExpressionConstants.PROOF_MODE_2);        
+        outputExpressions.add(SExpressionConstants.AUTO_CONFIG_FALSE);
+        outputExpressions.add(SExpressionConstants.PROOF_MODE_2);        
      //   outputExpressions
          //       .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
@@ -312,9 +329,9 @@ public class Suraq implements Runnable {
                 controlSignals.size());
 
         writeAssertPartitions(formula, noDependenceVars, controlSignals);
-
+        
         outputExpressions.add(SExpressionConstants.CHECK_SAT);
-       // outputExpressions.add(SExpressionConstants.GET_PROOF);
+        outputExpressions.add(SExpressionConstants.GET_PROOF);  
         outputExpressions.add(SExpressionConstants.EXIT);
 
     }

@@ -26,6 +26,11 @@ public abstract class SMTSolver {
 	public static final int UNSAT = 1;
 	public static final int SAT = 2;
 	public static final int UNKNOWN = -1;
+	
+	/**
+	 * Holds the proof of a satisfiability check, if present.
+	 */
+	protected String proof = null;
 
 	/**
 	 * Current SMT-solver state. Initial state is NOT_RUN.
@@ -80,5 +85,14 @@ public abstract class SMTSolver {
 	 */
 	public int getState() {
 		return state;
+	}
+
+	/**
+	 * Returns the proof of a satisfiability check.
+	 * 
+	 * @return String proof.
+	 */
+	public String getProof() {
+		return proof;
 	}
 }

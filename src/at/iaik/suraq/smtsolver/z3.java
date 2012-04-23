@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.regex.Pattern;
 
 /**
  * SMT-solver bindings for the Microsoft(TM) Z3 solver. Utilizes external calls
@@ -67,7 +68,8 @@ public class z3 extends SMTSolver {
 	 */
 	@Override
 	public void solve(String filename) {
-
+		//TODO: <bk> add proper error checking + handling
+		
 		System.out.println("checking file: " + filename);
 
 		String executionPath = basePath;
@@ -77,8 +79,7 @@ public class z3 extends SMTSolver {
 			executionPath = executionPath.concat(binPath);
 
 		executionPath = executionPath.concat(binary);
-
-		executionPath = executionPath.concat(" /smtc " + filename);
+		executionPath = executionPath.concat(" /smt2 " + filename);
 
 		try {
 			Process p = Runtime.getRuntime().exec(executionPath);
@@ -88,30 +89,37 @@ public class z3 extends SMTSolver {
 			BufferedReader error = new BufferedReader(new InputStreamReader(
 					p.getErrorStream()));
 
-			String line;
-			String lastline = null;
-			
-			StringBuffer outputString = new StringBuffer();
+			String line;			
+			StringBuffer proofBuffer = new StringBuffer();
 
-			System.out.println("OUTPUT from Z3:");
 			while ((line = input.readLine()) != null) {
-				if (!line.equals("success")){
-					outputString.append(line + "\n");  
-					System.out.println("   " + line);
+				if (!line.equals("success")&&!line.equals("sat")&&!line.equals("unsat")){
+					proofBuffer.append(line + "\n");  
 					}
-				lastline = line;
+				if (line.equals("sat"))
+					state = SAT;
+				else if (line.equals("unsat"))
+					state = UNSAT;
 			}
-			
-			try {
-	            File outputFile = new File("rsc/z3.out");
-
-	            FileWriter fw = new FileWriter(outputFile);
-	            fw.write(outputString.toString());
-	            fw.close();
-			}catch (IOException e) {
-				e.printStackTrace();
-	        }
-			
+			if (state == NOT_RUN)
+				state = UNKNOWN;			
+	
+			if (state == UNSAT){
+				this.proof = proofBuffer.toString();
+				
+				String[] path = filename.split(Pattern.quote("/"));
+				String z3filename =  path[path.length-1];
+				
+				try {
+		            File outputFile = new File("z3_proof_"+ z3filename +".out");
+	
+		            FileWriter fw = new FileWriter(outputFile);
+		            fw.write(this.proof);
+		            fw.close();
+				}catch (IOException e) {
+					e.printStackTrace();
+		        }
+			}
 
 			int exitCode = p.exitValue();
 
@@ -121,15 +129,7 @@ public class z3 extends SMTSolver {
 			while ((line = error.readLine()) != null) {
 				System.out.println("   " + line);
 			}
-
-			// last line seems to be Z3 outcome!
-			if (lastline == null)
-				state = UNKNOWN;
-			else if (lastline.equals("sat"))
-				state = SAT;
-			else if (lastline.equals("unsat"))
-				state = UNSAT;
-
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
