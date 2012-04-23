@@ -5,6 +5,8 @@
 package at.iaik.suraq.smtsolver;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -88,13 +90,28 @@ public class z3 extends SMTSolver {
 
 			String line;
 			String lastline = null;
+			
+			StringBuffer outputString = new StringBuffer();
 
 			System.out.println("OUTPUT from Z3:");
 			while ((line = input.readLine()) != null) {
-				if (!line.equals("success"))
+				if (!line.equals("success")){
+					outputString.append(line + "\n");  
 					System.out.println("   " + line);
+					}
 				lastline = line;
 			}
+			
+			try {
+	            File outputFile = new File("rsc/z3.out");
+
+	            FileWriter fw = new FileWriter(outputFile);
+	            fw.write(outputString.toString());
+	            fw.close();
+			}catch (IOException e) {
+				e.printStackTrace();
+	        }
+			
 
 			int exitCode = p.exitValue();
 

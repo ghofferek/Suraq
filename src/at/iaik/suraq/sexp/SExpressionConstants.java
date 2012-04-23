@@ -85,6 +85,12 @@ public class SExpressionConstants {
 
     public static final SExpression EXIT = SExpression.fromString("(exit)");
 
+    public static final SExpression GET_PROOF = SExpression.fromString("(get-proof)");  
+    
+    public static final SExpression AUTO_CONFIG_FALSE = SExpression.fromString("(set-option :auto-config false)");
+    
+    public static final SExpression PROOF_MODE_2 = SExpression.fromString("(set-option :PROOF_MODE  2)");
+    
     public static final SExpression UNSAT = SExpression.fromString("unsat");
 
 }
