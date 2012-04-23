@@ -85,4 +85,6 @@ public class SExpressionConstants {
 
     public static final SExpression EXIT = SExpression.fromString("(exit)");
 
+    public static final SExpression UNSAT = SExpression.fromString("unsat");
+
 }
