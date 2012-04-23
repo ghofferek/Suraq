@@ -35,6 +35,8 @@ import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtsolver.SMTSolver;
+
 import at.iaik.suraq.util.Util;
 
 /**
@@ -126,79 +128,107 @@ public class Suraq implements Runnable {
         System.exit(0);
     }
 
-    /**
-     * @see java.lang.Runnable#run()
-     */
-    @Override
-    public void run() {
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	@Override
+	public void run() {
 
-        printWelcome();
+		printWelcome();
 
-        SuraqOptions options = SuraqOptions.getInstance();
+		SuraqOptions options = SuraqOptions.getInstance();
 
-        File sourceFile = new File(options.getInput());
-        if (options.isVerbose())
-            System.out.println("Parsing input file " + sourceFile.toString());
-        SExpParser sExpParser = null;
-        try {
-            sExpParser = new SExpParser(sourceFile);
-        } catch (FileNotFoundException exc) {
-            System.err.println("ERROR: File " + sourceFile.getPath()
-                    + " not found!");
-            noErrors = false;
-            return;
-        } catch (IOException exc) {
-            System.err.println("ERROR: Could not read from file "
-                    + sourceFile.getPath());
-            noErrors = false;
-            return;
-        }
+		File sourceFile = new File(options.getInput());
+		if (options.isVerbose())
+			System.out.println("Parsing input file " + sourceFile.toString());
+		SExpParser sExpParser = null;
+		try {
+			sExpParser = new SExpParser(sourceFile);
+		} catch (FileNotFoundException exc) {
+			System.err.println("ERROR: File " + sourceFile.getPath()
+					+ " not found!");
+			noErrors = false;
+			return;
+		} catch (IOException exc) {
+			System.err.println("ERROR: Could not read from file "
+					+ sourceFile.getPath());
+			noErrors = false;
+			return;
+		}
 
-        try {
-            sExpParser.parse();
-            assert (sExpParser.wasParsingSuccessfull());
-        } catch (ParseError exc) {
-            handleParseError(exc);
-            noErrors = false;
-            return;
-        }
+		try {
+			sExpParser.parse();
+			assert (sExpParser.wasParsingSuccessfull());
+		} catch (ParseError exc) {
+			handleParseError(exc);
+			noErrors = false;
+			return;
+		}
 
-        logicParser = new LogicParser(sExpParser.getRootExpr());
+		logicParser = new LogicParser(sExpParser.getRootExpr());
 
-        try {
-            logicParser.parse();
-            assert (logicParser.wasParsingSuccessfull());
-        } catch (ParseError exc) {
-            handleParseError(exc);
-            noErrors = false;
-            return;
-        }
-        // Parsing complete
-        if (options.isVerbose())
-            System.out.println("Parsing completed successfully!");
+		try {
+			logicParser.parse();
+			assert (logicParser.wasParsingSuccessfull());
+		} catch (ParseError exc) {
+			handleParseError(exc);
+			noErrors = false;
+			return;
+		}
+		// Parsing complete
+		if (options.isVerbose())
+			System.out.println("Parsing completed successfully!");
 
-        try {
-            doMainWork();
-            File smtfile = new File(options.getSmtfile());
-            FileWriter fstream = new FileWriter(smtfile);
-            BufferedWriter smtfilewriter = new BufferedWriter(fstream);
-            for (SExpression expr : outputExpressions)
-                smtfilewriter.write(expr.toString() + "\n");
-            smtfilewriter.close();
-        } catch (SuraqException exc) {
-            noErrors = false;
-            if (exc.getMessage() != null)
-                System.out.println(exc.getMessage());
-        } catch (IOException exc) {
-            System.err.println("Error while writing to smtfile.");
-            exc.printStackTrace();
-            noErrors = false;
-        }
+		try {
+			doMainWork();
+			File smtfile = new File(options.getSmtfile());
+			FileWriter fstream = new FileWriter(smtfile);
+			BufferedWriter smtfilewriter = new BufferedWriter(fstream);
+			for (SExpression expr : outputExpressions)
+				smtfilewriter.write(expr.toString() + "\n");
+			smtfilewriter.close();
+		} catch (SuraqException exc) {
+			noErrors = false;
+			if (exc.getMessage() != null)
+				System.out.println(exc.getMessage());
+		} catch (IOException exc) {
+			System.err.println("Error while writing to smtfile.");
+			exc.printStackTrace();
+			noErrors = false;
+		}
 
-        // All done :-)
-        printEnd(noErrors);
-        return;
-    }
+		// check result with z3 solver
+		if (options.isZ3enabled()) {
+			System.out.println("Checking outcome with z3 solver...");
+
+			SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3-3.2/");
+			z3.solve(options.getSmtfile());
+
+			switch (z3.getState()) {
+			case SMTSolver.UNSAT:
+				System.out.println("Z3 OUTCOME ---->  UNSAT");
+				break;
+			case SMTSolver.SAT:
+				noErrors = false;
+				System.out.println("Z3 OUTCOME ---->  SAT");
+				throw (new RuntimeException("Z3 tells us SAT."));
+				// break;
+			default:
+				noErrors = false;
+				System.out
+						.println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
+				throw (new RuntimeException(
+						"Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+			}
+
+			System.out.println(" done!");
+		}
+
+		// All done :-)
+		printEnd(noErrors);
+		return;
+	}
+    
 
     /**
      * Performs the main work.
@@ -271,8 +301,8 @@ public class Suraq implements Runnable {
         // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
 
         outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
-        outputExpressions
-                .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
+     //   outputExpressions
+         //       .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
 
         System.out.println("Writing declarations...");
@@ -341,8 +371,8 @@ public class Suraq implements Runnable {
             tempFormula = tempFormula.substituteFormula(variableSubstitutions);
             tempFormula = new NotFormula(tempFormula);
             SExpression assertPartitionExpression = new SExpression();
-            assertPartitionExpression // .addChild(SExpressionConstants.ASSERT);
-                    .addChild(SExpressionConstants.ASSERT_PARTITION);
+            assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
+                    //.addChild(SExpressionConstants.ASSERT_PARTITION);
             assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
             outputExpressions.add(assertPartitionExpression);
         }

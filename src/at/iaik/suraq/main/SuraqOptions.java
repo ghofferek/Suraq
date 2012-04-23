@@ -20,12 +20,23 @@ public class SuraqOptions {
      * Default value for verbose option.
      */
     private static final boolean verboseDefault = false;
+    
+    /**
+     * Default value for z3 option.
+     */
+    private static final boolean z3Default = false;
+
 
     /**
      * The value of the verbose option.
      */
     private final Boolean verboseValue;
 
+    /**
+     * The value of the z3 option.
+     */
+    private final Boolean z3Value;
+    
     /**
      * Default value for input option.
      */
@@ -76,6 +87,8 @@ public class SuraqOptions {
         Option inputOption = cmdLineParser.addStringOption('i', "input");
         Option smtfileOption = cmdLineParser.addStringOption('s', "smtfile");
         Option verboseOption = cmdLineParser.addBooleanOption('v', "verbose");
+        Option z3Option = cmdLineParser.addBooleanOption('z', "z3");
+        
 
         try {
             cmdLineParser.parse(args);
@@ -85,6 +98,7 @@ public class SuraqOptions {
 
         inputValue = (String) cmdLineParser.getOptionValue(inputOption);
         verboseValue = (Boolean) cmdLineParser.getOptionValue(verboseOption);
+        z3Value = (Boolean) cmdLineParser.getOptionValue(z3Option);
         smtfileValue = (String) cmdLineParser.getOptionValue(smtfileOption);
 
     }
@@ -135,6 +149,16 @@ public class SuraqOptions {
     public boolean isVerbose() {
         return verboseValue != null ? verboseValue
                 : SuraqOptions.verboseDefault;
+    }
+    
+    /**
+     * Returns the value of the z3 option.
+     * 
+     * @return the value of the z3 option.
+     */
+    public boolean isZ3enabled() {
+        return z3Value != null ? z3Value
+                : SuraqOptions.z3Default;
     }
 
     /**
