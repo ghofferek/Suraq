@@ -14,16 +14,16 @@ import org.junit.Test;
 
 import at.iaik.suraq.exceptions.InvalidIndexGuardException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
-import at.iaik.suraq.smtlib.formula.AndFormula;
-import at.iaik.suraq.smtlib.formula.ArrayProperty;
-import at.iaik.suraq.smtlib.formula.ArrayRead;
-import at.iaik.suraq.smtlib.formula.ArrayVariable;
-import at.iaik.suraq.smtlib.formula.DomainEq;
-import at.iaik.suraq.smtlib.formula.DomainTerm;
-import at.iaik.suraq.smtlib.formula.DomainVariable;
-import at.iaik.suraq.smtlib.formula.Formula;
-import at.iaik.suraq.smtlib.formula.ImpliesFormula;
-import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.formula.AndFormula;
+import at.iaik.suraq.formula.ArrayProperty;
+import at.iaik.suraq.formula.ArrayRead;
+import at.iaik.suraq.formula.ArrayVariable;
+import at.iaik.suraq.formula.DomainEq;
+import at.iaik.suraq.formula.DomainTerm;
+import at.iaik.suraq.formula.DomainVariable;
+import at.iaik.suraq.formula.Formula;
+import at.iaik.suraq.formula.ImpliesFormula;
+import at.iaik.suraq.formula.PropositionalConstant;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
