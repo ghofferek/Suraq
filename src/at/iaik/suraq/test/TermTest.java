@@ -7,7 +7,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import at.iaik.suraq.formula.Term;
+import at.iaik.suraq.smtlib.formula.Term;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>

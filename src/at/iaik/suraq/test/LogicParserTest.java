@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import at.iaik.suraq.exceptions.ParseError;
-import at.iaik.suraq.formula.PropositionalFunctionMacroInstance;
+import at.iaik.suraq.smtlib.formula.PropositionalFunctionMacroInstance;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
