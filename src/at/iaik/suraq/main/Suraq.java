@@ -31,6 +31,7 @@ import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
 import at.iaik.suraq.formula.UninterpretedFunction;
 import at.iaik.suraq.parser.LogicParser;
+import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -221,10 +222,31 @@ public class Suraq implements Runnable {
 						"Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
 			}
 			
-			String proof = z3.getProof(); 
-		
+		//	String proof = z3.getProof(); 
+			String proof = "(let (($x5 (or a c)))"+
+"(let (($x9 (not a)))"+
+"(let (($x10 (or $x9 c)))"+
+"(let (($x7 (not c)))"+
+"(let (($x8 (or b $x7)))"+
+"(let (($x11 (and $x5 $x8 $x10)))"+
+"(let ((@x38 (asserted $x11)))"+
+"(let ((@x41 (|and-elim| @x38 $x5)))"+
+"(let ((@x43 (|and-elim| @x38 $x10)))"+
+"(let ((@x49 (|unit-resolution| @x43 (|unit-resolution| @x41 (hypothesis $x7) a) (hypothesis $x7) false)))"+
+"(let ((@x42 (|and-elim| @x38 $x8)))"+
+"(let (($x13 (not b)))"+
+"(let (($x15 (or $x13 d)))"+
+"(let (($x16 (not d)))"+
+"(let (($x17 (or $x13 $x16)))"+
+"(let (($x12 (or $x9 $x7)))"+
+"(let (($x18 (and $x12 $x15 $x17)))"+
+"(let ((@x39 (asserted $x18)))"+
+"(let ((@x46 (|and-elim| @x39 $x15)))"+
+"(let ((@x47 (|and-elim| @x39 $x17)))"+
+"(|unit-resolution| @x47 (|unit-resolution| @x46 (|unit-resolution| @x42 (lemma @x49 c) b) d) (|unit-resolution| @x42 (lemma @x49 c) b) false)))))))))))))))))))))";
 			SExpParser sExpProofParser = null;
 			sExpProofParser = new SExpParser(proof);
+			
 			
 			try {
 				sExpProofParser.parse();
@@ -234,10 +256,18 @@ public class Suraq implements Runnable {
 				noErrors = false;
 				return;
 			}
-
-			SExpression proofRootExp = sExpProofParser.getRootExpr();
-			//not used by now.	
-
+			//Work in progress. Enabling will cause parse errors! 
+			/* 
+			ProofParser proofParser = new ProofParser(sExpProofParser.getRootExpr());
+			try {
+				proofParser.parse();
+				assert (proofParser.wasParsingSuccessfull());
+			} catch (ParseError exc) {
+				handleParseError(exc);
+				noErrors = false;
+				return;
+			}
+			 */
 			System.out.println(" done!");
 		}
 

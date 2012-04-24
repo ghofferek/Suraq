@@ -346,4 +346,78 @@ public class SExpression {
         result.addChild(type);
         return result;
     }
+    
+    /**
+     * Checks an expression to be a valid proof type.
+     * 
+     * @param expr
+     *            the expression to check
+     * @return an <code>Boolean</code> value declaring iff expr is a valid proof type
+     */    
+    
+    public  static Boolean isValidProofType(Token expr){
+     	
+    	for (SExpression proofType: SExpressionConstants.PROOF_TYPES) {
+    		if (proofType.equals(expr))
+    			return true;
+    	}
+    			
+    			
+    	return false; 
+    }    
+
+    /**
+     * Creates the definition of proof types
+     * 
+     * @return an <code>SExpression[]</code> declaring the proof types.
+     */
+    
+	public static SExpression[] createProofTypes() {
+		// TODO Auto-generated method stub
+		
+		SExpression[] proofTypes = new SExpression[39];
+		
+		//see: z3_api.h
+		proofTypes[0] = SExpression.fromString("undef");
+		proofTypes[1] = SExpression.fromString("true");
+		proofTypes[2] = SExpression.fromString("asserted");
+		proofTypes[3] = SExpression.fromString("goal");
+		proofTypes[4] = SExpression.fromString("modus-ponens");
+		proofTypes[5] = SExpression.fromString("reflexivity");
+		proofTypes[6] = SExpression.fromString("symmetry");
+		proofTypes[7] = SExpression.fromString("transitivity");
+		proofTypes[8] = SExpression.fromString("transitivity-star");
+		proofTypes[9] = SExpression.fromString("monotonicity");
+		proofTypes[10] = SExpression.fromString("quant-intro");
+		proofTypes[11] = SExpression.fromString("distributivity");
+		proofTypes[12] = SExpression.fromString("and-elim");
+		proofTypes[13] = SExpression.fromString("not-or-elim");
+		proofTypes[14] = SExpression.fromString("rewrite");
+		proofTypes[15] = SExpression.fromString("rewrite-star");
+		proofTypes[16] = SExpression.fromString("pull-quant");
+		proofTypes[17] = SExpression.fromString("pull-quant-star");
+		proofTypes[18] = SExpression.fromString("push-quant");
+		proofTypes[19] = SExpression.fromString("elim-unused-vars");
+		proofTypes[20] = SExpression.fromString("der");
+		proofTypes[21] = SExpression.fromString("quant-inst");
+		proofTypes[22] = SExpression.fromString("hypothesis");
+		proofTypes[23] = SExpression.fromString("lemma");
+		proofTypes[24] = SExpression.fromString("unit-resolution");
+		proofTypes[25] = SExpression.fromString("iff-true");
+		proofTypes[26] = SExpression.fromString("iff-false");
+		proofTypes[27] = SExpression.fromString("commutativity");
+		proofTypes[28] = SExpression.fromString("axiom");
+		proofTypes[29] = SExpression.fromString("intro");
+		proofTypes[30] = SExpression.fromString("apply-def");   
+		proofTypes[31] = SExpression.fromString("iff-oeq");
+		proofTypes[32] = SExpression.fromString("nnf-pos");
+		proofTypes[33] = SExpression.fromString("nnf-neg");
+		proofTypes[34] = SExpression.fromString("nnf-star");
+		proofTypes[35] = SExpression.fromString("cnf-star");
+		proofTypes[36] = SExpression.fromString("skolemize");
+		proofTypes[37] = SExpression.fromString("modus-pones-oeq");
+		proofTypes[38] = SExpression.fromString("th-lemma");
+		
+		return proofTypes;
+	}
 }

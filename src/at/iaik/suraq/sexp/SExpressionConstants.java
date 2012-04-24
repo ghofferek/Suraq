@@ -32,6 +32,8 @@ public class SExpressionConstants {
 
     public static final Token ASSERT = (Token) SExpression.fromString("assert");
 
+    public static final Token LET = (Token) SExpression.fromString("let");
+    
     public static final Token ASSERT_PARTITION = (Token) SExpression
             .fromString("assert-partition");
 
@@ -92,5 +94,6 @@ public class SExpressionConstants {
     public static final SExpression PROOF_MODE_2 = SExpression.fromString("(set-option :PROOF_MODE  2)");
     
     public static final SExpression UNSAT = SExpression.fromString("unsat");
-
+    
+    public static final SExpression[] PROOF_TYPES =  SExpression.createProofTypes();
 }
