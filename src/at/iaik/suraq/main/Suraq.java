@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
@@ -179,9 +180,9 @@ public class Suraq implements Runnable {
 		// Parsing complete
 		if (options.isVerbose())
 			System.out.println("Parsing completed successfully!");
-
+		Formula formula = null;
 		try {
-			doMainWork();
+			formula = doMainWork();
 			File smtfile = new File(options.getSmtfile());
 			FileWriter fstream = new FileWriter(smtfile);
 			BufferedWriter smtfilewriter = new BufferedWriter(fstream);
@@ -222,52 +223,86 @@ public class Suraq implements Runnable {
 						"Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
 			}
 			
-		//	String proof = z3.getProof(); 
-			String proof = "(let (($x5 (or a c)))"+
-"(let (($x9 (not a)))"+
-"(let (($x10 (or $x9 c)))"+
-"(let (($x7 (not c)))"+
-"(let (($x8 (or b $x7)))"+
-"(let (($x11 (and $x5 $x8 $x10)))"+
-"(let ((@x38 (asserted $x11)))"+
-"(let ((@x41 (|and-elim| @x38 $x5)))"+
-"(let ((@x43 (|and-elim| @x38 $x10)))"+
-"(let ((@x49 (|unit-resolution| @x43 (|unit-resolution| @x41 (hypothesis $x7) a) (hypothesis $x7) false)))"+
-"(let ((@x42 (|and-elim| @x38 $x8)))"+
-"(let (($x13 (not b)))"+
-"(let (($x15 (or $x13 d)))"+
-"(let (($x16 (not d)))"+
-"(let (($x17 (or $x13 $x16)))"+
-"(let (($x12 (or $x9 $x7)))"+
-"(let (($x18 (and $x12 $x15 $x17)))"+
-"(let ((@x39 (asserted $x18)))"+
-"(let ((@x46 (|and-elim| @x39 $x15)))"+
-"(let ((@x47 (|and-elim| @x39 $x17)))"+
-"(|unit-resolution| @x47 (|unit-resolution| @x46 (|unit-resolution| @x42 (lemma @x49 c) b) d) (|unit-resolution| @x42 (lemma @x49 c) b) false)))))))))))))))))))))";
-			SExpParser sExpProofParser = null;
-			sExpProofParser = new SExpParser(proof);
 			
-			
-			try {
-				sExpProofParser.parse();
-				assert (sExpProofParser.wasParsingSuccessfull());
-			} catch (ParseError exc) {
-				handleParseError(exc);
-				noErrors = false;
-				return;
+			if (z3.getState()==SMTSolver.UNSAT){
+
+				String proof = z3.getProof(); 	
+				assert(proof!=null);
+				
+				//write proof to file
+				String[] path = options.getSmtfile().split(Pattern.quote("/"));
+				String z3filename =  path[path.length-1];
+					
+				try {
+					File outputFile = new File("z3_proof_"+ z3filename +".out");	
+			        FileWriter fw = new FileWriter(outputFile);
+			        fw.write(proof);
+			        fw.close();
+				}catch (IOException e) {
+					e.printStackTrace();
+					}
+				
+				//expression parsing of proof			
+				SExpParser sExpProofParser = null;
+				sExpProofParser = new SExpParser(proof);				
+					
+				try {
+					sExpProofParser.parse();
+					assert (sExpProofParser.wasParsingSuccessfull());
+				} catch (ParseError exc) {
+					handleParseError(exc);
+					noErrors = false;
+					return;
+				}
+				
+				//build function and variable lists
+				Set<PropositionalVariable> propsitionalVars = formula.getPropositionalVariables();
+				Set<DomainVariable> domainVars = formula.getDomainVariables();
+				Set<ArrayVariable> arrayVars = formula.getArrayVariables();
+				Set<UninterpretedFunction> uninterpretedFunctions = formula.getUninterpretedFunctions();
+								
+				for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies.entrySet()) {
+					assert(varList.getValue()!=null);
+					assert(varList.getValue().size()>0);
+					
+					Term first = varList.getValue().get(0);
+					
+					if (first instanceof DomainVariable)
+						for (Term var : varList.getValue())
+							domainVars.add((DomainVariable) var);
+					
+					if (first instanceof PropositionalVariable)
+						for (Term var : varList.getValue())
+							propsitionalVars.add((PropositionalVariable) var);
+					
+					if (first instanceof ArrayVariable)
+						for (Term var : varList.getValue())
+							arrayVars.add((ArrayVariable) var);	
+				}
+				
+				for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies.entrySet()) 
+					uninterpretedFunctions.addAll(functionList.getValue());
+				
+				
+				//parsing proof				
+				ProofParser proofParser = new ProofParser(sExpProofParser.getRootExpr(),
+						domainVars,
+						propsitionalVars,
+						arrayVars,
+						uninterpretedFunctions);
+
+				try {
+					proofParser.parse();
+					assert (proofParser.wasParsingSuccessfull());
+				} catch (ParseError exc) {
+					handleParseError(exc);
+					noErrors = false;
+					return;
+				}
+				
+				System.out.println("");
 			}
-			//Work in progress. Enabling will cause parse errors! 
-			/* 
-			ProofParser proofParser = new ProofParser(sExpProofParser.getRootExpr());
-			try {
-				proofParser.parse();
-				assert (proofParser.wasParsingSuccessfull());
-			} catch (ParseError exc) {
-				handleParseError(exc);
-				noErrors = false;
-				return;
-			}
-			 */
+	
 			System.out.println(" done!");
 		}
 
@@ -279,11 +314,12 @@ public class Suraq implements Runnable {
 
     /**
      * Performs the main work.
+     * @return 
      * 
      * @throws SuraqException
      *             if something goes wrong
      */
-    private void doMainWork() throws SuraqException {
+    private Formula doMainWork() throws SuraqException {
 
         // Flattening formula, because macros cause problems when
         // replacing arrays with uninterpreted functions
@@ -363,6 +399,8 @@ public class Suraq implements Runnable {
         outputExpressions.add(SExpressionConstants.CHECK_SAT);
         outputExpressions.add(SExpressionConstants.GET_PROOF);  
         outputExpressions.add(SExpressionConstants.EXIT);
+        
+        return formula;
 
     }
 
@@ -501,8 +539,8 @@ public class Suraq implements Runnable {
             outputExpressions.add(SExpression.makeDeclareFun(
                     function.getName(), function.getType(),
                     function.getNumParams()));
-        }
-
+        }   
+        
         // Now dealing with noDependenceVars
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
         noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();

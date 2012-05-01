@@ -104,22 +104,8 @@ public class z3 extends SMTSolver {
 			if (state == NOT_RUN)
 				state = UNKNOWN;			
 	
-			if (state == UNSAT){
+			if (state == UNSAT)
 				this.proof = proofBuffer.toString();
-				
-				String[] path = filename.split(Pattern.quote("/"));
-				String z3filename =  path[path.length-1];
-				
-				try {
-		            File outputFile = new File("z3_proof_"+ z3filename +".out");
-	
-		            FileWriter fw = new FileWriter(outputFile);
-		            fw.write(this.proof);
-		            fw.close();
-				}catch (IOException e) {
-					e.printStackTrace();
-		        }
-			}
 
 			int exitCode = p.exitValue();
 

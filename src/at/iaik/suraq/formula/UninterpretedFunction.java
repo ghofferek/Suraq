@@ -126,5 +126,13 @@ public class UninterpretedFunction {
     public int hashCode() {
         return name.hashCode() + numParams;
     }
+    
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override    
+    public String toString(){
+    	return this.name.toString();
+    }
 
 }

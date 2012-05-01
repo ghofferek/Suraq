@@ -4,50 +4,18 @@
 package at.iaik.suraq.parser;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import at.iaik.suraq.exceptions.IncomparableTermsException;
-import at.iaik.suraq.exceptions.InvalidIndexGuardException;
-import at.iaik.suraq.exceptions.InvalidParametersException;
-import at.iaik.suraq.exceptions.InvalidValueConstraintException;
-import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
-import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.formula.AndFormula;
-import at.iaik.suraq.formula.ArrayIte;
-import at.iaik.suraq.formula.ArrayProperty;
-import at.iaik.suraq.formula.ArrayRead;
-import at.iaik.suraq.formula.ArrayTerm;
 import at.iaik.suraq.formula.ArrayVariable;
-import at.iaik.suraq.formula.ArrayWrite;
-import at.iaik.suraq.formula.DomainIte;
-import at.iaik.suraq.formula.DomainTerm;
 import at.iaik.suraq.formula.DomainVariable;
-import at.iaik.suraq.formula.EqualityFormula;
 import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.FormulaTerm;
-import at.iaik.suraq.formula.FunctionMacro;
-import at.iaik.suraq.formula.ImpliesFormula;
-import at.iaik.suraq.formula.NotFormula;
-import at.iaik.suraq.formula.OrFormula;
-import at.iaik.suraq.formula.PropositionalConstant;
-import at.iaik.suraq.formula.PropositionalFunctionMacro;
-import at.iaik.suraq.formula.PropositionalFunctionMacroInstance;
-import at.iaik.suraq.formula.PropositionalIte;
-import at.iaik.suraq.formula.PropositionalTerm;
+import at.iaik.suraq.formula.ProofFormula;
 import at.iaik.suraq.formula.PropositionalVariable;
 import at.iaik.suraq.formula.Term;
-import at.iaik.suraq.formula.TermFunctionMacro;
-import at.iaik.suraq.formula.TermFunctionMacroInstance;
 import at.iaik.suraq.formula.UninterpretedFunction;
-import at.iaik.suraq.formula.UninterpretedFunctionInstance;
-import at.iaik.suraq.formula.UninterpretedPredicateInstance;
-import at.iaik.suraq.formula.XorFormula;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -56,91 +24,52 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class ProofParser extends Parser {
+public class ProofParser extends SMTLibParser {
 
-    /**
-     * constants for let expression types
-     */
-    public static final char REF_PROOF ='@';   
-
-    public static final char REF_FORMULA = '$';  
-    
-    public static final char REF_TERM = '?';
 	
-    /**
-     * The formula that results from parsing.
-     */
-    private Formula mainFormula = null;
-
-    /**
-     * The list of control variables found during parsing
-     */
-    private final Set<PropositionalVariable> controlVariables = new HashSet<PropositionalVariable>();
-
-    /**
-     * The list of Boolean variables found during parsing
-     */
-    private final Set<PropositionalVariable> boolVariables = new HashSet<PropositionalVariable>();
-
-    /**
-     * The list of domain variables found during parsing
-     */
-    private final Set<DomainVariable> domainVariables = new HashSet<DomainVariable>();
-
-    /**
-     * The list of array variables found during parsing
-     */
-    private final Set<ArrayVariable> arrayVariables = new HashSet<ArrayVariable>();
-
-    /**
-     * The list of uninterpreted functions found during parsing
-     */
-    private final Set<UninterpretedFunction> functions = new HashSet<UninterpretedFunction>();
-
-    /**
-     * The set of variables on which control logic may <em>not</em> depend
-     */
-    private final Set<Token> noDependenceVariables = new HashSet<Token>();
-
-    /**
-     * The function macros found during parsing, indexed by name tokens
-     */
-    private final Map<Token, FunctionMacro> macros = new HashMap<Token, FunctionMacro>();
-
-    /**
-     * The root of the s-expression to be parsed.
-     */
-    private final SExpression rootExpr;
-
-    /**
-     * A map of current local variables while parsing a function macro.
-     */
-    private Map<Token, SExpression> currentLocals = null;
-
-    /**
-     * The set of universally quantified variables in current scope.
-     */
-    private Collection<DomainVariable> currentUVars = null;
-
+    
     /**
      * 
-     * Constructs a new <code>FormulaParser</code>.
+     * Constructs a new <code>ProofParser</code>.
      * 
      * @param root
      *            the root expression to parse.
+     * @param domainVars
+     * 			  proof domain variables
+     * @param propsitionalVars
+     * 			  proof propositional variables          
+     * @param arrayVars
+     * 			  proof array variables
+     * @param uninterpretedFunctions
+     * 			  proof uninterpreted Functions
      */
-    public ProofParser(SExpression root) {
-        rootExpr = root;
-    }
-
+	public ProofParser(SExpression root, Set<DomainVariable> domainVars,
+			Set<PropositionalVariable> propsitionalVars,
+			Set<ArrayVariable> arrayVars,
+			Set<UninterpretedFunction> uninterpretedFunctions) {
+		
+		this.boolVariables = propsitionalVars;
+		this.arrayVariables = arrayVars;
+		this.domainVariables = domainVars;
+		this.functions = uninterpretedFunctions;
+		this.rootExpr = root;
+		
+		//testparsing
+		/*
+        this.functions.add(new UninterpretedFunction("f",1,new Token("Value")));
+        this.domainVariables.add(new DomainVariable("x"));       
+        this.domainVariables.add(new DomainVariable("y"));  
+        this.domainVariables.add(new DomainVariable("z"));  */
+	}
+	
     /**
      * 
      * @return a (deep) copy of the root expression of this parser.
      */
     public SExpression getRootExpr() {
         return rootExpr.deepCopy();
-    }
-
+    }	
+    
     /**
      * Parses the root s-expression into a formula, which can then be retrieved
      * using <code>getFormula</code>.
@@ -171,15 +100,14 @@ public class ProofParser extends Parser {
                 throw new ParseError(expression.getLineNumber(),
                         expression.getColumnNumber(), expression.toString(),
                         "Expected 'proof' or 'let' expression.");
-            
-            
+                       
             if (isLet(expression)) {
                 handleLet(expression);
                 continue;
             }
 
             else if (isProof(expression)){
-               // handleProof(expression);
+                handleProof(expression);
             	continue;
           
             }
@@ -189,10 +117,10 @@ public class ProofParser extends Parser {
                     expression.getColumnNumber(), expression.toString(),
                     "Expected 'proof' or 'let' expression.");
         }
-
+        
         parsingSuccessfull = true;
-    }
-
+    }    
+	
     /**
      * Handles an let expression. I.e., if <code>mainFormula</code> is still
      * <code>null</code>, it will be initialized to the result of parsing this
@@ -204,615 +132,200 @@ public class ProofParser extends Parser {
      *            the assert expression to parse.
      */
     private void handleLet(SExpression expression) throws ParseError {
-
-        //unwrap multiple let levels.
-        expression = expression.getChildren().get(1).getChildren().get(0).getChildren().get(0);
-           
-        assert (expression.getChildren().get(0) instanceof Token); 
-     
-        Token identifier = (Token) expression.getChildren().get(0);  
+    	
+    	//(let (($x5 (or a c))) scope)  
         
-        Formula body = parseFormulaBody(expression.getChildren().get(1));
+        Token key = (Token) expression.getChildren().get(1).getChildren().get(0).getChildren().get(0);
+        SExpression entryExpr = expression.getChildren().get(1).getChildren().get(0).getChildren().get(1);
+        
+        insertLUTEntry(key, entryExpr);
+          
+        SExpression scopeExpr = expression.getChildren().get(2);
+        Formula scope = parseBody(scopeExpr);                  
 
         if (mainFormula == null)
-            mainFormula = body;
+            mainFormula = scope;
         else {
             List<Formula> list = new ArrayList<Formula>();
-            list.add(mainFormula);
-            list.add(body);
+            list.add(mainFormula); 
+            list.add(scope); 
             mainFormula = new AndFormula(list);
         }
-
     }
+    
 
     /**
-     * Handles a <code>define-fun</code> expression.
+     * Handles an proof expression. I.e., if <code>mainFormula</code> is still
+     * <code>null</code>, it will be initialized to the result of parsing this
+     * assert statement's body. If <code>mainFormula</code> already is non-
+     * <code>null</code>, a conjunction of its current value an the parsed body
+     * will be made.
      * 
      * @param expression
-     *            the <code>define-fun</code> expression.
+     *            the assert expression to parse.
      */
-    private void handleDefineFun(SExpression expression) throws ParseError {
+    private void handleProof(SExpression expression) throws ParseError {
+        //(asserted @x38 @x35 $x11) oder (asserted (hypothesis $x7) @x35 (or a c))
+        
+    	assert(expression.getChildren().get(0) instanceof Token);
+    	
+    	Token proofType = (Token) expression.getChildren().get(0);
+        
+        int numChildren =  expression.getChildren().size();
+        assert(numChildren<=2);
+        
+        int subProofsCount = numChildren-2; //first child is proofType, last one is proofFormula       
+        List<ProofFormula> subProofs = new ArrayList<ProofFormula>();
+        if (subProofsCount>0)
+        	for (int i=1; i<=subProofsCount; i++) {
+        	    	subProofs.add(parseProofBody(expression.getChildren().get(i)));
+        		}
+        
+        SExpression proofFormulaExpr = expression.getChildren().get(numChildren-1);
+        Formula proofFormula = parseFormulaBody(proofFormulaExpr);
+        
+        ProofFormula formula = new ProofFormula(proofType, subProofs, proofFormula);
+
+        if (mainFormula == null)
+            mainFormula = formula;
+        else {
+            List<Formula> list = new ArrayList<Formula>();
+            list.add(mainFormula); 
+            list.add(formula); 
+            mainFormula = new AndFormula(list);
+        }
+    }     
+    
+    
+    /**
+     * Inserts an expression into a lookup-table.
+     * 
+     * @param entryExpr
+     *            the expression to be inserted into the 
+     *            lookup-table (proofs, formulas or terms).
+     * @throws ParseError 
+     */
+  
+    private void insertLUTEntry(Token key, SExpression entryExpr) throws ParseError {
+    	
+        Token pureKey = new Token (key.toString().substring(1));
+        char typeCharEntry = entryExpr.toString().charAt(0);
+        
+        if (isProof(entryExpr)) {
+            if(typeCharEntry==REF_PROOF)
+            	throw new ParseError(entryExpr,
+                    "no assignment of proof to another reference of proof");        	
+        	ProofFormula entry = parseProofBody(entryExpr);
+        	this.proofs.put(pureKey, entry);
+        }       
+        else if (isFormula(entryExpr)) {        	
+            if(typeCharEntry==REF_FORMULA)
+            	throw new ParseError(entryExpr,
+                    "no assignment of formula to another reference of formula");
+ 
+        	Formula entry = parseFormulaBody(entryExpr);         	
+            this.formulas.put(pureKey, entry);
+        }
+        else if (isTerm(entryExpr)) {
+            if(typeCharEntry==REF_TERM)
+            	throw new ParseError(entryExpr,
+                    "no assignment of term to another reference of term");    
+            
+        	Term entry  = parseTerm(entryExpr);
+        	this.terms.put(pureKey, entry);
+        }
+        else throw new ParseError(entryExpr,
+                "unknown expression type found"); 
+    }    
+    
+    
+	
+    /**
+     * Checks whether the given expression is an proof instance.
+     * 
+     * @param expression
+     *            the expression to check.
+     * @return <code>true</code> if the given expression is an proof
+     *         expression, <code>false</code> otherwise.
+     */
+    
+    //(asserted @x38 @x35 $x11) oder (asserted (hypothesis $x7) @x35 (or a c)) oder @38
+    
+    private boolean isProof(SExpression expression) {
+    
+        if (expression instanceof Token) {
+            if (REF_PROOF == expression.toString().charAt(0))
+            	return true;
+            else
+            	return false;
+        }
+        	
+        if (!(expression.getChildren().size() >= 2))
+            return false;
+        if (!(expression.getChildren().get(0) instanceof Token))
+            return false;
         assert (expression.getChildren().get(0) instanceof Token);
-        assert (expression.getChildren().get(0)
-                .equals(SExpressionConstants.DEFINE_FUN));
+        
+        Token proofType = (Token) expression.getChildren().get(0);
+        
+        if (!SExpression.isValidProofType(proofType))
+        	return false;
 
-        if (expression.getChildren().size() != 5)
-            throw new ParseError(expression,
-                    "Expected 5 subexpressions in define-fun expression!");
-
-        assert (expression.getChildren().size() == 5);
-
-        if (!(expression.getChildren().get(1) instanceof Token))
-            throw new ParseError(expression,
-                    "The first argument of define-fun must be a token!");
-
-        assert (expression.getChildren().get(1) instanceof Token);
-        Token name = (Token) expression.getChildren().get(1);
-        if (name.toString().endsWith("NNF"))
-            throw new ParseError(name,
-                    "Names of function macros may not end with 'NNF'.");
-
-        SExpression type = expression.getChildren().get(3);
-        SExpression params = expression.getChildren().get(2);
-        List<Token> paramsList = new ArrayList<Token>();
-        Map<Token, SExpression> paramMap;
-        try {
-            paramMap = parseDefineFunParams(params, paramsList);
-        } catch (InvalidParametersException exc) {
-            throw new RuntimeException(
-                    "Unexpected situation while parsing macro parameters", exc);
-        }
-        if (type.equals(SExpressionConstants.BOOL_TYPE)) {
-            // Handle Bool macro
-            Formula body;
-            this.currentLocals = paramMap;
-            try {
-                body = parseFormulaBody(expression.getChildren().get(4));
-            } finally {
-                this.currentLocals = null;
-            }
-
-            PropositionalFunctionMacro macro;
-            try {
-                macro = new PropositionalFunctionMacro(name, paramsList,
-                        paramMap, body);
-            } catch (InvalidParametersException exc) {
-                throw new RuntimeException(
-                        "Unexpected situation while parsing macro parameters",
-                        exc);
-            }
-            if (macros.containsKey(name))
-                throw new ParseError(name, "Duplicate macro definition: "
-                        + name.toString());
-            else
-                macros.put(name, macro);
-        } else if (type.equals(SExpressionConstants.VALUE_TYPE)
-                || type.equals(SExpressionConstants.ARRAY_TYPE)) {
-            // Handle Term macro
-            Term body;
-            this.currentLocals = paramMap;
-            try {
-                body = parseTerm(expression.getChildren().get(4));
-            } finally {
-                this.currentLocals = null;
-            }
-
-            TermFunctionMacro macro;
-            try {
-                macro = new TermFunctionMacro(name, paramsList, paramMap, body);
-            } catch (InvalidParametersException exc) {
-                throw new RuntimeException(
-                        "Unexpected situation while parsing macro parameters",
-                        exc);
-            }
-            if (macros.containsKey(name))
-                throw new ParseError(name, "Duplicate macro definition: "
-                        + name.toString());
-            else
-                macros.put(name, macro);
-        } else {
-            // Only Bool, Value, and (Array Value Value) macros are allowed
-            throw new ParseError(type, "Unsupported type: " + type.toString());
-        }
-
+        return true;    
     }
-
+    
     /**
-     * Parses a given s-expression into a formula.
+     * Checks whether the given expression is a term
      * 
      * @param expression
-     *            the expression to parse.
-     * @return the formula resulting from the given expression.
-     * @throws ParseError
-     *             if parsing fails.
+     *            the expression to check
+     * @return <code>true</code> if the given expression is a term,
+     *         <code>false</code> otherwise.
      */
-    private Formula parseFormulaBody(SExpression expression) throws ParseError {
-
-        if (isPropositionalConstant(expression)) {
-            PropositionalConstant constant = null;
-            if (expression.equals(SExpressionConstants.TRUE))
-                constant = new PropositionalConstant(true);
-            else if (expression.equals(SExpressionConstants.FALSE))
-                constant = new PropositionalConstant(false);
-            else
-                throw new ParseError(expression,
-                        "Unexpected Error parsing propositional constant!");
-            return constant;
-        }
-
-        SExpression type = isLocalVariable(expression); // takes precedence over
-                                                        // global variables.
-        if (type != null) {
-            if (!(type.equals(SExpressionConstants.BOOL_TYPE) || type
-                    .equals(SExpressionConstants.CONTROL_TYPE)))
-                throw new ParseError(expression,
-                        "Found non-Boolean local variable where Bool sort was expected: "
-                                + expression.toString());
-            return new PropositionalVariable((Token) expression);
-        }
-
-        if (isPropositionalVariable(expression)) {
-            return new PropositionalVariable((Token) expression);
-        }
-
-        Token operator = isBooleanCombination(expression);
-        if (operator != null) {
-            if (operator.equals(SExpressionConstants.NOT)) {
-                if (expression.getChildren().size() != 2)
-                    throw new ParseError(expression,
-                            "Expected exactly 1 expression after 'not'.");
-                Formula negatedFormula = parseFormulaBody(expression
-                        .getChildren().get(1));
-                return new NotFormula(negatedFormula);
-            }
-
-            if (operator.equals(SExpressionConstants.AND)) {
-                if (expression.getChildren().size() < 3)
-                    throw new ParseError(expression,
-                            "Expected at least 2 expression after 'and'.");
-                List<Formula> formulaList = new ArrayList<Formula>();
-                for (SExpression child : expression.getChildren().subList(1,
-                        expression.getChildren().size())) {
-                    formulaList.add(parseFormulaBody(child));
-                }
-                return new AndFormula(formulaList);
-            }
-
-            if (operator.equals(SExpressionConstants.OR)) {
-                if (expression.getChildren().size() < 3)
-                    throw new ParseError(expression,
-                            "Expected at least 2 expression after 'or'.");
-                List<Formula> formulaList = new ArrayList<Formula>();
-                for (SExpression child : expression.getChildren().subList(1,
-                        expression.getChildren().size())) {
-                    formulaList.add(parseFormulaBody(child));
-                }
-                return new OrFormula(formulaList);
-            }
-
-            if (operator.equals(SExpressionConstants.XOR)) {
-                if (expression.getChildren().size() < 3)
-                    throw new ParseError(expression,
-                            "Expected at least 2 expression after 'xor'.");
-                List<Formula> formulaList = new ArrayList<Formula>();
-                for (SExpression child : expression.getChildren().subList(1,
-                        expression.getChildren().size())) {
-                    formulaList.add(parseFormulaBody(child));
-                }
-                return new XorFormula(formulaList);
-            }
-
-            if (operator.equals(SExpressionConstants.IMPLIES)) {
-                if (expression.getChildren().size() != 3)
-                    throw new ParseError(expression,
-                            "Expected 2 arguments for '=>'.");
-                Formula leftSide = parseFormulaBody(expression.getChildren()
-                        .get(1));
-                Formula rightSide = parseFormulaBody(expression.getChildren()
-                        .get(2));
-                return new ImpliesFormula(leftSide, rightSide);
-            }
-
-            if (operator.equals(SExpressionConstants.ITE)) {
-                if (expression.getChildren().size() != 4)
-                    throw new ParseError(expression,
-                            "Expected 3 arguments for 'ite'.");
-                Formula condition = parseFormulaBody(expression.getChildren()
-                        .get(1));
-                Formula thenBranch = parseFormulaBody(expression.getChildren()
-                        .get(2));
-                Formula elseBranch = parseFormulaBody(expression.getChildren()
-                        .get(3));
-                return new PropositionalIte(condition, thenBranch, elseBranch);
-            }
-            throw new ParseError(expression, "Unexpected internal parse error!");
-
-        }
-
-        if (isEquality(expression)) {
-            assert (expression.getChildren().size() >= 3);
-            boolean equal;
-            if (expression.getChildren().get(0)
-                    .equals(SExpressionConstants.EQUAL))
-                equal = true;
-            else if (expression.getChildren().get(0)
-                    .equals(SExpressionConstants.DISTINCT))
-                equal = false;
-            else
-                throw new ParseError(expression,
-                        "Unexpected internal parse error!");
-
-            List<Term> termList = new ArrayList<Term>();
-            for (SExpression child : expression.getChildren().subList(1,
-                    expression.getChildren().size())) {
-                termList.add(parseTerm(child));
-            }
-
-            try {
-                return EqualityFormula.create(termList, equal);
-            } catch (IncomparableTermsException exc) {
-                throw new ParseError(expression,
-                        "Incomparable terms in equality.", exc);
-            }
-        }
-
-        if (isArrayProperty(expression)) {
-            if (expression.getChildren().size() != 3)
-                throw new ParseError(expression,
-                        "Expected 2 arguments for 'forall' expression.");
-            assert (expression.getChildren().get(0)
-                    .equals(SExpressionConstants.FORALL));
-            SExpression uVarsExpression = expression.getChildren().get(1);
-            try {
-                currentUVars = parseUVars(uVarsExpression);
-                SExpression property = expression.getChildren().get(2);
-                Formula indexGuard;
-                Formula valueConstraint;
-                if (property.getChildren().size() <= 2) { // not an implication
-                    indexGuard = new PropositionalConstant(true);
-                    valueConstraint = parseFormulaBody(property);
-                } else if (!property.getChildren().get(0)
-                        .equals(SExpressionConstants.IMPLIES)) {
-                    // also not an implication
-                    indexGuard = new PropositionalConstant(true);
-                    valueConstraint = parseFormulaBody(property);
-                } else { // we have an implication
-                    if (property.getChildren().size() != 3)
-                        throw new ParseError(property,
-                                "Malformed array property!");
-                    assert (property.getChildren().get(0)
-                            .equals(SExpressionConstants.IMPLIES));
-                    indexGuard = parseFormulaBody(property.getChildren().get(1));
-                    valueConstraint = parseFormulaBody(property.getChildren()
-                            .get(2));
-                }
-
-                try {
-                    return new ArrayProperty(currentUVars, indexGuard,
-                            valueConstraint);
-                } catch (InvalidIndexGuardException exc) {
-                    throw new ParseError(property, "Malformed index guard.",
-                            exc);
-                } catch (InvalidValueConstraintException exc) {
-                    throw new ParseError(property,
-                            "Malformed value constraint.", exc);
-                }
-
-            } finally {
-                currentUVars = null;
-            }
-        }
-
-        UninterpretedFunction function = isUninterpredFunctionInstance(expression);
-        if (function != null) {
-            if (!(function.getType().equals(SExpressionConstants.BOOL_TYPE)))
-                throw new ParseError(
-                        expression,
-                        "Non-Boolean uninterpreted function encountered, where sort Boolean was expected: "
-                                + function.getName().toString());
-
-            if (function.getNumParams() != expression.getChildren().size() - 1)
-                throw new ParseError(expression, "Function '"
-                        + function.getName() + "' expects "
-                        + function.getNumParams() + " parameters.");
-            List<DomainTerm> parameters = new ArrayList<DomainTerm>();
-            for (int count = 0; count < function.getNumParams(); count++) {
-                Term term = parseTerm(expression.getChildren().get(count + 1));
-                if (!(term instanceof DomainTerm))
-                    throw new ParseError(expression.getChildren()
-                            .get(count + 1), "Parameter is not a domain term.");
-                parameters.add((DomainTerm) term);
-            }
-            try {
-                return new UninterpretedPredicateInstance(function, parameters);
-            } catch (SuraqException exc) {
-                throw new RuntimeException(
-                        "Unexpected situation while parsing uninterpreted function instance.");
-            }
-        }
-
-        FunctionMacro macro = isMacroInstance(expression);
-        if (macro != null) {
-            if (!macro.getType().equals(SExpressionConstants.BOOL_TYPE))
-                throw new ParseError(expression,
-                        "Bool macro expected. Received type: "
-                                + macro.getType().toString());
-            List<SExpression> paramExpressions = expression.getChildren()
-                    .subList(1, expression.getChildren().size());
-            if (paramExpressions.size() != macro.getNumParams())
-                throw new ParseError(expression, "Expected "
-                        + macro.getNumParams() + "parameters for macro "
-                        + macro.getName().toString() + ", got "
-                        + paramExpressions.size() + " instead.");
-
-            Map<Token, Term> paramMap = new HashMap<Token, Term>();
-            assert (paramExpressions.size() == macro.getNumParams());
-            for (int count = 0; count < paramExpressions.size(); count++) {
-                Term paramTerm = parseTerm(paramExpressions.get(count));
-
-                if (!paramTerm.getType().equals(macro.getParamType(count)))
-                    throw new ParseError(paramExpressions.get(count),
-                            "Wrong parameter type. Expected "
-                                    + macro.getParamType(count).toString()
-                                    + ", got " + paramTerm.getType().toString()
-                                    + " instead.");
-
-                paramMap.put(macro.getParam(count), paramTerm);
-            }
-            try {
-                return new PropositionalFunctionMacroInstance(
-                        (PropositionalFunctionMacro) macro, paramMap);
-            } catch (InvalidParametersException exc) {
-                throw new RuntimeException(
-                        "Unexpected condition while creating function-macro instance.",
-                        exc);
-            }
-        }
-
-        // we have something we cannot handle
-        if (expression instanceof Token)
-            throw new ParseError(expression, "Undeclared identifier: "
-                    + expression.toString());
-        else
-            throw new ParseError(expression, "Error parsing formula body.");
-    }
-
+    private boolean isTerm(SExpression expression) {
+    	
+    	if (isDomainVariable(expression))
+    		return true;
+    	
+    	if (isArrayVariable(expression))
+    		return true;
+        
+    	if (REF_PROOF == expression.toString().charAt(0))
+        	return true;
+        
+        if (isUninterpredFunctionInstance(expression)!=null)
+        	return true;
+        	
+        	
+    	return false;
+    }     
+    
+   
+    
+    
     /**
-     * Parses the list of universally quantified variables.
-     * 
-     * @param uVarsExpression
-     *            the first argument of a <code>forall</code> expression
-     * @return the collection of universally quantified variables.
-     */
-    private Collection<DomainVariable> parseUVars(SExpression uVarsExpression)
-            throws ParseError {
-        Set<DomainVariable> uVars = new HashSet<DomainVariable>();
-        if (uVarsExpression.isEmpty())
-            throw new ParseError(uVarsExpression, "Empty variable list.");
-        for (SExpression child : uVarsExpression.getChildren()) {
-            if (child.getChildren().size() != 2)
-                throw new ParseError(child, "Invalid quantified variable");
-            if (!child.getChildren().get(1)
-                    .equals(SExpressionConstants.VALUE_TYPE))
-                throw new ParseError(child.getChildren().get(1),
-                        "Invalid type of quantified variable: "
-                                + child.getChildren().get(1).toString());
-            if (!(child.getChildren().get(0) instanceof Token))
-                throw new ParseError(child.getChildren().get(0),
-                        "Expected variable name.");
-            if (!uVars.add(new DomainVariable((Token) child.getChildren()
-                    .get(0)))) {
-                throw new ParseError(child.getChildren().get(0),
-                        "Duplicate variable in quantifier scope: "
-                                + child.getChildren().get(0).toString());
-            }
-        }
-        return uVars;
-    }
-
-    /**
-     * Parses the given expression as a term.
+     * Checks whether the given expression is an formula instance.
      * 
      * @param expression
-     *            the expression to parse
-     * @return the term resulting from parsing.
-     * @throws ParseError
-     *             if parsing fails
-     */
-    private Term parseTerm(SExpression expression) throws ParseError {
+     *            the expression to check.
+     * @return <code>true</code> if the given expression is an formula
+     *         expression, <code>false</code> otherwise.
+     */    
+    private boolean isFormula(SExpression expression) {
 
-        if (isUVar(expression)) { // Takes precedence over other variable types
-            return new DomainVariable((Token) expression);
-        }
+        if (REF_FORMULA == expression.toString().charAt(0))
+            return true;
+        
+        if (isPropositionalConstOrVar(expression)) //true, false, a, ...
+            return true;
+    	
+        Token formulaType = (Token) expression.getChildren().get(0);      
+        if (SExpression.isValidFormulaType(formulaType))   //and, or, not, =, ...
+        	return true;
 
-        SExpression type = isLocalVariable(expression); // takes precedence over
-                                                        // global variables.
-        if (type != null) {
-            if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
-                return new ArrayVariable((Token) expression);
-            }
-            if (type.equals(SExpressionConstants.VALUE_TYPE)) {
-                return new DomainVariable((Token) expression);
-            }
-            if (type.equals(SExpressionConstants.BOOL_TYPE)
-                    || type.equals(SExpressionConstants.CONTROL_TYPE)) {
-                return new PropositionalVariable((Token) expression);
-            }
-            // In case we have a type that should not exist:
-            throw new RuntimeException(
-                    "Unexpected type while handling local variable: "
-                            + type.toString());
-        }
-
-        if (isIteTerm(expression)) {
-            if (expression.getChildren().size() != 4)
-                throw new ParseError(expression,
-                        "Expected 3 parameters for 'ite' expression.");
-            Formula condition = parseFormulaBody(expression.getChildren()
-                    .get(1));
-            Term thenBranch = parseTerm(expression.getChildren().get(2));
-            Term elseBranch = parseTerm(expression.getChildren().get(3));
-
-            if (thenBranch instanceof ArrayTerm
-                    && elseBranch instanceof ArrayTerm)
-                return new ArrayIte(condition, (ArrayTerm) thenBranch,
-                        (ArrayTerm) elseBranch);
-
-            if (thenBranch instanceof DomainTerm
-                    && elseBranch instanceof DomainTerm)
-                return new DomainIte(condition, (DomainTerm) thenBranch,
-                        (DomainTerm) elseBranch);
-
-            if (thenBranch instanceof PropositionalTerm
-                    && elseBranch instanceof PropositionalTerm)
-                return new FormulaTerm(new PropositionalIte(condition,
-                        (PropositionalTerm) thenBranch,
-                        (PropositionalTerm) elseBranch));
-
-            throw new ParseError(expression,
-                    "Incompatible types in 'ite' expression");
-        }
-
-        if (isArrayVariable(expression)) {
-            return new ArrayVariable(expression.toString());
-        }
-
-        if (isArrayWrite(expression)) {
-            if (expression.getChildren().size() != 4)
-                throw new ParseError(expression,
-                        "Expected 3 parameters for 'store' expression.");
-
-            Term arrayTerm = parseTerm(expression.getChildren().get(1));
-            if (!(arrayTerm instanceof ArrayTerm))
-                throw new ParseError(expression.getChildren().get(1),
-                        "First parameter of 'store' must be an array term.");
-
-            Term indexTerm = parseTerm(expression.getChildren().get(2));
-            if (!(indexTerm instanceof DomainTerm))
-                throw new ParseError(expression.getChildren().get(2),
-                        "Second parameter of 'store' must be a domain term.");
-
-            Term valueTerm = parseTerm(expression.getChildren().get(3));
-            if (!(valueTerm instanceof DomainTerm))
-                throw new ParseError(expression.getChildren().get(3),
-                        "Third parameter of 'store' must be a domain term.");
-
-            return new ArrayWrite((ArrayTerm) arrayTerm,
-                    (DomainTerm) indexTerm, (DomainTerm) valueTerm);
-        }
-
-        if (isDomainVariable(expression)) {
-            return new DomainVariable(expression.toString());
-        }
-
-        UninterpretedFunction function = isUninterpredFunctionInstance(expression);
-        if (function != null) {
-            if (function.getType().equals(SExpressionConstants.BOOL_TYPE))
-                throw new ParseError(expression,
-                        "Boolean uninterpreted function encountered, where Term was expected: "
-                                + function.getName().toString());
-            if (function.getNumParams() != expression.getChildren().size() - 1)
-                throw new ParseError(expression, "Function '"
-                        + function.getName() + "' expects "
-                        + function.getNumParams() + " parameters.");
-            List<DomainTerm> parameters = new ArrayList<DomainTerm>();
-            for (int count = 0; count < function.getNumParams(); count++) {
-                Term term = parseTerm(expression.getChildren().get(count + 1));
-                if (!(term instanceof DomainTerm))
-                    throw new ParseError(expression.getChildren()
-                            .get(count + 1), "Parameter is not a domain term.");
-                parameters.add((DomainTerm) term);
-            }
-            try {
-                return new UninterpretedFunctionInstance(function, parameters);
-            } catch (SuraqException exc) {
-                throw new RuntimeException(
-                        "Unexpected situation while parsing uninterpreted function instance.");
-            }
-        }
-
-        if (isArrayRead(expression)) {
-            if (expression.getChildren().size() != 3)
-                throw new ParseError(expression,
-                        "Expected 2 parameters for 'select' expression.");
-
-            Term arrayTerm = parseTerm(expression.getChildren().get(1));
-            if (!(arrayTerm instanceof ArrayTerm))
-                throw new ParseError(expression.getChildren().get(1),
-                        "First parameter of 'select' must be an array term.");
-
-            Term indexTerm = parseTerm(expression.getChildren().get(2));
-            if (!(indexTerm instanceof DomainTerm))
-                throw new ParseError(expression.getChildren().get(2),
-                        "Second parameter of 'select' must be a domain term.");
-
-            return new ArrayRead((ArrayTerm) arrayTerm, (DomainTerm) indexTerm);
-        }
-
-        if (isPropositionalConstOrVar(expression)) {
-            if (expression.equals(SExpressionConstants.TRUE))
-                return new PropositionalConstant(true);
-            else if (expression.equals(SExpressionConstants.FALSE))
-                return new PropositionalConstant(false);
-
-            PropositionalVariable variable = new PropositionalVariable(
-                    (Token) expression);
-            if (!boolVariables.contains(variable)
-                    && !controlVariables.contains(variable))
-                throw new RuntimeException(
-                        "Unexpected situation while handling variable "
-                                + variable.toString());
-            return variable;
-        }
-
-        FunctionMacro macro = isMacroInstance(expression);
-        if (macro != null) {
-            List<SExpression> paramExpressions = expression.getChildren()
-                    .subList(1, expression.getChildren().size());
-            if (paramExpressions.size() != macro.getNumParams())
-                throw new ParseError(expression, "Expected "
-                        + macro.getNumParams() + "parameters for macro "
-                        + macro.getName().toString() + ", got "
-                        + paramExpressions.size() + " instead.");
-
-            Map<Token, Term> paramMap = new HashMap<Token, Term>();
-            assert (paramExpressions.size() == macro.getNumParams());
-            for (int count = 0; count < paramExpressions.size(); count++) {
-                Term paramTerm = parseTerm(paramExpressions.get(count));
-
-                if (!paramTerm.getType().equals(macro.getParamType(count)))
-                    throw new ParseError(paramExpressions.get(count),
-                            "Wrong parameter type. Expected "
-                                    + macro.getParamType(count).toString()
-                                    + ", got " + paramTerm.getType().toString()
-                                    + " instead.");
-
-                paramMap.put(macro.getParam(count), paramTerm);
-            }
-            try {
-                if (macro.getType().equals(SExpressionConstants.BOOL_TYPE)) {
-                    assert (macro instanceof PropositionalFunctionMacro);
-                    return new FormulaTerm(
-                            new PropositionalFunctionMacroInstance(
-                                    (PropositionalFunctionMacro) macro,
-                                    paramMap));
-                } else {
-                    assert (macro instanceof TermFunctionMacro);
-                    return new TermFunctionMacroInstance(
-                            (TermFunctionMacro) macro, paramMap);
-                }
-            } catch (InvalidParametersException exc) {
-                throw new RuntimeException(
-                        "Unexpected condition while creating function-macro instance.",
-                        exc);
-            }
-        }
-
-        // as a last resort, try interpreting the expression as a formula
-        // this will throw a parse error, if it fails.
-        Formula formula = parseFormulaBody(expression);
-        return new FormulaTerm(formula);
-    }
+        return false;
+    }   
+    
     
     /**
      * Checks whether the given expression is an let instance.
@@ -822,670 +335,134 @@ public class ProofParser extends Parser {
      * @return <code>true</code> if the given expression is an let
      *         expression, <code>false</code> otherwise.
      */
+    
     private boolean isLet(SExpression expression) {
+    	
+    	//(let (($x5 (or a c)) scope)
         if (expression instanceof Token)
             return false;
-        if (expression.getChildren().size() != 2)
+        if (expression.getChildren().size() != 3)
             return false;
-        if (!(expression.getChildren().get(0) instanceof Token))
+        if (!(expression.getChildren().get(0) instanceof Token))  //let
             return false;
         assert (expression.getChildren().get(0) instanceof Token);
+        if (!(expression.getChildren().get(0).equals(SExpressionConstants.LET)))
+            return false;
         
-        //unwrap multiple proof levels.
-        expression = expression.getChildren().get(1).getChildren().get(0).getChildren().get(0);
-        
-        if (!(expression.getChildren().get(0) instanceof Token))  //identifier
-        	return false;
-        
-        Token identifier = (Token) expression.getChildren().get(0);
-        if (identifier.toString().charAt(0)!= REF_PROOF 
-        		&& identifier.toString().charAt(0)!= REF_FORMULA
-        		&& identifier.toString().charAt(0)!= REF_TERM)
-        	return false;
-       
+        Token key = (Token) expression.getChildren().get(1).getChildren().get(0).getChildren().get(0); //$x5
+        if (!(key instanceof Token))  
+            return false;
+            
+         if (key.toString().charAt(0)!= REF_PROOF 
+            	&& key.toString().charAt(0)!= REF_FORMULA
+            	&& key.toString().charAt(0)!= REF_TERM)
+            return false;        	
+                           
         return true;
     }
-    
-    /**
-     * Checks whether the given expression is an proof instance.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the given expression is an proof
-     *         expression, <code>false</code> otherwise.
-     */
-    private boolean isProof(SExpression expression) {
-        if (expression instanceof Token)
-            return false;
-        if (expression.getChildren().size() >= 2)
-            return false;
-        if (!(expression.getChildren().get(0) instanceof Token))
-            return false;
-        assert (expression.getChildren().get(0) instanceof Token);
-        
-        Token proofType = (Token) expression.getChildren().get(0);
-        
-        // check if first token is a valid proof type
-        // TODO: <bk> check if it works correctly
-        if (!SExpression.isValidProofType(proofType))
-        	return false;
-       
-        // TODO: <bk> check if last element of body is formula
-        
-        return true;
-    }    
+
+  
     
 
-
     /**
-     * Checks if the given expression is a propositional variable or constant.
+     * Parses a given s-expression into a formula.
+     * The s-expression can either be of a proof 
+     * formula or a let-assignment.
      * 
      * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the given expression is a propositional
-     *         variable or constant, <code>false</code> otherwise.
-     */
-    private boolean isPropositionalConstOrVar(SExpression expression) {
-        if (!(expression instanceof Token))
-            return false;
-
-        if (expression.equals(SExpressionConstants.TRUE))
-            return true;
-
-        if (expression.equals(SExpressionConstants.FALSE))
-            return true;
-
-        PropositionalVariable variable = new PropositionalVariable(
-                (Token) expression);
-        if (boolVariables.contains(variable)
-                || controlVariables.contains(variable))
-            return true;
-        else
-            return false;
-    }
-
-    /**
-     * Checks if the given expression is a universally quantified variable (in
-     * current scope).
-     * 
-     * @param expression
-     *            the expression to check
-     * @return <code>true</code> if the expression is a universally quantified
-     *         variable, <code>false</code> otherwise.
-     */
-    private boolean isUVar(SExpression expression) {
-        if (currentUVars == null)
-            return false;
-
-        if (!(expression instanceof Token))
-            return false;
-
-        return (this.currentUVars.contains(new DomainVariable(
-                (Token) expression)));
-    }
-
-    /**
-     * Checks if the given expression is a current local variable. Returns the
-     * type of the variable, or <code>null</code> if no such variable exists.
-     * 
-     * @param expression
-     *            the expression to check
-     * @return the type of the local variable or <code>null</code> if it does
-     *         not exist.
-     */
-    private SExpression isLocalVariable(SExpression expression) {
-        if (currentLocals == null)
-            return null;
-
-        return currentLocals.get(expression);
-    }
-
-    /**
-     * Checks if the given expression is an if-then-else term
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the first child of <code>expression</code>
-     *         is a <code>Token</code> and it equals the ITE operator.
-     */
-    private boolean isIteTerm(SExpression expression) {
-        if (expression instanceof Token)
-            return false;
-        if (expression.getChildren().size() < 1)
-            return false;
-        if (expression.getChildren().get(0).equals(SExpressionConstants.ITE))
-            return true;
-
-        return false;
-    }
-
-    /**
-     * Checks whether the given expression is an array read.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the first child of <code>expression</code>
-     *         is the <code>select</code> token, <code>false</code> otherwise.
-     */
-    private boolean isArrayRead(SExpression expression) {
-        if (expression instanceof Token)
-            return false;
-        if (expression.getChildren().size() < 1)
-            return false;
-
-        if (!expression.getChildren().get(0)
-                .equals(SExpressionConstants.SELECT))
-            return false;
-        else
-            return true;
-    }
-
-    /**
-     * Checks whether the given expression is an array write.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the first child of <code>expression</code>
-     *         is the <code>store</code> token, <code>false</code> otherwise.
-     */
-    private boolean isArrayWrite(SExpression expression) {
-        if (expression instanceof Token)
-            return false;
-        if (expression.getChildren().size() < 1)
-            return false;
-
-        if (!expression.getChildren().get(0).equals(SExpressionConstants.STORE))
-            return false;
-        else
-            return true;
-    }
-
-    /**
-     * Checks whether the given expression is an uninterpreted function
-     * instance. If so, the function is returned.
-     * 
-     * @param expression
-     *            the expression to check
-     * @return if the given expression is an uninterpreted function instance,
-     *         the function is returned. Otherwise <code>null</code> is
-     *         returned.
-     */
-    private UninterpretedFunction isUninterpredFunctionInstance(
-            SExpression expression) {
-        if (expression instanceof Token)
-            return null;
-        if (expression.getChildren().size() < 2)
-            return null;
-        if (!(expression.getChildren().get(0) instanceof Token))
-            return null;
-        Token name = (Token) expression.getChildren().get(0);
-        for (UninterpretedFunction function : functions) {
-            if (name.equals(function.getName()))
-                return function;
-        }
-        return null;
-    }
-
-    /**
-     * Checks whether the given expression is a domain variable
-     * 
-     * @param expression
-     *            the expression to check
-     * @return <code>true</code> if the given expression is a domain variable,
-     *         <code>false</code> otherwise.
-     */
-    private boolean isDomainVariable(SExpression expression) {
-        if (!(expression instanceof Token))
-            return false;
-        return domainVariables.contains(new DomainVariable((Token) expression));
-    }
-
-    /**
-     * Checks whether the given expression is an array variable
-     * 
-     * @param expression
-     *            the expression to check
-     * @return <code>true</code> if the given expression is an array variable,
-     *         <code>false</code> otherwise.
-     */
-    private boolean isArrayVariable(SExpression expression) {
-        if (!(expression instanceof Token))
-            return false;
-        return arrayVariables.contains(new ArrayVariable((Token) expression));
-    }
-
-    /**
-     * Checks if the given expression is a macro instance. If so, the
-     * corresponding macro is returned.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return the macro instantiated by this expression, or <code>null</code>
-     *         if this is not a macro instance
-     */
-    private FunctionMacro isMacroInstance(SExpression expression) {
-        if (expression instanceof Token)
-            return null;
-        if (expression.getChildren().size() < 2)
-            return null;
-        if (!(expression.getChildren().get(0) instanceof Token))
-            return null;
-
-        assert (expression.getChildren().get(0) instanceof Token);
-        Token macroName = (Token) expression.getChildren().get(0);
-        return macros.get(macroName);
-    }
-
-    /**
-     * Checks whether the given expression is an array property. For more
-     * meaningful parse errors, everything starting with a <code>forall</code>
-     * token is considered an array property here.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the given expression starts with a
-     *         <code>forall</code> token.
-     */
-    private boolean isArrayProperty(SExpression expression) {
-        if (expression instanceof Token)
-            return false;
-        if (expression.getChildren().size() < 1)
-            return false;
-
-        SExpression firstChild = expression.getChildren().get(0);
-        if (!(firstChild instanceof Token))
-            return false;
-        if (firstChild.equals(SExpressionConstants.FORALL))
-            return true;
-
-        return false;
-    }
-
-    /**
-     * Checks whether the given expression is an equality instance.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the given expression is an equality
-     *         expression, <code>false</code> otherwise.
-     */
-    private boolean isEquality(SExpression expression) {
-        if (expression instanceof Token)
-            return false;
-        if (expression.getChildren().size() < 3)
-            return false;
-        if (!(expression.getChildren().get(0) instanceof Token))
-            return false;
-        assert (expression.getChildren().get(0) instanceof Token);
-        Token operator = (Token) expression.getChildren().get(0);
-
-        if (operator.equals(SExpressionConstants.EQUAL)
-                || operator.equals(SExpressionConstants.DISTINCT))
-            return true;
-        return false;
-    }
-
-    /**
-     * Checks if the given expression is a Boolean combination (excluding
-     * equality). If so, its operator is returned. Otherwise, <code>null</code>
-     * is returned.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return the operator used, if the given expression is a Boolean
-     *         combination (except equality). <code>null</code> otherwise.
-     * 
-     */
-    private Token isBooleanCombination(SExpression expression) {
-        if (expression instanceof Token)
-            return null;
-        if (expression.getChildren().size() < 2)
-            return null;
-        if (!(expression.getChildren().get(0) instanceof Token))
-            return null;
-
-        assert (expression.getChildren().get(0) instanceof Token);
-        Token operator = (Token) expression.getChildren().get(0);
-
-        if (operator.equals(SExpressionConstants.AND)
-                || operator.equals(SExpressionConstants.OR)
-                || operator.equals(SExpressionConstants.XOR)
-                || operator.equals(SExpressionConstants.NOT)
-                || operator.equals(SExpressionConstants.IMPLIES)
-                || operator.equals(SExpressionConstants.ITE))
-            return operator;
-
-        return null;
-    }
-
-    /**
-     * Checks if the given expression is a propositional variable.
-     * 
-     * @param expression
-     *            the expression to check
-     * @return <code>true</code> if the given expression is a propositional
-     *         variable, <code>false</code> otherwise.
-     */
-    private boolean isPropositionalVariable(SExpression expression) {
-        if (!(expression instanceof Token))
-            return false;
-        Token token = (Token) expression;
-        PropositionalVariable variable = new PropositionalVariable(token);
-        if (boolVariables.contains(variable)
-                || controlVariables.contains(variable))
-            return true;
-        else
-            return false;
-    }
-
-    /**
-     * Checks if the given expression is a propositional constant.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the given expression is a propositional
-     *         constant, <code>false</code> otherwise.
-     */
-    private boolean isPropositionalConstant(SExpression expression) {
-        return (expression.equals(SExpressionConstants.TRUE) || expression
-                .equals(SExpressionConstants.FALSE));
-    }
-
-    /**
-     * Parses the parameters of a define-fun macro.
-     * 
-     * @param params
-     *            the parameters to to check.
-     * @param paramsList
-     *            an (empty) list to which the parameter names are added in
-     *            order.
-     * @return a <code>Map</code> of parameter names (<code>Token</code>s) to
-     *         types (<code>SExpression</code>s).
+     *            the expression to parse.
+     * @return the formula resulting from the given expression.
      * @throws ParseError
-     *             if the parameters are invalid.
-     * @throws InvalidParametersException
-     *             if the given <code>paramsList</code> is non-empty or
-     *             <code>null</code>;
+     *             if parsing fails.
      */
-    private Map<Token, SExpression> parseDefineFunParams(SExpression params,
-            List<Token> paramsList) throws ParseError,
-            InvalidParametersException {
-
-        if (paramsList == null)
-            throw new InvalidParametersException("paramsList is null");
-        if (paramsList.size() != 0)
-            throw new InvalidParametersException("paramsList is non-empty");
-
-        Map<Token, SExpression> paramMap = new HashMap<Token, SExpression>();
-        for (SExpression paramMapping : params.getChildren()) {
-            if (paramMapping.getChildren().size() != 2)
-                throw new ParseError(paramMapping,
-                        "Illegal parameter declaration: "
-                                + paramMapping.toString());
-            SExpression paramName = paramMapping.getChildren().get(0);
-            if (!(paramName instanceof Token))
-                throw new ParseError(paramName,
-                        "Illegal parameter declaration: "
-                                + paramName.toString());
-            SExpression paramType = paramMapping.getChildren().get(1);
-            if (paramType.equals(SExpressionConstants.BOOL_TYPE)
-                    || paramType.equals(SExpressionConstants.VALUE_TYPE)
-                    || paramType.equals(SExpressionConstants.ARRAY_TYPE)) {
-                paramMap.put((Token) paramName, paramType);
-                paramsList.add((Token) paramName);
-                continue;
-            } else {
-                throw new ParseError(paramType, "Unsupported parameter type: "
-                        + paramType.toString());
-            }
-        }
-        return paramMap;
+    private Formula parseBody(SExpression expression) throws ParseError {
+    	if (isLet(expression))
+    		return parseLet(expression);
+    	else if (isFormula(expression))
+    		return parseFormulaBody(expression);
+    	else if (isProof(expression))
+    		return (parseProofBody(expression));
+    	else throw new ParseError(expression,
+    			"parseBody can only parse Let-Expression, Formula or Proof-Formulas!");
     }
-
+   
+    
     /**
-     * Handles a <code>declare-fun</code> expression.
+     * Handles an let expression. I.e., if <code>mainFormula</code> is still
+     * <code>null</code>, it will be initialized to the result of parsing this
+     * assert statement's body. If <code>mainFormula</code> already is non-
+     * <code>null</code>, a conjunction of its current value an the parsed body
+     * will be made.
      * 
      * @param expression
-     *            the <code>declare-fun</code> expression.
+     *            the assert expression to parse.
+     * @return the formula resulting from parsing. 
      */
-    private void handleDeclareFun(SExpression expression) throws ParseError {
+    private Formula parseLet(SExpression expression) throws ParseError {
+    	  
+        
+        Token key = (Token) expression.getChildren().get(1).getChildren().get(0).getChildren().get(0);
+        SExpression entryExpr = expression.getChildren().get(1).getChildren().get(0).getChildren().get(1);
+        
+        insertLUTEntry(key, entryExpr);
+          
+        SExpression scopeExpr = expression.getChildren().get(2);
+        Formula scope = parseBody(scopeExpr);                  
 
-        assert (expression.getChildren().get(0) instanceof Token);
-        assert (((Token) expression.getChildren().get(0))
-                .equalsString("declare-fun"));
-
-        if (expression.getChildren().size() < 4
-                || expression.getChildren().size() > 5)
-            throw new ParseError(expression,
-                    "Expected 4 or 5 subexpressions in declare-fun expression!");
-
-        assert (expression.getChildren().size() == 4 || expression
-                .getChildren().size() == 5);
-
-        if (!(expression.getChildren().get(1) instanceof Token))
-            throw new ParseError(expression,
-                    "The first argument of declare-fun must be a token!");
-
-        boolean noDependence = false;
-        if (expression.getChildren().size() == 5) {
-            if (!expression.getChildren().get(4)
-                    .equals(SExpressionConstants.NO_DEPENDENCE))
-                throw new ParseError(expression.getChildren().get(4),
-                        "Expected either '' or ':no_dependence' as fourth parameter of declare-fun.");
-            else
-                noDependence = true;
-        }
-
-        assert (expression.getChildren().get(1) instanceof Token);
-        Token name = (Token) expression.getChildren().get(1);
-        SExpression type = expression.getChildren().get(3);
-        SExpression params = expression.getChildren().get(2);
-        List<Token> param_list;
-        try {
-            param_list = params.toTokenList();
-        } catch (NotATokenListException exc) {
-            throw new ParseError(params,
-                    "Error in parsing argument list of declare-fun!", exc);
-        }
-
-        if (param_list.size() == 0)
-            handleVariable(name, type, noDependence);
-        else
-            handleFunction(name, param_list, type);
+        return scope;
     }
+    
+    
 
     /**
-     * Handles the declaration of a new uninterpreted function. Only functions
-     * of the form <code>(Value+) -> Value</code> are supported.
+     * Parses a given s-expression into a <code>ProofFormula</code>.
      * 
-     * @param name
-     *            the name of the function
-     * @param param_list
-     *            the parameter list
-     * @param type
-     *            the return type.
+     * @param expression
+     *            the expression to parse.
+     * @return the formula resulting from the given expression.
+     * @throws ParseError
+     *             if parsing fails.
      */
-    private void handleFunction(Token name, List<Token> param_list,
-            SExpression type) throws ParseError {
-        for (Token token : param_list) {
-            if (!(token.equals(SExpressionConstants.VALUE_TYPE)))
-                throw new ParseError(token, "Unsupported function argument: "
-                        + token.toString());
-        }
-        if (!(type.equals(SExpressionConstants.VALUE_TYPE) || type
-                .equals(SExpressionConstants.BOOL_TYPE)))
-            throw new ParseError(type, "Unsupported function type: "
-                    + type.toString());
-        assert (type instanceof Token);
-
-        if (!functions.add(new UninterpretedFunction(name, param_list.size(),
-                (Token) type))) {
-            throw new ParseError(name, "Duplicate function definition: "
-                    + name.toString());
-        }
-    }
-
-    /**
-     * Handles declarations of new variables (and constants). They must be of
-     * one of the following types: Control, Bool, Value, (Array Value Value).
-     * 
-     * @param name
-     *            the name of the variable.
-     * @param type
-     *            the s-expression determining the type of the variable.
-     * @param noDependence
-     *            <code>true</code> if this is a variable on which control logic
-     *            may <em>not</em> depend.
-     */
-    private void handleVariable(Token name, SExpression type,
-            boolean noDependence) throws ParseError {
-
-        if (checkNameExists(name)) {
-            throw new ParseError(name, "Name already used: " + name.toString());
-            // After this check the exceptions below should actually never
-            // be thrown.
-        }
-
-        if (type.equals(SExpressionConstants.CONTROL_TYPE)) {
-            if (!controlVariables.add(new PropositionalVariable(name))) {
-                throw new ParseError(name, "Duplicate variable definition: "
-                        + name.toString());
-            }
-        } else if (type.equals(SExpressionConstants.BOOL_TYPE)) {
-            if (!boolVariables.add(new PropositionalVariable(name))) {
-                throw new ParseError(name, "Duplicate variable definition: "
-                        + name.toString());
-            }
-        } else if (type.equals(SExpressionConstants.VALUE_TYPE)) {
-            if (!domainVariables.add(new DomainVariable(name))) {
-                throw new ParseError(name, "Duplicate variable definition: "
-                        + name.toString());
-            }
-        } else if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
-            if (!arrayVariables.add(new ArrayVariable(name))) {
-                throw new ParseError(name, "Duplicate variable definition: "
-                        + name.toString());
-            }
-        } else {
-            throw new ParseError(type, "Unsupported variable type: "
-                    + type.toString());
-        }
-
-        if (noDependence) {
-            noDependenceVariables.add(name);
-        }
+    private ProofFormula parseProofBody(SExpression expression) throws ParseError {
+    	
+    	if (expression.toString().charAt(0)== REF_PROOF) {
+    		//resolve reference with LUT
+    		assert(expression instanceof Token);
+    		Token pureKey = new Token (expression.toString().substring(1));
+    		ProofFormula formula = this.proofs.get(pureKey);
+    		
+    		if (formula==null)
+    			throw new ParseError(expression,
+    					"could not find a matching proof-LUT-entry!");
+    		
+    		return formula;
+    	} 
+    	else {
+    		assert(expression.getChildren().get(0) instanceof Token);
+            Token proofType = (Token) expression.getChildren().get(0);
+            
+            int numChildren =  expression.getChildren().size();
+            assert(numChildren<=2);
+            
+            int subProofsCount = numChildren-2; //first child is proofType, last one is proofFormula       
+            List<ProofFormula> subProofs = new ArrayList<ProofFormula>();
+            if (subProofsCount>0)
+            	for (int i=1; i<=subProofsCount; i++) {
+            	    	subProofs.add(parseProofBody(expression.getChildren().get(i)));
+            		}
+            
+            SExpression proofFormulaExpr = expression.getChildren().get(numChildren-1);
+            Formula proofFormula = parseFormulaBody(proofFormulaExpr);
+            
+            return new ProofFormula(proofType, subProofs, proofFormula);   		
+    	}
 
     }
-
-    /**
-     * Checks whether the given name already exists (as an identifier of any
-     * other type).
-     * 
-     * @param name
-     *            the name to check.
-     * @return <code>true</code> if something with this name already exists,
-     *         false otherwise.
-     */
-    private boolean checkNameExists(Token name) {
-        Set<Token> names = new HashSet<Token>();
-
-        for (PropositionalVariable variable : boolVariables)
-            names.add(new Token(variable.getVarName()));
-
-        for (PropositionalVariable variable : controlVariables)
-            names.add(new Token(variable.getVarName()));
-
-        for (DomainVariable variable : domainVariables)
-            names.add(new Token(variable.getVarName()));
-
-        for (ArrayVariable variable : arrayVariables)
-            names.add(new Token(variable.getVarName()));
-
-        for (UninterpretedFunction function : functions)
-            names.add(function.getName());
-
-        names.addAll(macros.keySet());
-
-        return names.contains(names);
-    }
-
-
-
-    /**
-     * Returns the formula that resulted from parsing, or <code>null</code> if
-     * parsing was not successful.
-     * 
-     * @return the formula that resulted from parsing, or <code>null</code> if
-     *         parsing was not successful.
-     */
-    public Formula getMainFormula() {
-        if (!wasParsingSuccessfull())
-            return null;
-        return mainFormula;
-    }
-
-    /**
-     * Returns a copy of the list of control variables.
-     * 
-     * @return a copy of the <code>controlVariables</code>
-     */
-    public List<PropositionalVariable> getControlVariables() {
-        return new ArrayList<PropositionalVariable>(controlVariables);
-    }
-
-    /**
-     * Returns a copy of the list of Boolean variables.
-     * 
-     * @return a copy of the <code>boolVariables</code>
-     */
-    public List<PropositionalVariable> getBoolVariables() {
-        return new ArrayList<PropositionalVariable>(boolVariables);
-    }
-
-    /**
-     * Returns a copy of the list of domain variables.
-     * 
-     * @return a copy of the <code>domainVariables</code>
-     */
-    public List<DomainVariable> getDomainVariables() {
-        return new ArrayList<DomainVariable>(domainVariables);
-    }
-
-    /**
-     * Returns a copy of the list of array variables.
-     * 
-     * @return a copy of the <code>arrayVariables</code>
-     */
-    public List<ArrayVariable> getArrayVariables() {
-        return new ArrayList<ArrayVariable>(arrayVariables);
-    }
-
-    /**
-     * Returns a copy of the list of variables on which control logic may
-     * <em>not</em> depend.
-     * 
-     * @return a copy of the list of variables on which control logic may
-     *         <em>not</em> depend.
-     */
-    public List<Token> getNoDependenceVariables() {
-        return new ArrayList<Token>(noDependenceVariables);
-    }
-
-    /**
-     * Returns a copy of the list of uninterpreted functions.
-     * 
-     * @return a copy of the <code>functions</code>
-     */
-    public List<UninterpretedFunction> getFunctions() {
-        return new ArrayList<UninterpretedFunction>(functions);
-    }
-
-    /**
-     * Returns a copy of the list of function macros.
-     * 
-     * @return a copy of the <code>macros</code>
-     */
-    public List<FunctionMacro> getMacros() {
-        return new ArrayList<FunctionMacro>(macros.values());
-    }
+    
+    
+    
+   
+    
+    
+    
 }

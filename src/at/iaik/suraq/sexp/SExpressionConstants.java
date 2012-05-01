@@ -32,8 +32,6 @@ public class SExpressionConstants {
 
     public static final Token ASSERT = (Token) SExpression.fromString("assert");
 
-    public static final Token LET = (Token) SExpression.fromString("let");
-    
     public static final Token ASSERT_PARTITION = (Token) SExpression
             .fromString("assert-partition");
 
@@ -73,7 +71,9 @@ public class SExpressionConstants {
     public static final Token ITE = (Token) SExpression.fromString("ite");
 
     public static final Token IMPLIES = (Token) SExpression.fromString("=>");
-
+    
+    public static final Token IMPLIES_ALT = (Token) SExpression.fromString("implies");
+    
     public static final Token FORALL = (Token) SExpression.fromString("forall");
 
     public static final Token SELECT = (Token) SExpression.fromString("select");
@@ -96,4 +96,7 @@ public class SExpressionConstants {
     public static final SExpression UNSAT = SExpression.fromString("unsat");
     
     public static final SExpression[] PROOF_TYPES =  SExpression.createProofTypes();
+    
+    public static final SExpression LET = SExpression.fromString("let");    
+
 }

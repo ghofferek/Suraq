@@ -347,6 +347,7 @@ public class SExpression {
         return result;
     }
     
+    
     /**
      * Checks an expression to be a valid proof type.
      * 
@@ -357,15 +358,17 @@ public class SExpression {
     
     public  static Boolean isValidProofType(Token expr){
      	
+    	String exprStr = expr.toString();
+    	if(exprStr.charAt(0)=='|' && exprStr.charAt(exprStr.length()-1)=='|')
+    		expr = new Token (exprStr.substring(1, exprStr.length()-1));
+    		
     	for (SExpression proofType: SExpressionConstants.PROOF_TYPES) {
     		if (proofType.equals(expr))
     			return true;
-    	}
-    			
-    			
+    	}    			   			
     	return false; 
-    }    
-
+    } 
+    
     /**
      * Creates the definition of proof types
      * 
@@ -373,9 +376,8 @@ public class SExpression {
      */
     
 	public static SExpression[] createProofTypes() {
-		// TODO Auto-generated method stub
 		
-		SExpression[] proofTypes = new SExpression[39];
+		SExpression[] proofTypes = new SExpression[40];
 		
 		//see: z3_api.h
 		proofTypes[0] = SExpression.fromString("undef");
@@ -417,7 +419,34 @@ public class SExpression {
 		proofTypes[36] = SExpression.fromString("skolemize");
 		proofTypes[37] = SExpression.fromString("modus-pones-oeq");
 		proofTypes[38] = SExpression.fromString("th-lemma");
+		proofTypes[39] = SExpression.fromString("trans");
 		
 		return proofTypes;
 	}
+	
+    /**
+     * Checks an expression to be a valid formula type.
+     * 
+     * @param expr
+     *            the expression to check
+     * @return an <code>Boolean</code> value declaring iff expr is a valid formula type
+     */    
+    
+    public  static Boolean isValidFormulaType(Token expr){
+    	if (SExpressionConstants.AND.equals(expr))
+    			return true;
+    	if (SExpressionConstants.EQUAL.equals(expr))
+			return true;
+    	if (SExpressionConstants.IMPLIES.equals(expr) || SExpressionConstants.IMPLIES_ALT.equals(expr))
+			return true;
+    	if (SExpressionConstants.NOT.equals(expr))
+			return true;
+    	if (SExpressionConstants.OR.equals(expr))
+			return true;
+    	if (SExpressionConstants.XOR.equals(expr))
+			return true;
+       	if (SExpressionConstants.ITE.equals(expr))
+    			return true;   			
+    	return false; 
+    } 
 }
