@@ -54,11 +54,11 @@ public abstract class SMTLibParser extends Parser {
 	/**
      * maps containing proof references
      */
-	public final Map<Token, ProofFormula> proofs = new HashMap<Token, ProofFormula>();
+	protected final Map<Token, ProofFormula> proofs = new HashMap<Token, ProofFormula>();
 	
-	public final Map<Token, Formula> formulas = new HashMap<Token, Formula>();
+	protected final Map<Token, Formula> formulas = new HashMap<Token, Formula>();
 	
-	public final Map<Token, Term> terms = new HashMap<Token, Term>();
+	protected final Map<Token, Term> terms = new HashMap<Token, Term>();
 	
     /**
      * constants for let expression types

@@ -276,4 +276,15 @@ public class PropositionalFunctionMacro extends FunctionMacro {
         }
 
     }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	List<Integer> partitions = new ArrayList<Integer>(this.assertPartitions);
+    	partitions.addAll(body.getAssertPartition());
+    	return partitions;
+    }
 }

@@ -210,15 +210,17 @@ public class ProofParser extends SMTLibParser {
     	
         Token pureKey = new Token (key.toString().substring(1));
         char typeCharEntry = entryExpr.toString().charAt(0);
+        char typeCharKey = key.toString().charAt(0);
         
-        if (isProof(entryExpr)) {
+        if (typeCharKey==REF_PROOF) {
             if(typeCharEntry==REF_PROOF)
             	throw new ParseError(entryExpr,
-                    "no assignment of proof to another reference of proof");        	
+                    "no assignment of proof to another reference of proof");     
+            
         	ProofFormula entry = parseProofBody(entryExpr);
         	this.proofs.put(pureKey, entry);
         }       
-        else if (isFormula(entryExpr)) {        	
+        else if (typeCharKey==REF_FORMULA) {        	
             if(typeCharEntry==REF_FORMULA)
             	throw new ParseError(entryExpr,
                     "no assignment of formula to another reference of formula");
@@ -226,12 +228,12 @@ public class ProofParser extends SMTLibParser {
         	Formula entry = parseFormulaBody(entryExpr);         	
             this.formulas.put(pureKey, entry);
         }
-        else if (isTerm(entryExpr)) {
+        else if (typeCharKey==REF_TERM) {
             if(typeCharEntry==REF_TERM)
             	throw new ParseError(entryExpr,
                     "no assignment of term to another reference of term");    
             
-        	Term entry  = parseTerm(entryExpr);
+        	Term entry = parseTerm(entryExpr);
         	this.terms.put(pureKey, entry);
         }
         else throw new ParseError(entryExpr,

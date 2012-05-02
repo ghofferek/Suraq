@@ -424,4 +424,17 @@ public class ArrayWrite extends ArrayTerm {
                 valueTerm.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	List<Integer> partitions =   arrayTerm.getAssertPartition();
+    	partitions.addAll(indexTerm.getAssertPartition());
+    	partitions.addAll(valueTerm.getAssertPartition());
+    	   
+    	return partitions;
+    }
 }

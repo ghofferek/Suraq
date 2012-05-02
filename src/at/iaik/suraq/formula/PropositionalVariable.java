@@ -46,7 +46,12 @@ public class PropositionalVariable extends PropositionalTerm {
         this.varName = name.toString();
     }
 
-    /**
+    public PropositionalVariable(String name, int assertPartition) {
+    	this.varName = name.toString();
+    	this.assertPartitions.add(assertPartition);
+	}
+
+	/**
      * Get the variable name.
      * 
      * @return the <code>varName</code>

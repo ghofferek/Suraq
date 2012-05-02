@@ -3,8 +3,10 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,7 +48,12 @@ public class DomainVariable extends DomainTerm {
         this.varName = name.toString();
     }
 
-    /**
+    public DomainVariable(String name, int assertPartition) {
+       	this.varName = name.toString();
+    	this.assertPartitions.add(assertPartition);
+	}
+
+	/**
      * Get the variable name.
      * 
      * @return the <code>varName</code>
@@ -248,6 +255,15 @@ public class DomainVariable extends DomainTerm {
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new DomainVariable(varName);
+    }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	return new ArrayList<Integer>(this.assertPartitions);
     }
 
 }

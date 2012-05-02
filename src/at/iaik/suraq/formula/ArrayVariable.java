@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,7 +47,12 @@ public class ArrayVariable extends ArrayTerm {
         this.varName = name.toString();
     }
 
-    /**
+    public ArrayVariable(String name, int assertPartition) {
+       	this.varName = name.toString();
+    	this.assertPartitions.add(assertPartition);
+	}
+
+	/**
      * Get the variable name.
      * 
      * @return the <code>varName</code>
@@ -239,6 +246,15 @@ public class ArrayVariable extends ArrayTerm {
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new ArrayVariable(varName);
+    }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	return new ArrayList<Integer>(this.assertPartitions);
     }
 
 }

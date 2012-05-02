@@ -397,5 +397,19 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 
         return result;
     }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	List<Integer> partitions =  function.getAssertPartition(); 
+     
+    	 for (DomainTerm term : parameters)
+        	partitions.addAll(term.getAssertPartition());
+        
+    	return partitions;
+    }
 
 }

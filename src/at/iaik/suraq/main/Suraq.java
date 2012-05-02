@@ -574,17 +574,17 @@ public class Suraq implements Runnable {
                         new Token(name), type, numParams));
                 if (numParams == 0) {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))
-                        listOfVarCopies.add(new PropositionalVariable(name));
+                        listOfVarCopies.add(new PropositionalVariable(name, count));
                     else if (type.equals(SExpressionConstants.VALUE_TYPE))
-                        listOfVarCopies.add(new DomainVariable(name));
+                        listOfVarCopies.add(new DomainVariable(name,count));
                     else {
                         assert (type.equals(SExpressionConstants.ARRAY_TYPE));
-                        listOfVarCopies.add(new ArrayVariable(name));
+                        listOfVarCopies.add(new ArrayVariable(name,count));
                     }
                 } else {
                     assert (type instanceof Token);
                     listOfFunctionCopies.add(new UninterpretedFunction(name,
-                            numParams, (Token) type));
+                            numParams, (Token) type, count));
                 }
             }
         }

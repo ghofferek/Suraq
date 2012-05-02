@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -164,5 +165,16 @@ public class TermFunctionMacro extends FunctionMacro {
                     "Unexpectedly unable to create TermFunctionMacro.", exc);
         }
 
+    }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	List<Integer> partitions = new ArrayList<Integer>(this.assertPartitions);
+    	partitions.addAll(body.getAssertPartition());
+    	return partitions;
     }
 }

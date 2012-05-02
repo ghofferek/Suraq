@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +31,12 @@ public abstract class Term {
     public static final Class<?> propositionalTermClass = (new PropositionalVariable(
             "")).getClass().getSuperclass();
 
+    
+	 /**
+     * The assert-partitions
+     */
+	protected List<Integer> assertPartitions = new ArrayList<Integer>();
+	
     /**
      * Checks whether all terms in the given list are compatible for
      * (dis)equality operations. If so, the type is returned.
@@ -258,5 +266,12 @@ public abstract class Term {
     public abstract Term uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public abstract List<Integer> getAssertPartition();
 
 }

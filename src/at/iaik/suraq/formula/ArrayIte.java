@@ -4,6 +4,7 @@
 package at.iaik.suraq.formula;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -360,6 +361,19 @@ public class ArrayIte extends ArrayTerm {
                         topLeveFormula, constraints, noDependenceVars),
                 elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
+    }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	List<Integer> partitions =   condition.getAssertPartition();
+    	partitions.addAll(thenBranch.getAssertPartition());
+    	partitions.addAll(elseBranch.getAssertPartition());
+      
+    	return partitions;
     }
 
 }

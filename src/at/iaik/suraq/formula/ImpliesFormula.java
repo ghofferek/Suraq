@@ -347,5 +347,17 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 rightSide.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	List<Integer> partitions = this.leftSide.getAssertPartition(); 
+    	partitions.addAll(this.rightSide.getAssertPartition());
+        
+    	return partitions;
+    }
 
 }

@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -245,4 +246,10 @@ public interface Formula {
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
 
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition();
 }

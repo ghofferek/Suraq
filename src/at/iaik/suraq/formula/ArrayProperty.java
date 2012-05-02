@@ -43,6 +43,11 @@ public class ArrayProperty implements Formula {
      * The formula representing the values constraint.
      */
     private final Formula valueConstraint;
+    
+    /**
+     * The assert-partitions
+     */
+	protected List<Integer> assertPartitions = new ArrayList<Integer>();
 
     /**
      * 
@@ -608,5 +613,20 @@ public class ArrayProperty implements Formula {
             throw new RuntimeException(
                     "Unexpectedly unable to create ArrayProperty.", exc);
         }
+    }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	List<Integer> partitions = this.indexGuard.getAssertPartition();
+    	partitions.addAll(this.valueConstraint.getAssertPartition());
+     
+    	for (DomainVariable var : uVars)
+        	partitions.addAll(var.getAssertPartition());
+        
+    	return partitions;
     }
 }

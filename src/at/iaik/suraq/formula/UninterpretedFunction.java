@@ -3,6 +3,9 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -16,6 +19,11 @@ import at.iaik.suraq.sexp.Token;
  */
 public class UninterpretedFunction {
 
+	 /**
+     * The assert-partitions
+     */
+	protected List<Integer> assertPartitions = new ArrayList<Integer>();
+	
     /**
      * The number of parameters.
      */
@@ -81,7 +89,15 @@ public class UninterpretedFunction {
         this.type = new Token(original.type);
     }
 
-    /**
+    public UninterpretedFunction(String name, int numParams, Token type,
+			int assertPartition) {
+    	this.name = new Token(name);
+        this.numParams = numParams;
+        this.type = type;
+    	this.assertPartitions.add(assertPartition);
+	}
+
+	/**
      * Returns the number of parameters of this function.
      * 
      * @return the number of parameters.
@@ -133,6 +149,15 @@ public class UninterpretedFunction {
     @Override    
     public String toString(){
     	return this.name.toString();
+    }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	return new ArrayList<Integer>(this.assertPartitions);
     }
 
 }

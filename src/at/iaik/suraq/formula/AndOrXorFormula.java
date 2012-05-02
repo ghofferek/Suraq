@@ -28,6 +28,11 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     protected final List<Formula> formulas;
 
     /**
+     * The list of assert-partitions.
+     */
+    protected final List<Integer> assertPartitions = new ArrayList<Integer>();
+    
+    /**
      * 
      * Constructs a new <code>AndOrXorFormula</code>. Initializes the list of
      * subformulas.
@@ -365,6 +370,19 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
                             topLeveFormula, constraints, noDependenceVars));
 
         return this.create(newFormulas);
+    }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	List<Integer> partitions = new ArrayList<Integer>(); 
+     
+    	for (Formula formula : formulas)
+        	partitions.addAll(formula.getAssertPartition());
+    	return partitions;
     }
 
 }

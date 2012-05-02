@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.formula;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
@@ -18,6 +20,11 @@ import at.iaik.suraq.sexp.Token;
  */
 public abstract class PropositionalTerm extends Term implements Formula {
 
+	 /**
+     * The assert-partitions
+     */
+	protected List<Integer> assertPartitions = new ArrayList<Integer>();
+	
     /**
      * @see at.iaik.suraq.formula.Term#getType()
      */
@@ -57,4 +64,12 @@ public abstract class PropositionalTerm extends Term implements Formula {
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
 
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    public List<Integer> getAssertPartition(){
+    	return new ArrayList<Integer>(this.assertPartitions);
+    }
 }
