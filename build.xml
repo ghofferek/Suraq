@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="build" name="Suraq">
+    <property environment="env"/>
+    <property name="junit.output.dir" value="junit"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+    <path id="JUnit 4.libraryclasspath">
+        <pathelement location="../../eclipse/plugins/org.junit_4.8.1.v4_8_1_v20100427-1100/junit.jar"/>
+        <pathelement location="../../eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
+    </path>
+    <path id="Suraq.classpath">
+        <pathelement location="bin"/>
+        <path refid="JUnit 4.libraryclasspath"/>
+        <pathelement location="lib/jargs-1.0/lib/jargs.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="Suraq.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
+    <target name="ApplyWriteAxiomTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.ApplyWriteAxiomTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="ArrayPropertiesTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.ArrayPropertiesTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="at.iaik.suraq.test">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.ApplyWriteAxiomTest" todir="${junit.output.dir}"/>
+            <test name="at.iaik.suraq.test.ArrayPropertiesTest" todir="${junit.output.dir}"/>
+            <test name="at.iaik.suraq.test.LogicParserTest" todir="${junit.output.dir}"/>
+            <test name="at.iaik.suraq.test.SExpParserTest" todir="${junit.output.dir}"/>
+            <test name="at.iaik.suraq.test.SExpressionConstantsTest" todir="${junit.output.dir}"/>
+            <test name="at.iaik.suraq.test.SExpressionTest" todir="${junit.output.dir}"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <test name="at.iaik.suraq.test.TermTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="LogicParserTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.LogicParserTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="LogicParserTest.simpleTestParseDLXExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.LogicParserTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="LogicParserTest.testParseNoReadonlyPipelineExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.LogicParserTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpParserTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpParserTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpressionConstantsTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpressionConstantsTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpressionConstantsTest.testCheckSatExit">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpressionConstantsTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpressionConstantsTest.testExitConstant">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpressionConstantsTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpressionTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpressionTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpressionTest.testToStringConstants">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpressionTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpressionTest.testToStringConstants2">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpressionTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpressionTest.testToStringConstants3">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpressionTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SExpressionTest.testToStringConstants4">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SExpressionTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="Suraq">
+        <java classname="at.iaik.suraq.main.Suraq" failonerror="true" fork="yes">
+            <arg line="-i ./rsc/test/no_readonly_pipeline_example_suraq.smt2 -v"/>
+            <classpath refid="Suraq.classpath"/>
+        </java>
+    </target>
+    <target name="SuraqTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnDLX2ControllersExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnDLXAAndBExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnDLXAAndStallExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnDLXBAndStallExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnDLXExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnDLXOnlyAExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnDLXOnlyBExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnNoReadonlyPipelineExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <jvmarg line="-Xms256M -Xmx2000M"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="SuraqTest.simpleRunOnSimple2ControllersExample">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.SuraqTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="TermTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="at.iaik.suraq.test.TermTest" todir="${junit.output.dir}"/>
+            <classpath refid="Suraq.classpath"/>
+        </junit>
+    </target>
+    <target name="junitreport">
+        <junitreport todir="${junit.output.dir}">
+            <fileset dir="${junit.output.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${junit.output.dir}"/>
+        </junitreport>
+    </target>
+</project>
