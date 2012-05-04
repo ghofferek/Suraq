@@ -44,6 +44,12 @@ public class SExpressionConstants {
     public static final SExpression SET_OPTION_PRODUCE_INTERPOLANT = SExpression
             .fromString("(set-option :produce-interpolants true)");
 
+    public static final SExpression SET_OPTION_PROPAGATE_BOOLEANS_FALSE = SExpression
+            .fromString("(set-option :propagate-booleans false)");
+
+    public static final SExpression SET_OPTION_PROPAGATE_VALUES_FALSE = SExpression
+            .fromString("(set-option :propagate-values false)");
+
     public static final SExpression DECLARE_SORT_VALUE = SExpression
             .fromString("(declare-sort " + SExpressionConstants.VALUE_TYPE
                     + " 0)");

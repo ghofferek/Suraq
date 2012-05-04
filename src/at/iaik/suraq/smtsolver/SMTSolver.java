@@ -95,4 +95,20 @@ public abstract class SMTSolver {
 	public String getProof() {
 		return proof;
 	}
+
+	/**
+	 * Simplifies a smt string
+	 * 
+	 * @return the simplified string
+	 */
+	public abstract String simplify(String smtStr);
+
+	/**
+	 * Runs the SMT-solver instance with the given string as input.
+	 * 
+	 * @param smtStr
+	 *            SMT-solver input.
+	 * 
+	 */
+	public abstract void solveStr(String smtStr);
 }

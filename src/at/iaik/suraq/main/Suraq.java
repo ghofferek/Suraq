@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -87,6 +88,17 @@ public class Suraq implements Runnable {
      */
     private boolean noErrors = true;
 
+    /**
+     * stores the declaration part of the smt description
+     */
+    private String declarationStr="";
+    
+    /**
+     * stores the assert partitions of the smt description
+     */
+    private List<String> assertPartitionStrList = new ArrayList<String>();
+    
+    
     /**
      * Constructs a new <code>Suraq</code>.
      */
@@ -201,10 +213,22 @@ public class Suraq implements Runnable {
 
 		// check result with z3 solver
 		if (options.isZ3enabled()) {
-			System.out.println("Checking outcome with z3 solver...");
-
+		
 			SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3-3.2/");
-			z3.solve(options.getSmtfile());
+			
+			//simplify assert partitions
+			System.out.println("Simplifying assert-partitions...");
+			List<String> simplifiedAssertPartitions = new ArrayList<String>();
+			for(String assertPartition : assertPartitionStrList){
+				String smtStr = buildSimplifySMTDescription(declarationStr,assertPartition);
+				String simpleSmtStr = z3.simplify(smtStr);
+				simplifiedAssertPartitions.add(simpleSmtStr);
+			}
+			
+			String smtStr = buildProofSMTDescription(declarationStr,simplifiedAssertPartitions);
+		
+			System.out.println("Checking outcome of simplified partitions with z3 solver...");
+			z3.solveStr(smtStr);
 
 			switch (z3.getState()) {
 			case SMTSolver.UNSAT:
@@ -283,7 +307,6 @@ public class Suraq implements Runnable {
 				for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies.entrySet()) 
 					uninterpretedFunctions.addAll(functionList.getValue());
 				
-				
 				//parsing proof				
 				ProofParser proofParser = new ProofParser(sExpProofParser.getRootExpr(),
 						domainVars,
@@ -299,7 +322,6 @@ public class Suraq implements Runnable {
 					noErrors = false;
 					return;
 				}
-				
 				System.out.println("");
 			}
 	
@@ -311,8 +333,73 @@ public class Suraq implements Runnable {
 		return;
 	}
     
+	/**
+     * Creates an SMT Description from the simplified assert partitions.
+     * @param declarationStr
+     * 		declarations of the SMT Description
+     * @param simplifiedAssertPartitions
+     * 		simplified assert partitions
+     * @return 
+     * 		SMT description to proof
+     * 
+     */
+    private String buildProofSMTDescription(String declarationStr,
+			List<String> simplifiedAssertPartitions) {
+		String smtStr="";
+		
+	    smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+	    smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
+	    smtStr += SExpressionConstants.PROOF_MODE_2.toString();
+	    smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE.toString();
+	    smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE.toString();
+	    smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
 
-    /**
+	    smtStr += declarationStr;
+	    
+	    //create assert partition for every simplified partition
+	    for(String partition : simplifiedAssertPartitions){
+	    	SExpression expr = new SExpression(new Token("assert"), SExpression.fromString(partition));
+	    	smtStr += expr.toString(); 	
+	    }
+	
+        smtStr += SExpressionConstants.CHECK_SAT.toString();
+        smtStr += SExpressionConstants.GET_PROOF.toString();
+        smtStr += SExpressionConstants.EXIT.toString();
+			
+		return smtStr;
+	}
+
+
+	/**
+     * Creates an SMT description for an simplify operation
+     * @param declarationStr
+     * 		declarations of the SMT description
+     * @param assertPartition
+     * 		 partition to be simplified 
+     * @return 
+     * 		SMT description of simplify operation
+     * 
+     */
+	private String buildSimplifySMTDescription(String declarationStr,
+			String assertPartition) {
+		String smtStr="";
+		
+	    smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+	    smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
+	    smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE.toString();
+	    smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE.toString();
+	    smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+
+	    smtStr += declarationStr;
+	    
+	    smtStr += assertPartition;
+	    
+	    smtStr += SExpressionConstants.EXIT.toString();
+			
+		return smtStr;
+	}
+
+	/**
      * Performs the main work.
      * @return 
      * 
@@ -380,6 +467,7 @@ public class Suraq implements Runnable {
                     "Current implementation cannot handle more than 30 control signals.");
         }
 
+        
         outputExpressions = new ArrayList<SExpression>();
         // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
 
@@ -389,19 +477,35 @@ public class Suraq implements Runnable {
      //   outputExpressions
          //       .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
-
+              		
         System.out.println("Writing declarations...");
+      
+        int beginDeclarationsIdx = outputExpressions.size(); 
+        
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
 
+        //get declarations and functions
+        ListIterator<SExpression> beginDeclarations = outputExpressions.listIterator(beginDeclarationsIdx);
+        while(beginDeclarations.hasNext())
+        	declarationStr+=beginDeclarations.next().toString();
+     
+        int beginAssertPartitionIdx = outputExpressions.size(); 
         writeAssertPartitions(formula, noDependenceVars, controlSignals);
+     
+        //get assert partitions and transform to simplifies.
+        ListIterator<SExpression> beginAssert = outputExpressions.listIterator(beginAssertPartitionIdx);
+        while(beginAssert.hasNext()){
+        	SExpression expr =beginAssert.next();
+        	expr.replaceChild(new Token("simplify"), 0);
+        	assertPartitionStrList.add(expr.toString());  
+        }
         
         outputExpressions.add(SExpressionConstants.CHECK_SAT);
         outputExpressions.add(SExpressionConstants.GET_PROOF);  
         outputExpressions.add(SExpressionConstants.EXIT);
-        
+         
         return formula;
-
     }
 
     /**

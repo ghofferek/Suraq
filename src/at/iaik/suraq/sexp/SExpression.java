@@ -164,6 +164,20 @@ public class SExpression {
     }
 
     /**
+     * Replaces the given s-expression in the children of this one, at the specified
+     * position.
+     * 
+     * @param sexp
+     *            the new child to add.
+     * @param position
+     *            the position of the child to replace.
+     */
+    public void replaceChild(SExpression sexp, int position) {
+        children.add(position, sexp);
+        children.remove(position+1);
+    }
+    
+    /**
      * Adds the given s-expression to the children of this one, at the specified
      * position.
      * 

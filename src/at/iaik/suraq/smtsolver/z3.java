@@ -5,10 +5,12 @@
 package at.iaik.suraq.smtsolver;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.regex.Pattern;
 
 /**
@@ -119,5 +121,117 @@ public class z3 extends SMTSolver {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * @see at.iaik.suraq.smtsolver.SMTSolver#solveStr(String)
+	 */
+	@Override
+	public void solveStr(String smtStr) {
+		String executionPath = basePath;
+		if (mtEnabled)
+			executionPath = executionPath.concat(mtBinPath);
+		else
+			executionPath = executionPath.concat(binPath);
+
+		executionPath = executionPath.concat(binary);
+		executionPath = executionPath.concat(" /smt2 /in");
+
+		try {
+			Process p = Runtime.getRuntime().exec(executionPath);
+
+			BufferedWriter output = new BufferedWriter(new OutputStreamWriter(
+					p.getOutputStream()));
+			BufferedReader input = new BufferedReader(new InputStreamReader(
+					p.getInputStream()));
+			BufferedReader error = new BufferedReader(new InputStreamReader(
+					p.getErrorStream()));
+			
+			output.write(smtStr);
+			output.flush();
+			output.close();
+
+			String line;			
+			StringBuffer proofBuffer = new StringBuffer();
+
+			while ((line = input.readLine()) != null) {
+				if (!line.equals("success")&&!line.equals("sat")&&!line.equals("unsat")){
+					proofBuffer.append(line + "\n");  
+					}
+				if (line.equals("sat"))
+					state = SAT;
+				else if (line.equals("unsat"))
+					state = UNSAT;
+			}
+			if (state == NOT_RUN)
+				state = UNKNOWN;			
+	
+			if (state == UNSAT)
+				this.proof = proofBuffer.toString();
+
+			int exitCode = p.exitValue();
+
+			System.out.println("EXIT CODE: " + exitCode);
+
+			System.out.println("ERROR from Z3:");
+			while ((line = error.readLine()) != null) {
+				System.out.println("   " + line);
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * @see at.iaik.suraq.smtsolver.SMTSolver#simplify(String)
+	 */
+	public String simplify(String smtStr) {
+		String executionPath = basePath;
+		if (mtEnabled)
+			executionPath = executionPath.concat(mtBinPath);
+		else
+			executionPath = executionPath.concat(binPath);
+
+		executionPath = executionPath.concat(binary);
+		executionPath = executionPath.concat(" /smt2 /in");
+		StringBuffer resultBuffer = new StringBuffer();
+		
+		try {
+			Process p = Runtime.getRuntime().exec(executionPath);
+
+			BufferedWriter output = new BufferedWriter(new OutputStreamWriter(
+					p.getOutputStream()));
+			BufferedReader input = new BufferedReader(new InputStreamReader(
+					p.getInputStream()));
+			BufferedReader error = new BufferedReader(new InputStreamReader(
+					p.getErrorStream()));
+
+			output.write(smtStr);
+			output.flush();
+			output.close();
+
+			String line;			
+	
+			line = input.readLine();
+			while (line != null && ! line.trim().equals("--EOF--")) {	
+				if (!line.equals("success")&&!line.equals("sat")&&!line.equals("unsat")){
+					resultBuffer.append(line + "\n");  
+					}
+				line = input.readLine();
+			}
+			
+			int exitCode = p.exitValue();
+
+			System.out.println("EXIT CODE: " + exitCode);
+			System.out.println("ERROR from Z3:");
+			while ((line = error.readLine()) != null) {
+				System.out.println("   " + line);
+			}		
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	
+		return resultBuffer.toString();
 	}
 }
