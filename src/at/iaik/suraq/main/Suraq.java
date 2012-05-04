@@ -496,7 +496,7 @@ public class Suraq implements Runnable {
         //get assert partitions and transform to simplifies.
         ListIterator<SExpression> beginAssert = outputExpressions.listIterator(beginAssertPartitionIdx);
         while(beginAssert.hasNext()){
-        	SExpression expr =beginAssert.next();
+        	SExpression expr =beginAssert.next().deepCopy();
         	expr.replaceChild(new Token("simplify"), 0);
         	assertPartitionStrList.add(expr.toString());  
         }
