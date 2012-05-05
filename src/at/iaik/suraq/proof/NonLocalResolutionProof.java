@@ -3,9 +3,12 @@
  */
 package at.iaik.suraq.proof;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import at.iaik.suraq.formula.Formula;
+import at.iaik.suraq.formula.NotFormula;
+import at.iaik.suraq.formula.OrFormula;
 import at.iaik.suraq.formula.ProofFormula;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -119,8 +122,44 @@ public class NonLocalResolutionProof {
             this.subProofs = tmp.subProofs;
             this.literal = tmp.literal;
             return;
+        } else if (proofType.equals(SExpressionConstants.TRANSITIVITY)) {
+            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            if (z3SubProofs.size() != 2)
+                throw new RuntimeException(
+                        "Transitivity proof with not exactly two children. This should not happen!");
+            ProofFormula z3SubProof1 = z3SubProofs.get(0);
+            ProofFormula z3SubProof2 = z3SubProofs.get(1);
+            List<Formula> axiomParts = new ArrayList<Formula>();
+            axiomParts.add(new NotFormula(z3SubProof1.getProofFormula()));
+            axiomParts.add(new NotFormula(z3SubProof2.getProofFormula()));
+            axiomParts.add(z3Proof.getProofFormula());
+            OrFormula axiomFormula = new OrFormula(axiomParts);
+
+            List<Formula> intermediateResultParts = new ArrayList<Formula>();
+            intermediateResultParts.add(new NotFormula(z3SubProof2
+                    .getProofFormula()));
+            intermediateResultParts.add(z3Proof.getProofFormula());
+            OrFormula intermediateResultFormula = new OrFormula(
+                    intermediateResultParts);
+
+            // Recursion for subproofs
+            NonLocalResolutionProof subProof1 = new NonLocalResolutionProof(
+                    z3SubProof1);
+            NonLocalResolutionProof subProof2 = new NonLocalResolutionProof(
+                    z3SubProof2);
+
+            // Putting things together
+            NonLocalResolutionProof axiom = new NonLocalResolutionProof(null,
+                    null, null, axiomFormula);
+            NonLocalResolutionProof firstResolutionStep = new NonLocalResolutionProof(
+                    subProof1, axiom, z3SubProof1.getProofFormula(),
+                    intermediateResultFormula);
+            this.subProofs[0] = subProof2;
+            this.subProofs[1] = firstResolutionStep;
+            this.literal = z3SubProof2.getProofFormula();
+            return;
         }
-        // TODO finish implementation (add other relevant cases)
+        // TODO finish implementation (=add other relevant cases)
         else {
             throw new RuntimeException("Encountered unexpected proof rule "
                     + proofType.toString()
