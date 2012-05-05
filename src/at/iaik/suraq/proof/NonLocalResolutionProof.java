@@ -158,8 +158,12 @@ public class NonLocalResolutionProof {
             this.subProofs[1] = firstResolutionStep;
             this.literal = z3SubProof2.getProofFormula();
             return;
+        } else if (proofType.equals(SExpressionConstants.MONOTONICITY)) {
+            // TODO
+        } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
+            // TODO
         }
-        // TODO finish implementation (=add other relevant cases)
+        // TODO add other relevant cases, if any
         else {
             throw new RuntimeException("Encountered unexpected proof rule "
                     + proofType.toString()
