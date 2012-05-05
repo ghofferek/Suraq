@@ -5,6 +5,7 @@ package at.iaik.suraq.proof;
 
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.ProofFormula;
+import at.iaik.suraq.sexp.Token;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -52,7 +53,14 @@ public class NonLocalResolutionProof {
     }
 
     public NonLocalResolutionProof(ProofFormula z3Proof) {
-        // TODO implement
+
+        // Go through all possible cases of z3 proof rules
+
+        Token proofType = z3Proof.getProofType();
+
+        // TODO finish implementation
+
+        this.consequent = z3Proof.getProofFormula();
     }
 
 }
