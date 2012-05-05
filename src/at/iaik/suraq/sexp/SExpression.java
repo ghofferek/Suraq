@@ -164,8 +164,8 @@ public class SExpression {
     }
 
     /**
-     * Replaces the given s-expression in the children of this one, at the specified
-     * position.
+     * Replaces the given s-expression in the children of this one, at the
+     * specified position.
      * 
      * @param sexp
      *            the new child to add.
@@ -174,9 +174,9 @@ public class SExpression {
      */
     public void replaceChild(SExpression sexp, int position) {
         children.add(position, sexp);
-        children.remove(position+1);
+        children.remove(position + 1);
     }
-    
+
     /**
      * Adds the given s-expression to the children of this one, at the specified
      * position.
@@ -360,107 +360,55 @@ public class SExpression {
         result.addChild(type);
         return result;
     }
-    
-    
+
     /**
      * Checks an expression to be a valid proof type.
      * 
      * @param expr
      *            the expression to check
-     * @return an <code>Boolean</code> value declaring iff expr is a valid proof type
-     */    
-    
-    public  static Boolean isValidProofType(Token expr){
-     	
-    	String exprStr = expr.toString();
-    	if(exprStr.charAt(0)=='|' && exprStr.charAt(exprStr.length()-1)=='|')
-    		expr = new Token (exprStr.substring(1, exprStr.length()-1));
-    		
-    	for (SExpression proofType: SExpressionConstants.PROOF_TYPES) {
-    		if (proofType.equals(expr))
-    			return true;
-    	}    			   			
-    	return false; 
-    } 
-    
-    /**
-     * Creates the definition of proof types
-     * 
-     * @return an <code>SExpression[]</code> declaring the proof types.
+     * @return an <code>Boolean</code> value declaring iff expr is a valid proof
+     *         type
      */
-    
-	public static SExpression[] createProofTypes() {
-		
-		SExpression[] proofTypes = new SExpression[40];
-		
-		//see: z3_api.h
-		proofTypes[0] = SExpression.fromString("undef");
-		proofTypes[1] = SExpression.fromString("true");
-		proofTypes[2] = SExpression.fromString("asserted");
-		proofTypes[3] = SExpression.fromString("goal");
-		proofTypes[4] = SExpression.fromString("modus-ponens");
-		proofTypes[5] = SExpression.fromString("reflexivity");
-		proofTypes[6] = SExpression.fromString("symmetry");
-		proofTypes[7] = SExpression.fromString("transitivity");
-		proofTypes[8] = SExpression.fromString("transitivity-star");
-		proofTypes[9] = SExpression.fromString("monotonicity");
-		proofTypes[10] = SExpression.fromString("quant-intro");
-		proofTypes[11] = SExpression.fromString("distributivity");
-		proofTypes[12] = SExpression.fromString("and-elim");
-		proofTypes[13] = SExpression.fromString("not-or-elim");
-		proofTypes[14] = SExpression.fromString("rewrite");
-		proofTypes[15] = SExpression.fromString("rewrite-star");
-		proofTypes[16] = SExpression.fromString("pull-quant");
-		proofTypes[17] = SExpression.fromString("pull-quant-star");
-		proofTypes[18] = SExpression.fromString("push-quant");
-		proofTypes[19] = SExpression.fromString("elim-unused-vars");
-		proofTypes[20] = SExpression.fromString("der");
-		proofTypes[21] = SExpression.fromString("quant-inst");
-		proofTypes[22] = SExpression.fromString("hypothesis");
-		proofTypes[23] = SExpression.fromString("lemma");
-		proofTypes[24] = SExpression.fromString("unit-resolution");
-		proofTypes[25] = SExpression.fromString("iff-true");
-		proofTypes[26] = SExpression.fromString("iff-false");
-		proofTypes[27] = SExpression.fromString("commutativity");
-		proofTypes[28] = SExpression.fromString("axiom");
-		proofTypes[29] = SExpression.fromString("intro");
-		proofTypes[30] = SExpression.fromString("apply-def");   
-		proofTypes[31] = SExpression.fromString("iff-oeq");
-		proofTypes[32] = SExpression.fromString("nnf-pos");
-		proofTypes[33] = SExpression.fromString("nnf-neg");
-		proofTypes[34] = SExpression.fromString("nnf-star");
-		proofTypes[35] = SExpression.fromString("cnf-star");
-		proofTypes[36] = SExpression.fromString("skolemize");
-		proofTypes[37] = SExpression.fromString("modus-pones-oeq");
-		proofTypes[38] = SExpression.fromString("th-lemma");
-		proofTypes[39] = SExpression.fromString("trans");
-		
-		return proofTypes;
-	}
-	
+
+    public static Boolean isValidProofType(Token expr) {
+
+        String exprStr = expr.toString();
+        if (exprStr.charAt(0) == '|'
+                && exprStr.charAt(exprStr.length() - 1) == '|')
+            expr = new Token(exprStr.substring(1, exprStr.length() - 1));
+
+        for (SExpression proofType : SExpressionConstants.PROOF_TYPES) {
+            if (proofType.equals(expr))
+                return true;
+        }
+        return false;
+    }
+
     /**
      * Checks an expression to be a valid formula type.
      * 
      * @param expr
      *            the expression to check
-     * @return an <code>Boolean</code> value declaring iff expr is a valid formula type
-     */    
-    
-    public  static Boolean isValidFormulaType(Token expr){
-    	if (SExpressionConstants.AND.equals(expr))
-    			return true;
-    	if (SExpressionConstants.EQUAL.equals(expr))
-			return true;
-    	if (SExpressionConstants.IMPLIES.equals(expr) || SExpressionConstants.IMPLIES_ALT.equals(expr))
-			return true;
-    	if (SExpressionConstants.NOT.equals(expr))
-			return true;
-    	if (SExpressionConstants.OR.equals(expr))
-			return true;
-    	if (SExpressionConstants.XOR.equals(expr))
-			return true;
-       	if (SExpressionConstants.ITE.equals(expr))
-    			return true;   			
-    	return false; 
-    } 
+     * @return an <code>Boolean</code> value declaring iff expr is a valid
+     *         formula type
+     */
+
+    public static Boolean isValidFormulaType(Token expr) {
+        if (SExpressionConstants.AND.equals(expr))
+            return true;
+        if (SExpressionConstants.EQUAL.equals(expr))
+            return true;
+        if (SExpressionConstants.IMPLIES.equals(expr)
+                || SExpressionConstants.IMPLIES_ALT.equals(expr))
+            return true;
+        if (SExpressionConstants.NOT.equals(expr))
+            return true;
+        if (SExpressionConstants.OR.equals(expr))
+            return true;
+        if (SExpressionConstants.XOR.equals(expr))
+            return true;
+        if (SExpressionConstants.ITE.equals(expr))
+            return true;
+        return false;
+    }
 }
