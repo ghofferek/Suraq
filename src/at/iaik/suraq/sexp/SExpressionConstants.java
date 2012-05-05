@@ -115,10 +115,9 @@ public class SExpressionConstants {
             .fromString("modus-ponens");
     public static final SExpression REFLEXIVITY = SExpression
             .fromString("reflexivity");
-    public static final SExpression SYMMETRY = SExpression
-            .fromString("symmetry");
+    public static final SExpression SYMMETRY = SExpression.fromString("symm");
     public static final SExpression TRANSITIVITY = SExpression
-            .fromString("transitivity");
+            .fromString("trans");
     public static final SExpression TRANSITIVITY_STAR = SExpression
             .fromString("transitivity-star");
     public static final SExpression MONOTONICITY = SExpression
@@ -128,9 +127,9 @@ public class SExpressionConstants {
     public static final SExpression DISTRIBUTIVITY = SExpression
             .fromString("distributivity");
     public static final SExpression AND_ELIM = SExpression
-            .fromString("and-elim");
+            .fromString("|and-elim|");
     public static final SExpression NOT_OR_ELIM = SExpression
-            .fromString("not-or-elim");
+            .fromString("|not-or-elim|");
     public static final SExpression REWRITE = SExpression.fromString("rewrite");
     public static final SExpression REWRITE_STAR = SExpression
             .fromString("rewrite-star");
@@ -149,7 +148,7 @@ public class SExpressionConstants {
             .fromString("hypothesis");
     public static final SExpression LEMMA = SExpression.fromString("lemma");
     public static final SExpression UNIT_RESOLUTION = SExpression
-            .fromString("unit-resolution");
+            .fromString("|unit-resolution|");
     public static final SExpression IFF_TRUE = SExpression
             .fromString("iff-true");
     public static final SExpression IFF_FALSE = SExpression
