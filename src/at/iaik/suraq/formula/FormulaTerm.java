@@ -236,14 +236,15 @@ public class FormulaTerm extends PropositionalTerm {
                 formula.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	return formula.getAssertPartition();
+    @Override
+    public List<Integer> getAssertPartition() {
+        return formula.getAssertPartition();
     }
 
 }

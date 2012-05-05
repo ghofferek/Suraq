@@ -6,12 +6,9 @@ package at.iaik.suraq.smtsolver;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.regex.Pattern;
 
 /**
  * SMT-solver bindings for the Microsoft(TM) Z3 solver. Utilizes external calls
@@ -22,216 +19,220 @@ import java.util.regex.Pattern;
  */
 public class z3 extends SMTSolver {
 
-	/**
-	 * Stores the base-path to the Z3 distribution.
-	 */
-	private String basePath;
+    /**
+     * Stores the base-path to the Z3 distribution.
+     */
+    private String basePath;
 
-	/**
-	 * Constant containing the multi-threaded binary directory of Z3.
-	 */
-	private static final String mtBinPath = "bin_mt/";
+    /**
+     * Constant containing the multi-threaded binary directory of Z3.
+     */
+    private static final String mtBinPath = "bin_mt/";
 
-	/**
-	 * Constant containing the single-threaded binary directory of Z3.
-	 */
-	private static final String binPath = "bin/";
+    /**
+     * Constant containing the single-threaded binary directory of Z3.
+     */
+    private static final String binPath = "bin/";
 
-	/**
-	 * Constant containing the binary name of Z3.
-	 */
-	private static final String binary = "z3.exe";
+    /**
+     * Constant containing the binary name of Z3.
+     */
+    private static final String binary = "z3.exe";
 
-	/**
-	 * State of multi-threading support.
-	 */
-	private boolean mtEnabled = false;
+    /**
+     * State of multi-threading support.
+     */
+    private boolean mtEnabled = false;
 
-	/**
-	 * Constructs a new <code>z3</code> SMT-solver with the given base-path.
-	 * 
-	 * @param solverBasePath
-	 *            base-path to the Z3 distribution.
-	 */
-	public z3(String solverBasePath) {
-		basePath = solverBasePath;
-	}
+    /**
+     * Constructs a new <code>z3</code> SMT-solver with the given base-path.
+     * 
+     * @param solverBasePath
+     *            base-path to the Z3 distribution.
+     */
+    public z3(String solverBasePath) {
+        basePath = solverBasePath;
+    }
 
-	/**
-	 * @see at.iaik.suraq.smtsolver.SMTSolver#enableMultiThreaded()
-	 */
-	@Override
-	protected void enableMultiThreaded() {
-		mtEnabled = true;
-	}
+    /**
+     * @see at.iaik.suraq.smtsolver.SMTSolver#enableMultiThreaded()
+     */
+    @Override
+    protected void enableMultiThreaded() {
+        mtEnabled = true;
+    }
 
-	/**
-	 * @see at.iaik.suraq.smtsolver.SMTSolver#solve(String)
-	 */
-	@Override
-	public void solve(String filename) {
-		//TODO: <bk> add proper error checking + handling
-		
-		System.out.println("checking file: " + filename);
+    /**
+     * @see at.iaik.suraq.smtsolver.SMTSolver#solve(String)
+     */
+    @Override
+    public void solve(String filename) {
+        // TODO: <bk> add proper error checking + handling
 
-		String executionPath = basePath;
-		if (mtEnabled)
-			executionPath = executionPath.concat(mtBinPath);
-		else
-			executionPath = executionPath.concat(binPath);
+        System.out.println("checking file: " + filename);
 
-		executionPath = executionPath.concat(binary);
-		executionPath = executionPath.concat(" /smt2 " + filename);
+        String executionPath = basePath;
+        if (mtEnabled)
+            executionPath = executionPath.concat(z3.mtBinPath);
+        else
+            executionPath = executionPath.concat(z3.binPath);
 
-		try {
-			Process p = Runtime.getRuntime().exec(executionPath);
+        executionPath = executionPath.concat(z3.binary);
+        executionPath = executionPath.concat(" /smt2 " + filename);
 
-			BufferedReader input = new BufferedReader(new InputStreamReader(
-					p.getInputStream()));
-			BufferedReader error = new BufferedReader(new InputStreamReader(
-					p.getErrorStream()));
+        try {
+            Process p = Runtime.getRuntime().exec(executionPath);
 
-			String line;			
-			StringBuffer proofBuffer = new StringBuffer();
+            BufferedReader input = new BufferedReader(new InputStreamReader(
+                    p.getInputStream()));
+            BufferedReader error = new BufferedReader(new InputStreamReader(
+                    p.getErrorStream()));
 
-			while ((line = input.readLine()) != null) {
-				if (!line.equals("success")&&!line.equals("sat")&&!line.equals("unsat")){
-					proofBuffer.append(line + "\n");  
-					}
-				if (line.equals("sat"))
-					state = SAT;
-				else if (line.equals("unsat"))
-					state = UNSAT;
-			}
-			if (state == NOT_RUN)
-				state = UNKNOWN;			
-	
-			if (state == UNSAT)
-				this.proof = proofBuffer.toString();
+            String line;
+            StringBuffer proofBuffer = new StringBuffer();
 
-			int exitCode = p.exitValue();
+            while ((line = input.readLine()) != null) {
+                if (!line.equals("success") && !line.equals("sat")
+                        && !line.equals("unsat")) {
+                    proofBuffer.append(line + "\n");
+                }
+                if (line.equals("sat"))
+                    state = SMTSolver.SAT;
+                else if (line.equals("unsat"))
+                    state = SMTSolver.UNSAT;
+            }
+            if (state == SMTSolver.NOT_RUN)
+                state = SMTSolver.UNKNOWN;
 
-			System.out.println("EXIT CODE: " + exitCode);
+            if (state == SMTSolver.UNSAT)
+                this.proof = proofBuffer.toString();
 
-			System.out.println("ERROR from Z3:");
-			while ((line = error.readLine()) != null) {
-				System.out.println("   " + line);
-			}
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * @see at.iaik.suraq.smtsolver.SMTSolver#solveStr(String)
-	 */
-	@Override
-	public void solveStr(String smtStr) {
-		String executionPath = basePath;
-		if (mtEnabled)
-			executionPath = executionPath.concat(mtBinPath);
-		else
-			executionPath = executionPath.concat(binPath);
+            int exitCode = p.exitValue();
 
-		executionPath = executionPath.concat(binary);
-		executionPath = executionPath.concat(" /smt2 /in");
+            System.out.println("EXIT CODE: " + exitCode);
 
-		try {
-			Process p = Runtime.getRuntime().exec(executionPath);
+            System.out.println("ERROR from Z3:");
+            while ((line = error.readLine()) != null) {
+                System.out.println("   " + line);
+            }
 
-			BufferedWriter output = new BufferedWriter(new OutputStreamWriter(
-					p.getOutputStream()));
-			BufferedReader input = new BufferedReader(new InputStreamReader(
-					p.getInputStream()));
-			BufferedReader error = new BufferedReader(new InputStreamReader(
-					p.getErrorStream()));
-			
-			output.write(smtStr);
-			output.flush();
-			output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-			String line;			
-			StringBuffer proofBuffer = new StringBuffer();
+    /**
+     * @see at.iaik.suraq.smtsolver.SMTSolver#solveStr(String)
+     */
+    @Override
+    public void solveStr(String smtStr) {
+        String executionPath = basePath;
+        if (mtEnabled)
+            executionPath = executionPath.concat(z3.mtBinPath);
+        else
+            executionPath = executionPath.concat(z3.binPath);
 
-			while ((line = input.readLine()) != null) {
-				if (!line.equals("success")&&!line.equals("sat")&&!line.equals("unsat")){
-					proofBuffer.append(line + "\n");  
-					}
-				if (line.equals("sat"))
-					state = SAT;
-				else if (line.equals("unsat"))
-					state = UNSAT;
-			}
-			if (state == NOT_RUN)
-				state = UNKNOWN;			
-	
-			if (state == UNSAT)
-				this.proof = proofBuffer.toString();
+        executionPath = executionPath.concat(z3.binary);
+        executionPath = executionPath.concat(" /smt2 /in");
 
-			int exitCode = p.exitValue();
+        try {
+            Process p = Runtime.getRuntime().exec(executionPath);
 
-			System.out.println("EXIT CODE: " + exitCode);
+            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(
+                    p.getOutputStream()));
+            BufferedReader input = new BufferedReader(new InputStreamReader(
+                    p.getInputStream()));
+            BufferedReader error = new BufferedReader(new InputStreamReader(
+                    p.getErrorStream()));
 
-			System.out.println("ERROR from Z3:");
-			while ((line = error.readLine()) != null) {
-				System.out.println("   " + line);
-			}
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * @see at.iaik.suraq.smtsolver.SMTSolver#simplify(String)
-	 */
-	public String simplify(String smtStr) {
-		String executionPath = basePath;
-		if (mtEnabled)
-			executionPath = executionPath.concat(mtBinPath);
-		else
-			executionPath = executionPath.concat(binPath);
+            output.write(smtStr);
+            output.flush();
+            output.close();
 
-		executionPath = executionPath.concat(binary);
-		executionPath = executionPath.concat(" /smt2 /in");
-		StringBuffer resultBuffer = new StringBuffer();
-		
-		try {
-			Process p = Runtime.getRuntime().exec(executionPath);
+            String line;
+            StringBuffer proofBuffer = new StringBuffer();
 
-			BufferedWriter output = new BufferedWriter(new OutputStreamWriter(
-					p.getOutputStream()));
-			BufferedReader input = new BufferedReader(new InputStreamReader(
-					p.getInputStream()));
-			BufferedReader error = new BufferedReader(new InputStreamReader(
-					p.getErrorStream()));
+            while ((line = input.readLine()) != null) {
+                if (!line.equals("success") && !line.equals("sat")
+                        && !line.equals("unsat")) {
+                    proofBuffer.append(line + "\n");
+                }
+                if (line.equals("sat"))
+                    state = SMTSolver.SAT;
+                else if (line.equals("unsat"))
+                    state = SMTSolver.UNSAT;
+            }
+            if (state == SMTSolver.NOT_RUN)
+                state = SMTSolver.UNKNOWN;
 
-			output.write(smtStr);
-			output.flush();
-			output.close();
+            if (state == SMTSolver.UNSAT)
+                this.proof = proofBuffer.toString();
 
-			String line;			
-	
-			line = input.readLine();
-			while (line != null && ! line.trim().equals("--EOF--")) {	
-				if (!line.equals("success")&&!line.equals("sat")&&!line.equals("unsat")){
-					resultBuffer.append(line + "\n");  
-					}
-				line = input.readLine();
-			}
-			
-			int exitCode = p.exitValue();
+            int exitCode = p.exitValue();
 
-			System.out.println("EXIT CODE: " + exitCode);
-			System.out.println("ERROR from Z3:");
-			while ((line = error.readLine()) != null) {
-				System.out.println("   " + line);
-			}		
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	
-		return resultBuffer.toString();
-	}
+            System.out.println("EXIT CODE: " + exitCode);
+
+            System.out.println("ERROR from Z3:");
+            while ((line = error.readLine()) != null) {
+                System.out.println("   " + line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtsolver.SMTSolver#simplify(String)
+     */
+    @Override
+    public String simplify(String smtStr) {
+        String executionPath = basePath;
+        if (mtEnabled)
+            executionPath = executionPath.concat(z3.mtBinPath);
+        else
+            executionPath = executionPath.concat(z3.binPath);
+
+        executionPath = executionPath.concat(z3.binary);
+        executionPath = executionPath.concat(" /smt2 /in");
+        StringBuffer resultBuffer = new StringBuffer();
+
+        try {
+            Process p = Runtime.getRuntime().exec(executionPath);
+
+            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(
+                    p.getOutputStream()));
+            BufferedReader input = new BufferedReader(new InputStreamReader(
+                    p.getInputStream()));
+            BufferedReader error = new BufferedReader(new InputStreamReader(
+                    p.getErrorStream()));
+
+            output.write(smtStr);
+            output.flush();
+            output.close();
+
+            String line;
+
+            line = input.readLine();
+            while (line != null && !line.trim().equals("--EOF--")) {
+                if (!line.equals("success") && !line.equals("sat")
+                        && !line.equals("unsat")) {
+                    resultBuffer.append(line + "\n");
+                }
+                line = input.readLine();
+            }
+
+            int exitCode = p.exitValue();
+
+            System.out.println("EXIT CODE: " + exitCode);
+            System.out.println("ERROR from Z3:");
+            while ((line = error.readLine()) != null) {
+                System.out.println("   " + line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return resultBuffer.toString();
+    }
 }

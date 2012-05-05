@@ -34,7 +34,7 @@ public abstract class EqualityFormula implements Formula {
     /**
      * The assert-partitions
      */
-	protected List<Integer> assertPartitions = new ArrayList<Integer>();
+    protected List<Integer> assertPartitions = new ArrayList<Integer>();
 
     /**
      * 
@@ -460,19 +460,20 @@ public abstract class EqualityFormula implements Formula {
             throw new RuntimeException("Unexpectedly incomparable terms.", exc);
         }
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	List<Integer> partitions = new ArrayList<Integer>(); 
-     
-    	for (Term term : terms)
-        	partitions.addAll(term.getAssertPartition());
-        
-    	return partitions;
+    @Override
+    public List<Integer> getAssertPartition() {
+        List<Integer> partitions = new ArrayList<Integer>();
+
+        for (Term term : terms)
+            partitions.addAll(term.getAssertPartition());
+
+        return partitions;
     }
 
 }

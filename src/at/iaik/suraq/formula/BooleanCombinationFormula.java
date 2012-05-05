@@ -16,12 +16,11 @@ import java.util.List;
 public abstract class BooleanCombinationFormula implements Formula {
     // just for type safety. No actual methods on this level.
 
-	 /**
+    /**
      * The assert-partitions
      */
-	protected List<Integer> assertPartitions = new ArrayList<Integer>();
-	
-	
+    protected List<Integer> assertPartitions = new ArrayList<Integer>();
+
     /**
      * Returns a collection of subformulas of this
      * <code>BoolenCombinationFormula</code>.
@@ -39,13 +38,14 @@ public abstract class BooleanCombinationFormula implements Formula {
     public String toString() {
         return this.toSmtlibV2().toString();
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	return this.assertPartitions;
+    @Override
+    public List<Integer> getAssertPartition() {
+        return this.assertPartitions;
     }
 }

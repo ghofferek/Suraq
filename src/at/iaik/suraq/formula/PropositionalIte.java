@@ -402,17 +402,18 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	List<Integer> partitions = condition.getAssertPartition(); 
-    	partitions.addAll(thenBranch.getAssertPartition());
-    	partitions.addAll(elseBranch.getAssertPartition());
-    	
-    	return partitions;
+    @Override
+    public List<Integer> getAssertPartition() {
+        List<Integer> partitions = condition.getAssertPartition();
+        partitions.addAll(thenBranch.getAssertPartition());
+        partitions.addAll(elseBranch.getAssertPartition());
+
+        return partitions;
     }
 }

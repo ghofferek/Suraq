@@ -48,11 +48,11 @@ public class ArrayVariable extends ArrayTerm {
     }
 
     public ArrayVariable(String name, int assertPartition) {
-       	this.varName = name.toString();
-    	this.assertPartitions.add(assertPartition);
-	}
+        this.varName = name.toString();
+        this.assertPartitions.add(assertPartition);
+    }
 
-	/**
+    /**
      * Get the variable name.
      * 
      * @return the <code>varName</code>
@@ -247,14 +247,15 @@ public class ArrayVariable extends ArrayTerm {
             Set<Token> noDependenceVars) {
         return new ArrayVariable(varName);
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	return new ArrayList<Integer>(this.assertPartitions);
+    @Override
+    public List<Integer> getAssertPartition() {
+        return new ArrayList<Integer>(this.assertPartitions);
     }
 
 }

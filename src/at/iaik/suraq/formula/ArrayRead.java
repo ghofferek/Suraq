@@ -354,16 +354,17 @@ public class ArrayRead extends DomainTerm {
                         topLeveFormula, constraints, noDependenceVars));
 
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	List<Integer> partitions =   arrayTerm.getAssertPartition();
-    	partitions.addAll(indexTerm.getAssertPartition());
-      
-    	return partitions;
+    @Override
+    public List<Integer> getAssertPartition() {
+        List<Integer> partitions = arrayTerm.getAssertPartition();
+        partitions.addAll(indexTerm.getAssertPartition());
+
+        return partitions;
     }
 }

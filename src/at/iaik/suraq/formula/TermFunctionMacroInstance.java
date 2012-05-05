@@ -398,12 +398,13 @@ public class TermFunctionMacroInstance extends DomainTerm {
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	List<Integer> partitions =  macro.getAssertPartition(); 
-     
+    @Override
+    public List<Integer> getAssertPartition() {
+        List<Integer> partitions = macro.getAssertPartition();
+
         for (Term term : paramMap.values())
-        	partitions.addAll(term.getAssertPartition());
-        
-    	return partitions;
+            partitions.addAll(term.getAssertPartition());
+
+        return partitions;
     }
 }

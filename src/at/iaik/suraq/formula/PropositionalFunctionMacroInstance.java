@@ -21,11 +21,11 @@ import at.iaik.suraq.sexp.Token;
  */
 public class PropositionalFunctionMacroInstance implements Formula {
 
-	 /**
+    /**
      * The assert-partitions
      */
-	protected List<Integer> assertPartitions = new ArrayList<Integer>();
-	
+    protected List<Integer> assertPartitions = new ArrayList<Integer>();
+
     /**
      * The macro of which this is an instance.
      */
@@ -414,18 +414,19 @@ public class PropositionalFunctionMacroInstance implements Formula {
                     exc);
         }
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	List<Integer> partitions = macro.getAssertPartition(); 
-     
-    	for (Term term : paramMap.values())
-        	partitions.addAll(term.getAssertPartition());
-        
-    	return partitions;
+    @Override
+    public List<Integer> getAssertPartition() {
+        List<Integer> partitions = macro.getAssertPartition();
+
+        for (Term term : paramMap.values())
+            partitions.addAll(term.getAssertPartition());
+
+        return partitions;
     }
 }

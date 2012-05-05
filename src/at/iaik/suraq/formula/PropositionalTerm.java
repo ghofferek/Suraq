@@ -20,11 +20,11 @@ import at.iaik.suraq.sexp.Token;
  */
 public abstract class PropositionalTerm extends Term implements Formula {
 
-	 /**
+    /**
      * The assert-partitions
      */
-	protected List<Integer> assertPartitions = new ArrayList<Integer>();
-	
+    protected List<Integer> assertPartitions = new ArrayList<Integer>();
+
     /**
      * @see at.iaik.suraq.formula.Term#getType()
      */
@@ -69,7 +69,8 @@ public abstract class PropositionalTerm extends Term implements Formula {
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	return new ArrayList<Integer>(this.assertPartitions);
+    @Override
+    public List<Integer> getAssertPartition() {
+        return new ArrayList<Integer>(this.assertPartitions);
     }
 }

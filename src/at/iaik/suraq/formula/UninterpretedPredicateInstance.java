@@ -23,11 +23,11 @@ import at.iaik.suraq.util.Util;
  */
 public class UninterpretedPredicateInstance implements Formula {
 
-	 /**
+    /**
      * The assert-partitions
      */
-	protected List<Integer> assertPartitions = new ArrayList<Integer>();
-	
+    protected List<Integer> assertPartitions = new ArrayList<Integer>();
+
     /**
      * The function of which this is an instance.
      */
@@ -351,19 +351,20 @@ public class UninterpretedPredicateInstance implements Formula {
 
         return newVar;
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	List<Integer> partitions =  function.getAssertPartition(); 
-     
-    	 for (DomainTerm term : parameters)
-        	partitions.addAll(term.getAssertPartition());
-        
-    	return partitions;
+    @Override
+    public List<Integer> getAssertPartition() {
+        List<Integer> partitions = function.getAssertPartition();
+
+        for (DomainTerm term : parameters)
+            partitions.addAll(term.getAssertPartition());
+
+        return partitions;
     }
 
 }
