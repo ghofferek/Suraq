@@ -3,8 +3,11 @@
  */
 package at.iaik.suraq.proof;
 
+import java.util.List;
+
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.ProofFormula;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -21,14 +24,19 @@ import at.iaik.suraq.sexp.Token;
 public class NonLocalResolutionProof {
 
     /**
-     * The two antecedents of the proof
+     * The two antecedents of the proof. These can be <code>null</code>, e.g.,
+     * if the consequent was already asserted (i.e., for leaves of the proof).
      */
     private NonLocalResolutionProof[] subProofs = new NonLocalResolutionProof[2];
 
     /**
      * The "literal" on which resolution is applied. This could e.g. be an
      * equality of the form (a=b), or (f(a)=c). It could also be a propositional
-     * variable, or an (uninterpreted) predicate instance.
+     * variable, or an (uninterpreted) predicate instance. <code>literal</code>
+     * will be <code>null</code> for leaves of the proof. In non-leave nodes,
+     * <code>literal</code> should store the positive (=non-negated) form of the
+     * resolution literal. I.e., <code>literal</code> should not be of type
+     * <code>NotFormula</code>.
      */
     private Formula literal;
 
@@ -58,9 +66,66 @@ public class NonLocalResolutionProof {
 
         Token proofType = z3Proof.getProofType();
 
-        // TODO finish implementation
+        if (proofType.equals(SExpressionConstants.ASSERTED)) {
+            // This is a leave of the proof tree.
+            subProofs[0] = null;
+            subProofs[1] = null;
+            consequent = z3Proof.getProofFormula(); // TODO Check the structure
+                                                    // of this formula
+            literal = null;
+            return;
+        } else if (proofType.equals(SExpressionConstants.AND_ELIM)) {
+            // Treat this as a leave.
+            // Relies on the assumption that and-elim is only used for things
+            // that have been asserted, and not on things are are proven
+            // separately.
+            subProofs[0] = null;
+            subProofs[1] = null;
+            consequent = z3Proof.getProofFormula(); // TODO Check the structure
+                                                    // of this formula
+            literal = null;
+            return;
+        } else if (proofType.equals(SExpressionConstants.NOT_OR_ELIM)) {
+            // Treat this as a leave.
+            // Relies on the assumption that not-or-elim is only used for things
+            // that have been asserted, and not on things are are proven
+            // separately.
+            subProofs[0] = null;
+            subProofs[1] = null;
+            consequent = z3Proof.getProofFormula(); // TODO Check the structure
+                                                    // of this formula
+            literal = null;
+            return;
+        } else if (proofType.equals(SExpressionConstants.REFLEXIVITY)) {
+            // Treat this as a leave, since it is axiomatically true.
+            subProofs[0] = null;
+            subProofs[1] = null;
+            consequent = z3Proof.getProofFormula(); // TODO Check the structure
+                                                    // of this formula
+            literal = null;
+            return;
+        } else if (proofType.equals(SExpressionConstants.SYMMETRY)) {
+            // Ignore symmetry. a=b and b=a should be treated as the
+            // same object by later steps anyway.
+            // NOTE (GH): Not sure if this is actually a correct assumption.
+            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            if (z3SubProofs.size() != 1)
+                throw new RuntimeException(
+                        "Symmetry proof with not exactly one child. This should not happen!");
+            ProofFormula z3SubProof = z3SubProofs.get(0);
+            NonLocalResolutionProof tmp = new NonLocalResolutionProof(
+                    z3SubProof);
+            this.consequent = tmp.consequent;
+            this.subProofs = tmp.subProofs;
+            this.literal = tmp.literal;
+            return;
+        }
+        // TODO finish implementation (add other relevant cases)
+        else {
+            throw new RuntimeException("Encountered unexpected proof rule "
+                    + proofType.toString()
+                    + " while trying to rewrite z3 proof.");
+        }
 
-        this.consequent = z3Proof.getProofFormula();
     }
-
 }
