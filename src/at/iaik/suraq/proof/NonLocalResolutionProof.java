@@ -159,7 +159,35 @@ public class NonLocalResolutionProof {
             this.literal = z3SubProof2.getProofFormula();
             return;
         } else if (proofType.equals(SExpressionConstants.MONOTONICITY)) {
-            // TODO
+            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            if (z3SubProofs.size() < 1)
+                throw new RuntimeException(
+                        "Monotonicity proof with less than one child. This should not happen!");
+
+            List<Formula> axiomParts = new ArrayList<Formula>();
+            for (ProofFormula z3SubProof : z3Proof.getSubProofs())
+                axiomParts.add(new NotFormula(z3SubProof.getProofFormula()));
+            axiomParts.add(z3Proof.getProofFormula());
+            OrFormula axiomFormula = new OrFormula(axiomParts);
+
+            NonLocalResolutionProof remainingAxiom = new NonLocalResolutionProof(
+                    null, null, null, axiomFormula);
+            for (int count = 0; count < z3SubProofs.size() - 1; count++) {
+                NonLocalResolutionProof currentEquality = new NonLocalResolutionProof(
+                        z3SubProofs.get(count));
+                axiomParts.remove(0);
+                remainingAxiom = new NonLocalResolutionProof(currentEquality,
+                        remainingAxiom, z3SubProofs.get(count)
+                                .getProofFormula(), new OrFormula(axiomParts));
+            }
+            this.subProofs[0] = new NonLocalResolutionProof(
+                    z3SubProofs.get(z3SubProofs.size() - 1));
+            this.subProofs[1] = remainingAxiom;
+            this.literal = z3SubProofs.get(z3SubProofs.size() - 1)
+                    .getProofFormula();
+            this.consequent = z3Proof.getProofFormula();
+            return;
+
         } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
             // TODO
         }
