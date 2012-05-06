@@ -404,8 +404,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = function.getAssertPartition();
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = function.getAssertPartition();
 
         for (DomainTerm term : parameters)
             partitions.addAll(term.getAssertPartition());

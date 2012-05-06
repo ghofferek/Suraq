@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -26,11 +27,6 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * The list of sub-formulas.
      */
     protected final List<Formula> formulas;
-
-    /**
-     * The list of assert-partitions.
-     */
-    protected final List<Integer> assertPartitions = new ArrayList<Integer>();
 
     /**
      * 
@@ -378,8 +374,8 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = new ArrayList<Integer>();
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = new TreeSet<Integer>();
 
         for (Formula formula : formulas)
             partitions.addAll(formula.getAssertPartition());

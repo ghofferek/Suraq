@@ -22,11 +22,6 @@ import at.iaik.suraq.sexp.Token;
 public class PropositionalFunctionMacroInstance implements Formula {
 
     /**
-     * The assert-partitions
-     */
-    protected List<Integer> assertPartitions = new ArrayList<Integer>();
-
-    /**
      * The macro of which this is an instance.
      */
     private final PropositionalFunctionMacro macro;
@@ -421,8 +416,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = macro.getAssertPartition();
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = macro.getAssertPartition();
 
         for (Term term : paramMap.values())
             partitions.addAll(term.getAssertPartition());

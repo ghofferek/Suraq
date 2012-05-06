@@ -354,8 +354,8 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = this.leftSide.getAssertPartition();
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = this.leftSide.getAssertPartition();
         partitions.addAll(this.rightSide.getAssertPartition());
 
         return partitions;

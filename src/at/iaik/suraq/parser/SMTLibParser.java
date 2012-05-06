@@ -60,6 +60,8 @@ public abstract class SMTLibParser extends Parser {
 	
 	protected final Map<Token, Term> terms = new HashMap<Token, Term>();
 	
+	private static final int GLOBAL_PARTITION = -1;
+	
     /**
      * constants for let expression types
      */
@@ -173,11 +175,14 @@ public abstract class SMTLibParser extends Parser {
                 throw new ParseError(expression,
                         "Found non-Boolean local variable where Bool sort was expected: "
                                 + expression.toString());
-            return new PropositionalVariable((Token) expression);
+            
+            int partition = getPartitionBoolVariable(expression); 
+            return new PropositionalVariable((Token) expression, partition);
         }
 
         if (isPropositionalVariable(expression)) {
-            return new PropositionalVariable((Token) expression);
+        	int partition = getPartitionBoolVariable(expression); 
+            return new PropositionalVariable((Token) expression,partition);
         }
 
         Token operator = isBooleanCombination(expression);
@@ -406,7 +411,62 @@ public abstract class SMTLibParser extends Parser {
             throw new ParseError(expression, "Error parsing formula body.");
     }
     
+	/**
+     * Determines the assert partition of a <code>PropositionalVariable</code>, based on
+     * previous assert-partition information stored in  <code>boolVariables</code>.
+     * 
+     * @param expression
+     *            the expression to check
+     * @return the variables assert partition
+     */
+    private int getPartitionBoolVariable(SExpression expression) {
+		
+    	for(PropositionalVariable var : boolVariables)
+    		if(var.equals(new PropositionalVariable((Token)expression))){
+    			Set<Integer> partitions = var.getAssertPartition();		
+    			return partitions.iterator().next();
+    		}
+    			
+    	return GLOBAL_PARTITION;
+	}
+    
     /**
+     * Determines the assert partition of a <code>DomainVariable</code>, based on
+     * previous assert-partition information stored in  <code>domainVariables</code>.
+     * 
+     * @param expression
+     *            the expression to check
+     * @return the variables assert partition
+     */
+    private int getPartitionDomainVariable(SExpression expression) {
+    	for(DomainVariable var : domainVariables)
+    		if(var.equals(new DomainVariable((Token)expression))){
+    			Set<Integer> partitions = var.getAssertPartition();		
+    			return partitions.iterator().next();
+    		}
+    			
+    	return GLOBAL_PARTITION;
+	}
+    
+    /**
+     * Determines the assert partition of a  <code>ArrayVariable</code>, based on
+     * previous assert-partition information stored in  <code>arrayVariables</code>.
+     * 
+     * @param expression
+     *            the expression to check
+     * @return the variables assert partition
+     */
+    private int getPartitionArrayVariable(SExpression expression) {
+    	for(ArrayVariable var : arrayVariables)
+    		if(var.equals(new ArrayVariable((Token)expression))){
+    			Set<Integer> partitions = var.getAssertPartition();		
+    			return partitions.iterator().next();
+    		}
+    			
+    	return GLOBAL_PARTITION;
+	}
+    
+	/**
      * Parses the given expression as a term.
      * 
      * @param expression
@@ -431,21 +491,26 @@ public abstract class SMTLibParser extends Parser {
     	}    	
     	
         if (isUVar(expression)) { // Takes precedence over other variable types
-            return new DomainVariable((Token) expression);
+            int partition = getPartitionDomainVariable(expression); 
+            return new DomainVariable((Token) expression, partition);
         }
 
         SExpression type = isLocalVariable(expression); // takes precedence over
                                                         // global variables.
         if (type != null) {
             if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
-                return new ArrayVariable((Token) expression);
+            	int partition = getPartitionArrayVariable(expression);
+                return new ArrayVariable((Token) expression,partition);
             }
             if (type.equals(SExpressionConstants.VALUE_TYPE)) {
-                return new DomainVariable((Token) expression);
+            	int partition = getPartitionDomainVariable(expression); 
+                return new DomainVariable((Token) expression, partition);
             }
             if (type.equals(SExpressionConstants.BOOL_TYPE)
                     || type.equals(SExpressionConstants.CONTROL_TYPE)) {
-                return new PropositionalVariable((Token) expression);
+            	
+            	int partition = getPartitionBoolVariable(expression);
+                return new PropositionalVariable((Token) expression,partition);
             }
             // In case we have a type that should not exist:
             throw new RuntimeException(
@@ -483,7 +548,8 @@ public abstract class SMTLibParser extends Parser {
         }
 
         if (isArrayVariable(expression)) {
-            return new ArrayVariable(expression.toString());
+        	int partition = getPartitionArrayVariable(expression);
+            return new ArrayVariable(expression.toString(),partition);
         }
 
         if (isArrayWrite(expression)) {
@@ -511,7 +577,8 @@ public abstract class SMTLibParser extends Parser {
         }
 
         if (isDomainVariable(expression)) {
-            return new DomainVariable(expression.toString());
+        	int partition = getPartitionDomainVariable(expression); 
+            return new DomainVariable(expression.toString(),partition);
         }
 
         UninterpretedFunction function = isUninterpredFunctionInstance(expression);
@@ -564,8 +631,9 @@ public abstract class SMTLibParser extends Parser {
             else if (expression.equals(SExpressionConstants.FALSE))
                 return new PropositionalConstant(false);
 
+            int partition = getPartitionBoolVariable(expression);
             PropositionalVariable variable = new PropositionalVariable(
-                    (Token) expression);
+                    (Token) expression, partition);
             if (!boolVariables.contains(variable)
                     && !controlVariables.contains(variable))
                 throw new RuntimeException(
@@ -622,8 +690,9 @@ public abstract class SMTLibParser extends Parser {
         Formula formula = parseFormulaBody(expression);
         return new FormulaTerm(formula);
     }
-	
-    /**
+
+
+	/**
      * Parses the list of universally quantified variables.
      * 
      * @param uVarsExpression
@@ -646,8 +715,11 @@ public abstract class SMTLibParser extends Parser {
             if (!(child.getChildren().get(0) instanceof Token))
                 throw new ParseError(child.getChildren().get(0),
                         "Expected variable name.");
+            
+            int partition = getPartitionDomainVariable(child.getChildren()
+                    .get(0)); 
             if (!uVars.add(new DomainVariable((Token) child.getChildren()
-                    .get(0)))) {
+                    .get(0),partition))) {
                 throw new ParseError(child.getChildren().get(0),
                         "Duplicate variable in quantifier scope: "
                                 + child.getChildren().get(0).toString());
@@ -973,5 +1045,85 @@ public abstract class SMTLibParser extends Parser {
 
         return (this.currentUVars.contains(new DomainVariable(
                 (Token) expression)));
-    }    
+    }   
+    
+    
+    /**
+     * Returns the formula that resulted from parsing, or <code>null</code> if
+     * parsing was not successful.
+     * 
+     * @return the formula that resulted from parsing, or <code>null</code> if
+     *         parsing was not successful.
+     */
+    public Formula getMainFormula() {
+        if (!wasParsingSuccessfull())
+            return null;
+        return mainFormula;
+    }
+
+
+    /**
+     * Returns a copy of the list of control variables.
+     * 
+     * @return a copy of the <code>controlVariables</code>
+     */
+    public List<PropositionalVariable> getControlVariables() {
+        return new ArrayList<PropositionalVariable>(controlVariables);
+    }
+
+    /**
+     * Returns a copy of the list of Boolean variables.
+     * 
+     * @return a copy of the <code>boolVariables</code>
+     */
+    public List<PropositionalVariable> getBoolVariables() {
+        return new ArrayList<PropositionalVariable>(boolVariables);
+    }
+
+    /**
+     * Returns a copy of the list of domain variables.
+     * 
+     * @return a copy of the <code>domainVariables</code>
+     */
+    public List<DomainVariable> getDomainVariables() {
+        return new ArrayList<DomainVariable>(domainVariables);
+    }
+
+    /**
+     * Returns a copy of the list of array variables.
+     * 
+     * @return a copy of the <code>arrayVariables</code>
+     */
+    public List<ArrayVariable> getArrayVariables() {
+        return new ArrayList<ArrayVariable>(arrayVariables);
+    }
+
+    /**
+     * Returns a copy of the list of variables on which control logic may
+     * <em>not</em> depend.
+     * 
+     * @return a copy of the list of variables on which control logic may
+     *         <em>not</em> depend.
+     */
+    public List<Token> getNoDependenceVariables() {
+        return new ArrayList<Token>(noDependenceVariables);
+    }
+
+    /**
+     * Returns a copy of the list of uninterpreted functions.
+     * 
+     * @return a copy of the <code>functions</code>
+     */
+    public List<UninterpretedFunction> getFunctions() {
+        return new ArrayList<UninterpretedFunction>(functions);
+    }
+
+    /**
+     * Returns a copy of the list of function macros.
+     * 
+     * @return a copy of the <code>macros</code>
+     */
+    public List<FunctionMacro> getMacros() {
+        return new ArrayList<FunctionMacro>(macros.values());
+    }	
 }

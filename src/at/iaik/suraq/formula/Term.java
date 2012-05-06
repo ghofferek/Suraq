@@ -3,9 +3,7 @@
  */
 package at.iaik.suraq.formula;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,11 +29,12 @@ public abstract class Term {
     public static final Class<?> propositionalTermClass = (new PropositionalVariable(
             "")).getClass().getSuperclass();
 
+    public final static int GLOBAL_PARTITION = -1;
     
 	 /**
      * The assert-partitions
      */
-	protected List<Integer> assertPartitions = new ArrayList<Integer>();
+	protected int assertPartition = GLOBAL_PARTITION;
 	
     /**
      * Checks whether all terms in the given list are compatible for
@@ -272,6 +271,6 @@ public abstract class Term {
      * 
      * @return assert-partition of the element.
      */
-    public abstract List<Integer> getAssertPartition();
+    public abstract Set<Integer> getAssertPartition();
 
 }

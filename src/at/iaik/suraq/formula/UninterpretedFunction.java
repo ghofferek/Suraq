@@ -3,8 +3,8 @@
  */
 package at.iaik.suraq.formula;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import at.iaik.suraq.sexp.Token;
 
@@ -22,7 +22,7 @@ public class UninterpretedFunction {
 	 /**
      * The assert-partitions
      */
-	protected List<Integer> assertPartitions = new ArrayList<Integer>();
+	protected int assertPartition = Term.GLOBAL_PARTITION;
 	
     /**
      * The number of parameters.
@@ -89,12 +89,26 @@ public class UninterpretedFunction {
         this.type = new Token(original.type);
     }
 
+    /**
+     * 
+     * Constructs a new <code>UninterpretedFunction</code>.
+     * 
+     * @param name
+     *            the name of the function
+     * @param numParams
+     *            the number of parameters.
+     * @param type
+     *            the return type of the function (<code>Value</code> or
+     *            <code>Bool</code>).
+     * @param assertPartition
+     *            the function's assert-partition.
+     */
     public UninterpretedFunction(String name, int numParams, Token type,
 			int assertPartition) {
     	this.name = new Token(name);
         this.numParams = numParams;
         this.type = type;
-    	this.assertPartitions.add(assertPartition);
+    	this.assertPartition = assertPartition;
 	}
 
 	/**
@@ -156,8 +170,10 @@ public class UninterpretedFunction {
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	return new ArrayList<Integer>(this.assertPartitions);
+    public Set<Integer> getAssertPartition(){
+    	Set<Integer> partitions = new TreeSet<Integer>();
+    	partitions.add(this.assertPartition);
+    	return partitions;
     }
 
 }

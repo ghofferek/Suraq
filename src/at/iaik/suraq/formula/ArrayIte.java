@@ -4,7 +4,6 @@
 package at.iaik.suraq.formula;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -369,8 +368,8 @@ public class ArrayIte extends ArrayTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = condition.getAssertPartition();
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = condition.getAssertPartition();
         partitions.addAll(thenBranch.getAssertPartition());
         partitions.addAll(elseBranch.getAssertPartition());
 

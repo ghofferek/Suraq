@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
@@ -30,11 +31,6 @@ public abstract class EqualityFormula implements Formula {
      * <code>true</code> for an equality, <code>false</code> for an inequality.
      */
     protected final boolean equal;
-
-    /**
-     * The assert-partitions
-     */
-    protected List<Integer> assertPartitions = new ArrayList<Integer>();
 
     /**
      * 
@@ -467,8 +463,8 @@ public abstract class EqualityFormula implements Formula {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = new ArrayList<Integer>();
+    public Set<Integer> getAssertPartition() {
+       Set<Integer> partitions = new TreeSet<Integer>();
 
         for (Term term : terms)
             partitions.addAll(term.getAssertPartition());

@@ -3,11 +3,10 @@
  */
 package at.iaik.suraq.formula;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -47,10 +46,34 @@ public class ArrayVariable extends ArrayTerm {
         this.varName = name.toString();
     }
 
+    /**
+     * 
+     * Constructs a new <code>ArrayVariable</code>.
+     * 
+     * @param name
+     *            the <code>String</code> representing the variable name.           
+     * @param assertPartition
+     *            the assert-partition of the variable
+     */
     public ArrayVariable(String name, int assertPartition) {
-        this.varName = name.toString();
-        this.assertPartitions.add(assertPartition);
+        this.varName = name;
+        this.assertPartition=assertPartition;
     }
+    
+    /**
+     * 
+     * Constructs a new <code>ArrayVariable</code>.
+     * 
+     * @param name
+     *            the <code>Token</code> representing the variable name.           
+     * @param assertPartition
+     *            the assert-partition of the variable
+     */
+    public ArrayVariable(Token name, int assertPartition) {
+        this.varName = name.toString();
+        this.assertPartition=assertPartition;
+    }
+    
 
     /**
      * Get the variable name.
@@ -254,8 +277,10 @@ public class ArrayVariable extends ArrayTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        return new ArrayList<Integer>(this.assertPartitions);
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = new TreeSet<Integer>();
+        partitions.add(assertPartition);
+        return partitions;
     }
 
 }

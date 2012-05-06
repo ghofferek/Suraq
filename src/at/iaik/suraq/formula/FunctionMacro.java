@@ -25,11 +25,6 @@ public abstract class FunctionMacro {
      */
     protected final Token name;
     protected final List<Token> parameters;
-    
-    /**
-     * The assert-partitions
-     */
-	protected List<Integer> assertPartitions = new ArrayList<Integer>();
 	
     /**
      * The map of parameters to their types.
@@ -220,8 +215,6 @@ public abstract class FunctionMacro {
      * 
      * @return assert-partition of the element.
      */
-    public List<Integer> getAssertPartition(){
-    	return new ArrayList<Integer>(this.assertPartitions);
-    }
+    public abstract Set<Integer> getAssertPartition();
 
 }

@@ -2,8 +2,6 @@
  * Author: Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  */
 package at.iaik.suraq.formula;
-
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -243,7 +241,7 @@ public class FormulaTerm extends PropositionalTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
+    public Set<Integer> getAssertPartition() {
         return formula.getAssertPartition();
     }
 

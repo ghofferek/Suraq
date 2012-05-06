@@ -391,4 +391,15 @@ public class NotFormula extends BooleanCombinationFormula {
                 formula.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }
+
+   /**
+    * Returns the elements assert-partition.
+    * 
+    * @return assert-partition of the element.
+    */
+	@Override
+	public Set<Integer> getAssertPartition() {
+		
+		return formula.getAssertPartition();
+	}
 }

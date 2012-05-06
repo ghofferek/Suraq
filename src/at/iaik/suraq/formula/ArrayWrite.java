@@ -431,8 +431,8 @@ public class ArrayWrite extends ArrayTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = arrayTerm.getAssertPartition();
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = arrayTerm.getAssertPartition();
         partitions.addAll(indexTerm.getAssertPartition());
         partitions.addAll(valueTerm.getAssertPartition());
 

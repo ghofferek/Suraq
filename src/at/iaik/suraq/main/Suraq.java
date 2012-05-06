@@ -279,7 +279,7 @@ public class Suraq implements Runnable {
 					return;
 				}
 				
-				//build function and variable lists
+				//build function and variable lists for proof parser
 				Set<PropositionalVariable> propsitionalVars = formula.getPropositionalVariables();
 				Set<DomainVariable> domainVars = formula.getDomainVariables();
 				Set<ArrayVariable> arrayVars = formula.getArrayVariables();
@@ -322,7 +322,10 @@ public class Suraq implements Runnable {
 					noErrors = false;
 					return;
 				}
-				System.out.println("");
+				Formula proofFormula = proofParser.getMainFormula();
+				Set<Integer> partitions = proofFormula.getAssertPartition();
+				
+				System.out.println("partitions"+ partitions);
 			}
 	
 			System.out.println(" done!");

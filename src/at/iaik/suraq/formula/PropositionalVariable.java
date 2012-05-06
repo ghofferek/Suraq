@@ -6,6 +6,7 @@ package at.iaik.suraq.formula;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -23,6 +24,11 @@ public class PropositionalVariable extends PropositionalTerm {
      * The name of the variable.
      */
     private final String varName;
+
+    /**
+     * The assert-partitions
+     */
+    protected int assertPartition = Term.GLOBAL_PARTITION;
 
     /**
      * 
@@ -46,9 +52,32 @@ public class PropositionalVariable extends PropositionalTerm {
         this.varName = name.toString();
     }
 
+    /**
+     * 
+     * Constructs a new <code>PropositionalVariable</code>.
+     * 
+     * @param name
+     *            the <code>Token</code> representing the variable name.
+     * @param assertPartition
+     * 			  the assert partition of the variable.           
+     */    
+    public PropositionalVariable(Token name, int assertPartition) {
+        this.varName = name.toString();
+    	this.assertPartition = assertPartition;        
+    }    
+    
+    /**
+     * 
+     * Constructs a new <code>PropositionalVariable</code>.
+     * 
+     * @param name
+     *            the <code>String</code> representing the variable name.
+     * @param assertPartition
+     * 			  the assert partition of the variable.           
+     */    
     public PropositionalVariable(String name, int assertPartition) {
     	this.varName = name.toString();
-    	this.assertPartitions.add(assertPartition);
+    	this.assertPartition = assertPartition;
 	}
 
 	/**
@@ -263,6 +292,18 @@ public class PropositionalVariable extends PropositionalTerm {
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new PropositionalVariable(varName);
+    }
+    
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    @Override
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = new TreeSet<Integer>();
+        partitions.add(assertPartition);
+        return partitions;
     }
 
 }

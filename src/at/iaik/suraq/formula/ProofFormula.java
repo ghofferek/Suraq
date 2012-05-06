@@ -35,11 +35,6 @@ public class ProofFormula implements Formula {
     private Formula proofFormula;
 
     /**
-     * The assert-partitions
-     */
-    protected List<Integer> assertPartitions = new ArrayList<Integer>();
-
-    /**
      * 
      * Constructs a new <code>ProofFormula</code>.
      * 
@@ -354,8 +349,8 @@ public class ProofFormula implements Formula {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = proofFormula.getAssertPartition();
+    public Set<Integer> getAssertPartition() {
+        Set<Integer> partitions = proofFormula.getAssertPartition();
 
         for (ProofFormula proof : subProofs)
             partitions.addAll(proof.getAssertPartition());

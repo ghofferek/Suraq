@@ -6,6 +6,7 @@ package at.iaik.suraq.formula;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -239,4 +240,9 @@ public class PropositionalConstant extends PropositionalTerm {
             Set<Token> noDependenceVars) {
         return new PropositionalConstant(constant);
     }
+
+	@Override
+	public Set<Integer> getAssertPartition() {
+		return new TreeSet<Integer>();
+	}
 }

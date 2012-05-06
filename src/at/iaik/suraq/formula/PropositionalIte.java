@@ -409,8 +409,8 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @return assert-partition of the element.
      */
     @Override
-    public List<Integer> getAssertPartition() {
-        List<Integer> partitions = condition.getAssertPartition();
+    public Set<Integer> getAssertPartition() {
+    	Set<Integer> partitions = condition.getAssertPartition();
         partitions.addAll(thenBranch.getAssertPartition());
         partitions.addAll(elseBranch.getAssertPartition());
 
