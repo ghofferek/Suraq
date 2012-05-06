@@ -123,13 +123,7 @@ public abstract class SMTLibParser extends Parser {
      * The set of universally quantified variables in current scope.
      */
     protected Collection<DomainVariable> currentUVars = null;
-    	
-	
-	@Override
-	public void parse() throws ParseError {
-		// TODO Auto-generated method stub
-		
-	}
+
 	
 	 /**
      * Parses a given s-expression into a formula.
