@@ -127,9 +127,9 @@ public class SExpressionConstants {
     public static final SExpression DISTRIBUTIVITY = SExpression
             .fromString("distributivity");
     public static final SExpression AND_ELIM = SExpression
-            .fromString("|and-elim|");
+            .fromString("and-elim");
     public static final SExpression NOT_OR_ELIM = SExpression
-            .fromString("|not-or-elim|");
+            .fromString("not-or-elim");
     public static final SExpression REWRITE = SExpression.fromString("rewrite");
     public static final SExpression REWRITE_STAR = SExpression
             .fromString("rewrite-star");
@@ -148,7 +148,7 @@ public class SExpressionConstants {
             .fromString("hypothesis");
     public static final SExpression LEMMA = SExpression.fromString("lemma");
     public static final SExpression UNIT_RESOLUTION = SExpression
-            .fromString("|unit-resolution|");
+            .fromString("unit-resolution");
     public static final SExpression IFF_TRUE = SExpression
             .fromString("iff-true");
     public static final SExpression IFF_FALSE = SExpression
@@ -156,7 +156,7 @@ public class SExpressionConstants {
     public static final SExpression COMMUTATIVITY = SExpression
             .fromString("commutativity");
     public static final SExpression AXIOM = SExpression
-            .fromString("|def-axiom|");
+            .fromString("def-axiom");
     public static final SExpression INTRO = SExpression.fromString("intro");
     public static final SExpression APPLY_DEF = SExpression
             .fromString("apply-def");
