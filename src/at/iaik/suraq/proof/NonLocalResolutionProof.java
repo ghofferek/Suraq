@@ -5,12 +5,17 @@ package at.iaik.suraq.proof;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.formula.NotFormula;
 import at.iaik.suraq.formula.OrFormula;
 import at.iaik.suraq.formula.ProofFormula;
+import at.iaik.suraq.formula.PropositionalConstant;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 
@@ -50,6 +55,12 @@ public class NonLocalResolutionProof {
      */
     private Formula consequent;
 
+    /**
+     * Indicates that this proof object is a hypothesis. This implies that it is
+     * also a leave.
+     */
+    private boolean hypothesis = false;
+
     public NonLocalResolutionProof(NonLocalResolutionProof antecedent1,
             NonLocalResolutionProof antecedent2, Formula literal,
             Formula consequent) {
@@ -86,6 +97,15 @@ public class NonLocalResolutionProof {
             consequent = z3Proof.getProofFormula(); // TODO Check the structure
                                                     // of this formula?
             literal = null;
+            return;
+        } else if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
+            // Trest this as a leave.
+            subProofs[0] = null;
+            subProofs[1] = null;
+            consequent = z3Proof.getProofFormula(); // TODO Check the structure
+                                                    // of this formula?
+            literal = null;
+            hypothesis = true;
             return;
         } else if (proofType.equals(SExpressionConstants.AND_ELIM)) {
             // Treat this as a leave.
@@ -237,9 +257,25 @@ public class NonLocalResolutionProof {
             this.literal = z3SubProofs.get(0).getProofFormula();
             this.consequent = z3Proof.getProofFormula();
             return;
+        } else if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
+            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            if (z3SubProofs.size() != 1)
+                throw new RuntimeException(
+                        "Lemma proof with not exactly one child. This should not happen!");
+            NonLocalResolutionProof hypotheticalProof = new NonLocalResolutionProof(
+                    z3SubProofs.get(0));
+            if (!hypotheticalProof.consequent.equals(new PropositionalConstant(
+                    false)))
+                throw new RuntimeException(
+                        "Hypothetical proof (antecedent of lemma) does not prove false, but: "
+                                + hypotheticalProof.consequent.toString());
+            Map<NonLocalResolutionProof, NonLocalResolutionProof> parents = new HashMap<NonLocalResolutionProof, NonLocalResolutionProof>();
+            hypotheticalProof.removeHypotheses(parents);
+            this.subProofs = hypotheticalProof.subProofs;
+            this.consequent = hypotheticalProof.consequent;
+            this.literal = hypotheticalProof.literal;
+            return;
         }
-
-        // TODO hypothesis? lemma?
 
         // TODO add other relevant cases, if any
         else {
@@ -247,6 +283,81 @@ public class NonLocalResolutionProof {
                     + proofType.toString()
                     + " while trying to rewrite z3 proof.");
         }
+    }
 
+    /**
+     * Computes the set of hypotheses on which this proof is based. A map from
+     * children to parents is constructed along the way. Also, the proof is
+     * on-the-fly restructured so that it has no more hypotheses.
+     * 
+     * @param parents
+     *            call-by-reference parameter for child->parent map.
+     * @return The set of hypotheses that were removed from the proof.
+     */
+    private Set<Formula> removeHypotheses(
+            Map<NonLocalResolutionProof, NonLocalResolutionProof> parents) {
+        Set<Formula> result = new HashSet<Formula>();
+        if (hypothesis) {
+            // update ancestors' consequents
+            NonLocalResolutionProof parent = parents.get(this);
+            while (parent != null) {
+                Collection<Formula> newDisjuncts = null;
+                if (parent.consequent instanceof OrFormula) {
+                    newDisjuncts = ((OrFormula) parent.consequent)
+                            .getDisjuncts();
+                } else {
+                    newDisjuncts = new ArrayList<Formula>();
+                    newDisjuncts.add(parent.consequent);
+                }
+                newDisjuncts.add(new NotFormula(this.consequent));
+                parent.consequent = new OrFormula(newDisjuncts);
+                parent = parents.get(parent);
+            }
+
+            // update parent's subproofs and literal
+            NonLocalResolutionProof otherChild = parent.subProofs[(this == parent.subProofs[0]) ? 1
+                    : 0];
+            parent.subProofs = otherChild.subProofs;
+            parent.literal = otherChild.literal;
+
+            result.add(consequent);
+            return result;
+        }
+
+        for (NonLocalResolutionProof subProof : subProofs) {
+            if (subProof != null) {
+                parents.put(subProof, this);
+                result.addAll(subProof.removeHypotheses(parents));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @return the <code>subProofs</code>
+     */
+    public NonLocalResolutionProof[] getSubProofs() {
+        return subProofs;
+    }
+
+    /**
+     * @return the <code>literal</code>
+     */
+    public Formula getLiteral() {
+        return literal;
+    }
+
+    /**
+     * @return the <code>consequent</code>
+     */
+    public Formula getConsequent() {
+        return consequent;
+    }
+
+    /**
+     * @return the <code>hypothesis</code>
+     */
+    public boolean isHypothesis() {
+        return hypothesis;
     }
 }
