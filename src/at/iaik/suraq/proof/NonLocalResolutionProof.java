@@ -211,7 +211,12 @@ public class NonLocalResolutionProof {
                         nonUnitAntecedent, z3SubProofs.get(count)
                                 .getProofFormula(), remainingNonUnitFormula);
             }
-            // TODO last step (= initialize "this").
+            this.subProofs[0] = new NonLocalResolutionProof(
+                    z3SubProofs.get(z3SubProofs.size() - 1));
+            this.subProofs[1] = nonUnitAntecedent;
+            this.literal = z3SubProofs.get(z3SubProofs.size() - 1)
+                    .getProofFormula();
+            this.consequent = z3Proof.getProofFormula();
         }
         // TODO hypothesis? lemma?
 
