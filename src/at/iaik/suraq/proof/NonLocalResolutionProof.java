@@ -4,6 +4,7 @@
 package at.iaik.suraq.proof;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import at.iaik.suraq.formula.Formula;
@@ -189,8 +190,31 @@ public class NonLocalResolutionProof {
             return;
 
         } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
-            // TODO
+            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            if (z3SubProofs.size() < 2)
+                throw new RuntimeException(
+                        "Unit-Resolution proof with less than two child. This should not happen!");
+            NonLocalResolutionProof nonUnitAntecedent = new NonLocalResolutionProof(
+                    z3SubProofs.get(0));
+            if (!(nonUnitAntecedent.consequent instanceof OrFormula))
+                throw new RuntimeException(
+                        "Antecedent of Unit-Resolution proof is not an OrFormula. This should not happen.");
+            OrFormula remainingNonUnitFormula = (OrFormula) nonUnitAntecedent.consequent;
+
+            for (int count = 1; count < z3SubProofs.size() - 1; count++) {
+                Collection<Formula> newDisjuncts = remainingNonUnitFormula
+                        .getDisjuncts();
+                newDisjuncts.remove(z3SubProofs.get(count).getProofFormula());
+                remainingNonUnitFormula = new OrFormula(newDisjuncts);
+                nonUnitAntecedent = new NonLocalResolutionProof(
+                        new NonLocalResolutionProof(z3SubProofs.get(count)),
+                        nonUnitAntecedent, z3SubProofs.get(count)
+                                .getProofFormula(), remainingNonUnitFormula);
+            }
+            // TODO last step (= initialize "this").
         }
+        // TODO hypothesis? lemma?
+
         // TODO add other relevant cases, if any
         else {
             throw new RuntimeException("Encountered unexpected proof rule "
