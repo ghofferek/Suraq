@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.NotFormula;
-import at.iaik.suraq.formula.OrFormula;
-import at.iaik.suraq.formula.ProofFormula;
-import at.iaik.suraq.formula.PropositionalConstant;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.Z3Proof;
+import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -75,7 +75,7 @@ public class NonLocalResolutionProof {
         // formulas
     }
 
-    public NonLocalResolutionProof(ProofFormula z3Proof) {
+    public NonLocalResolutionProof(Z3Proof z3Proof) {
 
         // Go through all possible cases of z3 proof rules
 
@@ -141,11 +141,11 @@ public class NonLocalResolutionProof {
             // Ignore symmetry. a=b and b=a should be treated as the
             // same object by later steps anyway.
             // NOTE (GH): Not sure if this is actually a correct assumption.
-            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() != 1)
                 throw new RuntimeException(
                         "Symmetry proof with not exactly one child. This should not happen!");
-            ProofFormula z3SubProof = z3SubProofs.get(0);
+            Z3Proof z3SubProof = z3SubProofs.get(0);
             NonLocalResolutionProof tmp = new NonLocalResolutionProof(
                     z3SubProof);
             this.consequent = tmp.consequent;
@@ -153,12 +153,12 @@ public class NonLocalResolutionProof {
             this.literal = tmp.literal;
             return;
         } else if (proofType.equals(SExpressionConstants.TRANSITIVITY)) {
-            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() != 2)
                 throw new RuntimeException(
                         "Transitivity proof with not exactly two children. This should not happen!");
-            ProofFormula z3SubProof1 = z3SubProofs.get(0);
-            ProofFormula z3SubProof2 = z3SubProofs.get(1);
+            Z3Proof z3SubProof1 = z3SubProofs.get(0);
+            Z3Proof z3SubProof2 = z3SubProofs.get(1);
             List<Formula> axiomParts = new ArrayList<Formula>();
             axiomParts.add(new NotFormula(z3SubProof1.getProofFormula()));
             axiomParts.add(new NotFormula(z3SubProof2.getProofFormula()));
@@ -189,13 +189,13 @@ public class NonLocalResolutionProof {
             this.literal = z3SubProof2.getProofFormula();
             return;
         } else if (proofType.equals(SExpressionConstants.MONOTONICITY)) {
-            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() < 1)
                 throw new RuntimeException(
                         "Monotonicity proof with less than one child. This should not happen!");
 
             List<Formula> axiomParts = new ArrayList<Formula>();
-            for (ProofFormula z3SubProof : z3Proof.getSubProofs())
+            for (Z3Proof z3SubProof : z3Proof.getSubProofs())
                 axiomParts.add(new NotFormula(z3SubProof.getProofFormula()));
             axiomParts.add(z3Proof.getProofFormula());
             OrFormula axiomFormula = new OrFormula(axiomParts);
@@ -219,7 +219,7 @@ public class NonLocalResolutionProof {
             return;
 
         } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
-            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() < 2)
                 throw new RuntimeException(
                         "Unit-Resolution proof with less than two child. This should not happen!");
@@ -248,7 +248,7 @@ public class NonLocalResolutionProof {
             this.consequent = z3Proof.getProofFormula();
             return;
         } else if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
-            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() != 2)
                 throw new RuntimeException(
                         "Modus-Ponens proof with not exactly two children. This should not happen!");
@@ -258,7 +258,7 @@ public class NonLocalResolutionProof {
             this.consequent = z3Proof.getProofFormula();
             return;
         } else if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
-            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() != 1)
                 throw new RuntimeException(
                         "Lemma proof with not exactly one child. This should not happen!");

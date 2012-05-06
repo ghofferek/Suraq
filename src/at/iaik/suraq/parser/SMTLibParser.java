@@ -14,47 +14,47 @@ import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
-import at.iaik.suraq.formula.AndFormula;
-import at.iaik.suraq.formula.ArrayIte;
-import at.iaik.suraq.formula.ArrayProperty;
-import at.iaik.suraq.formula.ArrayRead;
-import at.iaik.suraq.formula.ArrayTerm;
-import at.iaik.suraq.formula.ArrayVariable;
-import at.iaik.suraq.formula.ArrayWrite;
-import at.iaik.suraq.formula.DomainIte;
-import at.iaik.suraq.formula.DomainTerm;
-import at.iaik.suraq.formula.DomainVariable;
-import at.iaik.suraq.formula.EqualityFormula;
-import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.FormulaTerm;
-import at.iaik.suraq.formula.FunctionMacro;
-import at.iaik.suraq.formula.ImpliesFormula;
-import at.iaik.suraq.formula.NotFormula;
-import at.iaik.suraq.formula.OrFormula;
-import at.iaik.suraq.formula.ProofFormula;
-import at.iaik.suraq.formula.PropositionalConstant;
-import at.iaik.suraq.formula.PropositionalFunctionMacro;
-import at.iaik.suraq.formula.PropositionalFunctionMacroInstance;
-import at.iaik.suraq.formula.PropositionalIte;
-import at.iaik.suraq.formula.PropositionalTerm;
-import at.iaik.suraq.formula.PropositionalVariable;
-import at.iaik.suraq.formula.Term;
-import at.iaik.suraq.formula.TermFunctionMacro;
-import at.iaik.suraq.formula.TermFunctionMacroInstance;
-import at.iaik.suraq.formula.UninterpretedFunction;
-import at.iaik.suraq.formula.UninterpretedFunctionInstance;
-import at.iaik.suraq.formula.UninterpretedPredicateInstance;
-import at.iaik.suraq.formula.XorFormula;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.Z3Proof;
+import at.iaik.suraq.smtlib.formula.AndFormula;
+import at.iaik.suraq.smtlib.formula.ArrayIte;
+import at.iaik.suraq.smtlib.formula.ArrayProperty;
+import at.iaik.suraq.smtlib.formula.ArrayRead;
+import at.iaik.suraq.smtlib.formula.ArrayTerm;
+import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.ArrayWrite;
+import at.iaik.suraq.smtlib.formula.DomainIte;
+import at.iaik.suraq.smtlib.formula.DomainTerm;
+import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.EqualityFormula;
+import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
+import at.iaik.suraq.smtlib.formula.FunctionMacro;
+import at.iaik.suraq.smtlib.formula.ImpliesFormula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.PropositionalFunctionMacro;
+import at.iaik.suraq.smtlib.formula.PropositionalFunctionMacroInstance;
+import at.iaik.suraq.smtlib.formula.PropositionalIte;
+import at.iaik.suraq.smtlib.formula.PropositionalTerm;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.TermFunctionMacro;
+import at.iaik.suraq.smtlib.formula.TermFunctionMacroInstance;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.smtlib.formula.XorFormula;
 
 public abstract class SMTLibParser extends Parser {
 
 	/**
      * maps containing proof references
      */
-	protected final Map<Token, ProofFormula> proofs = new HashMap<Token, ProofFormula>();
+	protected final Map<Token, Z3Proof> proofs = new HashMap<Token, Z3Proof>();
 	
 	protected final Map<Token, Formula> formulas = new HashMap<Token, Formula>();
 	
@@ -68,11 +68,7 @@ public abstract class SMTLibParser extends Parser {
     public static final char REF_PROOF ='@';   
     public static final char REF_FORMULA = '$';     
     public static final char REF_TERM = '?';
-    
-    /**
-     * The formula that results from parsing.
-     */
-    protected Formula mainFormula = null;
+
 
     /**
      * The list of control variables found during parsing
@@ -1041,21 +1037,6 @@ public abstract class SMTLibParser extends Parser {
                 (Token) expression)));
     }   
     
-    
-    /**
-     * Returns the formula that resulted from parsing, or <code>null</code> if
-     * parsing was not successful.
-     * 
-     * @return the formula that resulted from parsing, or <code>null</code> if
-     *         parsing was not successful.
-     */
-    public Formula getMainFormula() {
-        if (!wasParsingSuccessfull())
-            return null;
-        return mainFormula;
-    }
-
-
     /**
      * Returns a copy of the list of control variables.
      * 

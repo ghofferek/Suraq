@@ -12,17 +12,17 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import at.iaik.suraq.formula.ArrayEq;
-import at.iaik.suraq.formula.ArrayProperty;
-import at.iaik.suraq.formula.ArrayRead;
-import at.iaik.suraq.formula.ArrayTerm;
-import at.iaik.suraq.formula.ArrayVariable;
-import at.iaik.suraq.formula.ArrayWrite;
-import at.iaik.suraq.formula.DomainEq;
-import at.iaik.suraq.formula.DomainTerm;
-import at.iaik.suraq.formula.DomainVariable;
-import at.iaik.suraq.formula.Formula;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.ArrayEq;
+import at.iaik.suraq.smtlib.formula.ArrayProperty;
+import at.iaik.suraq.smtlib.formula.ArrayRead;
+import at.iaik.suraq.smtlib.formula.ArrayTerm;
+import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.ArrayWrite;
+import at.iaik.suraq.smtlib.formula.DomainEq;
+import at.iaik.suraq.smtlib.formula.DomainTerm;
+import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.Formula;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>

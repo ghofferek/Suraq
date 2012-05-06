@@ -174,7 +174,7 @@ public class SExpressionConstants {
     public static final SExpression TH_LEMMA = SExpression
             .fromString("th-lemma");
     public static final SExpression TRANS = SExpression.fromString("trans");
-
+    public static final SExpression MP = SExpression.fromString("mp");
     public static final SExpression[] PROOF_TYPES = SExpressionConstants
             .createProofTypes();
 
@@ -186,7 +186,7 @@ public class SExpressionConstants {
 
     public static SExpression[] createProofTypes() {
 
-        SExpression[] proofTypes = new SExpression[40];
+        SExpression[] proofTypes = new SExpression[41];
 
         // see: z3_api.h
         proofTypes[0] = SExpressionConstants.UNDEF;
@@ -229,7 +229,7 @@ public class SExpressionConstants {
         proofTypes[37] = SExpressionConstants.MODUS_PONENS_OEQ;
         proofTypes[38] = SExpressionConstants.TH_LEMMA;
         proofTypes[39] = SExpressionConstants.TRANS;
-
+        proofTypes[40] = SExpressionConstants.MP;
         return proofTypes;
     }
 }

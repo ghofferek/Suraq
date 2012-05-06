@@ -8,17 +8,16 @@ import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
-import at.iaik.suraq.formula.AndFormula;
-import at.iaik.suraq.formula.ArrayVariable;
-import at.iaik.suraq.formula.DomainVariable;
-import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.ProofFormula;
-import at.iaik.suraq.formula.PropositionalVariable;
-import at.iaik.suraq.formula.Term;
-import at.iaik.suraq.formula.UninterpretedFunction;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.Z3Proof;
+import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -26,6 +25,12 @@ import at.iaik.suraq.sexp.Token;
  */
 public class ProofParser extends SMTLibParser {
 
+	
+    /**
+     * The proof that results from parsing.
+     */
+    protected Z3Proof rootProof = null;		
+	
     /**
      * 
      * Constructs a new <code>ProofParser</code>.
@@ -70,8 +75,8 @@ public class ProofParser extends SMTLibParser {
     }
 
     /**
-     * Parses the root s-expression into a formula, which can then be retrieved
-     * using <code>getFormula</code>.
+     * Parses the root s-expression into a proof, which can then be retrieved
+     * using <code>getRootProof</code>.
      * 
      * @see at.iaik.suraq.parser.Parser#parse()
      */
@@ -121,9 +126,9 @@ public class ProofParser extends SMTLibParser {
     }
 
     /**
-     * Handles an let expression. I.e., if <code>mainFormula</code> is still
+     * Handles an let expression. I.e., if <code>rootProof</code> is still
      * <code>null</code>, it will be initialized to the result of parsing this
-     * assert statement's body. If <code>mainFormula</code> already is non-
+     * assert statement's body. If <code>rootProof</code> already is non-
      * <code>null</code>, a conjunction of its current value an the parsed body
      * will be made.
      * 
@@ -131,9 +136,7 @@ public class ProofParser extends SMTLibParser {
      *            the assert expression to parse.
      */
     private void handleLet(SExpression expression) throws ParseError {
-
-        // (let (($x5 (or a c))) scope)
-
+    	
         Token key = (Token) expression.getChildren().get(1).getChildren()
                 .get(0).getChildren().get(0);
         SExpression entryExpr = expression.getChildren().get(1).getChildren()
@@ -142,22 +145,19 @@ public class ProofParser extends SMTLibParser {
         insertLUTEntry(key, entryExpr);
 
         SExpression scopeExpr = expression.getChildren().get(2);
-        Formula scope = parseBody(scopeExpr);
+        Z3Proof scope = parseBody(scopeExpr);
 
-        if (mainFormula == null)
-            mainFormula = scope;
+        if (rootProof == null)
+        	rootProof = scope;
         else {
-            List<Formula> list = new ArrayList<Formula>();
-            list.add(mainFormula);
-            list.add(scope);
-            mainFormula = new AndFormula(list);
+            throw new RuntimeException ("Found more than one proof, aborting.");
         }
     }
 
     /**
-     * Handles an proof expression. I.e., if <code>mainFormula</code> is still
+     * Handles an proof expression. I.e., if <code>rootProof</code> is still
      * <code>null</code>, it will be initialized to the result of parsing this
-     * assert statement's body. If <code>mainFormula</code> already is non-
+     * assert statement's body. If <code>rootProof</code> already is non-
      * <code>null</code>, a conjunction of its current value an the parsed body
      * will be made.
      * 
@@ -165,8 +165,6 @@ public class ProofParser extends SMTLibParser {
      *            the assert expression to parse.
      */
     private void handleProof(SExpression expression) throws ParseError {
-        // (asserted @x38 @x35 $x11) oder (asserted (hypothesis $x7) @x35 (or a
-        // c))
 
         assert (expression.getChildren().get(0) instanceof Token);
 
@@ -175,28 +173,25 @@ public class ProofParser extends SMTLibParser {
         int numChildren = expression.getChildren().size();
         assert (numChildren <= 2);
 
-        int subProofsCount = numChildren - 2; // first child is proofType, last
-                                              // one is proofFormula
-        List<ProofFormula> subProofs = new ArrayList<ProofFormula>();
+        int subProofsCount = numChildren - 2; 
+        
+        List<Z3Proof> subProofs = new ArrayList<Z3Proof>();
         if (subProofsCount > 0)
             for (int i = 1; i <= subProofsCount; i++) {
-                subProofs.add(parseProofBody(expression.getChildren().get(i)));
+                subProofs.add(parseBody(expression.getChildren().get(i)));
             }
 
         SExpression proofFormulaExpr = expression.getChildren().get(
                 numChildren - 1);
         Formula proofFormula = parseFormulaBody(proofFormulaExpr);
 
-        ProofFormula formula = new ProofFormula(proofType, subProofs,
+        Z3Proof proof = new Z3Proof(proofType, subProofs,
                 proofFormula);
 
-        if (mainFormula == null)
-            mainFormula = formula;
+        if (rootProof == null)
+            rootProof = proof;
         else {
-            List<Formula> list = new ArrayList<Formula>();
-            list.add(mainFormula);
-            list.add(formula);
-            mainFormula = new AndFormula(list);
+            throw new RuntimeException ("Found more than one proof, aborting.");
         }
     }
 
@@ -221,7 +216,7 @@ public class ProofParser extends SMTLibParser {
                 throw new ParseError(entryExpr,
                         "no assignment of proof to another reference of proof");
 
-            ProofFormula entry = parseProofBody(entryExpr);
+            Z3Proof entry = parseBody(entryExpr);
             this.proofs.put(pureKey, entry);
         } else if (typeCharKey == SMTLibParser.REF_FORMULA) {
             if (typeCharEntry == SMTLibParser.REF_FORMULA)
@@ -277,54 +272,6 @@ public class ProofParser extends SMTLibParser {
     }
 
     /**
-     * Checks whether the given expression is a term
-     * 
-     * @param expression
-     *            the expression to check
-     * @return <code>true</code> if the given expression is a term,
-     *         <code>false</code> otherwise.
-     */
-    private boolean isTerm(SExpression expression) {
-
-        if (isDomainVariable(expression))
-            return true;
-
-        if (isArrayVariable(expression))
-            return true;
-
-        if (SMTLibParser.REF_PROOF == expression.toString().charAt(0))
-            return true;
-
-        if (isUninterpredFunctionInstance(expression) != null)
-            return true;
-
-        return false;
-    }
-
-    /**
-     * Checks whether the given expression is an formula instance.
-     * 
-     * @param expression
-     *            the expression to check.
-     * @return <code>true</code> if the given expression is an formula
-     *         expression, <code>false</code> otherwise.
-     */
-    private boolean isFormula(SExpression expression) {
-
-        if (SMTLibParser.REF_FORMULA == expression.toString().charAt(0))
-            return true;
-
-        if (isPropositionalConstOrVar(expression)) // true, false, a, ...
-            return true;
-
-        Token formulaType = (Token) expression.getChildren().get(0);
-        if (SExpression.isValidFormulaType(formulaType)) // and, or, not, =, ...
-            return true;
-
-        return false;
-    }
-
-    /**
      * Checks whether the given expression is an let instance.
      * 
      * @param expression
@@ -360,27 +307,25 @@ public class ProofParser extends SMTLibParser {
         return true;
     }
 
-    /**
-     * Parses a given s-expression into a formula. The s-expression can either
-     * be of a proof formula or a let-assignment.
+  /**
+     * Parses a given s-expression into a proof. The s-expression can either
+     * be of a proof or a let-assignment.
      * 
      * @param expression
      *            the expression to parse.
-     * @return the formula resulting from the given expression.
+     * @return the proof resulting from the given expression.
      * @throws ParseError
      *             if parsing fails.
      */
-    private Formula parseBody(SExpression expression) throws ParseError {
+         private Z3Proof parseBody(SExpression expression) throws ParseError {
         if (isLet(expression))
             return parseLet(expression);
-        else if (isFormula(expression))
-            return parseFormulaBody(expression);
         else if (isProof(expression))
             return (parseProofBody(expression));
         else
             throw new ParseError(expression,
-                    "parseBody can only parse Let-Expression, Formula or Proof-Formulas!");
-    }
+                    "parseBody can only parse Let-Expression or Proof!");
+     }
 
     /**
      * Handles an let expression. I.e., if <code>mainFormula</code> is still
@@ -393,7 +338,7 @@ public class ProofParser extends SMTLibParser {
      *            the assert expression to parse.
      * @return the formula resulting from parsing.
      */
-    private Formula parseLet(SExpression expression) throws ParseError {
+    private Z3Proof parseLet(SExpression expression) throws ParseError {
 
         Token key = (Token) expression.getChildren().get(1).getChildren()
                 .get(0).getChildren().get(0);
@@ -403,13 +348,13 @@ public class ProofParser extends SMTLibParser {
         insertLUTEntry(key, entryExpr);
 
         SExpression scopeExpr = expression.getChildren().get(2);
-        Formula scope = parseBody(scopeExpr);
+        Z3Proof scope = parseBody(scopeExpr);
 
         return scope;
     }
 
     /**
-     * Parses a given s-expression into a <code>ProofFormula</code>.
+     * Parses a given s-expression into a <code>Z3Proof</code>.
      * 
      * @param expression
      *            the expression to parse.
@@ -417,14 +362,14 @@ public class ProofParser extends SMTLibParser {
      * @throws ParseError
      *             if parsing fails.
      */
-    private ProofFormula parseProofBody(SExpression expression)
+    private Z3Proof parseProofBody(SExpression expression)
             throws ParseError {
 
         if (expression.toString().charAt(0) == SMTLibParser.REF_PROOF) {
             // resolve reference with LUT
             assert (expression instanceof Token);
             Token pureKey = new Token(expression.toString().substring(1));
-            ProofFormula formula = this.proofs.get(pureKey);
+            Z3Proof formula = this.proofs.get(pureKey);
 
             if (formula == null)
                 throw new ParseError(expression,
@@ -440,10 +385,10 @@ public class ProofParser extends SMTLibParser {
 
             int subProofsCount = numChildren - 2; // first child is proofType,
                                                   // last one is proofFormula
-            List<ProofFormula> subProofs = new ArrayList<ProofFormula>();
+            List<Z3Proof> subProofs = new ArrayList<Z3Proof>();
             if (subProofsCount > 0)
                 for (int i = 1; i <= subProofsCount; i++) {
-                    subProofs.add(parseProofBody(expression.getChildren()
+                    subProofs.add(parseBody(expression.getChildren()
                             .get(i)));
                 }
 
@@ -451,9 +396,21 @@ public class ProofParser extends SMTLibParser {
                     numChildren - 1);
             Formula proofFormula = parseFormulaBody(proofFormulaExpr);
 
-            return new ProofFormula(proofType, subProofs, proofFormula);
+            return new Z3Proof(proofType, subProofs, proofFormula);
         }
 
     }
-
+    
+    /**
+     * Returns the root proof that resulted from parsing, or <code>null</code> if
+     * parsing was not successful.
+     * 
+     * @return the proof that resulted from parsing, or <code>null</code> if
+     *         parsing was not successful.
+     */
+    public Z3Proof getRootProof() {
+        if (!wasParsingSuccessfull())
+            return null;
+        return rootProof;
+    }
 }

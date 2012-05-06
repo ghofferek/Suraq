@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
-import at.iaik.suraq.formula.ArrayVariable;
-import at.iaik.suraq.formula.DomainVariable;
-import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.PropositionalVariable;
-import at.iaik.suraq.formula.Term;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.Term;
 
 /**
  * 

@@ -19,25 +19,26 @@ import java.util.regex.Pattern;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
-import at.iaik.suraq.formula.AndFormula;
-import at.iaik.suraq.formula.ArrayVariable;
-import at.iaik.suraq.formula.DomainEq;
-import at.iaik.suraq.formula.DomainTerm;
-import at.iaik.suraq.formula.DomainVariable;
-import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.FunctionMacro;
-import at.iaik.suraq.formula.ImpliesFormula;
-import at.iaik.suraq.formula.NotFormula;
-import at.iaik.suraq.formula.PropositionalConstant;
-import at.iaik.suraq.formula.PropositionalVariable;
-import at.iaik.suraq.formula.Term;
-import at.iaik.suraq.formula.UninterpretedFunction;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.Z3Proof;
+import at.iaik.suraq.smtlib.formula.AndFormula;
+import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.DomainEq;
+import at.iaik.suraq.smtlib.formula.DomainTerm;
+import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FunctionMacro;
+import at.iaik.suraq.smtlib.formula.ImpliesFormula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 
 import at.iaik.suraq.util.Util;
@@ -228,6 +229,7 @@ public class Suraq implements Runnable {
 			String smtStr = buildProofSMTDescription(declarationStr,simplifiedAssertPartitions);
 		
 			System.out.println("Checking outcome of simplified partitions with z3 solver...");
+	
 			z3.solveStr(smtStr);
 
 			switch (z3.getState()) {
@@ -322,8 +324,8 @@ public class Suraq implements Runnable {
 					noErrors = false;
 					return;
 				}
-				Formula proofFormula = proofParser.getMainFormula();
-				Set<Integer> partitions = proofFormula.getAssertPartition();
+				Z3Proof rootProof = proofParser.getRootProof();
+				Set<Integer> partitions = rootProof.getAssertPartition();
 				
 				System.out.println("partitions"+ partitions);
 			}

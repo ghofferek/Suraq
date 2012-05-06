@@ -13,19 +13,18 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
-import at.iaik.suraq.formula.AndFormula;
-import at.iaik.suraq.formula.ArrayVariable;
-import at.iaik.suraq.formula.DomainVariable;
-import at.iaik.suraq.formula.Formula;
-import at.iaik.suraq.formula.FunctionMacro;
-import at.iaik.suraq.formula.PropositionalFunctionMacro;
-import at.iaik.suraq.formula.PropositionalVariable;
-import at.iaik.suraq.formula.Term;
-import at.iaik.suraq.formula.TermFunctionMacro;
-import at.iaik.suraq.formula.UninterpretedFunction;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.AndFormula;
+import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.PropositionalFunctionMacro;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.TermFunctionMacro;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -33,6 +32,12 @@ import at.iaik.suraq.sexp.Token;
  */
 public class LogicParser extends SMTLibParser {
 
+    
+    /**
+     * The formula that results from parsing.
+     */
+    protected Formula mainFormula = null;
+	
     /**
      * 
      * Constructs a new <code>FormulaParser</code>.
@@ -472,6 +477,19 @@ public class LogicParser extends SMTLibParser {
             throw new ParseError(child.getLineNumber(),
                     child.getColumnNumber(), child.toString(),
                     "Expected '(set-logic Suraq)'.");
+    }
+    
+    /**
+     * Returns the formula that resulted from parsing, or <code>null</code> if
+     * parsing was not successful.
+     * 
+     * @return the formula that resulted from parsing, or <code>null</code> if
+     *         parsing was not successful.
+     */
+    public Formula getMainFormula() {
+        if (!wasParsingSuccessfull())
+            return null;
+        return mainFormula;
     }
 
 }
