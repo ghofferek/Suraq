@@ -75,7 +75,16 @@ public class NonLocalResolutionProof {
             subProofs[0] = null;
             subProofs[1] = null;
             consequent = z3Proof.getProofFormula(); // TODO Check the structure
-                                                    // of this formula
+                                                    // of this formula?
+            literal = null;
+            return;
+        } else if (proofType.equals(SExpressionConstants.AXIOM)) {
+            // Trest this as a leave.
+            // It should be a propositional tautology.
+            subProofs[0] = null;
+            subProofs[1] = null;
+            consequent = z3Proof.getProofFormula(); // TODO Check the structure
+                                                    // of this formula?
             literal = null;
             return;
         } else if (proofType.equals(SExpressionConstants.AND_ELIM)) {
@@ -86,7 +95,7 @@ public class NonLocalResolutionProof {
             subProofs[0] = null;
             subProofs[1] = null;
             consequent = z3Proof.getProofFormula(); // TODO Check the structure
-                                                    // of this formula
+                                                    // of this formula?
             literal = null;
             return;
         } else if (proofType.equals(SExpressionConstants.NOT_OR_ELIM)) {
@@ -217,7 +226,19 @@ public class NonLocalResolutionProof {
             this.literal = z3SubProofs.get(z3SubProofs.size() - 1)
                     .getProofFormula();
             this.consequent = z3Proof.getProofFormula();
+            return;
+        } else if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
+            List<ProofFormula> z3SubProofs = z3Proof.getSubProofs();
+            if (z3SubProofs.size() != 2)
+                throw new RuntimeException(
+                        "Modus-Ponens proof with not exactly two children. This should not happen!");
+            this.subProofs[0] = new NonLocalResolutionProof(z3SubProofs.get(0));
+            this.subProofs[1] = new NonLocalResolutionProof(z3SubProofs.get(1));
+            this.literal = z3SubProofs.get(0).getProofFormula();
+            this.consequent = z3Proof.getProofFormula();
+            return;
         }
+
         // TODO hypothesis? lemma?
 
         // TODO add other relevant cases, if any

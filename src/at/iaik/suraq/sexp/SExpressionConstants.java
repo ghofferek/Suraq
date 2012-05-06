@@ -155,7 +155,8 @@ public class SExpressionConstants {
             .fromString("iff-false");
     public static final SExpression COMMUTATIVITY = SExpression
             .fromString("commutativity");
-    public static final SExpression AXIOM = SExpression.fromString("axiom");
+    public static final SExpression AXIOM = SExpression
+            .fromString("|def-axiom|");
     public static final SExpression INTRO = SExpression.fromString("intro");
     public static final SExpression APPLY_DEF = SExpression
             .fromString("apply-def");
