@@ -100,7 +100,7 @@ public class ResNode {
 
     public int checkMovable(Lit l) {
         int goLeft = -1;
-        if (part == -1) {
+        if (part != -1) {
             // Assert.assertTrue("n.pivot is not from n.left partition",
             // n.left.part == lit_part[n.pivot] );
             return -1; // move disallowed

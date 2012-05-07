@@ -152,10 +152,10 @@ public class Suraq implements Runnable {
 	 */
 	@Override
 	public void run() {
-            //printWelcome();
             //START: ASHUTOSH code
-            if(false){ ResProof prf = new ResProof(); prf.test(); return;}
+            if(true){ ResProof prf = new ResProof(); prf.test(); return;}
             //END: ASHUTOSH code
+            printWelcome();
 
 		SuraqOptions options = SuraqOptions.getInstance();
 

@@ -16,13 +16,13 @@ public class ResProof{
     int nodeCount = 0;
 
     ResNode[] nodeRef= new ResNode[MAX_PROOF_SIZE];
-    int[] lit_part = new int[MAX_LIT_NUM];
+    int[] var_part = new int[MAX_LIT_NUM];
 
     boolean[] visited= new boolean[MAX_PROOF_SIZE];
 
     public ResProof(){
         Arrays.fill(nodeRef, null);
-        Arrays.fill(lit_part, 0);
+        Arrays.fill(var_part, 0);
     }
 
     // part for axioms should be 0
@@ -118,7 +118,7 @@ public class ResProof{
             return;
         }
 
-        if( lit_part[n.pivot] != 0 ){
+        if( var_part[n.pivot] != 0 ){
             reOrgProof(n);
         }
     }
