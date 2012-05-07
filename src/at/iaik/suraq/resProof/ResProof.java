@@ -15,9 +15,10 @@ public class ResProof{
     ResNode root = null;
     int nodeCount = 0;
 
-    boolean[] visited= new boolean[MAX_PROOF_SIZE];
     ResNode[] nodeRef= new ResNode[MAX_PROOF_SIZE];
     int[] lit_part = new int[MAX_LIT_NUM];
+
+    boolean[] visited= new boolean[MAX_PROOF_SIZE];
 
     public ResProof(){
         Arrays.fill(nodeRef, null);
