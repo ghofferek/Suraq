@@ -22,6 +22,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.proof.NonLocalResolutionProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -326,6 +327,7 @@ public class Suraq implements Runnable {
 				}
 				Z3Proof rootProof = proofParser.getRootProof();
 				Set<Integer> partitions = rootProof.getAssertPartition();
+				//NonLocalResolutionProof nonLocalResolutionProof = new NonLocalResolutionProof(rootProof);
 				
 				System.out.println("partitions"+ partitions);
 			}

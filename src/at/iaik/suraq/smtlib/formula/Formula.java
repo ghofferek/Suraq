@@ -5,9 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.util.Map;
 import java.util.Set;
-
 import at.iaik.suraq.exceptions.SuraqException;
-import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 
@@ -151,14 +149,6 @@ public interface Formula extends SMTLibObject{
      */
     public Formula flatten();
 
-    /**
-     * Converts this formula into an s-expression compatible with SMTLIBv2. Only
-     * the formula itself is converted. No variable/function/macro declarations
-     * are included.
-     * 
-     * @return this formulas as an SMTLIBv2 s-expression.
-     */
-    public SExpression toSmtlibV2();
 
     /**
      * Recursively replaces all array writes by applying the write axiom.
@@ -204,13 +194,7 @@ public interface Formula extends SMTLibObject{
      */
     public Set<UninterpretedFunction> getUninterpretedFunctions();
 
-    /**
-     * 
-     * @return a String representation of this formula
-     */
-    @Override
-    public String toString();
-
+ 
     /**
      * Replaces all indices of array reads which are not simple domain variables
      * with fresh simple domain variables. Corresponding equality constraints
@@ -245,5 +229,6 @@ public interface Formula extends SMTLibObject{
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
+    
 
 }

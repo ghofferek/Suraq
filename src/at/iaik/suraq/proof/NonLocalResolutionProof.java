@@ -67,7 +67,7 @@ public class NonLocalResolutionProof {
         subProofs[0] = antecedent1;
         subProofs[1] = antecedent2;
         this.literal = literal.deepFormulaCopy();
-        this.consequent = consequent;
+        this.consequent = consequent.deepFormulaCopy();
 
         // TODO: Check if this is a valid resolution step. I.e., the consequent
         // does not contain the literal any more, but the antecedents both
@@ -90,7 +90,7 @@ public class NonLocalResolutionProof {
             literal = null;
             return;
         } else if (proofType.equals(SExpressionConstants.AXIOM)) {
-            // Trest this as a leave.
+            // Treat this as a leave.
             // It should be a propositional tautology.
             subProofs[0] = null;
             subProofs[1] = null;
@@ -99,7 +99,7 @@ public class NonLocalResolutionProof {
             literal = null;
             return;
         } else if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
-            // Trest this as a leave.
+            // Treat this as a leave.
             subProofs[0] = null;
             subProofs[1] = null;
             consequent = z3Proof.getProofFormula(); // TODO Check the structure
@@ -134,7 +134,7 @@ public class NonLocalResolutionProof {
             subProofs[0] = null;
             subProofs[1] = null;
             consequent = z3Proof.getProofFormula(); // TODO Check the structure
-                                                    // of this formula
+                                                    // of this formula (x=x)
             literal = null;
             return;
         } else if (proofType.equals(SExpressionConstants.SYMMETRY)) {
@@ -257,7 +257,7 @@ public class NonLocalResolutionProof {
             this.literal = z3SubProofs.get(0).getProofFormula();
             this.consequent = z3Proof.getProofFormula();
             return;
-        } else if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
+        } else if (proofType.equals(SExpressionConstants.LEMMA)) {
             List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() != 1)
                 throw new RuntimeException(
@@ -313,7 +313,7 @@ public class NonLocalResolutionProof {
                 parent.consequent = new OrFormula(newDisjuncts);
                 parent = parents.get(parent);
             }
-
+            parent = parents.get(this);
             // update parent's subproofs and literal
             NonLocalResolutionProof otherChild = parent.subProofs[(this == parent.subProofs[0]) ? 1
                     : 0];

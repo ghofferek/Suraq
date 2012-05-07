@@ -1,5 +1,5 @@
 /**
- * Author: Georg Hofferek <georg.hofferek@iaik.tugraz.at>
+ * Author: Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
  */
 package at.iaik.suraq.smtlib;
 
@@ -13,7 +13,7 @@ import at.iaik.suraq.smtlib.formula.Formula;
 
 
 /**
- * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
+ * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
  * 
  */
 public class Z3Proof implements SMTLibObject {
@@ -108,13 +108,20 @@ public class Z3Proof implements SMTLibObject {
     public Formula getProofFormula() {
         return this.proofFormula;
     }
-
+    
+    /**
+     * Converts this proof into an s-expression compatible with SMTLIBv2. Only
+     * the proof itself is converted. No variable/function/macro declarations
+     * are included.
+     * 
+     * @return this proof as an SMTLIBv2 s-expression.
+     */
     @Override
     public SExpression toSmtlibV2() {
         List<SExpression> children = new ArrayList<SExpression>();
         children.add(this.proofType);
-        for (Z3Proof formula : this.subProofs)
-            children.add(formula.toSmtlibV2());
+        for (Z3Proof subProof : this.subProofs)
+            children.add(subProof.toSmtlibV2());
 
         children.add(this.proofFormula.toSmtlibV2());
         return new SExpression(children);

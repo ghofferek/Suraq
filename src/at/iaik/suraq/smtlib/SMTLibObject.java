@@ -10,6 +10,7 @@ public interface SMTLibObject {
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
+     * contains -1, iff global elements are present.
      */
     public Set<Integer> getAssertPartition(); 
     

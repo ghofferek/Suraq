@@ -57,13 +57,6 @@ public class ProofParser extends SMTLibParser {
         this.functions = uninterpretedFunctions;
         this.rootExpr = root;
 
-        // testparsing
-        /*
-         * this.functions.add(new UninterpretedFunction("f",1,new
-         * Token("Value"))); this.domainVariables.add(new DomainVariable("x"));
-         * this.domainVariables.add(new DomainVariable("y"));
-         * this.domainVariables.add(new DomainVariable("z"));
-         */
     }
 
     /**
@@ -245,9 +238,6 @@ public class ProofParser extends SMTLibParser {
      *         <code>false</code> otherwise.
      */
 
-    // (asserted @x38 @x35 $x11) oder (asserted (hypothesis $x7) @x35 (or a c))
-    // oder @38
-
     private boolean isProof(SExpression expression) {
 
         if (expression instanceof Token) {
@@ -282,7 +272,6 @@ public class ProofParser extends SMTLibParser {
 
     private boolean isLet(SExpression expression) {
 
-        // (let (($x5 (or a c)) scope)
         if (expression instanceof Token)
             return false;
         if (expression.getChildren().size() != 3)

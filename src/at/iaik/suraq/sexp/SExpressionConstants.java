@@ -112,7 +112,7 @@ public class SExpressionConstants {
             .fromString("asserted");
     public static final SExpression GOAL = SExpression.fromString("goal");
     public static final SExpression MODUS_PONENS = SExpression
-            .fromString("modus-ponens");
+            .fromString("mp");
     public static final SExpression REFLEXIVITY = SExpression
             .fromString("reflexivity");
     public static final SExpression SYMMETRY = SExpression.fromString("symm");
@@ -123,43 +123,43 @@ public class SExpressionConstants {
     public static final SExpression MONOTONICITY = SExpression
             .fromString("monotonicity");
     public static final SExpression QUANT_INTRO = SExpression
-            .fromString("quant-intro");
+            .fromString("|quant-intro|");
     public static final SExpression DISTRIBUTIVITY = SExpression
             .fromString("distributivity");
     public static final SExpression AND_ELIM = SExpression
-            .fromString("and-elim");
+            .fromString("|and-elim|");
     public static final SExpression NOT_OR_ELIM = SExpression
-            .fromString("not-or-elim");
+            .fromString("|not-or-elim|");
     public static final SExpression REWRITE = SExpression.fromString("rewrite");
     public static final SExpression REWRITE_STAR = SExpression
             .fromString("rewrite-star");
     public static final SExpression PULL_QUANT = SExpression
-            .fromString("pull-quant");
+            .fromString("|pull-quant|");
     public static final SExpression PULL_QUANT_STAR = SExpression
-            .fromString("pull-quant-star");
+            .fromString("|pull-quant-star|");
     public static final SExpression PUSH_QUANT = SExpression
-            .fromString("push-quant");
+            .fromString("|push-quant|");
     public static final SExpression ELIM_UNUSED_VARS = SExpression
-            .fromString("elim-unused-vars");
+            .fromString("|elim-unused-vars|");
     public static final SExpression DER = SExpression.fromString("der");
     public static final SExpression QUANT_INST = SExpression
-            .fromString("quant-inst");
+            .fromString("|quant-inst|");
     public static final SExpression HYPOTHESIS = SExpression
             .fromString("hypothesis");
     public static final SExpression LEMMA = SExpression.fromString("lemma");
     public static final SExpression UNIT_RESOLUTION = SExpression
-            .fromString("unit-resolution");
+            .fromString("|unit-resolution|");
     public static final SExpression IFF_TRUE = SExpression
-            .fromString("iff-true");
+            .fromString("|iff-true|");
     public static final SExpression IFF_FALSE = SExpression
-            .fromString("iff-false");
+            .fromString("|iff-false|");
     public static final SExpression COMMUTATIVITY = SExpression
             .fromString("commutativity");
     public static final SExpression AXIOM = SExpression
-            .fromString("def-axiom");
+            .fromString("|def-axiom|");
     public static final SExpression INTRO = SExpression.fromString("intro");
     public static final SExpression APPLY_DEF = SExpression
-            .fromString("apply-def");
+            .fromString("|apply-def|");
     public static final SExpression IFF_OEQ = SExpression.fromString("iff-oeq");
     public static final SExpression NNF_POS = SExpression.fromString("nnf-pos");
     public static final SExpression NNF_NEG = SExpression.fromString("nnf-neg");
@@ -186,7 +186,7 @@ public class SExpressionConstants {
 
     public static SExpression[] createProofTypes() {
 
-        SExpression[] proofTypes = new SExpression[41];
+        SExpression[] proofTypes = new SExpression[39];
 
         // see: z3_api.h
         proofTypes[0] = SExpressionConstants.UNDEF;
@@ -228,8 +228,6 @@ public class SExpressionConstants {
         proofTypes[36] = SExpressionConstants.SKOLEMIZE;
         proofTypes[37] = SExpressionConstants.MODUS_PONENS_OEQ;
         proofTypes[38] = SExpressionConstants.TH_LEMMA;
-        proofTypes[39] = SExpressionConstants.TRANS;
-        proofTypes[40] = SExpressionConstants.MP;
         return proofTypes;
     }
 }

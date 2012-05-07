@@ -371,12 +371,7 @@ public class SExpression {
      */
 
     public static Boolean isValidProofType(Token expr) {
-
-        String exprStr = expr.toString();
-        if (exprStr.charAt(0) == '|'
-                && exprStr.charAt(exprStr.length() - 1) == '|')
-            expr = new Token(exprStr.substring(1, exprStr.length() - 1));
-
+        
         for (SExpression proofType : SExpressionConstants.PROOF_TYPES) {
             if (proofType.equals(expr))
                 return true;

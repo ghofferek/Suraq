@@ -24,7 +24,7 @@ public class SuraqOptions {
     /**
      * Default value for z3 option.
      */
-    private static final boolean z3Default = false;
+    private static final boolean z3Default = true;
 
 
     /**
