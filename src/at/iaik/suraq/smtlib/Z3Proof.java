@@ -11,7 +11,6 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 
-
 /**
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
  * 
@@ -58,7 +57,7 @@ public class Z3Proof implements SMTLibObject {
      * <code>this</code> object and has the given subProofs and proofFormula.
      * 
      * @param subProofs
-     *             List of sub-proofs 
+     *            List of sub-proofs
      * @param proofFormula
      *            the proofFormula
      * @return a new <code>Z3Proof</code> with the same type as
@@ -69,15 +68,11 @@ public class Z3Proof implements SMTLibObject {
         List<Z3Proof> newSubProofs = new ArrayList<Z3Proof>();
 
         for (Z3Proof subProof : subProofs) {
-            if (subProof instanceof Z3Proof)
-                newSubProofs.add((Z3Proof) subProof);
-            else
-                throw new RuntimeException(
-                        "tried to add non-Z3Proof as a subProof!");
+            newSubProofs.add(subProof);
         }
 
-        Z3Proof instance = new Z3Proof(new Token(this.proofType),
-                newSubProofs, proofFormula);
+        Z3Proof instance = new Z3Proof(new Token(this.proofType), newSubProofs,
+                proofFormula);
 
         return instance;
     }
@@ -108,7 +103,7 @@ public class Z3Proof implements SMTLibObject {
     public Formula getProofFormula() {
         return this.proofFormula;
     }
-    
+
     /**
      * Converts this proof into an s-expression compatible with SMTLIBv2. Only
      * the proof itself is converted. No variable/function/macro declarations
