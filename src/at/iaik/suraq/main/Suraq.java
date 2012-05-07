@@ -26,6 +26,7 @@ import at.iaik.suraq.proof.NonLocalResolutionProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -41,6 +42,8 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+
+import at.iaik.suraq.resProof.ResProof;
 
 import at.iaik.suraq.util.Util;
 
@@ -149,8 +152,10 @@ public class Suraq implements Runnable {
 	 */
 	@Override
 	public void run() {
-
-		printWelcome();
+            //printWelcome();
+            //START: ASHUTOSH code
+            if(true){ ResProof prf = new ResProof(); prf.test(); return;}
+            //END: ASHUTOSH code
 
 		SuraqOptions options = SuraqOptions.getInstance();
 

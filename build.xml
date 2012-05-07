@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- WARNING: Eclipse auto-generated file.
-              Any modifications will be overwritten.
-              To include a user specific buildfile here, simply create one in the same
-              directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. -->
 <project basedir="." default="build" name="Suraq">
-    <property environment="env"/>
-    <property name="junit.output.dir" value="junit"/>
-    <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.6"/>
-    <property name="source" value="1.6"/>
-    <path id="JUnit 4.libraryclasspath">
-        <pathelement location="../../eclipse/plugins/org.junit_4.8.1.v4_8_1_v20100427-1100/junit.jar"/>
-        <pathelement location="../../eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
-    </path>
-    <path id="Suraq.classpath">
-        <pathelement location="bin"/>
-        <path refid="JUnit 4.libraryclasspath"/>
-        <pathelement location="lib/jargs-1.0/lib/jargs.jar"/>
-    </path>
+  <property environment="env"/>
+  <property name="junit.output.dir" value="junit"/>
+  <property name="debuglevel" value="source,lines,vars"/>
+  <property name="target" value="1.6"/>
+  <property name="source" value="1.6"/>
+  <path id="JUnit 4.libraryclasspath">
+    <pathelement location="/usr/share/java/junit4.jar"/>
+    <pathelement location="/usr/share/java/hamcrest-core.jar"/>
+    <!-- <pathelement location="../../eclipse/plugins/org.junit_4.8.1.v4_8_1_v20100427-1100/junit.jar"/>
+    <pathelement location="../../eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/> -->
+  </path>
+  <path id="Suraq.classpath">
+    <pathelement location="bin"/>
+    <path refid="JUnit 4.libraryclasspath"/>
+    <pathelement location="/usr/share/java/jargs.jar"/>
+    <!-- <pathelement location="lib/jargs-1.0/lib/jargs.jar"/> -->
+  </path>
     <target name="init">
         <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
