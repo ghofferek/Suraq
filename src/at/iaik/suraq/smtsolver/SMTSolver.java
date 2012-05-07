@@ -55,7 +55,6 @@ public abstract class SMTSolver {
 		switch (solverType) {
 		case z3_type:
 			solver = new z3(solverBasePath);
-			solver.enableMultiThreaded();
 			break;
 		default:
 			throw (new RuntimeException("unknown smt-solver requested."));
@@ -63,20 +62,6 @@ public abstract class SMTSolver {
 
 		return solver;
 	}
-
-	/**
-	 * Enables multi-threaded SMT-solver versions.
-	 */
-	protected abstract void enableMultiThreaded();
-
-	/**
-	 * Runs the SMT-solver instance with the given filename as input-file.
-	 * 
-	 * @param filename
-	 *            SMT-solver input-file.
-	 * 
-	 */
-	public abstract void solve(String filename);
 
 	/**
 	 * Returns the current state if an SMT-solver instance.
@@ -110,5 +95,5 @@ public abstract class SMTSolver {
 	 *            SMT-solver input.
 	 * 
 	 */
-	public abstract void solveStr(String smtStr);
+	public abstract void solve(String smtStr);
 }

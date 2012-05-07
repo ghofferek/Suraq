@@ -215,7 +215,7 @@ public class Suraq implements Runnable {
 		// check result with z3 solver
 		if (options.isZ3enabled()) {
 		
-			SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3-3.2/");
+			SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
 			
 			//simplify assert partitions
 			System.out.println("Simplifying assert-partitions...");
@@ -230,7 +230,7 @@ public class Suraq implements Runnable {
 		
 			System.out.println("Checking outcome of simplified partitions with z3 solver...");
 	
-			z3.solveStr(smtStr);
+			z3.solve(smtStr);
 
 			switch (z3.getState()) {
 			case SMTSolver.UNSAT:
