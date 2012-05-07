@@ -58,19 +58,19 @@ public class Z3Proof implements SMTLibObject {
      * <code>this</code> object and has the given subProofs and proofFormula.
      * 
      * @param subProofs
-     *            the subProofs
+     *             List of sub-proofs 
      * @param proofFormula
      *            the proofFormula
      * @return a new <code>Z3Proof</code> with the same type as
      *         <code>this</code>.
      */
-    protected Z3Proof create(List<Formula> subProofs, Formula proofFormula) {
+    protected Z3Proof create(List<Z3Proof> subProofs, Formula proofFormula) {
 
         List<Z3Proof> newSubProofs = new ArrayList<Z3Proof>();
 
-        for (Formula formula : subProofs) {
-            if (formula instanceof Z3Proof)
-                newSubProofs.add((Z3Proof) formula);
+        for (Z3Proof subProof : subProofs) {
+            if (subProof instanceof Z3Proof)
+                newSubProofs.add((Z3Proof) subProof);
             else
                 throw new RuntimeException(
                         "tried to add non-Z3Proof as a subProof!");
