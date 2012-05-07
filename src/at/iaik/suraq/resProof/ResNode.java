@@ -19,8 +19,6 @@ public class ResNode{
     public ResNode right = null;
     public HashSet<Integer> children = new HashSet<Integer>();
 
-    public int partition = 0;
-
     public ResNode( int pId, boolean pIsLeaf){
         id = pId;
         cl = new Clause();
