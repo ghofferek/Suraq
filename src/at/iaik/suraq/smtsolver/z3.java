@@ -37,7 +37,11 @@ public class z3 extends SMTSolver {
     @Override
     public void solve(String smtStr) {
         String executionPath = z3Path;
-        executionPath = executionPath.concat(" /smt2 /in");
+        
+        if(System.getProperty("os.name").toLowerCase().contains("windows"))
+        	executionPath = executionPath.concat(" /smt2 /in");
+        else
+        	executionPath = executionPath.concat(" -smt2 -in");
 
         ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath, smtStr);
         
@@ -73,7 +77,10 @@ public class z3 extends SMTSolver {
     @Override
     public String simplify(String smtStr) {
         String executionPath = z3Path;
-        executionPath = executionPath.concat(" /smt2 /in");
+        if(System.getProperty("os.name").toLowerCase().contains("windows"))
+        	executionPath = executionPath.concat(" /smt2 /in");
+        else
+        	executionPath = executionPath.concat(" -smt2 -in");
         
         ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath, smtStr);
              
