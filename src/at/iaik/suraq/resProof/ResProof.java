@@ -24,6 +24,7 @@ public class ResProof{
         Arrays.fill(lit_part, 0);
     }
 
+    // part for axioms should be 0
     ResNode addLeaf( Collection<Lit> cl, int part ){
         ResNode n = new ResNode(nodeCount, true, cl, null, null, 0, part);
         nodeRef[nodeCount] = n;
@@ -31,6 +32,10 @@ public class ResProof{
         return n;
     }
 
+    // * if cl==null then the clause is computed by applying resolution
+    //   on left and right. 
+    // * If pivot == 0 then pivot variable is also discovered automatically. 
+    // * Node: part for internal node is set to be -1.
     ResNode addIntNode(Collection<Lit> cl,ResNode left,ResNode right,int pivot){
         ResNode n = new ResNode(nodeCount, false, cl, left, right, pivot, -1);
         nodeRef[nodeCount] = n;
