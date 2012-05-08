@@ -20,17 +20,17 @@ public class Z3Proof implements SMTLibObject {
     /**
      * The proof type.
      */
-    private Token proofType;
+    protected Token proofType;
 
     /**
      * The list of sub proofs.
      */
-    private List<Z3Proof> subProofs;
+    protected List<Z3Proof> subProofs;
 
     /**
      * the formula which is proven
      */
-    private Formula proofFormula;
+    protected Formula proofFormula;
 
     /**
      * 
@@ -146,4 +146,24 @@ public class Z3Proof implements SMTLibObject {
 
         return partitions;
     }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
+
+    /**
+     * Compares the object references (pointers). This helps for distinguishing
+     * trees from DAGs.
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        return (this == obj);
+    }
+
 }
