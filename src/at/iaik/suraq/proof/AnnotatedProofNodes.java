@@ -15,6 +15,11 @@ import at.iaik.suraq.smtlib.formula.Formula;
 public class AnnotatedProofNodes extends HashSet<AnnotatedProofNode> {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
      * Constructs a new <code>AnnotatedProofNodes</code> set.
      */
     public AnnotatedProofNodes() {

@@ -115,7 +115,8 @@ public class DomainEq extends EqualityFormula {
      *  	 
      */
 	
-	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+	@Override
+    public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
 		
 		if (terms.size()!=2)
 			throw new RuntimeException(

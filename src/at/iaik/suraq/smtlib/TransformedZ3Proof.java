@@ -4,20 +4,22 @@
 package at.iaik.suraq.smtlib;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.proof.AnnotatedProofNode;
+import at.iaik.suraq.proof.AnnotatedProofNodes;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 
 /**
  * 
- * Should only contain the following proof rules: Asserted, Symmetrie,
+ * Should only contain the following proof rules: Asserted, Symmetry,
  * Transitivity, Monotonicity and (simple) Resolution.
  * 
  * Formulas for consequents should have the following structure: - each atom is
@@ -61,13 +63,53 @@ public class TransformedZ3Proof extends Z3Proof {
         this.computeParents(); // FIXME this is most probably a redundant call.
                                // getLeafs() should also compute the parents.
         List<TransformedZ3Proof> queue = this.getLeafs();
-        Set<AnnotatedProofNode> annotatedNodes = new HashSet<AnnotatedProofNode>();
+        AnnotatedProofNodes annotatedNodes = new AnnotatedProofNodes();
         while (!queue.isEmpty()) {
             TransformedZ3Proof currentNode = queue.remove(0);
             if (currentNode.hasSingleLiteralConsequent()) {
                 Formula literal = ((OrFormula) (currentNode.proofFormula))
                         .getDisjuncts().iterator().next();
 
+                // -------------------------------------------------------------
+                if (currentNode.proofType.equals(SExpressionConstants.ASSERTED)) {
+                    Set<Integer> partitions = literal.getAssertPartition();
+                    if (partitions.size() > 2)
+                        throw new RuntimeException(
+                                "Asserted literal seems to come from more than one partitions. This should not happen!");
+                    int partition;
+                    Iterator<Integer> iterator = partitions.iterator();
+                    do {
+                        partition = iterator.next();
+                    } while (partition < 0);
+
+                    AnnotatedProofNode annotatedNode = new AnnotatedProofNode(
+                            partition, partition, literal, null, null, null);
+                    annotatedNodes.add(annotatedNode);
+                }
+
+                // -------------------------------------------------------------
+                if (currentNode.proofType.equals(SExpressionConstants.SYMMETRY)) {
+                    AnnotatedProofNode annotatedNode = annotatedNodes
+                            .getNodeWithConsequent(literal);
+                    if (annotatedNode == null)
+                        throw new RuntimeException(
+                                "No annotated proof node found when there should be one.");
+                    int numPremises = annotatedNode.numPremises();
+                    if (numPremises != 1 && numPremises != 3)
+                        throw new RuntimeException(
+                                "Unexpected number of premises for annotated symmetry node: "
+                                        + (new Integer(numPremises)).toString());
+                    if (numPremises == 1) {
+                        assert (currentNode.subProofs.size() == 1);
+                        TransformedZ3Proof premise = (TransformedZ3Proof) currentNode.subProofs
+                                .get(0);
+                        assert (premise.hasSingleLiteralConsequent());
+                        Formula premiseFormula = premise.getProofFormula();
+                        annotatedNodes.add(new AnnotatedProofNode(annotatedNode
+                                .getPartition(), annotatedNode.getPartition(),
+                                literal, premiseFormula, null, null));
+                    }
+                }
             }
         }
     }

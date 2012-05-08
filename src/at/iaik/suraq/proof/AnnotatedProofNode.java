@@ -28,7 +28,8 @@ public class AnnotatedProofNode {
     private final int hash;
 
     /**
-     * Constructs a new <code>AnnotatedProofNode</code>.
+     * Constructs a new <code>AnnotatedProofNode</code>. If one premise is
+     * <code>null</code>, all subsequent premises must be <code>null</code> too.
      * 
      * @param leftPartition
      * @param rightPartition
@@ -44,6 +45,10 @@ public class AnnotatedProofNode {
         this.leftPartition = leftPartition;
         this.rightPartition = rightPartition;
         this.consequent = consequent.deepFormulaCopy();
+
+        assert (premise1 != null || (premise2 == null && premise3 == null));
+        assert (premise2 != null || premise3 == null);
+
         this.premise1 = premise1 != null ? premise1.deepFormulaCopy() : null;
         this.premise2 = premise2 != null ? premise2.deepFormulaCopy() : null;
         this.premise3 = premise3 != null ? premise3.deepFormulaCopy() : null;
@@ -98,6 +103,73 @@ public class AnnotatedProofNode {
      */
     public boolean hasConsequent(Formula consequent) {
         return this.consequent.equals(consequent);
+    }
+
+    /**
+     * Returns the partition, if the left and the right partition are equal.
+     * Throws a <code>RuntimeException</code> if they are different.
+     * 
+     * @return the partition of this node (left==right)
+     */
+    public int getPartition() {
+        if (leftPartition != rightPartition)
+            throw new RuntimeException(
+                    "Left and right partitions are not equal!");
+
+        return leftPartition;
+    }
+
+    /**
+     * @return the <code>leftPartition</code>
+     */
+    public int getLeftPartition() {
+        return leftPartition;
+    }
+
+    /**
+     * @return the <code>rightPartition</code>
+     */
+    public int getRightPartition() {
+        return rightPartition;
+    }
+
+    /**
+     * @return the <code>premise1</code> (copy)
+     */
+    public Formula getPremise1() {
+        return premise1 == null ? null : premise1.deepFormulaCopy();
+    }
+
+    /**
+     * @return the <code>premise2</code> (copy)
+     */
+    public Formula getPremise2() {
+        return premise2 == null ? null : premise2.deepFormulaCopy();
+    }
+
+    /**
+     * @return the <code>premise3</code> (copy)
+     */
+    public Formula getPremise3() {
+        return premise3 == null ? null : premise3.deepFormulaCopy();
+    }
+
+    /**
+     * Returns the number of (non-<code>null</code>) premises. Relies on the
+     * fact that if one premise is <code>null</code>, all subsequent premises
+     * must be <code>null</code> too.
+     * 
+     * @return the number of non-<code>null</code> premises.
+     */
+    public int numPremises() {
+        if (premise1 == null)
+            return 0;
+        else if (premise2 == null)
+            return 1;
+        else if (premise3 == null)
+            return 2;
+        else
+            return 3;
     }
 
 }

@@ -335,7 +335,8 @@ public class PropositionalVariable extends PropositionalTerm {
      *  	 
      */
 	
-	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+	@Override
+    public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
 		
 		PropositionalVariable probVar = new PropositionalVariable(new String(varName), assertPartition);
 		Formula propVarFormula = new FormulaTerm (probVar);

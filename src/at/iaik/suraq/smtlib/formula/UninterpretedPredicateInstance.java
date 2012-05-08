@@ -390,7 +390,8 @@ public class UninterpretedPredicateInstance implements Formula {
      *  	 
      */
 	
-	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+	@Override
+    public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
 
         UninterpretedPredicateInstance uip;
         

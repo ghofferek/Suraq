@@ -430,7 +430,8 @@ public class NotFormula extends BooleanCombinationFormula {
      *  	 
      */
 	
-	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+	@Override
+    public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
 
 		Formula notFormula;
 		
