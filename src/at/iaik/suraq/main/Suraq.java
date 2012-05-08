@@ -43,7 +43,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 
-import at.iaik.suraq.resProof.ResProof;
+import at.iaik.suraq.resProof.ResProofTest;
 
 import at.iaik.suraq.util.Util;
 
@@ -153,7 +153,11 @@ public class Suraq implements Runnable {
 	@Override
 	public void run() {
             //START: ASHUTOSH code
-            if(false){ ResProof prf = new ResProof(); prf.test(); return;}
+            if(true){ 
+                ResProofTest pTst= new ResProofTest(); 
+                pTst.test(); 
+                return;
+            }
             //END: ASHUTOSH code
             printWelcome();
 

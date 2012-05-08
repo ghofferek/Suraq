@@ -18,9 +18,9 @@ public class Lit {
         return (l & 0x1) == 1;
     }
 
-    public int negate() {
-        return (l ^ 0x1);
-    }
+    // public int negate() {
+    //     return (l ^ 0x1);
+    // }
 
     public Lit negLit() {
         return new Lit(var(), !isPos());

@@ -25,6 +25,14 @@ public class Clause extends HashSet<Lit> {
         addAllLit(cl);
     }
 
+    public Clause(Collection<Lit> clLeft, Collection<Lit> clRight, int pivot) {
+        super();
+        addAllLit( clLeft );
+        rmLit(pivot, true);
+        addAllLit( clRight );
+        rmLit(pivot, false);
+    }
+
     public void addAllLit(Collection<Lit> cl) {
         Iterator<Lit> itr = cl.iterator();
         while (itr.hasNext())
@@ -43,11 +51,6 @@ public class Clause extends HashSet<Lit> {
     public void rmLit(int a, boolean b) {
         this.remove(new Lit(a, b));
     }
-
-    // public void rmLit(int a){
-    // this.remove( new Lit(a,true) );
-    // this.remove( new Lit(a,false) );
-    // }
 
     public boolean contains(int a, boolean b) {
         return this.contains(new Lit(a, b));

@@ -12,13 +12,13 @@ public class ResProof{
     public static final int MAX_PROOF_SIZE = 100000;
     public static final int MAX_LIT_NUM    = 10000;
 
-    ResNode root = null;
-    int nodeCount = 0;
+    public ResNode root = null;
+    public int nodeCount = 0;
 
-    ResNode[] nodeRef= new ResNode[MAX_PROOF_SIZE];
-    int[] var_part = new int[MAX_LIT_NUM];
+    public ResNode[] nodeRef= new ResNode[MAX_PROOF_SIZE];
+    public int[] var_part = new int[MAX_LIT_NUM];
 
-    boolean[] visited= new boolean[MAX_PROOF_SIZE];
+    public boolean[] visited= new boolean[MAX_PROOF_SIZE];
 
     public ResProof(){
         Arrays.fill(nodeRef, null);
@@ -46,7 +46,8 @@ public class ResProof{
 
     void recCheckProof( ResNode n){
         if( visited[n.id] ) return;
-        System.out.println( n.id+":"+n.cl);
+        n.print();
+        // System.out.println( n.id+":"+n.cl);
         visited[n.id] = true;
         if( n.isLeaf ){
             Assert.assertTrue( "Pivot for leaf", n.pivot == 0 );
@@ -58,10 +59,10 @@ public class ResProof{
             Assert.assertTrue( "pivot litrals are not present",
                               n.left.cl.contains( n.pivot, true) &&
                               n.right.cl.contains( n.pivot, false) );
-            Clause c = new Clause(n.left.cl);
-            c.rmLit( n.pivot, true );
-            c.addAllLit( n.right.cl );
-            c.rmLit( n.pivot, false );
+            Clause c = new Clause(n.left.cl,n.right.cl,n.pivot);
+            // c.rmLit( n.pivot, true );
+            // c.addAllLit( n.right.cl );
+            // c.rmLit( n.pivot, false );
             Assert.assertTrue("node is not result of resolution of parents",
                               n.cl.equals(c));
             recCheckProof( n.left  );
@@ -76,39 +77,7 @@ public class ResProof{
     }
 
 // Start of untested code-----------------------------------------
-    void reOrgProof( ResNode n ){
-        Lit pl = new Lit( n.pivot, true  );
-        Lit nl = new Lit( n.pivot, false );
-
-        while(true){
-            if(!n.left.isLeaf) { 
-                if(n.cl.contains( n.left.pivot, true))
-                    { n.moveParent( true, true ); continue; }
-                if(n.cl.contains( n.left.pivot, false)) 
-                    { n.moveParent( true, false ); continue; }
-            }
-            if(!n.right.isLeaf){
-                if( n.cl.contains( n.right.pivot, true )) 
-                    { n.moveParent( false, true ); continue; }
-
-                if(n.cl.contains( n.right.pivot, false )) 
-                    { n.moveParent( false, false ); continue; } 
-            }
-            break;
-        }
-        // Check Left
-        int goLeft = n.left.checkMovable(pl);
-        // Check Right
-        int goRight = n.left.checkMovable(nl);
-
-    }
-
-    void recSeparateProof( ResNode n){
-        if( visited[n.id] ) return;
-        if( n.isLeaf ){ visited[n.id] = true; return; }
-        recSeparateProof( n.left  );
-        recSeparateProof( n.right );
-        visited[n.id] = true;
+    void reOrderStep(ResNode n){
 
         // Convert a node into leaf 
         int lp = n.left.part;
@@ -117,29 +86,116 @@ public class ResProof{
             if( lp == 0 ) n.convertToLeaf(rp); else n.convertToLeaf(lp);
             return;
         }
+        // if pivot is is global then return
+        if( var_part[n.pivot] == 0 ) return;
 
-        if( var_part[n.pivot] != 0 ){
-            reOrgProof(n);
+        //Check and fix if parents pivot is in n
+        while(true){
+            boolean del = false, LeftParent = false, LeftGrandParent = false;
+            
+            if(!n.left.isLeaf) {
+                if(n.cl.contains( n.left.pivot, true)){ 
+                    del = true; LeftParent=true; LeftGrandParent=true; 
+                } else if(n.cl.contains( n.left.pivot, false)) { 
+                    del = true; LeftParent=true; LeftGrandParent=false; 
+                }
+            }else if(!n.right.isLeaf){
+                if( n.cl.contains( n.right.pivot, true )) { 
+                    del = true; LeftParent=false; LeftGrandParent=true; 
+                }else if(n.cl.contains( n.right.pivot, false )) { 
+                    del = true; LeftParent=false; LeftGrandParent=false; 
+                }
+            }
+
+            if( del ){
+                n.moveParent( LeftParent, LeftGrandParent );
+                if( !n.refresh() ) return;
+                continue;
+            }
+            break;
         }
+
+        // push up the local resolution
+        Lit pl = new Lit( n.pivot, true  );
+        Lit nl = new Lit( n.pivot, false );
+        // Check Left
+        int goLeft = n.left.checkMovable(pl);
+        // Check Right
+        int goRight = n.left.checkMovable(nl);
+        
+        Assert.assertTrue("Both unmovable parent not possible!",
+                          goLeft != -1 || goLeft != -1 );
+
+        // L = Res(LL, LR), R = Res(RL, RR), N = Res(L,R)
+        ResNode L = n.left, R = n.right, n1=null, n2=null;
+        ResNode LL = null, LR = null, RL = null, RR = null;
+        int piv= n.pivot, Lpiv=0, Rpiv =0;
+        if(!L.isLeaf){ LL = L.left; LR = L.right; Lpiv = L.pivot;}
+        if(!R.isLeaf){ RL = R.left; RL = R.right; Rpiv = R.pivot;}
+
+        if(goLeft == 2){ // -> N1 = Res(LL,R) N = Res(N1,LR)
+            n1 = addIntNode( null, LL, R, piv);
+            n.left  = n1;
+            n.right = LR;
+            n.pivot = Lpiv;
+        }else if(goLeft == 3){ // -> N1 = Res(LR,R) N = Res(LL,N1)
+            n1 = addIntNode( null, LR, R, piv);
+            n.left  = LL;
+            n.right = n1;
+            n.pivot = Lpiv;
+        }else if(goRight == 2){ // -> N1 = Res(L,RL) N = Res(N1,RR)
+            n1 = addIntNode( null, L, RL, piv);
+            n.left = n1;
+            n.right  = RR;
+            n.pivot = Rpiv;
+        }else if(goRight == 3){ // -> N1 = Res(L,RR) N = Res(RL,N1)
+             n1 = addIntNode( null, L, RR, piv);
+            n.left  = RL;
+            n.right = n1;
+            n.pivot = Rpiv;
+        }else if(goLeft == 1){//-> N1=Res(LL,R) N2=Res(LR,R) N = Res(N1,N2)
+            n1 = addIntNode( null, LL, R, piv);
+            n2 = addIntNode( null, LR, R, piv);
+            n.left = n1; 
+            n.right = n2;
+            n.pivot = Lpiv;
+        }else if(goRight == 1){//-> N1=Res(L,RL) N2=Res(L,RR) N = Res(N1,N2)
+            n1 = addIntNode( null, L, RL, piv);
+            n2 = addIntNode( null, L, RR, piv);
+            n.left  = n1;
+            n.right = n2;
+            n.pivot = Rpiv;
+        }
+        L.rmChild(n);
+        R.rmChild(n);
+        n.left.addChild(n);
+        n.right.addChild(n);
+        
+        reOrderStep(n1);
+        if(n2 != null) reOrderStep(n2);
+
+        if(!n.refresh()) return;
+        
+    }
+
+    void recDeLocalizeProof( ResNode n){
+        if( visited[n.id] ) return;
+        if( n.isLeaf ){ visited[n.id] = true; return; }
+        recDeLocalizeProof( n.left  );
+        recDeLocalizeProof( n.right );
+        visited[n.id] = true;
+
+        // Node may be get removed in refresh
+        if( !n.refresh() ) return;
+        
+        reOrderStep(n);
     }
     
-    public void separateProof(){
+    public void deLocalizeProof(){
         Arrays.fill(visited, false);        
-        recSeparateProof(root);
+        recDeLocalizeProof(root);
     }
 
  //End of untested code-------------------------------------------
 
-    public void test(){
-        List<Lit> c1 = Arrays.asList(new Lit(1,true), new Lit(2,false));
-        List<Lit> c2 = Arrays.asList(new Lit(1,false) );
-        List<Lit> c3 = Arrays.asList(new Lit(2,true));
-        ResNode n1 = addLeaf(c1, 1);
-        ResNode n2 = addLeaf(c2, 2);
-        ResNode n3 = addLeaf(c3, 0);
-        ResNode n4 = addIntNode( null, n1, n2, 0);
-        root = addIntNode( null, n4, n3, 0);
-
-        checkProof();
-    }
 }

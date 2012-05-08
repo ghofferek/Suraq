@@ -20,7 +20,7 @@ public class ResNode {
 
     public ResNode left = null;
     public ResNode right = null;
-    public HashSet<Integer> children = new HashSet<Integer>();
+    public HashSet<ResNode> children = new HashSet<ResNode>();
 
     public ResNode(int pId, boolean pIsLeaf) {
         id = pId;
@@ -45,24 +45,18 @@ public class ResNode {
             Iterator<Lit> itr = pLeft.cl.iterator();
             while (itr.hasNext()) {
                 Lit l = itr.next();
-                if (pRight.cl.contains(l.negLit())) {
+                if( pRight.cl.contains( l.negLit() ) ) {
                     pPivot = l.var();
                     isLeftPos = l.isPos();
                     break;
                 }
             }
             Assert.assertTrue("pivot not found!", pPivot != 0);
+        }else{
+            if( pRight.cl.contains( pPivot, true ) ) 
+                isLeftPos = false;
         }
         pivot = pPivot;
-
-        if (pCl == null) {
-            cl = new Clause(pLeft.cl);
-            cl.rmLit(pivot, isLeftPos);
-            cl.addAllLit(pRight.cl);
-            cl.rmLit(pivot, !isLeftPos);
-        } else {
-            cl = new Clause(pCl);
-        }
 
         if (isLeftPos) {
             left = pLeft;
@@ -72,20 +66,30 @@ public class ResNode {
             right = pLeft;
         }
 
+        if (pCl == null) {
+            cl = new Clause(left.cl, right.cl, pivot);
+            // cl = new Clause(pLeft.cl);
+            // cl.rmLit(pivot, isLeftPos);
+            // cl.addAllLit(pRight.cl);
+            // cl.rmLit(pivot, !isLeftPos);
+        } else {
+            cl = new Clause(pCl);
+        }
+
         left.addChild(this);
         right.addChild(this);
     }
 
     public void rmChild(ResNode n) {
         Assert.assertTrue("Removing non-existant child",
-                children.contains(n.id));
-        children.remove(n.id);
+                children.contains(n));
+        children.remove(n);
         // TODO: if( chidren.isEmpty() ) delete the node from nodeRef
     }
 
     public void addChild(ResNode n) {
-        Assert.assertTrue("Adding existing child", !children.contains(n.id));
-        children.add(n.id);
+        Assert.assertTrue("Adding existing child", !children.contains(n));
+        children.add(n);
     }
 
     public void convertToLeaf(int pPart) {
@@ -99,12 +103,7 @@ public class ResNode {
     }
 
     public int checkMovable(Lit l) {
-        int goLeft = -1;
-        if (part != -1) {
-            // Assert.assertTrue("n.pivot is not from n.left partition",
-            // n.left.part == lit_part[n.pivot] );
-            return -1; // move disallowed
-        }
+        if (isLeaf) return -1; // move disallowed
         boolean ll = left.cl.contains(l);
         boolean lr = right.cl.contains(l);
         if (ll && lr)
@@ -138,5 +137,54 @@ public class ResNode {
         looser.rmChild(this);
         gainer.addChild(this);
     }
+    
+    public void moveChidren( boolean toLeftParent ){
+        left.rmChild(this);
+        right.rmChild(this);
 
+        ResNode gainer = null;
+        if(toLeftParent) gainer = left; else gainer = right;
+
+        Iterator<ResNode> itr = children.iterator();
+        while( itr.hasNext() ){
+            ResNode n = itr.next();
+            if( n.left == this)
+                n.left = gainer;
+            else
+                n.right = gainer;
+            gainer.addChild(n);
+        }
+        // TODO: dump the node
+    }
+    
+    public boolean refresh() {
+        
+        if( !left.cl.contains( pivot, true ) ){
+            moveChidren(true);
+            return false; // Node is dead
+        }
+        if( !right.cl.contains( pivot, false ) ){
+            moveChidren(false);
+            return false; // Node is dead
+        }
+        cl = new Clause(left.cl,right.cl,pivot);
+        return true; // Node is still valid
+    }
+    
+    public void print(){
+        System.out.println("------------------------------------");
+        if(isLeaf)
+            System.out.println( id+"> (leaf) part:"+part);
+        else
+            System.out.println( id+"> left:"+left.id+" right:"+right.id
+                                +" pivot:"+pivot);
+        System.out.println("Clause: "+cl);
+        Iterator<ResNode> itr = children.iterator();
+        System.out.print("Chidren: [");
+        while( itr.hasNext() ){
+            ResNode n = itr.next();
+            System.out.print(n.id+",");
+        }
+        System.out.println("]");
+    }
 }
