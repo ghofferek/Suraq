@@ -245,4 +245,21 @@ public class FormulaTerm extends PropositionalTerm {
         return formula.getAssertPartition();
     }
 
+    
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     */
+	@Override
+	public Formula transformToConsequentsForm(Formula formula) {
+		return transformToConsequentsForm(formula, false, true);
+	}
+	
+	 /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula, boolean, boolean)
+     */	
+	@Override	
+	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) { 
+        return this.formula.transformToConsequentsForm(formula, notFlag, firstLevel);
+    }
+
 }

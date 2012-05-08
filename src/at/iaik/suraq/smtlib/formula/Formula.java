@@ -230,5 +230,42 @@ public interface Formula extends SMTLibObject{
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
     
+    /** 
+     * Transforms formulas to formulas for consequents.
+     * Formulas for consequents should have the following structure:
+     *  		- each atom is either a positive equality of two terms, a propositional variable,
+     *  			or an uninterpreted predicate
+     *   		- each literal is either an atom or a negation of an atom
+     *   		- formula is always an or formula which consists of at least one literal 
+     *   
+     * @param fomrula
+     * 			to be transformed into a consequents formula 
+     * @return the new transformed formula is possible, if not null
+     *  	 
+     */
+    
+    public Formula transformToConsequentsForm(
+    		Formula formula);
+
+    /** 
+     * Transforms formula to formula for consequents.
+     * Formulas for consequents should have the following structure:
+     *  		- each atom is either a positive equality of two terms, a propositional variable,
+     *  			or an uninterpreted predicate
+     *   		- each literal is either an atom or a negation of an atom
+     *   		- formula is always an or formula which consists of at least one literal 
+     *   
+     * @param fomrula
+     * 			to be transformed into a consequents formula 
+     * @param notFlag
+     * 			indicates if number of not operations occurred so far is even or odd 
+     * 			(notFlag=true equates to odd number)
+     * @param firstLevel
+     * 			indicates if function call appeared in the first recursion step
+     * @return the new transformed formula is possible, if not null
+     *  	 
+     */
+    public Formula transformToConsequentsForm(
+			Formula formula, boolean notFlag, boolean firstLevel);
 
 }

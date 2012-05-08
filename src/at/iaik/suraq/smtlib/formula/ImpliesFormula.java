@@ -360,5 +360,25 @@ public class ImpliesFormula extends BooleanCombinationFormula {
 
         return partitions;
     }
+    
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     */
+	@Override
+	public Formula transformToConsequentsForm(Formula formula) {
+		throw new RuntimeException(
+				"transformToConsequentsForm cannot be called on an Implies Formulas.\n" +
+				"Implies Formulas should not be occur in the proof.");
+	}
+	
+	 /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula, boolean, boolean)
+     */	
+	@Override
+	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+		throw new RuntimeException(
+				"transformToConsequentsForm cannot be called on an Implies Formulas.\n" +
+				"Implies Formulas should not be occur in the proof.");
+	}     
 
 }

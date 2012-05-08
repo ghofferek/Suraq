@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -96,5 +97,63 @@ public class AndFormula extends AndOrXorFormula {
     protected Token getOperator() {
         return SExpressionConstants.AND;
     }
+    
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     */
+	@Override
+	public Formula transformToConsequentsForm(Formula formula) {
+		return transformToConsequentsForm(formula, false, true);
+	}
+	
+	 /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula, boolean, boolean)
+     */	
+	@Override	
+	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) { 
+		
+		if (notFlag==false)
+			return null;
+
+		//apply deMorgan rule: NOT (a AND b) <=> NOT a OR NOT b		
+        	
+		List<Formula> subFormulas = new ArrayList<Formula>();
+        for (Formula subFormula : this.formulas){
+        	if (isValidChild(subFormula)) {
+        		Formula transformedSubFormula = subFormula.transformToConsequentsForm(formula, notFlag, false);
+        		subFormulas.add(new NotFormula(transformedSubFormula));
+        	}
+        	else
+    			throw new RuntimeException(
+                        "Unexpected Chid: Child of an AND Formula can either be an AND Formula, a NOT Formula or an atom");	        		
+        }
+        
+		Formula orFormula = new OrFormula(subFormulas);
+        return orFormula;
+	}        
+
+    /** 
+     * Checks if a given Formula is an atom, and AND Formula or a NOT formula.
+     * An atom is either a <code>EqualityFormula</code>, a <code>PropositionalVariable</code>
+     * or a <code>UninterpretedPredicateInstance</code>.
+     * 
+     * @param formula
+     * 		formula to check 
+     * @return true, iff formula is valid
+     *  	 
+     */
+	public boolean isValidChild(Formula formula){
+		if (formula instanceof AndFormula)
+			return true;
+		if (formula instanceof NotFormula)
+			return true;		
+		if (formula instanceof EqualityFormula)
+            return true;
+		if (formula instanceof PropositionalVariable)
+            return true;		
+		if (formula instanceof UninterpretedPredicateInstance)
+            return true;		
+		return false;
+	}
 
 }

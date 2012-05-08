@@ -245,4 +245,24 @@ public class PropositionalConstant extends PropositionalTerm {
 	public Set<Integer> getAssertPartition() {
 		return new TreeSet<Integer>();
 	}
+	
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     */
+	@Override
+	public Formula transformToConsequentsForm(Formula formula) {
+		throw new RuntimeException(
+				"transformToConsequentsForm cannot be called on a Propositional Constant.\n" +
+				"Propositional Constants should not occur in the consequents of a proof.");
+	}
+	
+	 /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula, boolean, boolean)
+     */	
+	@Override
+	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+		throw new RuntimeException(
+				"transformToConsequentsForm cannot be called on a Propositional Constant.\n" +
+				"Propositional Constants should not occur in the consequents of a proof.");
+	} 	
 }

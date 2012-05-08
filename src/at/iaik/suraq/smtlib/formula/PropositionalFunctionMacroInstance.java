@@ -424,4 +424,23 @@ public class PropositionalFunctionMacroInstance implements Formula {
 
         return partitions;
     }
+    
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     */
+	@Override
+	public Formula transformToConsequentsForm(Formula formula) {
+		throw new RuntimeException(
+				"transformToConsequentsForm cannot be called on an PropositionalFunctionMacroInstance.\n" +
+				"PropositionalFunctionMacroInstance should be removed by know.");
+	}
+	 /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula, boolean, boolean)
+     */	
+	@Override
+	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+		throw new RuntimeException(
+				"transformToConsequentsForm cannot be called on an PropositionalFunctionMacroInstance.\n" +
+				"PropositionalFunctionMacroInstance should be removed by know.");
+	}	    
 }

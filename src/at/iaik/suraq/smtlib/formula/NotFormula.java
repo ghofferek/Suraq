@@ -402,4 +402,83 @@ public class NotFormula extends BooleanCombinationFormula {
 		
 		return formula.getAssertPartition();
 	}
+	
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     */
+	@Override
+	public Formula transformToConsequentsForm(Formula formula) {
+		return transformToConsequentsForm(formula, false, true);
+	}
+	
+    /** 
+     * Transforms formula to formula for consequents.
+     * Formulas for consequents should have the following structure:
+     *  		- each atom is either a positive equality of two terms, a propositional variable,
+     *  			or an uninterpreted predicate
+     *   		- each literal is either an atom or a negation of an atom
+     *   		- formula is always an or formula which consists of at least one literal 
+     *   
+     * @param fomrula
+     * 			to be transformed into a consequents formula 
+     * @param notFlag
+     * 			indicates if number of not operations occurred so far is even or odd 
+     * 			(notFlag=true equates to odd number)
+     * @param firstLevel
+     * 			indicates if function call appeared in the first recursion step
+     * @return the new transformed formula is possible, if not null
+     *  	 
+     */
+	
+	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+
+		Formula notFormula;
+		
+		if (isAtom(this.formula)){
+			if (notFlag == false)
+				notFormula = new NotFormula (this.formula.transformToConsequentsForm(formula, !notFlag, false));
+			else  //odd number of NOT operators equates no NOT operator
+				notFormula = this.formula.transformToConsequentsForm(formula, !notFlag, false); 
+		}
+		else if (this.formula instanceof NotFormula) {
+			notFormula = this.formula.transformToConsequentsForm(formula, !notFlag, false);
+		}		
+		else if (this.formula instanceof AndFormula) {  //is ok, because of deMorgan rule
+			notFormula = this.formula.transformToConsequentsForm(formula, !notFlag, false);		
+		}
+		else 
+			throw new RuntimeException(
+                    "Unexpected Body: Body of an Not Formula can either be an AND Formula, a NOT Formula or an atom");		
+		
+        if (firstLevel==true){				
+
+			List<Formula> literals = new ArrayList<Formula>(); 
+			literals.add(notFormula);
+			Formula orFormula = new OrFormula(literals);
+			return	orFormula;	
+		}
+        return notFormula;
+
+	}
+
+    /** 
+     * Checks if a given Formula is an atom in a consequents of a proof
+     * An atom is either a <code>EqualityFormula</code>, a <code>PropositionalVariable</code>
+     * or a <code>UninterpretedPredicateInstance</code>
+     * 
+     * @param formula
+     * 		formula to check 
+     * @return true, iff formula is an atom
+     *  	 
+     */
+	public boolean isAtom(Formula formula){
+		if (formula instanceof EqualityFormula)
+            return true;
+		if (formula instanceof PropositionalVariable)
+            return true;		
+		if (formula instanceof UninterpretedPredicateInstance)
+            return true;		
+		return false;
+	}
+
 }

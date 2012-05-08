@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -305,5 +307,48 @@ public class PropositionalVariable extends PropositionalTerm {
         partitions.add(assertPartition);
         return partitions;
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     */
+	@Override
+	public Formula transformToConsequentsForm(Formula formula) {
+		return transformToConsequentsForm(formula, false, true);
+	}
+	
+    /** 
+     * Transform formulas to formula for consequents.
+     * Formulas for consequents should have the following structure:
+     *  		- each atom is either a positive equality of two terms, a propositional variable,
+     *  			or an uninterpreted predicate
+     *   		- each literal is either an atom or a negation of an atom
+     *   		- formula is always an or formula which consists of at least one literal 
+     *   
+     * @param fomrula
+     * 			to be transformed into a consequents formula 
+     * @param notFlag
+     * 			indicates if number of not operations occurred so far is even or odd 
+     * 			(notFlag=true equates to odd number)
+     * @param firstLevel
+     * 			indicates if function call appeared in the first recursion step
+     * @return the new transformed formula is possible, if not null
+     *  	 
+     */
+	
+	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+		
+		PropositionalVariable probVar = new PropositionalVariable(new String(varName), assertPartition);
+		Formula propVarFormula = new FormulaTerm (probVar);
+		
+		if (firstLevel==true){
+			List<Formula> literals = new ArrayList<Formula>();			
+
+			literals.add(propVarFormula);
+			Formula orFormula = new OrFormula(literals);
+			return	orFormula;	
+		}
+		return propVarFormula;
+			
+	}
 
 }
