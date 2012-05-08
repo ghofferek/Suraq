@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,8 +50,17 @@ public class TransformedZ3Proof extends Z3Proof {
         // TODO Auto-generated constructor stub
     }
 
+    /**
+     * Transforms the proof into a local resolution proof (in place).
+     */
     public void toLocalResolutionProof() {
+        this.computeParents(); // FIXME this is most probably a redundant call.
+                               // getLeafs() should also compute the parents.
+        List<TransformedZ3Proof> queue = this.getLeafs();
 
+        while (!queue.isEmpty()) {
+            TransformedZ3Proof currentNode = queue.remove(0);
+        }
     }
 
     /**
@@ -74,5 +84,34 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof.parents.put((TransformedZ3Proof) child, this);
             ((TransformedZ3Proof) child).computeParents();
         }
+    }
+
+    /**
+     * 
+     * @return A list of all leafs of this proof.
+     */
+    public List<TransformedZ3Proof> getLeafs() {
+        List<TransformedZ3Proof> result = new LinkedList<TransformedZ3Proof>();
+        for (Z3Proof child : subProofs) {
+            if (!(child instanceof TransformedZ3Proof))
+                throw new RuntimeException(
+                        "Base class z3Proof appears in tree of derived class TransformedZ3Proof. This should not happen!");
+            TransformedZ3Proof subProof = (TransformedZ3Proof) child;
+            TransformedZ3Proof.parents.put(subProof, this);
+            if (subProof.isLeaf())
+                result.add(subProof);
+            else
+                result.addAll(subProof.getLeafs());
+        }
+        return result;
+    }
+
+    /**
+     * 
+     * @return <code>true</code> iff this proof object is a leaf.
+     *         <code>false</code> otherwise.
+     */
+    public boolean isLeaf() {
+        return subProofs.isEmpty();
     }
 }
