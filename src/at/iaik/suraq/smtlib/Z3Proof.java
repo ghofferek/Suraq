@@ -43,12 +43,13 @@ public class Z3Proof implements SMTLibObject {
      * @param proofFormula
      *            the formula which has to be proved
      */
-    public Z3Proof(Token proofType, List<Z3Proof> subProofs,
+    public Z3Proof(Token proofType, List<? extends Z3Proof> subProofs,
             Formula proofFormula) {
 
         this.proofType = proofType;
         assert (subProofs != null);
-        this.subProofs = subProofs;
+        this.subProofs = new ArrayList<Z3Proof>();
+        this.subProofs.addAll(subProofs);
         this.proofFormula = proofFormula;
     }
 

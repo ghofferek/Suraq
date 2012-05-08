@@ -556,7 +556,7 @@ public class Suraq implements Runnable {
                             noDependenceFunctionsCopies.get(var).get(count));
                 else
                     throw new SuraqException(
-                            "noDependenceVar "
+                            "noDependenceVar "   
                                     + var.toString()
                                     + " is neither a variable nor an uninterpreted function.");
             }
@@ -683,7 +683,7 @@ public class Suraq implements Runnable {
             if (numParams > 0)
                 noDependenceFunctionsCopies.put(var, listOfFunctionCopies);
 
-            for (int count = 0; count < (1 << numControlSignals); count++) {
+            for (int count = 1; count <= (1 << numControlSignals); count++) {
                 String name = Util.freshVarName(formula, var.toString()
                         + "_copy_" + count);
                 outputExpressions.add(SExpression.makeDeclareFun(
