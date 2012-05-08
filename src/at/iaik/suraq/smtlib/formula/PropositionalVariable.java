@@ -309,46 +309,27 @@ public class PropositionalVariable extends PropositionalTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
 	@Override
-	public Formula transformToConsequentsForm(Formula formula) {
-		return transformToConsequentsForm(formula, false, true);
+	public Formula transformToConsequentsForm() {
+		return transformToConsequentsForm(false, true);
 	}
 	
-    /** 
-     * Transform formulas to formula for consequents.
-     * Formulas for consequents should have the following structure:
-     *  		- each atom is either a positive equality of two terms, a propositional variable,
-     *  			or an uninterpreted predicate
-     *   		- each literal is either an atom or a negation of an atom
-     *   		- formula is always an or formula which consists of at least one literal 
-     *   
-     * @param fomrula
-     * 			to be transformed into a consequents formula 
-     * @param notFlag
-     * 			indicates if number of not operations occurred so far is even or odd 
-     * 			(notFlag=true equates to odd number)
-     * @param firstLevel
-     * 			indicates if function call appeared in the first recursion step
-     * @return the new transformed formula is possible, if not null
-     *  	 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
      */
-	
-	@Override
-    public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
-		
-		PropositionalVariable probVar = new PropositionalVariable(new String(varName), assertPartition);
-		Formula propVarFormula = new FormulaTerm (probVar);
+	@Override	
+	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
 		
 		if (firstLevel==true){
 			List<Formula> literals = new ArrayList<Formula>();			
 
-			literals.add(propVarFormula);
+			literals.add(this);
 			Formula orFormula = new OrFormula(literals);
 			return	orFormula;	
 		}
-		return propVarFormula;
+		return this;
 			
 	}
 

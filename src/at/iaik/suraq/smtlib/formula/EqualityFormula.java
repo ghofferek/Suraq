@@ -30,7 +30,7 @@ public abstract class EqualityFormula implements Formula {
     /**
      * <code>true</code> for an equality, <code>false</code> for an inequality.
      */
-    protected final boolean equal;
+    protected boolean equal;
 
     /**
      * 
@@ -472,4 +472,38 @@ public abstract class EqualityFormula implements Formula {
         return partitions;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
+     */
+	@Override
+	public Formula transformToConsequentsForm() {
+		return transformToConsequentsForm(false, true);
+	}
+	
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
+     */
+	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
+		
+		if (terms.size()!=2)
+			throw new RuntimeException(
+					"Equality should have only two terms for consequents form");
+	    
+	    Formula equalityFormula;
+		if (this.equal==false){
+			this.equal=true;
+			equalityFormula = new NotFormula (this);
+		}
+		else 
+			equalityFormula = this;
+
+		if (firstLevel==true){
+			List<Formula> literals = new ArrayList<Formula>();			
+
+			literals.add(equalityFormula);
+			Formula orFormula = new OrFormula(literals);
+			return	orFormula;	
+		}
+		return equalityFormula;	
+	}         
 }

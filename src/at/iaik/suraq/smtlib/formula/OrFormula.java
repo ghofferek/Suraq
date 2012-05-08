@@ -99,26 +99,37 @@ public class OrFormula extends AndOrXorFormula {
         return SExpressionConstants.OR;
     }
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
 	@Override
-	public Formula transformToConsequentsForm(Formula formula) {
-		return transformToConsequentsForm(formula, false, true);
+	public Formula transformToConsequentsForm() {
+		return transformToConsequentsForm(false, true);
 	}
 	
 	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula, boolean, boolean)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm( boolean, boolean)
      */	
 	@Override	
-	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) { 
+	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) { 
+		
+		assert(notFlag == false);
 			    	
 		List<Formula> subFormulas = new ArrayList<Formula>();
         for (Formula subFormula : this.formulas){
         	if (isValidChild(subFormula)) {
-        		Formula transformedSubFormula = subFormula.transformToConsequentsForm(formula, notFlag, false);
-        		subFormulas.add(transformedSubFormula);
+        		if (subFormula instanceof OrFormula){
+        			ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) subFormula).getDisjuncts();
+        			for (Formula disjunct : disjuncts){
+                		Formula transformedSubFormula = disjunct.transformToConsequentsForm(notFlag, false);
+                		subFormulas.add(transformedSubFormula);         				
+        			}
+        		}
+        		else {
+            		Formula transformedSubFormula = subFormula.transformToConsequentsForm(notFlag, false);
+            		subFormulas.add(transformedSubFormula);        			
+        		}
+
         	}
-        	//TODO: verschachtelte oder auflösen
         	else
     			throw new RuntimeException(
                         "Unexpected Chid: Child of an OR Formula can either be an OR Formula, a NOT Formula or an atom");

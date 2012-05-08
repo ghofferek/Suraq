@@ -627,20 +627,20 @@ public class ArrayProperty implements Formula {
     }
     
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
 	@Override
-	public Formula transformToConsequentsForm(Formula formula) {
+	public Formula transformToConsequentsForm() {
 		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by know.");
+				"transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by now.");
 	}
 	
 	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula, boolean, boolean)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
      */	
 	@Override
-	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
 		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by know.");
+				"transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by now.");
 	}    
 }

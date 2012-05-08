@@ -231,41 +231,37 @@ public interface Formula extends SMTLibObject{
             Set<Token> noDependenceVars);
     
     /** 
-     * Transforms formulas to formulas for consequents.
-     * Formulas for consequents should have the following structure:
+     * Transforms formulas to consequent formulas.
+     * Consequent formulas should have the following structure:
      *  		- each atom is either a positive equality of two terms, a propositional variable,
-     *  			or an uninterpreted predicate
-     *   		- each literal is either an atom or a negation of an atom
-     *   		- formula is always an or formula which consists of at least one literal 
+     *  			or an uninterpreted predicate.
+     *   		- each literal is either an atom or a negation of an atom.
+     *   		- formula is always an OR-formula which consists of at least one literal.
      *   
-     * @param fomrula
-     * 			to be transformed into a consequents formula 
-     * @return the new transformed formula is possible, if not null
+     * @return if transformation is possible, returns formula,
+     * 			otherwise returns null.
      *  	 
      */
     
-    public Formula transformToConsequentsForm(
-    		Formula formula);
-
+    public Formula transformToConsequentsForm();
+    
     /** 
-     * Transforms formula to formula for consequents.
-     * Formulas for consequents should have the following structure:
+     * Transforms formulas to consequent formulas.
+     * Consequent formulas should have the following structure:
      *  		- each atom is either a positive equality of two terms, a propositional variable,
-     *  			or an uninterpreted predicate
-     *   		- each literal is either an atom or a negation of an atom
-     *   		- formula is always an or formula which consists of at least one literal 
+     *  			or an uninterpreted predicate.
+     *   		- each literal is either an atom or a negation of an atom.
+     *   		- formula is always an OR-formula which consists of at least one literal.
      *   
-     * @param fomrula
-     * 			to be transformed into a consequents formula 
      * @param notFlag
-     * 			indicates if number of not operations occurred so far is even or odd 
-     * 			(notFlag=true equates to odd number)
+     * 			indicates that the number of NOT operations occurred so far is even or odd .
+     * 			(notFlag=true equals an odd number)
      * @param firstLevel
-     * 			indicates if function call appeared in the first recursion step
-     * @return the new transformed formula is possible, if not null
+     * 			indicates that the function call appeared in the first recursion step.
+     * @return if transformation is possible, returns formula,
+     * 			otherwise returns null.
      *  	 
      */
-    public Formula transformToConsequentsForm(
-			Formula formula, boolean notFlag, boolean firstLevel);
+    public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel);
 
 }

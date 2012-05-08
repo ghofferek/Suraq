@@ -247,19 +247,19 @@ public class FormulaTerm extends PropositionalTerm {
 
     
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
 	@Override
-	public Formula transformToConsequentsForm(Formula formula) {
-		return transformToConsequentsForm(formula, false, true);
+	public Formula transformToConsequentsForm() {
+		return transformToConsequentsForm(false, true);
 	}
 	
 	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula, boolean, boolean)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
      */	
 	@Override	
-	public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) { 
-        return this.formula.transformToConsequentsForm(formula, notFlag, firstLevel);
+	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) { 
+        return this.formula.transformToConsequentsForm(notFlag, firstLevel);
     }
 
 }

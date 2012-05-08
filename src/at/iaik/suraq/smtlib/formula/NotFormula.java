@@ -404,66 +404,57 @@ public class NotFormula extends BooleanCombinationFormula {
 	}
 	
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
 	@Override
-	public Formula transformToConsequentsForm(Formula formula) {
-		return transformToConsequentsForm(formula, false, true);
+	public Formula transformToConsequentsForm() {
+		return transformToConsequentsForm(false, true);
 	}
 	
-    /** 
-     * Transforms formula to formula for consequents.
-     * Formulas for consequents should have the following structure:
-     *  		- each atom is either a positive equality of two terms, a propositional variable,
-     *  			or an uninterpreted predicate
-     *   		- each literal is either an atom or a negation of an atom
-     *   		- formula is always an or formula which consists of at least one literal 
-     *   
-     * @param fomrula
-     * 			to be transformed into a consequents formula 
-     * @param notFlag
-     * 			indicates if number of not operations occurred so far is even or odd 
-     * 			(notFlag=true equates to odd number)
-     * @param firstLevel
-     * 			indicates if function call appeared in the first recursion step
-     * @return the new transformed formula is possible, if not null
-     *  	 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
      */
-	
-	@Override
-    public Formula transformToConsequentsForm(Formula formula, boolean notFlag, boolean firstLevel) {
+	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
 
 		Formula notFormula;
 		
-		if (isAtom(this.formula)){
+		if (isChildAtom()){
 			if (notFlag == false)
-				notFormula = new NotFormula (this.formula.transformToConsequentsForm(formula, !notFlag, false));
-			else  //odd number of NOT operators equates no NOT operator
-				notFormula = this.formula.transformToConsequentsForm(formula, !notFlag, false); 
+				notFormula = new NotFormula (this.formula.transformToConsequentsForm(!notFlag, false));
+			else  //odd number of NOT operators equals no NOT operator
+				notFormula = this.formula.transformToConsequentsForm(!notFlag, false); 
 		}
-		else if (this.formula instanceof NotFormula) {
-			notFormula = this.formula.transformToConsequentsForm(formula, !notFlag, false);
-		}		
-		else if (this.formula instanceof AndFormula) {  //is ok, because of deMorgan rule
-			notFormula = this.formula.transformToConsequentsForm(formula, !notFlag, false);		
-		}
+		else if (this.formula instanceof NotFormula 
+				|| (this.formula instanceof AndFormula && notFlag == false)  //is ok, because of deMorgan rule
+				|| (this.formula instanceof OrFormula && notFlag == true)) 
+			notFormula = this.formula.transformToConsequentsForm(!notFlag, false);			
 		else 
 			throw new RuntimeException(
-                    "Unexpected Body: Body of an Not Formula can either be an AND Formula, a NOT Formula or an atom");		
+                    "Unexpected Body: Body of an Not Formula can either be an OR formula, AND formula, a NOT formula or an atom");		
 		
         if (firstLevel==true){				
-
 			List<Formula> literals = new ArrayList<Formula>(); 
-			literals.add(notFormula);
+		
+			//resolve nested OR operations
+	        if (notFormula instanceof OrFormula){
+	        	ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) notFormula).getDisjuncts();
+	        	for (Formula disjunct : disjuncts){
+	        		literals.add(disjunct);
+	        		
+	        	}
+	        }
+	        else
+				literals.add(notFormula);	        	
 			Formula orFormula = new OrFormula(literals);
+	        	
 			return	orFormula;	
 		}
+        
         return notFormula;
-
 	}
 
     /** 
-     * Checks if a given Formula is an atom in a consequents of a proof
+     * Checks if child is an atom of a consequent proof.
      * An atom is either a <code>EqualityFormula</code>, a <code>PropositionalVariable</code>
      * or a <code>UninterpretedPredicateInstance</code>
      * 
@@ -472,14 +463,16 @@ public class NotFormula extends BooleanCombinationFormula {
      * @return true, iff formula is an atom
      *  	 
      */
-	public boolean isAtom(Formula formula){
-		if (formula instanceof EqualityFormula)
+	public boolean isChildAtom(){
+		if (this.formula instanceof EqualityFormula)
             return true;
-		if (formula instanceof PropositionalVariable)
+		if (this.formula instanceof PropositionalVariable)
             return true;		
-		if (formula instanceof UninterpretedPredicateInstance)
+		if (this.formula instanceof UninterpretedPredicateInstance)
             return true;		
 		return false;
 	}
+	
+	
 
 }
