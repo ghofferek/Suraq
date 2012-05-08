@@ -90,4 +90,14 @@ public class AnnotatedProofNode {
         return true;
     }
 
+    /**
+     * @param consequent
+     *            the consequent to compare
+     * @return <code>true</code> if the given consequent equals the one of this
+     *         node
+     */
+    public boolean hasConsequent(Formula consequent) {
+        return this.consequent.equals(consequent);
+    }
+
 }

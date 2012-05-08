@@ -4,12 +4,16 @@
 package at.iaik.suraq.smtlib;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
 
 /**
  * 
@@ -57,10 +61,24 @@ public class TransformedZ3Proof extends Z3Proof {
         this.computeParents(); // FIXME this is most probably a redundant call.
                                // getLeafs() should also compute the parents.
         List<TransformedZ3Proof> queue = this.getLeafs();
-
+        Set<AnnotatedProofNode> annotatedNodes = new HashSet<AnnotatedProofNode>();
         while (!queue.isEmpty()) {
             TransformedZ3Proof currentNode = queue.remove(0);
+            if (currentNode.hasSingleLiteralConsequent()) {
+                Formula literal = ((OrFormula) (currentNode.proofFormula))
+                        .getDisjuncts().iterator().next();
+
+            }
         }
+    }
+
+    /**
+     * @return <code>true</code> if the consequent of this node has only a
+     *         single literal.
+     */
+    private boolean hasSingleLiteralConsequent() {
+        OrFormula consequent = (OrFormula) this.proofFormula;
+        return consequent.getDisjuncts().size() == 1;
     }
 
     /**
