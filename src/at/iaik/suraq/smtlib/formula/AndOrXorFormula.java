@@ -36,7 +36,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @param formulas
      *            the list of subformulas.
      */
-    protected AndOrXorFormula(Collection<? extends Formula> formulas) {
+    protected AndOrXorFormula(List<? extends Formula> formulas) {
         this.formulas = new ArrayList<Formula>();
         this.formulas.addAll(formulas);
         if (formulas.size() < 1)
@@ -52,7 +52,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @return a new <code>AndOrXorFormula</code> with the same type as
      *         <code>this</code>.
      */
-    protected AndOrXorFormula create(Collection<? extends Formula> formulas) {
+    protected AndOrXorFormula create(List<? extends Formula> formulas) {
         Class<? extends AndOrXorFormula> myClass = this.getClass();
         // Class<?> listClass = formulas.getClass();
         AndOrXorFormula instance = null;

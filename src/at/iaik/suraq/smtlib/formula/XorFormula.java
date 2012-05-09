@@ -4,7 +4,6 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import at.iaik.suraq.exceptions.SuraqException;
@@ -28,7 +27,7 @@ public class XorFormula extends AndOrXorFormula {
      * @param formulas
      *            the formulas to xor.
      */
-    public XorFormula(Collection<Formula> formulas) {
+    public XorFormula(List<Formula> formulas) {
         super(formulas);
     }
 
@@ -75,21 +74,22 @@ public class XorFormula extends AndOrXorFormula {
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on a Xor Formula.\n" +
-				"Xor Formulas should not occur in the consequents of a proof.");
-	}
-	
-	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
-     */	
-	@Override
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
-		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on a Xor Formula.\n" +
-				"Xor Formulas should not occur in the consequents of a proof.");
-	}     
-    
+    @Override
+    public Formula transformToConsequentsForm() {
+        throw new RuntimeException(
+                "transformToConsequentsForm cannot be called on a Xor Formula.\n"
+                        + "Xor Formulas should not occur in the consequents of a proof.");
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
+     */
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
+        throw new RuntimeException(
+                "transformToConsequentsForm cannot be called on a Xor Formula.\n"
+                        + "Xor Formulas should not occur in the consequents of a proof.");
+    }
 }

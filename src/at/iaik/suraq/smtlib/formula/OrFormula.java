@@ -4,7 +4,6 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +28,7 @@ public class OrFormula extends AndOrXorFormula {
      * @param formulas
      *            the formulas to disjunct.
      */
-    public OrFormula(Collection<Formula> formulas) {
+    public OrFormula(List<Formula> formulas) {
         super(formulas);
     }
 
@@ -38,7 +37,7 @@ public class OrFormula extends AndOrXorFormula {
      * 
      * @return a collection of the disjuncted formulas. (Copy)
      */
-    public Collection<Formula> getDisjuncts() {
+    public List<Formula> getDisjuncts() {
         return new ArrayList<Formula>(formulas);
     }
 
@@ -98,67 +97,73 @@ public class OrFormula extends AndOrXorFormula {
     protected Token getOperator() {
         return SExpressionConstants.OR;
     }
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		return transformToConsequentsForm(false, true);
-	}
-	
-	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm( boolean, boolean)
-     */	
-	@Override	
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) { 
-		
-		assert(notFlag == false);
-			    	
-		List<Formula> subFormulas = new ArrayList<Formula>();
-        for (Formula subFormula : this.formulas){
-        	if (isValidChild(subFormula)) {
-        		if (subFormula instanceof OrFormula){
-        			ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) subFormula).getDisjuncts();
-        			for (Formula disjunct : disjuncts){
-                		Formula transformedSubFormula = disjunct.transformToConsequentsForm(notFlag, false);
-                		subFormulas.add(transformedSubFormula);         				
-        			}
-        		}
-        		else {
-            		Formula transformedSubFormula = subFormula.transformToConsequentsForm(notFlag, false);
-            		subFormulas.add(transformedSubFormula);        			
-        		}
 
-        	}
-        	else
-    			throw new RuntimeException(
+    @Override
+    public Formula transformToConsequentsForm() {
+        return transformToConsequentsForm(false, true);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
+     */
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
+
+        assert (notFlag == false);
+
+        List<Formula> subFormulas = new ArrayList<Formula>();
+        for (Formula subFormula : this.formulas) {
+            if (isValidChild(subFormula)) {
+                if (subFormula instanceof OrFormula) {
+                    ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) subFormula)
+                            .getDisjuncts();
+                    for (Formula disjunct : disjuncts) {
+                        Formula transformedSubFormula = disjunct
+                                .transformToConsequentsForm(notFlag, false);
+                        subFormulas.add(transformedSubFormula);
+                    }
+                } else {
+                    Formula transformedSubFormula = subFormula
+                            .transformToConsequentsForm(notFlag, false);
+                    subFormulas.add(transformedSubFormula);
+                }
+
+            } else
+                throw new RuntimeException(
+
                         "Unexpected Chid: Child of an OR Formula can either be an OR Formula, a NOT Formula or an atom");
         }
-        	
-        return new OrFormula(subFormulas);
-	}        
 
-    /** 
-     * Checks if a given Formula is an atom or a NOT formula.
-     * An atom is either a <code>EqualityFormula</code>, a <code>PropositionalVariable</code>
-     * or a <code>UninterpretedPredicateInstance</code>.
+        return new OrFormula(subFormulas);
+    }
+
+    /**
+     * Checks if a given Formula is an atom or a NOT formula. An atom is either
+     * a <code>EqualityFormula</code>, a <code>PropositionalVariable</code> or a
+     * <code>UninterpretedPredicateInstance</code>.
      * 
      * @param formula
-     * 		formula to check 
+     *            formula to check
      * @return true, iff formula is valid
-     *  	 
+     * 
      */
-	public boolean isValidChild(Formula formula){
-		if (formula instanceof OrFormula)
-			return true;
-		if (formula instanceof NotFormula)
-			return true;		
-		if (formula instanceof EqualityFormula)  
+    public boolean isValidChild(Formula formula) {
+        if (formula instanceof OrFormula)
             return true;
-		if (formula instanceof PropositionalVariable)
-            return true;		
-		if (formula instanceof UninterpretedPredicateInstance)
-            return true;		
-		return false;
-	}
+        if (formula instanceof NotFormula)
+            return true;
+        if (formula instanceof EqualityFormula)
+            return true;
+        if (formula instanceof PropositionalVariable)
+            return true;
+        if (formula instanceof UninterpretedPredicateInstance)
+            return true;
+        return false;
+    }
 }

@@ -103,79 +103,83 @@ public class SExpressionConstants {
     public static final SExpression PROOF_MODE_2 = SExpression
             .fromString("(set-option :PROOF_MODE  2)");
 
-    public static final SExpression UNSAT = SExpression.fromString("unsat");
+    public static final Token UNSAT = (Token) SExpression.fromString("unsat");
 
-    public static final SExpression LET = SExpression.fromString("let");
+    public static final Token LET = (Token) SExpression.fromString("let");
 
-    public static final SExpression UNDEF = SExpression.fromString("undef");
-    public static final SExpression ASSERTED = SExpression
+    public static final Token UNDEF = (Token) SExpression.fromString("undef");
+    public static final Token ASSERTED = (Token) SExpression
             .fromString("asserted");
-    public static final SExpression GOAL = SExpression.fromString("goal");
-    public static final SExpression MODUS_PONENS = SExpression
+    public static final Token GOAL = (Token) SExpression.fromString("goal");
+    public static final Token MODUS_PONENS = (Token) SExpression
             .fromString("mp");
-    public static final SExpression REFLEXIVITY = SExpression
+    public static final Token REFLEXIVITY = (Token) SExpression
             .fromString("reflexivity");
-    public static final SExpression SYMMETRY = SExpression.fromString("symm");
-    public static final SExpression TRANSITIVITY = SExpression
+    public static final Token SYMMETRY = (Token) SExpression.fromString("symm");
+    public static final Token TRANSITIVITY = (Token) SExpression
             .fromString("trans");
-    public static final SExpression TRANSITIVITY_STAR = SExpression
+    public static final Token TRANSITIVITY_STAR = (Token) SExpression
             .fromString("transitivity-star");
-    public static final SExpression MONOTONICITY = SExpression
+    public static final Token MONOTONICITY = (Token) SExpression
             .fromString("monotonicity");
-    public static final SExpression QUANT_INTRO = SExpression
+    public static final Token QUANT_INTRO = (Token) SExpression
             .fromString("|quant-intro|");
-    public static final SExpression DISTRIBUTIVITY = SExpression
+    public static final Token DISTRIBUTIVITY = (Token) SExpression
             .fromString("distributivity");
-    public static final SExpression AND_ELIM = SExpression
+    public static final Token AND_ELIM = (Token) SExpression
             .fromString("|and-elim|");
-    public static final SExpression NOT_OR_ELIM = SExpression
+    public static final Token NOT_OR_ELIM = (Token) SExpression
             .fromString("|not-or-elim|");
-    public static final SExpression REWRITE = SExpression.fromString("rewrite");
-    public static final SExpression REWRITE_STAR = SExpression
+    public static final Token REWRITE = (Token) SExpression
+            .fromString("rewrite");
+    public static final Token REWRITE_STAR = (Token) SExpression
             .fromString("rewrite-star");
-    public static final SExpression PULL_QUANT = SExpression
+    public static final Token PULL_QUANT = (Token) SExpression
             .fromString("|pull-quant|");
-    public static final SExpression PULL_QUANT_STAR = SExpression
+    public static final Token PULL_QUANT_STAR = (Token) SExpression
             .fromString("|pull-quant-star|");
-    public static final SExpression PUSH_QUANT = SExpression
+    public static final Token PUSH_QUANT = (Token) SExpression
             .fromString("|push-quant|");
-    public static final SExpression ELIM_UNUSED_VARS = SExpression
+    public static final Token ELIM_UNUSED_VARS = (Token) SExpression
             .fromString("|elim-unused-vars|");
-    public static final SExpression DER = SExpression.fromString("der");
-    public static final SExpression QUANT_INST = SExpression
+    public static final Token DER = (Token) SExpression.fromString("der");
+    public static final Token QUANT_INST = (Token) SExpression
             .fromString("|quant-inst|");
-    public static final SExpression HYPOTHESIS = SExpression
+    public static final Token HYPOTHESIS = (Token) SExpression
             .fromString("hypothesis");
-    public static final SExpression LEMMA = SExpression.fromString("lemma");
-    public static final SExpression UNIT_RESOLUTION = SExpression
+    public static final Token LEMMA = (Token) SExpression.fromString("lemma");
+    public static final Token UNIT_RESOLUTION = (Token) SExpression
             .fromString("|unit-resolution|");
-    public static final SExpression IFF_TRUE = SExpression
+    public static final Token IFF_TRUE = (Token) SExpression
             .fromString("|iff-true|");
-    public static final SExpression IFF_FALSE = SExpression
+    public static final Token IFF_FALSE = (Token) SExpression
             .fromString("|iff-false|");
-    public static final SExpression COMMUTATIVITY = SExpression
+    public static final Token COMMUTATIVITY = (Token) SExpression
             .fromString("commutativity");
-    public static final SExpression AXIOM = SExpression
+    public static final Token AXIOM = (Token) SExpression
             .fromString("|def-axiom|");
-    public static final SExpression INTRO = SExpression.fromString("intro");
-    public static final SExpression APPLY_DEF = SExpression
+    public static final Token INTRO = (Token) SExpression.fromString("intro");
+    public static final Token APPLY_DEF = (Token) SExpression
             .fromString("|apply-def|");
-    public static final SExpression IFF_OEQ = SExpression.fromString("iff-oeq");
-    public static final SExpression NNF_POS = SExpression.fromString("nnf-pos");
-    public static final SExpression NNF_NEG = SExpression.fromString("nnf-neg");
-    public static final SExpression NNF_STAR = SExpression
+    public static final Token IFF_OEQ = (Token) SExpression
+            .fromString("iff-oeq");
+    public static final Token NNF_POS = (Token) SExpression
+            .fromString("nnf-pos");
+    public static final Token NNF_NEG = (Token) SExpression
+            .fromString("nnf-neg");
+    public static final Token NNF_STAR = (Token) SExpression
             .fromString("nnf-star");
-    public static final SExpression CNF_STAR = SExpression
+    public static final Token CNF_STAR = (Token) SExpression
             .fromString("cnf-star");
-    public static final SExpression SKOLEMIZE = SExpression
+    public static final Token SKOLEMIZE = (Token) SExpression
             .fromString("skolemize");
-    public static final SExpression MODUS_PONENS_OEQ = SExpression
+    public static final Token MODUS_PONENS_OEQ = (Token) SExpression
             .fromString("modus-pones-oeq");
-    public static final SExpression TH_LEMMA = SExpression
+    public static final Token TH_LEMMA = (Token) SExpression
             .fromString("th-lemma");
-    public static final SExpression TRANS = SExpression.fromString("trans");
-    public static final SExpression MP = SExpression.fromString("mp");
-    public static final SExpression[] PROOF_TYPES = SExpressionConstants
+    public static final Token TRANS = (Token) SExpression.fromString("trans");
+    public static final Token MP = (Token) SExpression.fromString("mp");
+    public static final Token[] PROOF_TYPES = SExpressionConstants
             .createProofTypes();
 
     /**
@@ -184,9 +188,9 @@ public class SExpressionConstants {
      * @return an <code>SExpression[]</code> declaring the proof types.
      */
 
-    public static SExpression[] createProofTypes() {
+    public static Token[] createProofTypes() {
 
-        SExpression[] proofTypes = new SExpression[39];
+        Token[] proofTypes = new Token[39];
 
         // see: z3_api.h
         proofTypes[0] = SExpressionConstants.UNDEF;

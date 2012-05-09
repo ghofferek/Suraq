@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.proof;
 
+import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.formula.Formula;
 
 /**
@@ -17,13 +18,13 @@ public class AnnotatedProofNode {
 
     private final int rightPartition;
 
-    private final Formula consequent;
+    private final TransformedZ3Proof consequent;
 
-    private final Formula premise1;
+    private final TransformedZ3Proof premise1;
 
-    private final Formula premise2;
+    private final TransformedZ3Proof premise2;
 
-    private final Formula premise3;
+    private final TransformedZ3Proof premise3;
 
     private final int hash;
 
@@ -39,19 +40,19 @@ public class AnnotatedProofNode {
      * @param premise3
      */
     public AnnotatedProofNode(int leftPartition, int rightPartition,
-            Formula consequent, Formula premise1, Formula premise2,
-            Formula premise3) {
+            TransformedZ3Proof consequent, TransformedZ3Proof premise1,
+            TransformedZ3Proof premise2, TransformedZ3Proof premise3) {
         super();
         this.leftPartition = leftPartition;
         this.rightPartition = rightPartition;
-        this.consequent = consequent.deepFormulaCopy();
+        this.consequent = consequent;
 
-        assert (premise1 != null || (premise2 == null && premise3 == null));
-        assert (premise2 != null || premise3 == null);
+        assert ((premise1 == null && premise2 == null && premise3 == null) || (premise1 != null
+                && premise2 != null && premise3 != null));
 
-        this.premise1 = premise1 != null ? premise1.deepFormulaCopy() : null;
-        this.premise2 = premise2 != null ? premise2.deepFormulaCopy() : null;
-        this.premise3 = premise3 != null ? premise3.deepFormulaCopy() : null;
+        this.premise1 = premise1;
+        this.premise2 = premise2;
+        this.premise3 = premise3;
 
         this.hash = premise1.hashCode() ^ premise2.hashCode()
                 ^ premise3.hashCode() ^ consequent.hashCode()
@@ -81,16 +82,13 @@ public class AnnotatedProofNode {
             return false;
         if (this.rightPartition != other.rightPartition)
             return false;
-        if (!this.consequent.equals(other.consequent))
+        if (this.consequent != other.consequent)
             return false;
-        if (!(this.premise1 != null ? this.premise1.equals(other.premise1)
-                : other.premise1 == null))
+        if (this.premise1 != other.premise1)
             return false;
-        if (!(this.premise2 != null ? this.premise2.equals(other.premise2)
-                : other.premise2 == null))
+        if (this.premise2 != other.premise2)
             return false;
-        if (!(this.premise3 != null ? this.premise3.equals(other.premise3)
-                : other.premise3 == null))
+        if (this.premise3 != other.premise3)
             return false;
         return true;
     }
@@ -102,6 +100,16 @@ public class AnnotatedProofNode {
      *         node
      */
     public boolean hasConsequent(Formula consequent) {
+        return this.consequent.getProofFormula().equals(consequent);
+    }
+
+    /**
+     * @param consequent
+     *            the consequent to compare
+     * @return <code>true</code> if the given consequent equals the one of this
+     *         node
+     */
+    public boolean hasConsequent(TransformedZ3Proof consequent) {
         return this.consequent.equals(consequent);
     }
 
@@ -136,22 +144,22 @@ public class AnnotatedProofNode {
     /**
      * @return the <code>premise1</code> (copy)
      */
-    public Formula getPremise1() {
-        return premise1 == null ? null : premise1.deepFormulaCopy();
+    public TransformedZ3Proof getPremise1() {
+        return premise1;
     }
 
     /**
      * @return the <code>premise2</code> (copy)
      */
-    public Formula getPremise2() {
-        return premise2 == null ? null : premise2.deepFormulaCopy();
+    public TransformedZ3Proof getPremise2() {
+        return premise2;
     }
 
     /**
      * @return the <code>premise3</code> (copy)
      */
-    public Formula getPremise3() {
-        return premise3 == null ? null : premise3.deepFormulaCopy();
+    public TransformedZ3Proof getPremise3() {
+        return premise3;
     }
 
     /**

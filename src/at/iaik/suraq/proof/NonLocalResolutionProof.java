@@ -4,7 +4,6 @@
 package at.iaik.suraq.proof;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -231,7 +230,7 @@ public class NonLocalResolutionProof {
             OrFormula remainingNonUnitFormula = (OrFormula) nonUnitAntecedent.consequent;
 
             for (int count = 1; count < z3SubProofs.size() - 1; count++) {
-                Collection<Formula> newDisjuncts = remainingNonUnitFormula
+                List<Formula> newDisjuncts = remainingNonUnitFormula
                         .getDisjuncts();
                 newDisjuncts.remove(z3SubProofs.get(count).getProofFormula());
                 remainingNonUnitFormula = new OrFormula(newDisjuncts);
@@ -301,7 +300,7 @@ public class NonLocalResolutionProof {
             // update ancestors' consequents
             NonLocalResolutionProof parent = parents.get(this);
             while (parent != null) {
-                Collection<Formula> newDisjuncts = null;
+                List<Formula> newDisjuncts = null;
                 if (parent.consequent instanceof OrFormula) {
                     newDisjuncts = ((OrFormula) parent.consequent)
                             .getDisjuncts();

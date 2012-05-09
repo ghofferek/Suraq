@@ -22,11 +22,10 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
-import at.iaik.suraq.proof.NonLocalResolutionProof;
+import at.iaik.suraq.resProof.ResProofTest;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
-
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -42,9 +41,6 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
-
-import at.iaik.suraq.resProof.ResProofTest;
-
 import at.iaik.suraq.util.Util;
 
 /**
@@ -96,14 +92,13 @@ public class Suraq implements Runnable {
     /**
      * stores the declaration part of the smt description
      */
-    private String declarationStr="";
-    
+    private String declarationStr = "";
+
     /**
      * stores the assert partitions of the smt description
      */
     private List<String> assertPartitionStrList = new ArrayList<String>();
-    
-    
+
     /**
      * Constructs a new <code>Suraq</code>.
      */
@@ -147,277 +142,289 @@ public class Suraq implements Runnable {
         System.exit(0);
     }
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	@Override
-	public void run() {
-            //START: ASHUTOSH code
-            if(true){
-                ResProofTest pTst= new ResProofTest(); 
-                pTst.test(); 
-                return;
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
+        // START: ASHUTOSH code
+        if (false) {
+            ResProofTest pTst = new ResProofTest();
+            pTst.test();
+            return;
+        }
+        // END: ASHUTOSH code
+        printWelcome();
+
+        SuraqOptions options = SuraqOptions.getInstance();
+
+        File sourceFile = new File(options.getInput());
+        if (options.isVerbose())
+            System.out.println("Parsing input file " + sourceFile.toString());
+        SExpParser sExpParser = null;
+        try {
+            sExpParser = new SExpParser(sourceFile);
+        } catch (FileNotFoundException exc) {
+            System.err.println("ERROR: File " + sourceFile.getPath()
+                    + " not found!");
+            noErrors = false;
+            return;
+        } catch (IOException exc) {
+            System.err.println("ERROR: Could not read from file "
+                    + sourceFile.getPath());
+            noErrors = false;
+            return;
+        }
+
+        try {
+            sExpParser.parse();
+            assert (sExpParser.wasParsingSuccessfull());
+        } catch (ParseError exc) {
+            handleParseError(exc);
+            noErrors = false;
+            return;
+        }
+
+        logicParser = new LogicParser(sExpParser.getRootExpr());
+
+        try {
+            logicParser.parse();
+            assert (logicParser.wasParsingSuccessfull());
+        } catch (ParseError exc) {
+            handleParseError(exc);
+            noErrors = false;
+            return;
+        }
+        // Parsing complete
+        if (options.isVerbose())
+            System.out.println("Parsing completed successfully!");
+        Formula formula = null;
+        try {
+            formula = doMainWork();
+            File smtfile = new File(options.getSmtfile());
+            FileWriter fstream = new FileWriter(smtfile);
+            BufferedWriter smtfilewriter = new BufferedWriter(fstream);
+            for (SExpression expr : outputExpressions)
+                smtfilewriter.write(expr.toString() + "\n");
+            smtfilewriter.close();
+        } catch (SuraqException exc) {
+            noErrors = false;
+            if (exc.getMessage() != null)
+                System.out.println(exc.getMessage());
+        } catch (IOException exc) {
+            System.err.println("Error while writing to smtfile.");
+            exc.printStackTrace();
+            noErrors = false;
+        }
+
+        // check result with z3 solver
+        if (options.isZ3enabled()) {
+
+            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+
+            // simplify assert partitions
+            System.out.println("Simplifying assert-partitions...");
+            List<String> simplifiedAssertPartitions = new ArrayList<String>();
+            for (String assertPartition : assertPartitionStrList) {
+                String smtStr = buildSimplifySMTDescription(declarationStr,
+                        assertPartition);
+                String simpleSmtStr = z3.simplify(smtStr);
+                simplifiedAssertPartitions.add(simpleSmtStr);
+
             }
-            //END: ASHUTOSH code
-            printWelcome();
 
-		SuraqOptions options = SuraqOptions.getInstance();
+            String smtStr = buildProofSMTDescription(declarationStr,
+                    simplifiedAssertPartitions);
 
-		File sourceFile = new File(options.getInput());
-		if (options.isVerbose())
-			System.out.println("Parsing input file " + sourceFile.toString());
-		SExpParser sExpParser = null;
-		try {
-			sExpParser = new SExpParser(sourceFile);
-		} catch (FileNotFoundException exc) {
-			System.err.println("ERROR: File " + sourceFile.getPath()
-					+ " not found!");
-			noErrors = false;
-			return;
-		} catch (IOException exc) {
-			System.err.println("ERROR: Could not read from file "
-					+ sourceFile.getPath());
-			noErrors = false;
-			return;
-		}
+            System.out
+                    .println("Checking outcome of simplified partitions with z3 solver...");
 
-		try {
-			sExpParser.parse();
-			assert (sExpParser.wasParsingSuccessfull());
-		} catch (ParseError exc) {
-			handleParseError(exc);
-			noErrors = false;
-			return;
-		}
+            z3.solve(smtStr);
 
-		logicParser = new LogicParser(sExpParser.getRootExpr());
+            switch (z3.getState()) {
+            case SMTSolver.UNSAT:
+                System.out.println("Z3 OUTCOME ---->  UNSAT");
+                break;
+            case SMTSolver.SAT:
+                noErrors = false;
+                System.out.println("Z3 OUTCOME ---->  SAT");
+                throw (new RuntimeException("Z3 tells us SAT."));
+                // break;
+            default:
+                noErrors = false;
+                System.out
+                        .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
+                throw (new RuntimeException(
+                        "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+            }
 
-		try {
-			logicParser.parse();
-			assert (logicParser.wasParsingSuccessfull());
-		} catch (ParseError exc) {
-			handleParseError(exc);
-			noErrors = false;
-			return;
-		}
-		// Parsing complete
-		if (options.isVerbose())
-			System.out.println("Parsing completed successfully!");
-		Formula formula = null;
-		try {
-			formula = doMainWork();
-			File smtfile = new File(options.getSmtfile());
-			FileWriter fstream = new FileWriter(smtfile);
-			BufferedWriter smtfilewriter = new BufferedWriter(fstream);
-			for (SExpression expr : outputExpressions)
-				smtfilewriter.write(expr.toString() + "\n");
-			smtfilewriter.close();
-		} catch (SuraqException exc) {
-			noErrors = false;
-			if (exc.getMessage() != null)
-				System.out.println(exc.getMessage());
-		} catch (IOException exc) {
-			System.err.println("Error while writing to smtfile.");
-			exc.printStackTrace();
-			noErrors = false;
-		}
+            if (z3.getState() == SMTSolver.UNSAT) {
 
-		// check result with z3 solver
-		if (options.isZ3enabled()) {
-		
-			SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
-			
-			//simplify assert partitions
-			System.out.println("Simplifying assert-partitions...");
-			List<String> simplifiedAssertPartitions = new ArrayList<String>();
-			for(String assertPartition : assertPartitionStrList){
-				String smtStr = buildSimplifySMTDescription(declarationStr,assertPartition);
-				String simpleSmtStr = z3.simplify(smtStr);
-				simplifiedAssertPartitions.add(simpleSmtStr);
-			}
-			
-			String smtStr = buildProofSMTDescription(declarationStr,simplifiedAssertPartitions);
-		
-			System.out.println("Checking outcome of simplified partitions with z3 solver...");
-	
-			z3.solve(smtStr);
+                String proof = z3.getProof();
+                assert (proof != null);
 
-			switch (z3.getState()) {
-			case SMTSolver.UNSAT:
-				System.out.println("Z3 OUTCOME ---->  UNSAT");
-				break;
-			case SMTSolver.SAT:
-				noErrors = false;
-				System.out.println("Z3 OUTCOME ---->  SAT");
-				throw (new RuntimeException("Z3 tells us SAT."));
-				// break;
-			default:
-				noErrors = false;
-				System.out
-						.println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
-				throw (new RuntimeException(
-						"Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
-			}
-			
-			
-			if (z3.getState()==SMTSolver.UNSAT){
+                // write proof to file
+                String[] path = options.getSmtfile().split(Pattern.quote("/"));
+                String z3filename = path[path.length - 1];
 
-				String proof = z3.getProof(); 	
-				assert(proof!=null);
-				
-				//write proof to file
-				String[] path = options.getSmtfile().split(Pattern.quote("/"));
-				String z3filename =  path[path.length-1];
-					
-				try {
-					File outputFile = new File("z3_proof_"+ z3filename +".out");	
-			        FileWriter fw = new FileWriter(outputFile);
-			        fw.write(proof);
-			        fw.close();
-				}catch (IOException e) {
-					e.printStackTrace();
-					}
-				
-				//expression parsing of proof			
-				SExpParser sExpProofParser = null;
-				sExpProofParser = new SExpParser(proof);				
-					
-				try {
-					sExpProofParser.parse();
-					assert (sExpProofParser.wasParsingSuccessfull());
-				} catch (ParseError exc) {
-					handleParseError(exc);
-					noErrors = false;
-					return;
-				}
-				
-				//build function and variable lists for proof parser
-				Set<PropositionalVariable> propsitionalVars = formula.getPropositionalVariables();
-				Set<DomainVariable> domainVars = formula.getDomainVariables();
-				Set<ArrayVariable> arrayVars = formula.getArrayVariables();
-				Set<UninterpretedFunction> uninterpretedFunctions = formula.getUninterpretedFunctions();
-								
-				for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies.entrySet()) {
-					assert(varList.getValue()!=null);
-					assert(varList.getValue().size()>0);
-					
-					Term first = varList.getValue().get(0);
-					
-					if (first instanceof DomainVariable)
-						for (Term var : varList.getValue())
-							domainVars.add((DomainVariable) var);
-					
-					if (first instanceof PropositionalVariable)
-						for (Term var : varList.getValue())
-							propsitionalVars.add((PropositionalVariable) var);
-					
-					if (first instanceof ArrayVariable)
-						for (Term var : varList.getValue())
-							arrayVars.add((ArrayVariable) var);	
-				}
-				
-				for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies.entrySet()) 
-					uninterpretedFunctions.addAll(functionList.getValue());
-				
-				//parsing proof				
-				ProofParser proofParser = new ProofParser(sExpProofParser.getRootExpr(),
-						domainVars,
-						propsitionalVars,
-						arrayVars,
-						uninterpretedFunctions);
+                try {
+                    File outputFile = new File("z3_proof_" + z3filename
+                            + ".out");
+                    FileWriter fw = new FileWriter(outputFile);
+                    fw.write(proof);
+                    fw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-				try {
-					proofParser.parse();
-					assert (proofParser.wasParsingSuccessfull());
-				} catch (ParseError exc) {
-					handleParseError(exc);
-					noErrors = false;
-					return;
-				}
-				Z3Proof rootProof = proofParser.getRootProof();
-				Set<Integer> partitions = rootProof.getAssertPartition();
-				//NonLocalResolutionProof nonLocalResolutionProof = new NonLocalResolutionProof(rootProof);
-				
-				System.out.println("partitions"+ partitions);
-			}
-	
-			System.out.println(" done!");
-		}
+                // expression parsing of proof
+                SExpParser sExpProofParser = null;
+                sExpProofParser = new SExpParser(proof);
 
-		// All done :-)
-		printEnd(noErrors);
-		return;
-	}
-    
-	/**
+                try {
+                    sExpProofParser.parse();
+                    assert (sExpProofParser.wasParsingSuccessfull());
+                } catch (ParseError exc) {
+                    handleParseError(exc);
+                    noErrors = false;
+                    return;
+                }
+
+                // build function and variable lists for proof parser
+                Set<PropositionalVariable> propsitionalVars = formula
+                        .getPropositionalVariables();
+                Set<DomainVariable> domainVars = formula.getDomainVariables();
+                Set<ArrayVariable> arrayVars = formula.getArrayVariables();
+                Set<UninterpretedFunction> uninterpretedFunctions = formula
+                        .getUninterpretedFunctions();
+
+                for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
+                        .entrySet()) {
+                    assert (varList.getValue() != null);
+                    assert (varList.getValue().size() > 0);
+
+                    Term first = varList.getValue().get(0);
+
+                    if (first instanceof DomainVariable)
+                        for (Term var : varList.getValue())
+                            domainVars.add((DomainVariable) var);
+
+                    if (first instanceof PropositionalVariable)
+                        for (Term var : varList.getValue())
+                            propsitionalVars.add((PropositionalVariable) var);
+
+                    if (first instanceof ArrayVariable)
+                        for (Term var : varList.getValue())
+                            arrayVars.add((ArrayVariable) var);
+                }
+
+                for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies
+                        .entrySet())
+                    uninterpretedFunctions.addAll(functionList.getValue());
+
+                // parsing proof
+                ProofParser proofParser = new ProofParser(
+                        sExpProofParser.getRootExpr(), domainVars,
+                        propsitionalVars, arrayVars, uninterpretedFunctions);
+
+                try {
+                    proofParser.parse();
+                    assert (proofParser.wasParsingSuccessfull());
+                } catch (ParseError exc) {
+                    handleParseError(exc);
+                    noErrors = false;
+                    return;
+                }
+                Z3Proof rootProof = proofParser.getRootProof();
+                Set<Integer> partitions = rootProof.getAssertPartition();
+                // NonLocalResolutionProof nonLocalResolutionProof = new
+                // NonLocalResolutionProof(rootProof);
+
+                System.out.println("partitions" + partitions);
+            }
+
+            System.out.println(" done!");
+        }
+
+        // All done :-)
+        printEnd(noErrors);
+        return;
+    }
+
+    /**
      * Creates an SMT Description from the simplified assert partitions.
+     * 
      * @param declarationStr
-     * 		declarations of the SMT Description
+     *            declarations of the SMT Description
      * @param simplifiedAssertPartitions
-     * 		simplified assert partitions
-     * @return 
-     * 		SMT description to proof
+     *            simplified assert partitions
+     * @return SMT description to proof
      * 
      */
     private String buildProofSMTDescription(String declarationStr,
-			List<String> simplifiedAssertPartitions) {
-		String smtStr="";
-		
-	    smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
-	    smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
-	    smtStr += SExpressionConstants.PROOF_MODE_2.toString();
-	    smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE.toString();
-	    smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE.toString();
-	    smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+            List<String> simplifiedAssertPartitions) {
+        String smtStr = "";
 
-	    smtStr += declarationStr;
-	    
-	    //create assert partition for every simplified partition
-	    for(String partition : simplifiedAssertPartitions){
-	    	SExpression expr = new SExpression(new Token("assert"), SExpression.fromString(partition));
-	    	smtStr += expr.toString(); 	
-	    }
-	
+        smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+        smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
+        smtStr += SExpressionConstants.PROOF_MODE_2.toString();
+        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+                .toString();
+        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
+                .toString();
+        smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+
+        smtStr += declarationStr;
+
+        // create assert partition for every simplified partition
+        for (String partition : simplifiedAssertPartitions) {
+            SExpression expr = new SExpression(new Token("assert"),
+                    SExpression.fromString(partition));
+            smtStr += expr.toString();
+        }
+
         smtStr += SExpressionConstants.CHECK_SAT.toString();
         smtStr += SExpressionConstants.GET_PROOF.toString();
         smtStr += SExpressionConstants.EXIT.toString();
-			
-		return smtStr;
-	}
 
+        return smtStr;
+    }
 
-	/**
+    /**
      * Creates an SMT description for an simplify operation
+     * 
      * @param declarationStr
-     * 		declarations of the SMT description
+     *            declarations of the SMT description
      * @param assertPartition
-     * 		 partition to be simplified 
-     * @return 
-     * 		SMT description of simplify operation
+     *            partition to be simplified
+     * @return SMT description of simplify operation
      * 
      */
-	private String buildSimplifySMTDescription(String declarationStr,
-			String assertPartition) {
-		String smtStr="";
-		
-	    smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
-	    smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
-	    smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE.toString();
-	    smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE.toString();
-	    smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+    private String buildSimplifySMTDescription(String declarationStr,
+            String assertPartition) {
+        String smtStr = "";
 
-	    smtStr += declarationStr;
-	    
-	    smtStr += assertPartition;
-	    
-	    smtStr += SExpressionConstants.EXIT.toString();
-			
-		return smtStr;
-	}
+        smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+        smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
+        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+                .toString();
+        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
+                .toString();
+        smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
 
-	/**
+        smtStr += declarationStr;
+
+        smtStr += assertPartition;
+
+        smtStr += SExpressionConstants.EXIT.toString();
+
+        return smtStr;
+    }
+
+    /**
      * Performs the main work.
-     * @return 
+     * 
+     * @return
      * 
      * @throws SuraqException
      *             if something goes wrong
@@ -439,7 +446,9 @@ public class Suraq implements Runnable {
         System.out.println("Removing array writes...");
         formula.removeArrayWrites(formula, constraints, noDependenceVars);
         if (constraints.size() > 0) {
-            AndFormula arrayConstraints = new AndFormula(constraints);
+            List<Formula> constraintsList = new ArrayList<Formula>();
+            constraintsList.addAll(constraints);
+            AndFormula arrayConstraints = new AndFormula(constraintsList);
             formula = new ImpliesFormula(arrayConstraints, formula);
         }
 
@@ -483,44 +492,45 @@ public class Suraq implements Runnable {
                     "Current implementation cannot handle more than 30 control signals.");
         }
 
-        
         outputExpressions = new ArrayList<SExpression>();
         // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
 
         outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
         outputExpressions.add(SExpressionConstants.AUTO_CONFIG_FALSE);
-        outputExpressions.add(SExpressionConstants.PROOF_MODE_2);        
-     //   outputExpressions
-         //       .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
+        outputExpressions.add(SExpressionConstants.PROOF_MODE_2);
+        // outputExpressions
+        // .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
-              		
+
         System.out.println("Writing declarations...");
-      
-        int beginDeclarationsIdx = outputExpressions.size(); 
-        
+
+        int beginDeclarationsIdx = outputExpressions.size();
+
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
 
-        //get declarations and functions
-        ListIterator<SExpression> beginDeclarations = outputExpressions.listIterator(beginDeclarationsIdx);
-        while(beginDeclarations.hasNext())
-        	declarationStr+=beginDeclarations.next().toString();
-     
-        int beginAssertPartitionIdx = outputExpressions.size(); 
+        // get declarations and functions
+        ListIterator<SExpression> beginDeclarations = outputExpressions
+                .listIterator(beginDeclarationsIdx);
+        while (beginDeclarations.hasNext())
+            declarationStr += beginDeclarations.next().toString();
+
+        int beginAssertPartitionIdx = outputExpressions.size();
         writeAssertPartitions(formula, noDependenceVars, controlSignals);
-     
-        //get assert partitions and transform to simplifies.
-        ListIterator<SExpression> beginAssert = outputExpressions.listIterator(beginAssertPartitionIdx);
-        while(beginAssert.hasNext()){
-        	SExpression expr =beginAssert.next().deepCopy();
-        	expr.replaceChild(new Token("simplify"), 0);
-        	assertPartitionStrList.add(expr.toString());  
+
+        // get assert partitions and transform to simplifies.
+        ListIterator<SExpression> beginAssert = outputExpressions
+                .listIterator(beginAssertPartitionIdx);
+        while (beginAssert.hasNext()) {
+            SExpression expr = beginAssert.next().deepCopy();
+            expr.replaceChild(new Token("simplify"), 0);
+            assertPartitionStrList.add(expr.toString());
         }
-        
+
         outputExpressions.add(SExpressionConstants.CHECK_SAT);
-        outputExpressions.add(SExpressionConstants.GET_PROOF);  
+        outputExpressions.add(SExpressionConstants.GET_PROOF);
         outputExpressions.add(SExpressionConstants.EXIT);
-         
+
         return formula;
     }
 
@@ -560,7 +570,7 @@ public class Suraq implements Runnable {
                             noDependenceFunctionsCopies.get(var).get(count));
                 else
                     throw new SuraqException(
-                            "noDependenceVar "   
+                            "noDependenceVar "
                                     + var.toString()
                                     + " is neither a variable nor an uninterpreted function.");
             }
@@ -579,7 +589,7 @@ public class Suraq implements Runnable {
             tempFormula = new NotFormula(tempFormula);
             SExpression assertPartitionExpression = new SExpression();
             assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
-                    //.addChild(SExpressionConstants.ASSERT_PARTITION);
+            // .addChild(SExpressionConstants.ASSERT_PARTITION);
             assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
             outputExpressions.add(assertPartitionExpression);
         }
@@ -659,8 +669,8 @@ public class Suraq implements Runnable {
             outputExpressions.add(SExpression.makeDeclareFun(
                     function.getName(), function.getType(),
                     function.getNumParams()));
-        }   
-        
+        }
+
         // Now dealing with noDependenceVars
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
         noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();
@@ -694,12 +704,13 @@ public class Suraq implements Runnable {
                         new Token(name), type, numParams));
                 if (numParams == 0) {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))
-                        listOfVarCopies.add(new PropositionalVariable(name, count));
+                        listOfVarCopies.add(new PropositionalVariable(name,
+                                count));
                     else if (type.equals(SExpressionConstants.VALUE_TYPE))
-                        listOfVarCopies.add(new DomainVariable(name,count));
+                        listOfVarCopies.add(new DomainVariable(name, count));
                     else {
                         assert (type.equals(SExpressionConstants.ARRAY_TYPE));
-                        listOfVarCopies.add(new ArrayVariable(name,count));
+                        listOfVarCopies.add(new ArrayVariable(name, count));
                     }
                 } else {
                     assert (type instanceof Token);
