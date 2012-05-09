@@ -187,4 +187,12 @@ public class ResNode {
         }
         System.out.println("]");
     }
+
+    @Override
+    public String toString(){
+        if(isLeaf)
+            return id+":"+cl+" (p"+part+")";
+        else
+            return id+":"+cl+" l:"+left.id+" r:"+right.id+" piv:"+pivot;
+    }
 }

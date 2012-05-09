@@ -46,13 +46,18 @@ public class ResProof{
 
     void recCheckProof( ResNode n){
         if( visited[n.id] ) return;
-        n.print();
-        // System.out.println( n.id+":"+n.cl);
-        visited[n.id] = true;
+        System.out.println(n);
         if( n.isLeaf ){
             Assert.assertTrue( "Pivot for leaf", n.pivot == 0 );
             Assert.assertTrue( "Parent for leaf", 
                                n.left == null && n.right == null );
+            Iterator<Lit> iter = n.cl.iterator();
+            while(iter.hasNext()){
+                Lit l = iter.next();
+                if(  var_part[l.var()] != 0 )
+                    Assert.assertTrue("a local is in wrong partition",
+                                      var_part[l.var()] == n.part );
+            }
         }else{
             Assert.assertTrue( "Parent missing",
                                n.left != null && n.right != null );
@@ -60,14 +65,12 @@ public class ResProof{
                               n.left.cl.contains( n.pivot, true) &&
                               n.right.cl.contains( n.pivot, false) );
             Clause c = new Clause(n.left.cl,n.right.cl,n.pivot);
-            // c.rmLit( n.pivot, true );
-            // c.addAllLit( n.right.cl );
-            // c.rmLit( n.pivot, false );
             Assert.assertTrue("node is not result of resolution of parents",
                               n.cl.equals(c));
             recCheckProof( n.left  );
             recCheckProof( n.right );
         }
+        visited[n.id] = true;
     }
 
     public void checkProof(){
@@ -99,7 +102,8 @@ public class ResProof{
                 } else if(n.cl.contains( n.left.pivot, false)) { 
                     del = true; LeftParent=true; LeftGrandParent=false; 
                 }
-            }else if(!n.right.isLeaf){
+            }
+            if(!del && !n.right.isLeaf){
                 if( n.cl.contains( n.right.pivot, true )) { 
                     del = true; LeftParent=false; LeftGrandParent=true; 
                 }else if(n.cl.contains( n.right.pivot, false )) { 
@@ -121,17 +125,17 @@ public class ResProof{
         // Check Left
         int goLeft = n.left.checkMovable(pl);
         // Check Right
-        int goRight = n.left.checkMovable(nl);
+        int goRight = n.right.checkMovable(nl);
         
         Assert.assertTrue("Both unmovable parent not possible!",
-                          goLeft != -1 || goLeft != -1 );
+                          goLeft != -1 || goRight != -1 );
 
         // L = Res(LL, LR), R = Res(RL, RR), N = Res(L,R)
         ResNode L = n.left, R = n.right, n1=null, n2=null;
         ResNode LL = null, LR = null, RL = null, RR = null;
         int piv= n.pivot, Lpiv=0, Rpiv =0;
         if(!L.isLeaf){ LL = L.left; LR = L.right; Lpiv = L.pivot;}
-        if(!R.isLeaf){ RL = R.left; RL = R.right; Rpiv = R.pivot;}
+        if(!R.isLeaf){ RL = R.left; RR = R.right; Rpiv = R.pivot;}
 
         if(goLeft == 2){ // -> N1 = Res(LL,R) N = Res(N1,LR)
             n1 = addIntNode( null, LL, R, piv);
