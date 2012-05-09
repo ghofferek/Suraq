@@ -154,21 +154,28 @@ public class AnnotatedProofNode {
     }
 
     /**
-     * @return the <code>premise1</code> (copy)
+     * @return the <code>consequent</code>
+     */
+    public TransformedZ3Proof getConsequent() {
+        return consequent;
+    }
+
+    /**
+     * @return the <code>premise1</code>
      */
     public TransformedZ3Proof getPremise1() {
         return premise1;
     }
 
     /**
-     * @return the <code>premise2</code> (copy)
+     * @return the <code>premise2</code>
      */
     public TransformedZ3Proof getPremise2() {
         return premise2;
     }
 
     /**
-     * @return the <code>premise3</code> (copy)
+     * @return the <code>premise3</code>
      */
     public TransformedZ3Proof getPremise3() {
         return premise3;

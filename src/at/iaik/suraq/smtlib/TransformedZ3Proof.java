@@ -177,7 +177,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 && secondAnnotatedNode.numPremises() == 0) {
             if (firstAnnotatedNode.getRightPartition() == secondAnnotatedNode
                     .getPartition())
-                handleTransitivityCase3();
+                handleTransitivityCase3(firstAnnotatedNode, secondAnnotatedNode);
             else
                 handleTransitivityCase5();
         } else if (firstAnnotatedNode.numPremises() == 0
@@ -228,16 +228,29 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     /**
+     * Deals with the case that the first equalities has an annotated nodes with
+     * 3 premises, the second one has an annotated node with 0 premises, and the
+     * right partition of the first node equals the partition of the second
+     * node.
+     * 
+     * @param firstAnnotatedNode
+     * @param secondAnnotatedNode
      * 
      */
-    private void handleTransitivityCase3() {
-        // TODO Auto-generated method stub
-
+    private void handleTransitivityCase3(AnnotatedProofNode firstAnnotatedNode,
+            AnnotatedProofNode secondAnnotatedNode) {
+        List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>();
+        newSubProofs.add(firstAnnotatedNode.getPremise3());
+        newSubProofs.add(secondAnnotatedNode.getConsequent());
+        TransformedZ3Proof newProofNode = TransformedZ3Proof
+                .createTransitivityProof(newSubProofs);
+        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
+                firstAnnotatedNode.getLeftPartition(), firstAnnotatedNode
+                        .getRightPartition(), this, firstAnnotatedNode
+                        .getPremise1(), firstAnnotatedNode.getPremise2(),
+                newProofNode));
     }
 
-    /**
-     * 
-     */
     private void handleTransitivityCase4() {
         // TODO Auto-generated method stub
 
@@ -383,5 +396,47 @@ public class TransformedZ3Proof extends Z3Proof {
                 new ArrayList<TransformedZ3Proof>(), formula);
         result.isAxiom = true;
         return result;
+    }
+
+    /**
+     * Creates a transitivity proof for the given list of subproofs. The list
+     * must have exactly two elements, which match a transitivity premise of the
+     * form [(a=b), (b=c)].
+     * 
+     * @param subProofs
+     *            the subproofs
+     * @return a reflexivity proof for the given term.
+     */
+    public static TransformedZ3Proof createTransitivityProof(
+            List<TransformedZ3Proof> subProofs) {
+        assert (subProofs.size() == 2);
+        assert (subProofs.get(0).proofFormula instanceof EqualityFormula);
+        assert (subProofs.get(1).proofFormula instanceof EqualityFormula);
+
+        EqualityFormula formula1 = (EqualityFormula) subProofs.get(0).proofFormula;
+        EqualityFormula formula2 = (EqualityFormula) subProofs.get(1).proofFormula;
+
+        assert (formula1.getTerms().size() == 2);
+        Term term1 = formula1.getTerms().get(0);
+        assert (formula2.getTerms().size() == 2);
+        Term term2 = formula1.getTerms().get(1);
+
+        List<Term> newTerms = new ArrayList<Term>();
+        newTerms.add(term1);
+        newTerms.add(term2);
+
+        Formula newFormula = null;
+        try {
+            newFormula = EqualityFormula.create(newTerms, true);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Incomparable terms while creating transitivity proof.",
+                    exc);
+        }
+
+        TransformedZ3Proof result = new TransformedZ3Proof(
+                SExpressionConstants.TRANSITIVITY, subProofs, newFormula);
+        return result;
+
     }
 }
