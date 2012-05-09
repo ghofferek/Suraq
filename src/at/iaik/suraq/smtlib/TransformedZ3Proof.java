@@ -179,17 +179,17 @@ public class TransformedZ3Proof extends Z3Proof {
                     .getPartition())
                 handleTransitivityCase3(firstAnnotatedNode, secondAnnotatedNode);
             else
-                handleTransitivityCase5();
+                handleTransitivityCase5(firstAnnotatedNode, secondAnnotatedNode);
         } else if (firstAnnotatedNode.numPremises() == 0
                 && secondAnnotatedNode.numPremises() == 3) {
             if (firstAnnotatedNode.getLeftPartition() == secondAnnotatedNode
                     .getLeftPartition())
-                handleTransitivityCase4();
+                handleTransitivityCase4(firstAnnotatedNode, secondAnnotatedNode);
             else
-                handleTransitivityCase6();
+                handleTransitivityCase6(firstAnnotatedNode, secondAnnotatedNode);
         } else if (firstAnnotatedNode.numPremises() == 3
                 && secondAnnotatedNode.numPremises() == 3) {
-            handleTransitivityCase7();
+            handleTransitivityCase7(firstAnnotatedNode, secondAnnotatedNode);
         } else
             assert (false);
     }
@@ -251,33 +251,105 @@ public class TransformedZ3Proof extends Z3Proof {
                 newProofNode));
     }
 
-    private void handleTransitivityCase4() {
-        // TODO Auto-generated method stub
+    /**
+     * Deals with the case that the first equalities has an annotated nodes with
+     * 0 premises, the second one has an annotated node with 3 premises, and the
+     * partition of the first node equals the left partition of the second node.
+     * 
+     * @param firstAnnotatedNode
+     * @param secondAnnotatedNode
+     * 
+     */
+    private void handleTransitivityCase4(AnnotatedProofNode firstAnnotatedNode,
+            AnnotatedProofNode secondAnnotatedNode) {
+        List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>();
+        newSubProofs.add(firstAnnotatedNode.getConsequent());
+        newSubProofs.add(secondAnnotatedNode.getPremise1());
+        TransformedZ3Proof newProofNode = TransformedZ3Proof
+                .createTransitivityProof(newSubProofs);
+        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
+                firstAnnotatedNode.getPartition(), secondAnnotatedNode
+                        .getRightPartition(), this, newProofNode,
+                secondAnnotatedNode.getPremise2(), secondAnnotatedNode
+                        .getPremise3()));
 
     }
 
     /**
+     * Deals with the case that the first equalities has an annotated nodes with
+     * 3 premises, the second one has an annotated node with 0 premises, and the
+     * right partition of the first node is different from the partition of the
+     * second node.
+     * 
+     * @param firstAnnotatedNode
+     * @param secondAnnotatedNode
      * 
      */
-    private void handleTransitivityCase5() {
-        // TODO Auto-generated method stub
+    private void handleTransitivityCase5(AnnotatedProofNode firstAnnotatedNode,
+            AnnotatedProofNode secondAnnotatedNode) {
+        List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>();
+        newSubProofs.add(firstAnnotatedNode.getPremise2());
+        newSubProofs.add(firstAnnotatedNode.getPremise3());
+        TransformedZ3Proof newProofNode = TransformedZ3Proof
+                .createTransitivityProof(newSubProofs);
+        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
+                firstAnnotatedNode.getLeftPartition(), secondAnnotatedNode
+                        .getPartition(), this,
+                firstAnnotatedNode.getPremise1(), newProofNode,
+                secondAnnotatedNode.getConsequent()));
 
     }
 
     /**
+     * Deals with the case that the first equalities has an annotated nodes with
+     * 0 premises, the second one has an annotated node with 3 premises, and the
+     * partition of the first node is different from the left partition of the
+     * second node.
+     * 
+     * @param firstAnnotatedNode
+     * @param secondAnnotatedNode
      * 
      */
-    private void handleTransitivityCase6() {
-        // TODO Auto-generated method stub
-
+    private void handleTransitivityCase6(AnnotatedProofNode firstAnnotatedNode,
+            AnnotatedProofNode secondAnnotatedNode) {
+        List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>();
+        newSubProofs.add(secondAnnotatedNode.getPremise1());
+        newSubProofs.add(secondAnnotatedNode.getPremise2());
+        TransformedZ3Proof newProofNode = TransformedZ3Proof
+                .createTransitivityProof(newSubProofs);
+        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
+                firstAnnotatedNode.getPartition(), secondAnnotatedNode
+                        .getRightPartition(), this, firstAnnotatedNode
+                        .getConsequent(), newProofNode, secondAnnotatedNode
+                        .getPremise3()));
     }
 
     /**
+     * Deals with the case that both annotated nodes have 3 premises.
      * 
+     * @param firstAnnotatedNode
+     * @param secondAnnotatedNode
      */
-    private void handleTransitivityCase7() {
-        // TODO Auto-generated method stub
+    private void handleTransitivityCase7(AnnotatedProofNode firstAnnotatedNode,
+            AnnotatedProofNode secondAnnotatedNode) {
+        List<TransformedZ3Proof> newSubProofs1 = new ArrayList<TransformedZ3Proof>();
+        newSubProofs1.add(firstAnnotatedNode.getPremise3());
+        newSubProofs1.add(secondAnnotatedNode.getPremise1());
+        TransformedZ3Proof newProofNode1 = TransformedZ3Proof
+                .createTransitivityProof(newSubProofs1);
 
+        List<TransformedZ3Proof> newSubProofs2 = new ArrayList<TransformedZ3Proof>();
+        newSubProofs2.add(firstAnnotatedNode.getPremise2());
+        newSubProofs2.add(newProofNode1);
+        newSubProofs2.add(secondAnnotatedNode.getPremise2());
+        TransformedZ3Proof newProofNode2 = TransformedZ3Proof
+                .createTransitivityProof(newSubProofs2);
+
+        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
+                firstAnnotatedNode.getLeftPartition(), secondAnnotatedNode
+                        .getRightPartition(), this, firstAnnotatedNode
+                        .getPremise1(), newProofNode2, secondAnnotatedNode
+                        .getPremise3()));
     }
 
     /**
@@ -400,8 +472,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
     /**
      * Creates a transitivity proof for the given list of subproofs. The list
-     * must have exactly two elements, which match a transitivity premise of the
-     * form [(a=b), (b=c)].
+     * must have exactly two or three elements, which match a transitivity
+     * premise of the form [(a=b), (b=c)] or [(a=b), (b=c), (c=d)].
      * 
      * @param subProofs
      *            the subproofs
@@ -409,17 +481,18 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     public static TransformedZ3Proof createTransitivityProof(
             List<TransformedZ3Proof> subProofs) {
-        assert (subProofs.size() == 2);
+        assert (subProofs.size() == 2 || subProofs.size() == 3);
         assert (subProofs.get(0).proofFormula instanceof EqualityFormula);
         assert (subProofs.get(1).proofFormula instanceof EqualityFormula);
 
-        EqualityFormula formula1 = (EqualityFormula) subProofs.get(0).proofFormula;
-        EqualityFormula formula2 = (EqualityFormula) subProofs.get(1).proofFormula;
+        EqualityFormula firstFormula = (EqualityFormula) subProofs.get(0).proofFormula;
+        EqualityFormula lastFormula = (EqualityFormula) subProofs.get(subProofs
+                .size() - 1).proofFormula;
 
-        assert (formula1.getTerms().size() == 2);
-        Term term1 = formula1.getTerms().get(0);
-        assert (formula2.getTerms().size() == 2);
-        Term term2 = formula1.getTerms().get(1);
+        assert (firstFormula.getTerms().size() == 2);
+        Term term1 = firstFormula.getTerms().get(0);
+        assert (lastFormula.getTerms().size() == 2);
+        Term term2 = firstFormula.getTerms().get(1);
 
         List<Term> newTerms = new ArrayList<Term>();
         newTerms.add(term1);
