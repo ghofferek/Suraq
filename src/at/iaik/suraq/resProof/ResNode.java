@@ -80,13 +80,26 @@ public class ResNode {
         right.addChild(this);
     }
 
+    public void cleanUP(){
+        if( !isLeaf && children.isEmpty() ){
+            left.rmChild(this);
+            right.rmChild(this);
+            left.cleanUP();
+            right.cleanUP();
+        }
+    }
     public void rmChild(ResNode n) {
         Assert.assertTrue("Removing non-existant child",
                 children.contains(n));
         children.remove(n);
-        // TODO: if( chidren.isEmpty() ) delete the node from nodeRef
     }
 
+    public void rmChildWithCleanUP(ResNode n) {
+        rmChild(n);
+        cleanUP();
+    }
+
+    
     public void addChild(ResNode n) {
         Assert.assertTrue("Adding existing child", !children.contains(n));
         children.add(n);
@@ -95,8 +108,8 @@ public class ResNode {
     public void convertToLeaf(int pPart) {
         isLeaf = true;
         part = pPart;
-        left.rmChild(this);
-        right.rmChild(this);
+        left.rmChildWithCleanUP(this);
+        right.rmChildWithCleanUP(this);
         left = null;
         right = null;
         pivot = 0;
@@ -134,14 +147,11 @@ public class ResNode {
         else
             right = gainer;
 
-        looser.rmChild(this);
         gainer.addChild(this);
+        looser.rmChildWithCleanUP(this);
     }
     
     public void moveChidren( boolean toLeftParent ){
-        left.rmChild(this);
-        right.rmChild(this);
-
         ResNode gainer = null;
         if(toLeftParent) gainer = left; else gainer = right;
 
@@ -154,7 +164,9 @@ public class ResNode {
                 n.right = gainer;
             gainer.addChild(n);
         }
-        // TODO: dump the node
+
+        children.clear();
+        cleanUP();
     }
     
     public boolean refresh() {

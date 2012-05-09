@@ -28,7 +28,7 @@ public class ResProof{
     // part for axioms should be 0
     ResNode addLeaf( Collection<Lit> cl, int part ){
         ResNode n = new ResNode(nodeCount, true, cl, null, null, 0, part);
-        nodeRef[nodeCount] = n;
+        //nodeRef[nodeCount] = n;
         nodeCount++;
         return n;
     }
@@ -39,7 +39,7 @@ public class ResProof{
     // * Node: part for internal node is set to be -1.
     ResNode addIntNode(Collection<Lit> cl,ResNode left,ResNode right,int pivot){
         ResNode n = new ResNode(nodeCount, false, cl, left, right, pivot, -1);
-        nodeRef[nodeCount] = n;
+        //nodeRef[nodeCount] = n;
         nodeCount++;
         return n;
     }
@@ -170,11 +170,11 @@ public class ResProof{
             n.right = n2;
             n.pivot = Rpiv;
         }
-        L.rmChild(n);
-        R.rmChild(n);
         n.left.addChild(n);
         n.right.addChild(n);
-        
+        L.rmChildWithCleanUP(n);
+        R.rmChildWithCleanUP(n);
+
         reOrderStep(n1);
         if(n2 != null) reOrderStep(n2);
 
@@ -189,7 +189,7 @@ public class ResProof{
         recDeLocalizeProof( n.right );
         visited[n.id] = true;
 
-        // Node may be get removed in refresh
+        // Node may get removed in refresh
         if( !n.refresh() ) return;
         
         reOrderStep(n);
