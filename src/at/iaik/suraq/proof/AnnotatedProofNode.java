@@ -61,6 +61,18 @@ public class AnnotatedProofNode {
     }
 
     /**
+     * Constructs a new <code>AnnotatedProofNode</code>.
+     * 
+     * @param partition
+     * @param partition2
+     * @param transformedZ3Proof
+     */
+    public AnnotatedProofNode(int partition, int partition2,
+            TransformedZ3Proof transformedZ3Proof) {
+        this(partition, partition2, transformedZ3Proof, null, null, null);
+    }
+
+    /**
      * @see java.lang.Object#hashCode()
      */
     @Override

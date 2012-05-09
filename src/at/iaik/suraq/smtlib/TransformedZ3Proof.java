@@ -83,11 +83,11 @@ public class TransformedZ3Proof extends Z3Proof {
         if (!this.hasSingleLiteralConsequent())
             return; // Leave unchanged, this must be an intermediate resolution
                     // node.
-        Formula literal = ((OrFormula) (this.proofFormula)).getDisjuncts()
-                .iterator().next();
 
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
+            Formula literal = ((OrFormula) (this.proofFormula)).getDisjuncts()
+                    .iterator().next();
             Set<Integer> partitions = literal.getAssertPartition();
             if (partitions.size() > 2)
                 throw new RuntimeException(
@@ -101,12 +101,17 @@ public class TransformedZ3Proof extends Z3Proof {
             AnnotatedProofNode annotatedNode = new AnnotatedProofNode(
                     partition, partition, this, null, null, null);
             TransformedZ3Proof.annotatedNodes.add(annotatedNode);
+            return;
         }
 
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.SYMMETRY)) {
+            assert (subProofs.size() == 1);
+            TransformedZ3Proof subproof = (TransformedZ3Proof) subProofs.get(0);
+            Formula premiseLiteral = ((OrFormula) (subproof.proofFormula))
+                    .getDisjuncts().iterator().next();
             AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
-                    .getNodeWithConsequent(literal);
+                    .getNodeWithConsequent(premiseLiteral);
             if (annotatedNode == null)
                 throw new RuntimeException(
                         "No annotated proof node found when there should be one.");
@@ -125,9 +130,140 @@ public class TransformedZ3Proof extends Z3Proof {
                                 .getPartition(), this, null, null, null));
             } else {
                 assert (numPremises == 3);
-
+                TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
+                        annotatedNode.getPartition(), annotatedNode
+                                .getLeftPartition(), this, TransformedZ3Proof
+                                .createSymmetrieProof(annotatedNode
+                                        .getPremise1()), TransformedZ3Proof
+                                .createSymmetrieProof(annotatedNode
+                                        .getPremise2()), TransformedZ3Proof
+                                .createSymmetrieProof(annotatedNode
+                                        .getPremise3())));
             }
+            return;
         }
+
+        // -------------------------------------------------------------
+        if (this.proofType.equals(SExpressionConstants.TRANSITIVITY)) {
+            handleTransitivity();
+            return;
+        }
+
+    }
+
+    /**
+     * Deals with transforming a transitivity node to a local proof.
+     */
+    private void handleTransitivity() {
+        assert (subProofs.size() == 2);
+
+        AnnotatedProofNode firstAnnotatedNode = TransformedZ3Proof.annotatedNodes
+                .getNodeWithConsequent(subProofs.get(0).proofFormula);
+        assert (firstAnnotatedNode != null);
+
+        AnnotatedProofNode secondAnnotatedNode = TransformedZ3Proof.annotatedNodes
+                .getNodeWithConsequent(subProofs.get(1).proofFormula);
+        assert (secondAnnotatedNode != null);
+
+        if (firstAnnotatedNode.numPremises() == 0
+                && secondAnnotatedNode.numPremises() == 0) {
+            if (firstAnnotatedNode.getPartition() == secondAnnotatedNode
+                    .getPartition())
+                handleTransitivityCase1(firstAnnotatedNode.getPartition());
+            else
+                handleTransitivityCase2(firstAnnotatedNode.getPartition(),
+                        secondAnnotatedNode.getPartition());
+        } else if (firstAnnotatedNode.numPremises() == 3
+                && secondAnnotatedNode.numPremises() == 0) {
+            if (firstAnnotatedNode.getRightPartition() == secondAnnotatedNode
+                    .getPartition())
+                handleTransitivityCase3();
+            else
+                handleTransitivityCase5();
+        } else if (firstAnnotatedNode.numPremises() == 0
+                && secondAnnotatedNode.numPremises() == 3) {
+            if (firstAnnotatedNode.getLeftPartition() == secondAnnotatedNode
+                    .getLeftPartition())
+                handleTransitivityCase4();
+            else
+                handleTransitivityCase6();
+        } else if (firstAnnotatedNode.numPremises() == 3
+                && secondAnnotatedNode.numPremises() == 3) {
+            handleTransitivityCase7();
+        } else
+            assert (false);
+    }
+
+    /**
+     * Deals with the case that both equalities are from the same partition and
+     * have annotated nodes with 0 premises.
+     * 
+     * @param partition
+     *            the partition to which the new annotated node should be added
+     */
+    private void handleTransitivityCase1(int partition) {
+        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(partition,
+                partition, this));
+    }
+
+    /**
+     * Deals with the case that both equalities have annotated nodes with 0
+     * premises, but from different partitions.
+     * 
+     * @param leftPartition
+     * @param rightPartition
+     * 
+     */
+    private void handleTransitivityCase2(int rightPartition, int leftPartition) {
+        assert (subProofs.get(0).proofFormula instanceof EqualityFormula);
+        EqualityFormula formula = (EqualityFormula) subProofs.get(0).proofFormula;
+        assert (formula.getTerms().size() == 2);
+        Term term = formula.getTerms().get(1);
+        TransformedZ3Proof reflexivity = TransformedZ3Proof
+                .createReflexivityProof(term);
+        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
+                leftPartition, rightPartition, this,
+                (TransformedZ3Proof) this.subProofs.get(0), reflexivity,
+                (TransformedZ3Proof) this.subProofs.get(1)));
+    }
+
+    /**
+     * 
+     */
+    private void handleTransitivityCase3() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * 
+     */
+    private void handleTransitivityCase4() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * 
+     */
+    private void handleTransitivityCase5() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * 
+     */
+    private void handleTransitivityCase6() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * 
+     */
+    private void handleTransitivityCase7() {
+        // TODO Auto-generated method stub
 
     }
 
@@ -212,6 +348,8 @@ public class TransformedZ3Proof extends Z3Proof {
         Formula consequentFormula = null;
         try {
             consequentFormula = EqualityFormula.create(terms, true);
+            consequentFormula = consequentFormula.transformToConsequentsForm();
+            assert (consequentFormula != null);
         } catch (IncomparableTermsException exc) {
             throw new RuntimeException(
                     "Incomparable terms while creating symmetry proof.", exc);
@@ -220,5 +358,30 @@ public class TransformedZ3Proof extends Z3Proof {
         subproofs.add(premise);
         return new TransformedZ3Proof(SExpressionConstants.SYMMETRY, subproofs,
                 consequentFormula);
+    }
+
+    /**
+     * Creates a reflexivity proof for the given term.
+     * 
+     * @param term
+     * @return a reflexivity proof for the given term.
+     */
+    public static TransformedZ3Proof createReflexivityProof(Term term) {
+
+        List<Term> terms = new ArrayList<Term>();
+        terms.add(term);
+        terms.add(term);
+        Formula formula = null;
+        try {
+            formula = EqualityFormula.create(terms, true);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Incomparable terms while creating reflexivity proof.", exc);
+        }
+        TransformedZ3Proof result = new TransformedZ3Proof(
+                SExpressionConstants.REFLEXIVITY,
+                new ArrayList<TransformedZ3Proof>(), formula);
+        result.isAxiom = true;
+        return result;
     }
 }

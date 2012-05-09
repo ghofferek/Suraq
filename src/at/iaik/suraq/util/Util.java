@@ -12,6 +12,7 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 
@@ -190,5 +191,19 @@ public class Util {
             return new ArrayVariable(name);
         throw new SuraqException("Cannot create variable of type "
                 + type.toString());
+    }
+
+    /**
+     * Given a clause with a single literal, returns this literal. Fails
+     * otherwise.
+     * 
+     * @param clause
+     * @return the single literal
+     */
+    public static Formula getSingleLiteral(Formula clause) {
+        assert (clause instanceof OrFormula);
+        List<Formula> disjuncts = ((OrFormula) clause).getDisjuncts();
+        assert (disjuncts.size() == 1);
+        return disjuncts.get(0);
     }
 }
