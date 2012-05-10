@@ -28,10 +28,22 @@ public class Z3Proof implements SMTLibObject {
     protected List<Z3Proof> subProofs;
 
     /**
-     * the formula which is proven
+     * This formula is the consequent of this proof. It should either be an
+     * <code>OrFormula</code> or the constant formula <code>false</code>.
      */
-    protected Formula proofFormula;
+    protected Formula consequent;
 
+    /**
+     * 
+     * Constructs a new <code>Z3Proof</code>.
+     * 
+     */
+    public Z3Proof() {
+        this.proofType = null;
+        this.subProofs = new ArrayList<Z3Proof>();
+        this.consequent = null;
+    }
+    
     /**
      * 
      * Constructs a new <code>Z3Proof</code>.
@@ -40,31 +52,54 @@ public class Z3Proof implements SMTLibObject {
      *            the type of the proof
      * @param subProofs
      *            the list of all subproofs
-     * @param proofFormula
+     * @param consequent
+     *            the formula which has to be proved
+     */
+    public Z3Proof(Token proofType, Z3Proof subProof1, Z3Proof subProof2,
+            Formula consequent) {
+
+        this.proofType = proofType;
+        this.subProofs = new ArrayList<Z3Proof>();
+        if(subProof1!=null)
+        	this.subProofs.add(subProof1);
+        if(subProof2!=null)
+        	this.subProofs.add(subProof2);
+        this.consequent = consequent;
+    }
+    
+    /**
+     * 
+     * Constructs a new <code>Z3Proof</code>.
+     * 
+     * @param proofType
+     *            the type of the proof
+     * @param subProofs
+     *            the list of all subproofs
+     * @param consequent
      *            the formula which has to be proved
      */
     public Z3Proof(Token proofType, List<? extends Z3Proof> subProofs,
-            Formula proofFormula) {
+            Formula consequent) {
 
         this.proofType = proofType;
         assert (subProofs != null);
         this.subProofs = new ArrayList<Z3Proof>();
         this.subProofs.addAll(subProofs);
-        this.proofFormula = proofFormula;
+        this.consequent = consequent;
     }
 
     /**
      * Creates a new <code>Z3Proof</code> which is of the same type as
-     * <code>this</code> object and has the given subProofs and proofFormula.
+     * <code>this</code> object and has the given subProofs and consequent.
      * 
      * @param subProofs
      *            List of sub-proofs
-     * @param proofFormula
-     *            the proofFormula
+     * @param consequent
+     *            the consequent
      * @return a new <code>Z3Proof</code> with the same type as
      *         <code>this</code>.
      */
-    protected Z3Proof create(List<Z3Proof> subProofs, Formula proofFormula) {
+    protected Z3Proof create(List<Z3Proof> subProofs, Formula consequent) {
 
         List<Z3Proof> newSubProofs = new ArrayList<Z3Proof>();
 
@@ -73,7 +108,7 @@ public class Z3Proof implements SMTLibObject {
         }
 
         Z3Proof instance = new Z3Proof(new Token(this.proofType), newSubProofs,
-                proofFormula);
+        		consequent);
 
         return instance;
     }
@@ -99,10 +134,10 @@ public class Z3Proof implements SMTLibObject {
     /**
      * Returns the formula which has to be proved
      * 
-     * @return the <code>proofFormula</code>
+     * @return the <code>consequent</code>
      */
-    public Formula getProofFormula() {
-        return this.proofFormula;
+    public Formula getConsequent() {
+        return this.consequent;
     }
 
     /**
@@ -119,7 +154,7 @@ public class Z3Proof implements SMTLibObject {
         for (Z3Proof subProof : this.subProofs)
             children.add(subProof.toSmtlibV2());
 
-        children.add(this.proofFormula.toSmtlibV2());
+        children.add(this.consequent.toSmtlibV2());
         return new SExpression(children);
     }
 
@@ -139,7 +174,7 @@ public class Z3Proof implements SMTLibObject {
      */
     @Override
     public Set<Integer> getAssertPartition() {
-        Set<Integer> partitions = proofFormula.getAssertPartition();
+        Set<Integer> partitions = consequent.getAssertPartition();
 
         for (Z3Proof proof : subProofs)
             partitions.addAll(proof.getAssertPartition());

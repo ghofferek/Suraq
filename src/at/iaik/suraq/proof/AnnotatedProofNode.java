@@ -112,7 +112,7 @@ public class AnnotatedProofNode {
      *         node
      */
     public boolean hasConsequent(Formula consequent) {
-        return this.consequent.getProofFormula().equals(consequent);
+        return this.consequent.getConsequent().equals(consequent);
     }
 
     /**

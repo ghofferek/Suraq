@@ -26,6 +26,7 @@ import at.iaik.suraq.resProof.ResProofTest;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -336,10 +337,10 @@ public class Suraq implements Runnable {
                     return;
                 }
                 Z3Proof rootProof = proofParser.getRootProof();
-                Set<Integer> partitions = rootProof.getAssertPartition();
-                // NonLocalResolutionProof nonLocalResolutionProof = new
-                // NonLocalResolutionProof(rootProof);
+                TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
+                        rootProof);
 
+                Set<Integer> partitions = rootProof.getAssertPartition();
                 System.out.println("partitions" + partitions);
             }
 

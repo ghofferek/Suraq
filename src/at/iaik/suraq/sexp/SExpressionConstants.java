@@ -150,6 +150,8 @@ public class SExpressionConstants {
     public static final Token LEMMA = (Token) SExpression.fromString("lemma");
     public static final Token UNIT_RESOLUTION = (Token) SExpression
             .fromString("|unit-resolution|");
+    public static final Token RESOLUTION = (Token) SExpression
+            .fromString("resolution");
     public static final Token IFF_TRUE = (Token) SExpression
             .fromString("|iff-true|");
     public static final Token IFF_FALSE = (Token) SExpression

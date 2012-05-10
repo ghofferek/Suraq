@@ -25,12 +25,11 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
  */
 public class ProofParser extends SMTLibParser {
 
-	
     /**
      * The proof that results from parsing.
      */
-    protected Z3Proof rootProof = null;		
-	
+    protected Z3Proof rootProof = null;
+
     /**
      * 
      * Constructs a new <code>ProofParser</code>.
@@ -56,6 +55,16 @@ public class ProofParser extends SMTLibParser {
         this.domainVariables = domainVars;
         this.functions = uninterpretedFunctions;
         this.rootExpr = root;
+
+        this.boolVariables.add(new PropositionalVariable("a"));
+        this.boolVariables.add(new PropositionalVariable("b"));
+        this.boolVariables.add(new PropositionalVariable("c"));
+        this.boolVariables.add(new PropositionalVariable("d"));
+
+        // proof = "(let ((?x5 (f1 input))) (and a b))";
+        this.functions.add(new UninterpretedFunction("f1", 1,
+                new Token("Value")));
+        this.domainVariables.add(new DomainVariable("input"));
 
     }
 
@@ -129,7 +138,7 @@ public class ProofParser extends SMTLibParser {
      *            the assert expression to parse.
      */
     private void handleLet(SExpression expression) throws ParseError {
-    	
+
         Token key = (Token) expression.getChildren().get(1).getChildren()
                 .get(0).getChildren().get(0);
         SExpression entryExpr = expression.getChildren().get(1).getChildren()
@@ -141,9 +150,9 @@ public class ProofParser extends SMTLibParser {
         Z3Proof scope = parseBody(scopeExpr);
 
         if (rootProof == null)
-        	rootProof = scope;
+            rootProof = scope;
         else {
-            throw new RuntimeException ("Found more than one proof, aborting.");
+            throw new RuntimeException("Found more than one proof, aborting.");
         }
     }
 
@@ -166,25 +175,24 @@ public class ProofParser extends SMTLibParser {
         int numChildren = expression.getChildren().size();
         assert (numChildren <= 2);
 
-        int subProofsCount = numChildren - 2; 
-        
+        int subProofsCount = numChildren - 2;
+
         List<Z3Proof> subProofs = new ArrayList<Z3Proof>();
         if (subProofsCount > 0)
             for (int i = 1; i <= subProofsCount; i++) {
                 subProofs.add(parseBody(expression.getChildren().get(i)));
             }
 
-        SExpression proofFormulaExpr = expression.getChildren().get(
+        SExpression consequentExpr = expression.getChildren().get(
                 numChildren - 1);
-        Formula proofFormula = parseFormulaBody(proofFormulaExpr);
+        Formula consequent = parseFormulaBody(consequentExpr);
 
-        Z3Proof proof = new Z3Proof(proofType, subProofs,
-                proofFormula);
+        Z3Proof proof = new Z3Proof(proofType, subProofs, consequent);
 
         if (rootProof == null)
             rootProof = proof;
         else {
-            throw new RuntimeException ("Found more than one proof, aborting.");
+            throw new RuntimeException("Found more than one proof, aborting.");
         }
     }
 
@@ -296,9 +304,9 @@ public class ProofParser extends SMTLibParser {
         return true;
     }
 
-  /**
-     * Parses a given s-expression into a proof. The s-expression can either
-     * be of a proof or a let-assignment.
+    /**
+     * Parses a given s-expression into a proof. The s-expression can either be
+     * of a proof or a let-assignment.
      * 
      * @param expression
      *            the expression to parse.
@@ -306,7 +314,7 @@ public class ProofParser extends SMTLibParser {
      * @throws ParseError
      *             if parsing fails.
      */
-         private Z3Proof parseBody(SExpression expression) throws ParseError {
+    private Z3Proof parseBody(SExpression expression) throws ParseError {
         if (isLet(expression))
             return parseLet(expression);
         else if (isProof(expression))
@@ -314,7 +322,7 @@ public class ProofParser extends SMTLibParser {
         else
             throw new ParseError(expression,
                     "parseBody can only parse Let-Expression or Proof!");
-     }
+    }
 
     /**
      * Handles an let expression. I.e., if <code>mainFormula</code> is still
@@ -351,8 +359,7 @@ public class ProofParser extends SMTLibParser {
      * @throws ParseError
      *             if parsing fails.
      */
-    private Z3Proof parseProofBody(SExpression expression)
-            throws ParseError {
+    private Z3Proof parseProofBody(SExpression expression) throws ParseError {
 
         if (expression.toString().charAt(0) == SMTLibParser.REF_PROOF) {
             // resolve reference with LUT
@@ -373,26 +380,25 @@ public class ProofParser extends SMTLibParser {
             assert (numChildren <= 2);
 
             int subProofsCount = numChildren - 2; // first child is proofType,
-                                                  // last one is proofFormula
+                                                  // last one is consequent
             List<Z3Proof> subProofs = new ArrayList<Z3Proof>();
             if (subProofsCount > 0)
                 for (int i = 1; i <= subProofsCount; i++) {
-                    subProofs.add(parseBody(expression.getChildren()
-                            .get(i)));
+                    subProofs.add(parseBody(expression.getChildren().get(i)));
                 }
 
-            SExpression proofFormulaExpr = expression.getChildren().get(
+            SExpression consequentExpr = expression.getChildren().get(
                     numChildren - 1);
-            Formula proofFormula = parseFormulaBody(proofFormulaExpr);
+            Formula consequent = parseFormulaBody(consequentExpr);
 
-            return new Z3Proof(proofType, subProofs, proofFormula);
+            return new Z3Proof(proofType, subProofs, consequent);
         }
 
     }
-    
+
     /**
-     * Returns the root proof that resulted from parsing, or <code>null</code> if
-     * parsing was not successful.
+     * Returns the root proof that resulted from parsing, or <code>null</code>
+     * if parsing was not successful.
      * 
      * @return the proof that resulted from parsing, or <code>null</code> if
      *         parsing was not successful.
