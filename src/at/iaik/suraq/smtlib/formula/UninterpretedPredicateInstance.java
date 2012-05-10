@@ -21,7 +21,7 @@ import at.iaik.suraq.util.Util;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class UninterpretedPredicateInstance implements Formula {
+public class UninterpretedPredicateInstance extends PropositionalTerm {
 
     /**
      * The function of which this is an instance.
@@ -331,7 +331,7 @@ public class UninterpretedPredicateInstance implements Formula {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+    public PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         PropositionalVariable newVar = new PropositionalVariable(
@@ -361,27 +361,46 @@ public class UninterpretedPredicateInstance implements Formula {
 
         return partitions;
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		return transformToConsequentsForm(false, true);
-	}
-	
+    @Override
+    public Formula transformToConsequentsForm() {
+        return transformToConsequentsForm(false, true);
+    }
+
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
      */
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
-        if (firstLevel==true){		
-			List<Formula> literals = new ArrayList<Formula>(); 
-			literals.add(this);
-			return new OrFormula(literals);
-        }			
-			
-        return this;		
-	}
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
+        if (firstLevel == true) {
+            List<Formula> literals = new ArrayList<Formula>();
+            literals.add(this);
+            return new OrFormula(literals);
+        }
+
+        return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#deepTermCopy()
+     */
+    @Override
+    public Term deepTermCopy() {
+        return deepFormulaCopy();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(java.util.Map)
+     */
+    @Override
+    public Term substituteTerm(Map<Token, Term> paramMap) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

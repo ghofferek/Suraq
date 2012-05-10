@@ -13,14 +13,22 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
+import at.iaik.suraq.exceptions.WrongFunctionTypeException;
+import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.proof.AnnotatedProofNodes;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.DomainEq;
+import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.util.Util;
 
 /**
  * 
@@ -149,6 +157,153 @@ public class TransformedZ3Proof extends Z3Proof {
             return;
         }
 
+        // -------------------------------------------------------------
+        if (this.proofType.equals(SExpressionConstants.MONOTONICITY)) {
+            handleMonotonicity();
+            return;
+        }
+
+    }
+
+    /**
+     * 
+     */
+    private void handleMonotonicity() {
+        assert (subProofs.size() >= 1);
+
+        Formula literal = Util.getSingleLiteral(proofFormula);
+        assert (literal instanceof DomainEq);
+        DomainEq eqLiteral = (DomainEq) literal;
+        assert (eqLiteral.getTerms().get(0) instanceof DomainTerm);
+        DomainTerm leftTerm = (DomainTerm) eqLiteral.getTerms().get(0);
+        assert (eqLiteral.getTerms().get(eqLiteral.getTerms().size() - 1) instanceof DomainTerm);
+        DomainTerm rightTerm = (DomainTerm) eqLiteral.getTerms().get(
+                eqLiteral.getTerms().size() - 1);
+
+        Set<Integer> leftPartitions = leftTerm.getAssertPartition();
+        assert (leftPartitions.size() <= 2);
+        int leftPartition;
+        Iterator<Integer> leftIterator = leftPartitions.iterator();
+        do {
+            leftPartition = leftIterator.next();
+        } while (leftPartition < 0);
+
+        Set<Integer> rightPartitions = rightTerm.getAssertPartition();
+        assert (rightPartitions.size() <= 2);
+        int rightPartition;
+        Iterator<Integer> rightIterator = rightPartitions.iterator();
+        do {
+            rightPartition = rightIterator.next();
+        } while (rightPartition < 0);
+
+        if (leftPartition == rightPartition) {
+            // this is a local node ==> nothing to do, except creating a new
+            // annotated node.
+            TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
+                    leftPartition, rightPartition, this));
+            return;
+        }
+
+        List<AnnotatedProofNode> currentAnnotatedNodes = new ArrayList<AnnotatedProofNode>();
+        for (Z3Proof child : subProofs) {
+            assert (child instanceof TransformedZ3Proof);
+            TransformedZ3Proof subProof = (TransformedZ3Proof) child;
+            AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
+                    .getNodeWithConsequent(subProof.proofFormula);
+            assert (currentAnnotatedNode != null);
+            currentAnnotatedNodes.add(currentAnnotatedNode);
+        }
+
+        List<DomainTerm> newLeftTerms = new ArrayList<DomainTerm>();
+        List<DomainTerm> newRightTerms = new ArrayList<DomainTerm>();
+        List<TransformedZ3Proof> newTransitivityProofNodes = new ArrayList<TransformedZ3Proof>();
+
+        for (int count = 0; count < subProofs.size(); count++) {
+            AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
+                    .getNodeWithConsequent(subProofs.get(count).proofFormula);
+
+            DomainTerm currentLeftTerm = computeCurrentLeftTermForMonotonicity(
+                    leftPartition, rightPartition, currentAnnotatedNode);
+            DomainTerm currentRightTerm = computeCurrentrightTermForMonotonicity(
+                    leftPartition, rightPartition, currentAnnotatedNode);
+
+            // TODO create and add new terms, new transitivity proofs to lists
+        }
+
+        // TODO create local monotonicity proofs
+
+        // TODO put thins together, add new annotated node
+
+    }
+
+    /**
+     * Computes the right term s'_k during monotonicity handling.
+     * 
+     * @param leftPartition
+     * @param rightPartition
+     * @param currentAnnotatedNode
+     * @return
+     */
+    private DomainTerm computeCurrentrightTermForMonotonicity(
+            int leftPartition, int rightPartition,
+            AnnotatedProofNode currentAnnotatedNode) {
+        if (currentAnnotatedNode.getLeftPartition() != leftPartition) {
+            Formula formula = currentAnnotatedNode.getConsequent().proofFormula;
+            assert (formula instanceof DomainEq);
+            DomainEq eqFormula = (DomainEq) formula;
+            assert (eqFormula.getTerms().size() == 2);
+            assert (eqFormula.getTerms().get(0) instanceof DomainTerm);
+            return (DomainTerm) eqFormula.getTerms().get(0);
+        } else if (currentAnnotatedNode.numPremises() == 3) {
+            Formula formula = currentAnnotatedNode.getPremise1().proofFormula;
+            assert (formula instanceof DomainEq);
+            DomainEq eqFormula = (DomainEq) formula;
+            assert (eqFormula.getTerms().size() == 2);
+            assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
+            return (DomainTerm) eqFormula.getTerms().get(1);
+        } else {
+            Formula formula = currentAnnotatedNode.getConsequent().proofFormula;
+            assert (formula instanceof DomainEq);
+            DomainEq eqFormula = (DomainEq) formula;
+            assert (eqFormula.getTerms().size() == 2);
+            assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
+            return (DomainTerm) eqFormula.getTerms().get(1);
+        }
+    }
+
+    /**
+     * Computes the left term r'_k during monotonicity handling.
+     * 
+     * @param leftPartition
+     * @param rightPartition
+     * @param currentAnnotatedNode
+     * @return
+     */
+    private DomainTerm computeCurrentLeftTermForMonotonicity(int leftPartition,
+            int rightPartition, AnnotatedProofNode currentAnnotatedNode) {
+
+        if (currentAnnotatedNode.getLeftPartition() != leftPartition) {
+            Formula formula = currentAnnotatedNode.getConsequent().proofFormula;
+            assert (formula instanceof DomainEq);
+            DomainEq eqFormula = (DomainEq) formula;
+            assert (eqFormula.getTerms().size() == 2);
+            assert (eqFormula.getTerms().get(0) instanceof DomainTerm);
+            return (DomainTerm) eqFormula.getTerms().get(0);
+        } else if (currentAnnotatedNode.numPremises() == 3) {
+            Formula formula = currentAnnotatedNode.getPremise1().proofFormula;
+            assert (formula instanceof DomainEq);
+            DomainEq eqFormula = (DomainEq) formula;
+            assert (eqFormula.getTerms().size() == 2);
+            assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
+            return (DomainTerm) eqFormula.getTerms().get(1);
+        } else {
+            Formula formula = currentAnnotatedNode.getConsequent().proofFormula;
+            assert (formula instanceof DomainEq);
+            DomainEq eqFormula = (DomainEq) formula;
+            assert (eqFormula.getTerms().size() == 2);
+            assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
+            return (DomainTerm) eqFormula.getTerms().get(1);
+        }
     }
 
     /**
@@ -511,5 +666,85 @@ public class TransformedZ3Proof extends Z3Proof {
                 SExpressionConstants.TRANSITIVITY, subProofs, newFormula);
         return result;
 
+    }
+
+    /**
+     * Creates a monotonicity proof.
+     * 
+     * @param subProofs
+     *            the equality proofs for the arguments
+     * @param function
+     *            the function which should be applied on the arguments
+     * @return a monotonicity proof for the given parameters.
+     */
+    public static TransformedZ3Proof createMonotonicityProof(
+            List<TransformedZ3Proof> subProofs, UninterpretedFunction function) {
+
+        List<DomainTerm> leftParams = new ArrayList<DomainTerm>();
+        List<DomainTerm> rightParams = new ArrayList<DomainTerm>();
+
+        for (TransformedZ3Proof subProof : subProofs) {
+            Formula literal = Util.getSingleLiteral(subProof.proofFormula);
+            assert (literal instanceof DomainEq);
+            DomainEq eqLiteral = (DomainEq) literal;
+            assert (eqLiteral.getTerms().size() == 2);
+            assert (eqLiteral.getTerms().get(0) instanceof DomainTerm);
+            assert (eqLiteral.getTerms().get(1) instanceof DomainTerm);
+            leftParams.add((DomainTerm) eqLiteral.getTerms().get(0));
+            rightParams.add((DomainTerm) eqLiteral.getTerms().get(1));
+        }
+
+        EqualityFormula consequent = null;
+        if (function.getType().equals(SExpressionConstants.VALUE_TYPE)) {
+            try {
+                UninterpretedFunctionInstance leftInstance = new UninterpretedFunctionInstance(
+                        function, leftParams);
+                UninterpretedFunctionInstance rightInstance = new UninterpretedFunctionInstance(
+                        function, rightParams);
+                List<DomainTerm> functionInstances = new ArrayList<DomainTerm>();
+                functionInstances.add(leftInstance);
+                functionInstances.add(rightInstance);
+                consequent = EqualityFormula.create(functionInstances, true);
+            } catch (WrongNumberOfParametersException exc) {
+                throw new RuntimeException(
+                        "Wrong number of function parameters while creating monotonicity proof.",
+                        exc);
+            } catch (WrongFunctionTypeException exc) {
+                throw new RuntimeException(
+                        "Wrong function type while creating monotonicity proof.",
+                        exc);
+            } catch (IncomparableTermsException exc) {
+                throw new RuntimeException(
+                        "Incomparable terms while creating monotonicity proof.",
+                        exc);
+            }
+        } else {
+            assert (function.getType().equals(SExpressionConstants.BOOL_TYPE));
+            try {
+                UninterpretedPredicateInstance leftInstance = new UninterpretedPredicateInstance(
+                        function, leftParams);
+                UninterpretedPredicateInstance rightInstance = new UninterpretedPredicateInstance(
+                        function, rightParams);
+                List<UninterpretedPredicateInstance> functionInstances = new ArrayList<UninterpretedPredicateInstance>();
+                functionInstances.add(leftInstance);
+                functionInstances.add(rightInstance);
+                consequent = EqualityFormula.create(functionInstances, true);
+            } catch (WrongNumberOfParametersException exc) {
+                throw new RuntimeException(
+                        "Wrong number of function parameters while creating monotonicity proof.",
+                        exc);
+            } catch (WrongFunctionTypeException exc) {
+                throw new RuntimeException(
+                        "Wrong function type while creating monotonicity proof.",
+                        exc);
+            } catch (IncomparableTermsException exc) {
+                throw new RuntimeException(
+                        "Incomparable terms while creating monotonicity proof.",
+                        exc);
+            }
+        }
+        TransformedZ3Proof result = new TransformedZ3Proof(
+                SExpressionConstants.MONOTONICITY, subProofs, consequent);
+        return result;
     }
 }
