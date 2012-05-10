@@ -173,7 +173,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             assert (subProofs.size() == 0);
 
-            this.proofType = (Token) SExpressionConstants.ASSERTED;
+            this.proofType = SExpressionConstants.ASSERTED;
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
 
@@ -183,7 +183,7 @@ public class TransformedZ3Proof extends Z3Proof {
             // Treat this as a leave.
             assert (subProofs.size() == 0);
 
-            this.proofType = (Token) SExpressionConstants.ASSERTED;
+            this.proofType = SExpressionConstants.ASSERTED;
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
             this.hypothesis = true;
@@ -196,7 +196,7 @@ public class TransformedZ3Proof extends Z3Proof {
             // It should be a propositional tautology.
             assert (subProofs.size() == 0);
 
-            this.proofType = (Token) SExpressionConstants.ASSERTED;
+            this.proofType = SExpressionConstants.ASSERTED;
             consequent = z3Proof.getConsequent().transformToConsequentsForm();
 
             axiom = true;
@@ -210,7 +210,8 @@ public class TransformedZ3Proof extends Z3Proof {
                 throw new RuntimeException(
                         "Modus-Ponens proof with not exactly two children. This should not happen!");
 
-            if (!(isLiteral(z3SubProofs.get(0).getConsequent())))
+            if (!(TransformedZ3Proof.isLiteral(z3SubProofs.get(0)
+                    .getConsequent())))
                 throw new RuntimeException(
                         "First child of Modus-Ponens should be an Literal.");
 
@@ -222,11 +223,11 @@ public class TransformedZ3Proof extends Z3Proof {
                     z3SubProofs.get(1).getSubProofs(), z3SubProofs.get(1)
                             .getConsequent().transformToConsequentsForm());
 
-            this.proofType = (Token) (SExpressionConstants.RESOLUTION);
+            this.proofType = (SExpressionConstants.RESOLUTION);
             this.subProofs.add(new TransformedZ3Proof(z3SubProofs.get(0)));
             this.subProofs.add(new TransformedZ3Proof(subProof2));
-            this.literal = makeLiteralPositive(z3SubProofs.get(0)
-                    .getConsequent());
+            this.literal = TransformedZ3Proof.makeLiteralPositive(z3SubProofs
+                    .get(0).getConsequent());
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
 
@@ -253,27 +254,30 @@ public class TransformedZ3Proof extends Z3Proof {
 
                 Formula resolutionAssociate = z3SubProofs.get(count)
                         .getConsequent();
-                Formula invLiteral = invertLiteral(resolutionAssociate);
-                Formula posLiteral = makeLiteralPositive(resolutionAssociate);
+                Formula invLiteral = TransformedZ3Proof
+                        .invertLiteral(resolutionAssociate);
+                Formula posLiteral = TransformedZ3Proof
+                        .makeLiteralPositive(resolutionAssociate);
 
                 newDisjuncts.remove(invLiteral);
                 remainingFormula = new OrFormula(newDisjuncts);
 
                 transformedAntecedent = new TransformedZ3Proof(
-                        (Token) SExpressionConstants.RESOLUTION,
+                        SExpressionConstants.RESOLUTION,
                         new TransformedZ3Proof(z3SubProofs.get(count)),
                         transformedAntecedent, posLiteral,
                         remainingFormula.transformToConsequentsForm());
             }
 
-            this.proofType = (Token) SExpressionConstants.RESOLUTION;
+            this.proofType = SExpressionConstants.RESOLUTION;
             this.subProofs.add(new TransformedZ3Proof(z3SubProofs
                     .get(z3SubProofs.size() - 1)));
             this.subProofs.add(transformedAntecedent);
 
             Formula resolutionAssociate = z3SubProofs.get(
                     z3SubProofs.size() - 1).getConsequent();
-            this.literal = makeLiteralPositive(resolutionAssociate);
+            this.literal = TransformedZ3Proof
+                    .makeLiteralPositive(resolutionAssociate);
 
             this.consequent = z3Proof.getConsequent();
             if (!(this.consequent instanceof PropositionalConstant))
@@ -443,24 +447,76 @@ public class TransformedZ3Proof extends Z3Proof {
 
         List<DomainTerm> newLeftTerms = new ArrayList<DomainTerm>();
         List<DomainTerm> newRightTerms = new ArrayList<DomainTerm>();
-        List<TransformedZ3Proof> newTransitivityProofNodes = new ArrayList<TransformedZ3Proof>();
+        List<TransformedZ3Proof[]> proofs = new ArrayList<TransformedZ3Proof[]>();
 
         for (int count = 0; count < subProofs.size(); count++) {
             AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
                     .getNodeWithConsequent(subProofs.get(count).consequent);
-
+            DomainTerm[] oldTerms = Util.getDomainTerms(currentAnnotatedNode);
             DomainTerm currentLeftTerm = computeCurrentLeftTermForMonotonicity(
                     leftPartition, currentAnnotatedNode);
+            newLeftTerms.add(currentLeftTerm);
             DomainTerm currentRightTerm = computeCurrentRightTermForMonotonicity(
                     rightPartition, currentAnnotatedNode);
+            newRightTerms.add(currentRightTerm);
+            TransformedZ3Proof[] proofsForCurrentTerms = createProofForCurrentTerms(
+                    oldTerms[0], currentLeftTerm,
+                    oldTerms[oldTerms.length - 1], currentRightTerm,
+                    currentAnnotatedNode);
 
-            // TODO create and add new terms, new transitivity proofs to lists
+            proofs.add(proofsForCurrentTerms);
         }
 
         // TODO create local monotonicity proofs
 
         // TODO put thins together, add new annotated node
 
+    }
+
+    /**
+     * Creates the new proof objects during monotonicity handling
+     * 
+     * @param leftTerm
+     * @param newLeftTerm
+     * @return
+     */
+    private TransformedZ3Proof[] createProofForCurrentTerms(
+            DomainTerm leftTerm, DomainTerm newLeftTerm, DomainTerm rightTerm,
+            DomainTerm newRightTerm, AnnotatedProofNode annotatedNode) {
+
+        TransformedZ3Proof[] result = new TransformedZ3Proof[3];
+        result[0] = null;
+        result[1] = null;
+        result[2] = null;
+
+        // result[0]
+        if (leftTerm.equals(newLeftTerm))
+            result[0] = TransformedZ3Proof.createReflexivityProof(newLeftTerm);
+        else if (annotatedNode.numPremises() == 3)
+            result[0] = annotatedNode.getPremise1();
+        else
+            result[0] = annotatedNode.getConsequent();
+
+        // result[1]
+        // TODO FINISH
+        if (newLeftTerm.equals(newRightTerm))
+            result[1] = TransformedZ3Proof.createReflexivityProof(newLeftTerm);
+
+        if (annotatedNode.numPremises() == 3) {
+            DomainTerm[] terms = Util.getDomainTerms(annotatedNode);
+            assert (terms.length == 4);
+            // TODO Finish
+        }
+
+        // result[2]
+        if (rightTerm.equals(newRightTerm))
+            result[0] = TransformedZ3Proof.createReflexivityProof(newRightTerm);
+        else if (annotatedNode.numPremises() == 3)
+            result[0] = annotatedNode.getPremise3();
+        else
+            result[0] = annotatedNode.getConsequent();
+
+        return result;
     }
 
     /**
@@ -989,6 +1045,7 @@ public class TransformedZ3Proof extends Z3Proof {
     /**
      * @return the <code>consequent</code>
      */
+    @Override
     public Formula getConsequent() {
         return consequent;
     }
@@ -1034,10 +1091,10 @@ public class TransformedZ3Proof extends Z3Proof {
 
         if (formula instanceof NotFormula) {
             Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
-            if (isAtom(negatedFormula))
+            if (TransformedZ3Proof.isAtom(negatedFormula))
                 return true;
         }
-        if (isAtom(formula))
+        if (TransformedZ3Proof.isAtom(formula))
             return true;
 
         return false;
@@ -1056,7 +1113,7 @@ public class TransformedZ3Proof extends Z3Proof {
         if (literal instanceof NotFormula) {
             literal = ((NotFormula) literal).getNegatedFormula();
         }
-        assert (isAtom(literal));
+        assert (TransformedZ3Proof.isAtom(literal));
         return literal;
     }
 
@@ -1070,7 +1127,7 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private static Formula invertLiteral(Formula literal) {
 
-        assert (isLiteral(literal));
+        assert (TransformedZ3Proof.isLiteral(literal));
 
         if (literal instanceof NotFormula) {
             return ((NotFormula) literal).getNegatedFormula();

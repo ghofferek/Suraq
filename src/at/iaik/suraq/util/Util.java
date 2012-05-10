@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
@@ -205,5 +208,28 @@ public class Util {
         List<Formula> disjuncts = ((OrFormula) clause).getDisjuncts();
         assert (disjuncts.size() == 1);
         return disjuncts.get(0);
+    }
+
+    /**
+     * @param currentAnnotatedNode
+     * @return the domain terms occuring in the given node, from left to right.
+     */
+    public static DomainTerm[] getDomainTerms(AnnotatedProofNode node) {
+        if (node.numPremises() == 0)
+            return (DomainTerm[]) ((EqualityFormula) (node.getConsequent()
+                    .getConsequent())).getTerms().toArray();
+        else {
+            assert (node.numPremises() == 3);
+            DomainTerm[] part1 = (DomainTerm[]) ((EqualityFormula) (node
+                    .getPremise1().getConsequent())).getTerms().toArray();
+            DomainTerm[] part2 = (DomainTerm[]) ((EqualityFormula) (node
+                    .getPremise3().getConsequent())).getTerms().toArray();
+            DomainTerm[] result = new DomainTerm[4];
+            result[0] = part1[0];
+            result[1] = part1[1];
+            result[2] = part2[0];
+            result[3] = part2[1];
+            return result;
+        }
     }
 }
