@@ -197,10 +197,11 @@ public class TransformedZ3Proof extends Z3Proof {
         } while (rightPartition < 0);
 
         if (leftPartition == rightPartition) {
-            // this is a local node ==> nothing to do, except creating a new
-            // annotated node.
+            // this is a local node
             TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                     leftPartition, rightPartition, this));
+
+            // TODO create proof nodes for annotated premises
             return;
         }
 
@@ -223,9 +224,9 @@ public class TransformedZ3Proof extends Z3Proof {
                     .getNodeWithConsequent(subProofs.get(count).proofFormula);
 
             DomainTerm currentLeftTerm = computeCurrentLeftTermForMonotonicity(
-                    leftPartition, rightPartition, currentAnnotatedNode);
-            DomainTerm currentRightTerm = computeCurrentrightTermForMonotonicity(
-                    leftPartition, rightPartition, currentAnnotatedNode);
+                    leftPartition, currentAnnotatedNode);
+            DomainTerm currentRightTerm = computeCurrentRightTermForMonotonicity(
+                    rightPartition, currentAnnotatedNode);
 
             // TODO create and add new terms, new transitivity proofs to lists
         }
@@ -239,35 +240,33 @@ public class TransformedZ3Proof extends Z3Proof {
     /**
      * Computes the right term s'_k during monotonicity handling.
      * 
-     * @param leftPartition
      * @param rightPartition
      * @param currentAnnotatedNode
      * @return
      */
-    private DomainTerm computeCurrentrightTermForMonotonicity(
-            int leftPartition, int rightPartition,
-            AnnotatedProofNode currentAnnotatedNode) {
-        if (currentAnnotatedNode.getLeftPartition() != leftPartition) {
+    private DomainTerm computeCurrentRightTermForMonotonicity(
+            int rightPartition, AnnotatedProofNode currentAnnotatedNode) {
+        if (currentAnnotatedNode.getRightPartition() != rightPartition) {
+            Formula formula = currentAnnotatedNode.getConsequent().proofFormula;
+            assert (formula instanceof DomainEq);
+            DomainEq eqFormula = (DomainEq) formula;
+            assert (eqFormula.getTerms().size() == 2);
+            assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
+            return (DomainTerm) eqFormula.getTerms().get(1);
+        } else if (currentAnnotatedNode.numPremises() == 3) {
+            Formula formula = currentAnnotatedNode.getPremise3().proofFormula;
+            assert (formula instanceof DomainEq);
+            DomainEq eqFormula = (DomainEq) formula;
+            assert (eqFormula.getTerms().size() == 2);
+            assert (eqFormula.getTerms().get(0) instanceof DomainTerm);
+            return (DomainTerm) eqFormula.getTerms().get(0);
+        } else {
             Formula formula = currentAnnotatedNode.getConsequent().proofFormula;
             assert (formula instanceof DomainEq);
             DomainEq eqFormula = (DomainEq) formula;
             assert (eqFormula.getTerms().size() == 2);
             assert (eqFormula.getTerms().get(0) instanceof DomainTerm);
             return (DomainTerm) eqFormula.getTerms().get(0);
-        } else if (currentAnnotatedNode.numPremises() == 3) {
-            Formula formula = currentAnnotatedNode.getPremise1().proofFormula;
-            assert (formula instanceof DomainEq);
-            DomainEq eqFormula = (DomainEq) formula;
-            assert (eqFormula.getTerms().size() == 2);
-            assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
-            return (DomainTerm) eqFormula.getTerms().get(1);
-        } else {
-            Formula formula = currentAnnotatedNode.getConsequent().proofFormula;
-            assert (formula instanceof DomainEq);
-            DomainEq eqFormula = (DomainEq) formula;
-            assert (eqFormula.getTerms().size() == 2);
-            assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
-            return (DomainTerm) eqFormula.getTerms().get(1);
         }
     }
 
@@ -275,12 +274,11 @@ public class TransformedZ3Proof extends Z3Proof {
      * Computes the left term r'_k during monotonicity handling.
      * 
      * @param leftPartition
-     * @param rightPartition
      * @param currentAnnotatedNode
      * @return
      */
     private DomainTerm computeCurrentLeftTermForMonotonicity(int leftPartition,
-            int rightPartition, AnnotatedProofNode currentAnnotatedNode) {
+            AnnotatedProofNode currentAnnotatedNode) {
 
         if (currentAnnotatedNode.getLeftPartition() != leftPartition) {
             Formula formula = currentAnnotatedNode.getConsequent().proofFormula;
