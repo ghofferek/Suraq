@@ -1173,6 +1173,7 @@ public class TransformedZ3Proof extends Z3Proof {
         if (hypothesis) {
             // update ancestors' consequents
             TransformedZ3Proof parent = parents.get(this);
+
             while (parent != null) {
                 List<Formula> newDisjuncts = null;
                 if (parent.consequent instanceof OrFormula) {

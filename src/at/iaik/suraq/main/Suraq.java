@@ -418,7 +418,9 @@ public class Suraq implements Runnable {
         smtStr += assertPartition;
 
         smtStr += SExpressionConstants.EXIT.toString();
-
+        System.out.println("=============================================");
+        System.out.println(smtStr);
+        System.out.println("=============================================");
         return smtStr;
     }
 
@@ -434,7 +436,7 @@ public class Suraq implements Runnable {
 
         // Flattening formula, because macros cause problems when
         // replacing arrays with uninterpreted functions
-        // (functions cannot be macro parameters)
+        // (functions canynot be macro parameters)
         System.out.println("Flattening formula...");
         Formula formula = logicParser.getMainFormula().flatten();
         assert (formula.getFunctionMacros().size() == 0);
@@ -477,13 +479,15 @@ public class Suraq implements Runnable {
 
         formula = new ImpliesFormula(lambdaConstraints, formula);
 
-        Set<Token> currentArrayVariables = new HashSet<Token>();
+        Set<Token> currentDependenceArrayVariables = new HashSet<Token>();
         for (ArrayVariable var : formula.getArrayVariables())
-            currentArrayVariables.add(new Token(var.getVarName()));
+            if (!noDependenceVars.contains(new Token(var.getVarName())))
+                currentDependenceArrayVariables
+                        .add(new Token(var.getVarName()));
         System.out
                 .println("Converting array reads to uninterpreted function calls...");
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        noDependenceVars.removeAll(currentArrayVariables);
+        noDependenceVars.removeAll(currentDependenceArrayVariables);
 
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
@@ -513,8 +517,11 @@ public class Suraq implements Runnable {
         // get declarations and functions
         ListIterator<SExpression> beginDeclarations = outputExpressions
                 .listIterator(beginDeclarationsIdx);
-        while (beginDeclarations.hasNext())
-            declarationStr += beginDeclarations.next().toString();
+        while (beginDeclarations.hasNext()) {
+            SExpression elem = beginDeclarations.next();
+            System.out.println("---\n" + elem);
+            declarationStr += elem.toString();
+        }
 
         int beginAssertPartitionIdx = outputExpressions.size();
         writeAssertPartitions(formula, noDependenceVars, controlSignals);
@@ -662,7 +669,7 @@ public class Suraq implements Runnable {
         for (UninterpretedFunction function : formula
                 .getUninterpretedFunctions()) {
             if (noDependenceVars.contains(function.getName())) {
-                varTypes.put(new Token(function.getType()),
+                varTypes.put(new Token(function.getName()),
                         SExpressionConstants.VALUE_TYPE);
                 functionArity.put(function.getName(), function.getNumParams());
                 continue; // noDependenceVars will be handled later.

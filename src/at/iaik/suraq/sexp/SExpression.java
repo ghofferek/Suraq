@@ -71,6 +71,9 @@ public class SExpression {
      */
     public SExpression(SExpression child) {
         this.children = new ArrayList<SExpression>();
+        if (child == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
         this.children.add(child);
     }
 
@@ -85,6 +88,12 @@ public class SExpression {
      */
     public SExpression(SExpression first, SExpression second) {
         this.children = new ArrayList<SExpression>();
+        if (first == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
+        if (second == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
         this.children.add(first);
         this.children.add(second);
     }
@@ -102,6 +111,15 @@ public class SExpression {
      */
     public SExpression(SExpression first, SExpression second, SExpression third) {
         this.children = new ArrayList<SExpression>();
+        if (first == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
+        if (second == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
+        if (third == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
         this.children.add(first);
         this.children.add(second);
         this.children.add(third);
@@ -160,6 +178,9 @@ public class SExpression {
      *            the new child to add
      */
     public void addChild(SExpression sexp) {
+        if (sexp == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
         children.add(sexp);
     }
 
@@ -173,6 +194,9 @@ public class SExpression {
      *            the position of the child to replace.
      */
     public void replaceChild(SExpression sexp, int position) {
+        if (sexp == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
         children.add(position, sexp);
         children.remove(position + 1);
     }
@@ -187,6 +211,9 @@ public class SExpression {
      *            the position of the new child.
      */
     public void addChild(SExpression sexp, int position) {
+        if (sexp == null)
+            throw new RuntimeException(
+                    "empty child found! null is not allowed!");
         children.add(position, sexp);
     }
 
@@ -347,6 +374,10 @@ public class SExpression {
      */
     public static SExpression makeDeclareFun(Token name, SExpression type,
             int numParams) {
+
+        if (type == null)
+            throw new RuntimeException("null 'type' is not allowed!");
+
         SExpression result = new SExpression();
         result.addChild(SExpressionConstants.DECLARE_FUN);
         result.addChild(name);
@@ -371,7 +402,7 @@ public class SExpression {
      */
 
     public static Boolean isValidProofType(Token expr) {
-        
+
         for (SExpression proofType : SExpressionConstants.PROOF_TYPES) {
             if (proofType.equals(expr))
                 return true;
