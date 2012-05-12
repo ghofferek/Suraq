@@ -2,6 +2,7 @@
  * Author: Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  */
 package at.iaik.suraq.smtlib.formula;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +38,15 @@ public class FormulaTerm extends PropositionalTerm {
     @Override
     public Formula deepFormulaCopy() {
         return new FormulaTerm(formula);
+    }
+
+    /**
+     * returns the formula of the <code>FormulaTerm</code>.
+     * 
+     * @return the formula
+     */
+    public Formula getFormula() {
+        return formula.deepFormulaCopy();
     }
 
     /**
@@ -245,20 +255,21 @@ public class FormulaTerm extends PropositionalTerm {
         return formula.getAssertPartition();
     }
 
-    
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		return transformToConsequentsForm(false, true);
-	}
-	
-	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
-     */	
-	@Override	
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) { 
+    @Override
+    public Formula transformToConsequentsForm() {
+        return transformToConsequentsForm(false, true);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
+     */
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
         return this.formula.transformToConsequentsForm(notFlag, firstLevel);
     }
 

@@ -24,6 +24,7 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
@@ -166,7 +167,9 @@ public class TransformedZ3Proof extends Z3Proof {
             return;
 
         } else if (proofType.equals(SExpressionConstants.AND_ELIM)
-                || proofType.equals(SExpressionConstants.NOT_OR_ELIM)) {
+                || proofType.equals(SExpressionConstants.NOT_OR_ELIM)
+                || proofType.equals(SExpressionConstants.REWRITE)
+                || proofType.equals(SExpressionConstants.COMMUTATIVITY)) {
             // Treat this as a leave.
             // Relies on the assumption that and-elim (not-or-elim) is only used
             // for things that have been asserted, and not on things are are
@@ -206,30 +209,51 @@ public class TransformedZ3Proof extends Z3Proof {
 
         } else if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
 
+            // Given a proof for p and a proof for (implies p q), produces a
+            // proof for q. The second antecedents may also be a proof for (iff
+            // p q).
+
             List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
+            Z3Proof child0 = z3SubProofs.get(0);
+            Z3Proof child1 = z3SubProofs.get(1);
+
             if (z3SubProofs.size() != 2)
                 throw new RuntimeException(
                         "Modus-Ponens proof with not exactly two children. This should not happen!");
 
-            if (!(TransformedZ3Proof.isLiteral(z3SubProofs.get(0)
-                    .getConsequent())))
+            if (!((child1.getConsequent() instanceof ImpliesFormula) || (child1
+                    .getConsequent() instanceof EqualityFormula)))
                 throw new RuntimeException(
-                        "First child of Modus-Ponens should be an Literal."
-                                + z3SubProofs.get(0).getConsequent().toString());
-
-            if (!(z3SubProofs.get(1).getConsequent() instanceof ImpliesFormula))
-                throw new RuntimeException(
-                        "Second child of Modus-Ponens should be an ImpliesFormla.");
-
-            Z3Proof subProof2 = new Z3Proof(z3SubProofs.get(1).getProofType(),
-                    z3SubProofs.get(1).getSubProofs(), z3SubProofs.get(1)
-                            .getConsequent().transformToConsequentsForm());
+                        "Second child of Modus-Ponens should be an ImpliesFormla or of the form (iff p q).");
 
             this.proofType = (SExpressionConstants.RESOLUTION);
-            this.subProofs.add(new TransformedZ3Proof(z3SubProofs.get(0)));
-            this.subProofs.add(new TransformedZ3Proof(subProof2));
-            this.literal = TransformedZ3Proof.makeLiteralPositive(z3SubProofs
-                    .get(0).getConsequent());
+            this.subProofs.add(new TransformedZ3Proof(child0));
+            this.subProofs.add(new TransformedZ3Proof(child1));
+
+            Formula newLiteral = z3SubProofs.get(0).getConsequent()
+                    .transformToConsequentsForm();
+
+            if (isLiteral(newLiteral)) {
+                this.literal = makeLiteralPositive(newLiteral);
+            } else {
+                System.out.println(newLiteral);
+
+                if (newLiteral instanceof NotFormula)
+                    throw new RuntimeException(
+                            "Literal of modus ponens is a Not Formula. This should not happen.");
+
+                Set<Integer> partitions = newLiteral.getAssertPartition();
+                partitions.remove(-1);
+                if (partitions.size() > 1)
+                    throw new RuntimeException(
+                            "First child of Modus-Ponens has more than one local assert-partition assigned."
+                                    + newLiteral.toString());
+
+                this.literal = new FormulaTerm(newLiteral);
+            }
+
+            this.literal = newLiteral;
+
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
 
@@ -1114,10 +1138,13 @@ public class TransformedZ3Proof extends Z3Proof {
 
         if (formula instanceof NotFormula) {
             Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
-            if (TransformedZ3Proof.isAtom(negatedFormula))
+            if (isAtom(negatedFormula))
                 return true;
         }
-        if (TransformedZ3Proof.isAtom(formula))
+        if (isAtom(formula))
+            return true;
+
+        if (formula instanceof FormulaTerm)
             return true;
 
         return false;

@@ -418,9 +418,7 @@ public class Suraq implements Runnable {
         smtStr += assertPartition;
 
         smtStr += SExpressionConstants.EXIT.toString();
-        System.out.println("=============================================");
-        System.out.println(smtStr);
-        System.out.println("=============================================");
+
         return smtStr;
     }
 
@@ -519,7 +517,6 @@ public class Suraq implements Runnable {
                 .listIterator(beginDeclarationsIdx);
         while (beginDeclarations.hasNext()) {
             SExpression elem = beginDeclarations.next();
-            System.out.println("---\n" + elem);
             declarationStr += elem.toString();
         }
 

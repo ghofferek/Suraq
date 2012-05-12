@@ -123,8 +123,12 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     @Override
     public Formula deepFormulaCopy() {
         List<Formula> subformulas = new ArrayList<Formula>();
-        for (Formula formula : formulas)
+        for (Formula formula : formulas) {
+            if (formula == null)
+                System.out.println(formula);
+
             subformulas.add(formula.deepFormulaCopy());
+        }
         return create(subformulas);
     }
 

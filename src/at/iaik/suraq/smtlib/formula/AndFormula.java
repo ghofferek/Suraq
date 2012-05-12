@@ -107,22 +107,10 @@ public class AndFormula extends AndOrXorFormula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
-     *      boolean)
-     */
-    @Override
-    public Formula transformToConsequentsForm(boolean notFlag,
-            boolean firstLevel) {
-
-        assert (notFlag);
-        return null;
-    }
-
-    /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformFormulaToConsequentsFormula(at.iaik.suraq.smtlib.formula.Formula,
      *      boolean, boolean)
      */
-    public Formula transformToConsequentsForm(Formula formula, boolean notFlag,
+    public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
 
         if (notFlag == false)
