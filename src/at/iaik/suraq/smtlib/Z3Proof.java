@@ -43,7 +43,7 @@ public class Z3Proof implements SMTLibObject {
         this.subProofs = new ArrayList<Z3Proof>();
         this.consequent = null;
     }
-    
+
     /**
      * 
      * Constructs a new <code>Z3Proof</code>.
@@ -58,15 +58,18 @@ public class Z3Proof implements SMTLibObject {
     public Z3Proof(Token proofType, Z3Proof subProof1, Z3Proof subProof2,
             Formula consequent) {
 
+        if (proofType == null)
+            throw new RuntimeException("null prooftype not allowed!");
+
         this.proofType = proofType;
         this.subProofs = new ArrayList<Z3Proof>();
-        if(subProof1!=null)
-        	this.subProofs.add(subProof1);
-        if(subProof2!=null)
-        	this.subProofs.add(subProof2);
+        if (subProof1 != null)
+            this.subProofs.add(subProof1);
+        if (subProof2 != null)
+            this.subProofs.add(subProof2);
         this.consequent = consequent;
     }
-    
+
     /**
      * 
      * Constructs a new <code>Z3Proof</code>.
@@ -80,6 +83,9 @@ public class Z3Proof implements SMTLibObject {
      */
     public Z3Proof(Token proofType, List<? extends Z3Proof> subProofs,
             Formula consequent) {
+
+        if (proofType == null)
+            throw new RuntimeException("null prooftype not allowed!");
 
         this.proofType = proofType;
         assert (subProofs != null);
@@ -108,7 +114,7 @@ public class Z3Proof implements SMTLibObject {
         }
 
         Z3Proof instance = new Z3Proof(new Token(this.proofType), newSubProofs,
-        		consequent);
+                consequent);
 
         return instance;
     }

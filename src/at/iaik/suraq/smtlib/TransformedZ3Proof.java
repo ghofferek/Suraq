@@ -156,21 +156,10 @@ public class TransformedZ3Proof extends Z3Proof {
 
         Token proofType = z3Proof.getProofType();
 
-        if (proofType.equals(SExpressionConstants.ASSERTED)) {
-            // This is a leave of the proof tree.
-            if (!(subProofs.size() == 0))
-                throw new RuntimeException(
-                        "Asserted Node should not have children");
-
-            this.proofType = z3Proof.getProofType();
-            this.consequent = z3Proof.getConsequent()
-                    .transformToConsequentsForm();
-
-            return;
-
-        } else if (proofType.equals(SExpressionConstants.AND_ELIM)
+        if (proofType.equals(SExpressionConstants.AND_ELIM)
                 || proofType.equals(SExpressionConstants.NOT_OR_ELIM)
                 || proofType.equals(SExpressionConstants.REWRITE)
+                || proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.COMMUTATIVITY)) {
             // Treat this as a leave.
             // Relies on the assumption that and-elim (not-or-elim) is only used
@@ -334,6 +323,7 @@ public class TransformedZ3Proof extends Z3Proof {
             Map<TransformedZ3Proof, TransformedZ3Proof> parents = new HashMap<TransformedZ3Proof, TransformedZ3Proof>();
             hypotheticalProof.removeHypotheses(parents);
 
+            this.proofType = hypotheticalProof.proofType;
             this.subProofs = hypotheticalProof.subProofs;
             this.consequent = hypotheticalProof.consequent;
             this.literal = hypotheticalProof.literal;
