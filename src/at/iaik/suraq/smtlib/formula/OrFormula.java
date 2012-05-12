@@ -120,18 +120,22 @@ public class OrFormula extends AndOrXorFormula {
         List<Formula> subFormulas = new ArrayList<Formula>();
         for (Formula subFormula : this.formulas) {
             if (isValidChild(subFormula)) {
-                if (subFormula instanceof OrFormula) {
-                    ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) subFormula)
-                            .getDisjuncts();
-                    for (Formula disjunct : disjuncts) {
-                        Formula transformedSubFormula = disjunct
+                if (subFormula instanceof PropositionalConstant)
+                    subFormulas.add(subFormula);
+                else {
+                    if (subFormula instanceof OrFormula) {
+                        ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) subFormula)
+                                .getDisjuncts();
+                        for (Formula disjunct : disjuncts) {
+                            Formula transformedSubFormula = disjunct
+                                    .transformToConsequentsForm(notFlag, false);
+                            subFormulas.add(transformedSubFormula);
+                        }
+                    } else {
+                        Formula transformedSubFormula = subFormula
                                 .transformToConsequentsForm(notFlag, false);
                         subFormulas.add(transformedSubFormula);
                     }
-                } else {
-                    Formula transformedSubFormula = subFormula
-                            .transformToConsequentsForm(notFlag, false);
-                    subFormulas.add(transformedSubFormula);
                 }
 
             } else
@@ -163,6 +167,8 @@ public class OrFormula extends AndOrXorFormula {
         if (formula instanceof PropositionalVariable)
             return true;
         if (formula instanceof UninterpretedPredicateInstance)
+            return true;
+        if (formula instanceof PropositionalConstant)
             return true;
         return false;
     }

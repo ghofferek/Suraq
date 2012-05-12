@@ -392,87 +392,91 @@ public class NotFormula extends BooleanCombinationFormula {
                         topLeveFormula, constraints, noDependenceVars));
     }
 
-   /**
-    * Returns the elements assert-partition.
-    * 
-    * @return assert-partition of the element.
-    */
-	@Override
-	public Set<Integer> getAssertPartition() {
-		
-		return formula.getAssertPartition();
-	}
-	
+    /**
+     * Returns the elements assert-partition.
+     * 
+     * @return assert-partition of the element.
+     */
+    @Override
+    public Set<Integer> getAssertPartition() {
+
+        return formula.getAssertPartition();
+    }
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		return transformToConsequentsForm(false, true);
-	}
-	
+    @Override
+    public Formula transformToConsequentsForm() {
+        return transformToConsequentsForm(false, true);
+    }
+
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
      */
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
 
-		Formula notFormula;
-		
-		if (isChildAtom()){
-			if (notFlag == false)
-				notFormula = new NotFormula (this.formula.transformToConsequentsForm(!notFlag, false));
-			else  //odd number of NOT operators equals no NOT operator
-				notFormula = this.formula.transformToConsequentsForm(!notFlag, false); 
-		}
-		else if (this.formula instanceof NotFormula 
-				|| (this.formula instanceof AndFormula && notFlag == false)  //is ok, because of deMorgan rule
-				|| (this.formula instanceof OrFormula && notFlag == true)) 
-			notFormula = this.formula.transformToConsequentsForm(!notFlag, false);			
-		else 
-			throw new RuntimeException(
-                    "Unexpected Body: Body of an Not Formula can either be an OR formula, AND formula, a NOT formula or an atom");		
-		
-        if (firstLevel==true){				
-			List<Formula> literals = new ArrayList<Formula>(); 
-		
-			//resolve nested OR operations
-	        if (notFormula instanceof OrFormula){
-	        	ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) notFormula).getDisjuncts();
-	        	for (Formula disjunct : disjuncts){
-	        		literals.add(disjunct);
-	        		
-	        	}
-	        }
-	        else
-				literals.add(notFormula);	        	
-			Formula orFormula = new OrFormula(literals);
-	        	
-			return	orFormula;	
-		}
-        
+        Formula notFormula;
+
+        if (isChildAtom()) {
+            if (notFlag == false)
+                notFormula = new NotFormula(
+                        this.formula
+                                .transformToConsequentsForm(!notFlag, false));
+            else
+                // odd number of NOT operators equals no NOT operator
+                notFormula = this.formula.transformToConsequentsForm(!notFlag,
+                        false);
+        } else if (this.formula instanceof NotFormula
+                || (this.formula instanceof AndFormula && notFlag == false)
+                || (this.formula instanceof OrFormula))
+            notFormula = this.formula.transformToConsequentsForm(!notFlag,
+                    false);
+        else
+            throw new RuntimeException(
+                    "Unexpected Body: Body of an Not Formula can either be an OR formula, AND formula, a NOT formula or an atom");
+
+        if (firstLevel == true) {
+            List<Formula> literals = new ArrayList<Formula>();
+
+            // resolve nested OR operations
+            if (notFormula instanceof OrFormula) {
+                ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) notFormula)
+                        .getDisjuncts();
+                for (Formula disjunct : disjuncts) {
+                    literals.add(disjunct);
+
+                }
+            } else
+                literals.add(notFormula);
+            Formula orFormula = new OrFormula(literals);
+
+            return orFormula;
+        }
+
         return notFormula;
-	}
+    }
 
-    /** 
-     * Checks if child is an atom of a consequent proof.
-     * An atom is either a <code>EqualityFormula</code>, a <code>PropositionalVariable</code>
-     * or a <code>UninterpretedPredicateInstance</code>
+    /**
+     * Checks if child is an atom of a consequent proof. An atom is either a
+     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code> or a
+     * <code>UninterpretedPredicateInstance</code>
      * 
      * @param formula
-     * 		formula to check 
+     *            formula to check
      * @return true, iff formula is an atom
-     *  	 
+     * 
      */
-	public boolean isChildAtom(){
-		if (this.formula instanceof EqualityFormula)
+    public boolean isChildAtom() {
+        if (this.formula instanceof EqualityFormula)
             return true;
-		if (this.formula instanceof PropositionalVariable)
-            return true;		
-		if (this.formula instanceof UninterpretedPredicateInstance)
-            return true;		
-		return false;
-	}
-	
-	
+        if (this.formula instanceof PropositionalVariable)
+            return true;
+        if (this.formula instanceof UninterpretedPredicateInstance)
+            return true;
+        return false;
+    }
 
 }

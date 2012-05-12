@@ -464,7 +464,7 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public Set<Integer> getAssertPartition() {
-       Set<Integer> partitions = new TreeSet<Integer>();
+        Set<Integer> partitions = new TreeSet<Integer>();
 
         for (Term term : terms)
             partitions.addAll(term.getAssertPartition());
@@ -475,35 +475,40 @@ public abstract class EqualityFormula implements Formula {
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		return transformToConsequentsForm(false, true);
-	}
-	
+    @Override
+    public Formula transformToConsequentsForm() {
+        return transformToConsequentsForm(false, true);
+    }
+
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
      */
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
-		
-		if (terms.size()!=2)
-			throw new RuntimeException(
-					"Equality should have only two terms for consequents form");
-	    
-	    Formula equalityFormula;
-		if (this.equal==false){
-			this.equal=true;
-			equalityFormula = new NotFormula (this);
-		}
-		else 
-			equalityFormula = this;
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
 
-		if (firstLevel==true){
-			List<Formula> literals = new ArrayList<Formula>();			
+        if (terms.size() != 2)
+            throw new RuntimeException(
+                    "Equality should have only two terms for consequents form");
 
-			literals.add(equalityFormula);
-			Formula orFormula = new OrFormula(literals);
-			return	orFormula;	
-		}
-		return equalityFormula;	
-	}         
+        Formula equalityFormula;
+        if (this.equal == false) {
+            this.equal = true;
+            if (notFlag == true)
+                equalityFormula = this;
+            else
+                equalityFormula = new NotFormula(this);
+
+        } else
+            equalityFormula = this;
+
+        if (firstLevel == true) {
+            List<Formula> literals = new ArrayList<Formula>();
+
+            literals.add(equalityFormula);
+            Formula orFormula = new OrFormula(literals);
+            return orFormula;
+        }
+        return equalityFormula;
+    }
 }
