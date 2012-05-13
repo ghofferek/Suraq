@@ -18,6 +18,7 @@ import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.proof.AnnotatedProofNodes;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.DomainEq;
@@ -79,6 +80,12 @@ public class TransformedZ3Proof extends Z3Proof {
      * also a leave.
      */
     private boolean hypothesis = false;
+
+    /**
+     * Allows child to trigger restart of child recursion. Needed when child
+     * changes parents subproofs.
+     */
+    private boolean reload = true;
 
     /**
      * Storage for annotated nodes used during proof conversion.
@@ -1346,7 +1353,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     newDisjuncts.add(parent.consequent);
                 }
                 newDisjuncts.add(new NotFormula(this.consequent));
-                parent.consequent = new OrFormula(newDisjuncts);
+                parent.consequent = (new OrFormula(newDisjuncts))
+                        .transformToConsequentsForm();
                 parent = parents.get(parent);
             }
             parent = parents.get(this);
@@ -1356,6 +1364,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             if (numChildren > 2) {
                 parent.subProofs.remove(this);
+                parent.reload = true;
             }
             if (numChildren == 2) {
                 TransformedZ3Proof otherChild = (TransformedZ3Proof) parent.subProofs
@@ -1363,6 +1372,8 @@ public class TransformedZ3Proof extends Z3Proof {
                 parent.proofType = otherChild.proofType;
                 parent.subProofs = otherChild.subProofs;
                 parent.literal = otherChild.literal;
+                parent.hypothesis = otherChild.hypothesis;
+                parent.reload = true;
 
             } else if (numChildren == 1) {
 
@@ -1372,8 +1383,10 @@ public class TransformedZ3Proof extends Z3Proof {
                     myChild = myParent;
                     myParent = parents.get(myParent);
                 }
-                if (myParent.subProofs.size() > 2)
+                if (myParent.subProofs.size() > 2) {
                     myParent.subProofs.remove(myChild);
+                    myParent.reload = true;
+                }
 
                 if (myParent.subProofs.size() == 2) {
                     TransformedZ3Proof otherChild = (TransformedZ3Proof) myParent.subProofs
@@ -1381,6 +1394,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     myParent.proofType = otherChild.proofType;
                     myParent.subProofs = otherChild.subProofs;
                     myParent.literal = otherChild.literal;
+                    myParent.hypothesis = otherChild.hypothesis;
+                    myParent.reload = true;
                 }
             }
 
@@ -1388,13 +1403,50 @@ public class TransformedZ3Proof extends Z3Proof {
             return result;
         }
 
-        for (Z3Proof subProof : subProofs) {
-            if (subProof != null) {
-                parents.put((TransformedZ3Proof) subProof, this);
-                result.addAll(((TransformedZ3Proof) subProof)
-                        .removeHypotheses(parents));
+        reload = true;
+        while (reload) {
+            reload = false;
+            for (Z3Proof subProof : subProofs) {
+                if (subProof != null) {
+                    parents.put((TransformedZ3Proof) subProof, this);
+                    result.addAll(((TransformedZ3Proof) subProof)
+                            .removeHypotheses(parents));
+                    if (reload)
+                        break;
+                }
             }
         }
+
         return result;
+    }
+
+    /**
+     * Converts this proof into an s-expression compatible with SMTLIBv2. Only
+     * the proof itself is converted. No variable/function/macro declarations
+     * are included.
+     * 
+     * @return this proof as an SMTLIBv2 s-expression.
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        List<SExpression> children = new ArrayList<SExpression>();
+
+        if (this.proofType == SExpressionConstants.RESOLUTION) {
+            if (this.literal != null)
+                children.add(new Token(this.proofType
+                        + "{"
+                        + this.literal.toString().replaceAll("\n", "")
+                                .replaceAll("\\s{2,}", " ") + "}"));
+            else
+                throw new RuntimeException(
+                        "resolution proof always needs a literal.");
+        } else
+            children.add(this.proofType);
+
+        for (Z3Proof subProof : this.subProofs)
+            children.add(subProof.toSmtlibV2());
+
+        children.add(this.consequent.toSmtlibV2());
+        return new SExpression(children);
     }
 }
