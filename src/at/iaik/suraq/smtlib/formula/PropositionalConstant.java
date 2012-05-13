@@ -241,28 +241,26 @@ public class PropositionalConstant extends PropositionalTerm {
         return new PropositionalConstant(constant);
     }
 
-	@Override
-	public Set<Integer> getAssertPartition() {
-		return new TreeSet<Integer>();
-	}
-	
+    @Override
+    public Set<Integer> getAssertPartition() {
+        return new TreeSet<Integer>();
+    }
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on a Propositional Constant.\n" +
-				"Propositional Constants should not occur in the consequents of a proof.");
-	}
-	
-	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
-     */	
-	@Override
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
-		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on a Propositional Constant.\n" +
-				"Propositional Constants should not occur in the consequents of a proof.");
-	} 	
+    @Override
+    public Formula transformToConsequentsForm() {
+        return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
+     */
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
+        return this;
+    }
 }

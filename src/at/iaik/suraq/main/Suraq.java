@@ -26,6 +26,7 @@ import at.iaik.suraq.resProof.ResProofTest;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.ResolutionZ3Proof;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
@@ -339,6 +340,10 @@ public class Suraq implements Runnable {
                 Z3Proof rootProof = proofParser.getRootProof();
                 TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                         rootProof);
+                ResolutionZ3Proof resolutionZ3Proof = new ResolutionZ3Proof(
+                        transformedZ3Proof);
+
+                // System.out.println(resolutionZ3Proof);
 
                 Set<Integer> partitions = rootProof.getAssertPartition();
                 System.out.println("partitions" + partitions);
