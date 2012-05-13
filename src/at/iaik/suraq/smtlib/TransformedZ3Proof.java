@@ -61,7 +61,7 @@ public class TransformedZ3Proof extends Z3Proof {
      * Specifies if this proof object is an axiom introduced during
      * transformation.
      */
-    private boolean axiom = false; // FIXME Do we really need this?
+    private boolean axiom = false;
 
     /**
      * The "literal" on which resolution is applied. This could e.g. be an
@@ -478,7 +478,26 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                     leftPartition, rightPartition, this));
 
-            // TODO create proof nodes for annotated premises
+            for (int count = 0; count < subProofs.size(); count++) {
+                assert (subProofs.get(count) instanceof TransformedZ3Proof);
+                TransformedZ3Proof subProof = (TransformedZ3Proof) subProofs
+                        .get(count);
+                AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
+                        .getNodeWithConsequent(subProof.consequent);
+                if (currentAnnotatedNode.numPremises() == 3) {
+                    List<TransformedZ3Proof> proofs = new ArrayList<TransformedZ3Proof>(
+                            3);
+                    proofs.add(currentAnnotatedNode.getPremise1());
+                    proofs.add(currentAnnotatedNode.getPremise2());
+                    proofs.add(currentAnnotatedNode.getPremise3());
+                    TransformedZ3Proof newProof = TransformedZ3Proof
+                            .createTransitivityProof(proofs);
+                    subProofs.set(count, newProof);
+                    TransformedZ3Proof.annotatedNodes
+                            .add(new AnnotatedProofNode(leftPartition,
+                                    leftPartition, this));
+                }
+            }
             return;
         }
 
