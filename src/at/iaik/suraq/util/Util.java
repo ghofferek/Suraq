@@ -11,6 +11,7 @@ import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
@@ -18,6 +19,9 @@ import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 
 /**
  * 
@@ -208,6 +212,47 @@ public class Util {
         List<Formula> disjuncts = ((OrFormula) clause).getDisjuncts();
         assert (disjuncts.size() == 1);
         return disjuncts.get(0);
+    }
+
+    /**
+     * Given a single literal of the form f(a,...)=f(b,...) returns the
+     * uninterpreted Function that is used. Fails with an assertion error if the
+     * given literal is not of this form.
+     * 
+     * @param literal
+     *            a literal in the style of the consequent of a monotonicity
+     *            proof.
+     * @return the uninterpreted function that is used in the given equality.
+     */
+    public static UninterpretedFunction getUninterpretedFunction(Formula literal) {
+        assert (literal instanceof DomainEq);
+        DomainEq equality = (DomainEq) literal;
+        assert (equality.getTerms().size() == 2);
+        assert ((equality.getTerms().get(0) instanceof UninterpretedFunctionInstance) || (equality
+                .getTerms().get(0) instanceof UninterpretedPredicateInstance));
+        assert ((equality.getTerms().get(1) instanceof UninterpretedFunctionInstance) || (equality
+                .getTerms().get(1) instanceof UninterpretedPredicateInstance));
+        if (equality.getTerms().get(0) instanceof UninterpretedFunctionInstance) {
+            assert (equality.getTerms().get(1) instanceof UninterpretedFunctionInstance);
+            UninterpretedFunctionInstance instance1 = (UninterpretedFunctionInstance) (equality
+                    .getTerms().get(0));
+            UninterpretedFunctionInstance instance2 = (UninterpretedFunctionInstance) (equality
+                    .getTerms().get(1));
+            UninterpretedFunction function = instance1.getFunction();
+            assert (function.equals(instance2.getFunction()));
+            return function;
+        } else if (equality.getTerms().get(0) instanceof UninterpretedPredicateInstance) {
+            assert (equality.getTerms().get(1) instanceof UninterpretedPredicateInstance);
+            UninterpretedPredicateInstance instance1 = (UninterpretedPredicateInstance) (equality
+                    .getTerms().get(0));
+            UninterpretedPredicateInstance instance2 = (UninterpretedPredicateInstance) (equality
+                    .getTerms().get(1));
+            UninterpretedFunction function = instance1.getFunction();
+            assert (function.equals(instance2.getFunction()));
+            return function;
+        }
+        assert (false);
+        return null;
     }
 
     /**
