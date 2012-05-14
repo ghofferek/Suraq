@@ -262,7 +262,8 @@ public class Z3Proof implements SMTLibObject {
             result.append("\n");
         }
         result.append("Proofs: ");
-        result.append(consequent.toString().replaceAll("\\s{2,}", " "));
+        result.append(consequent.toString().replaceAll("\\s{2,}", " ")
+                .replace("\n", ""));
         return result.toString();
     }
 
