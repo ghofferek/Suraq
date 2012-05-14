@@ -70,6 +70,7 @@ public class ResNode {
             cl = new Clause(left.cl, right.cl, pivot);
         } else {
             cl = new Clause(pCl);
+            // TODO: check if cl is result of the resolution!
         }
 
         left.addChild(this);
@@ -116,7 +117,7 @@ public class ResNode {
     }
 
     public int checkMovable(Lit l) {
-        if (isLeaf) return -1; // move disallowed
+        if (isLeaf || part != -1) return -1; // move disallowed
         boolean ll = left.cl.contains(l);
         boolean lr = right.cl.contains(l);
         if (ll && lr)
@@ -204,7 +205,11 @@ public class ResNode {
     public String toString(){
         if(isLeaf)
             return id+":"+cl+" (p"+part+")";
+        else if(part != -1)
+            return id+":"+cl+" l:"+left.id+" r:"+right.id
+                +" piv:"+pivot+" (p"+part+")";
         else
-            return id+":"+cl+" l:"+left.id+" r:"+right.id+" piv:"+pivot;
+            return id+":"+cl+" l:"+left.id+" r:"+right.id
+                +" piv:"+pivot;
     }
 }

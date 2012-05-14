@@ -92,14 +92,17 @@ public class ResProof{
         Assert.assertTrue("Root is not empty clause", root.cl.isEmpty() );
     }
 
-// Start of untested code-----------------------------------------
+// Start : Proof restructuring-----------------------------------------
     void reOrderStep(ResNode n){
 
         // Convert a node into leaf 
         int lp = n.left.part;
         int rp = n.right.part;
         if( lp != -1 && rp != -1 && (lp == rp || lp == 0 || rp == 0) ){
-            if( lp == 0 ) n.convertToLeaf(rp); else n.convertToLeaf(lp);
+            int np = 0;
+            if( lp == 0 ) np = rp; else np = lp;
+            n.part = np;
+            // n.convertToLeaf(np);
             return;
         }
         // if pivot is is global then return
@@ -108,15 +111,18 @@ public class ResProof{
         //Check and fix if parents pivot is in n
         while(true){
             boolean del = false, LeftParent = false, LeftGrandParent = false;
-            
-            if(!n.left.isLeaf) {
+            // Note: if only checks the partition.
+            // If the parent found to be inside a partition then
+            // we donot move in the direction and dont worry about it. 
+            if(n.left.part == -1) { 
                 if(n.cl.contains( n.left.pivot, true)){ 
                     del = true; LeftParent=true; LeftGrandParent=true; 
                 } else if(n.cl.contains( n.left.pivot, false)) { 
                     del = true; LeftParent=true; LeftGrandParent=false; 
                 }
             }
-            if(!del && !n.right.isLeaf){
+
+            if(!del && n.right.part == -1){
                 if( n.cl.contains( n.right.pivot, true )) { 
                     del = true; LeftParent=false; LeftGrandParent=true; 
                 }else if(n.cl.contains( n.right.pivot, false )) { 
@@ -132,7 +138,7 @@ public class ResProof{
             break;
         }
 
-        // push up the local resolution
+        // move up the local resolution
         Lit pl = new Lit( n.pivot, true  );
         Lit nl = new Lit( n.pivot, false );
         // Check Left
@@ -147,8 +153,8 @@ public class ResProof{
         ResNode L = n.left, R = n.right, n1=null, n2=null;
         ResNode LL = null, LR = null, RL = null, RR = null;
         int piv= n.pivot, Lpiv=0, Rpiv =0;
-        if(!L.isLeaf){ LL = L.left; LR = L.right; Lpiv = L.pivot;}
-        if(!R.isLeaf){ RL = R.left; RR = R.right; Rpiv = R.pivot;}
+        if(L.part == -1){ LL = L.left; LR = L.right; Lpiv = L.pivot;}
+        if(R.part == -1){ RL = R.left; RR = R.right; Rpiv = R.pivot;}
 
         if(goLeft == 2){ // -> N1 = Res(LL,R) N = Res(N1,LR)
             n1 = addIntNode( null, LL, R, piv);
@@ -197,7 +203,10 @@ public class ResProof{
 
     void recDeLocalizeProof( ResNode n){
         if( visited[n.id] ) return;
-        if( n.isLeaf ){ visited[n.id] = true; return; }
+        if( n.isLeaf || n.part != -1){ 
+            visited[n.id] = true; 
+            return; 
+        }
         recDeLocalizeProof( n.left  );
         recDeLocalizeProof( n.right );
         visited[n.id] = true;
@@ -213,6 +222,6 @@ public class ResProof{
         recDeLocalizeProof( getRoot() );
     }
 
- //End of untested code-------------------------------------------
+// End : Proof restructuring-----------------------------------------
 
 }
