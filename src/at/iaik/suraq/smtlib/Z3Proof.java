@@ -37,6 +37,11 @@ public class Z3Proof implements SMTLibObject {
      */
     protected Formula consequent;
 
+    /**
+     * A flag used for marking during recursive algorithms
+     */
+    private boolean marked = false;
+
     private final int id;
 
     private static int instanceCounter = 0;
@@ -245,6 +250,9 @@ public class Z3Proof implements SMTLibObject {
     }
 
     public String prettyPrint() {
+        if (this.marked)
+            return "";
+        marked = true;
         StringBuffer result = new StringBuffer();
         result.append("----------------------------------------------\n");
         result.append("ID: ");
@@ -268,6 +276,12 @@ public class Z3Proof implements SMTLibObject {
         for (Z3Proof child : subProofs)
             result.append(child.prettyPrint());
         return result.toString();
+    }
+
+    private void resetMarks() {
+        marked = false;
+        for (Z3Proof child : subProofs)
+            child.resetMarks();
     }
 
 }
