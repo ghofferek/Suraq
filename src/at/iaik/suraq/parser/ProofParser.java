@@ -377,7 +377,6 @@ public class ProofParser extends SMTLibParser {
             Token proofType = (Token) expression.getChildren().get(0);
 
             int numChildren = expression.getChildren().size();
-            assert (numChildren <= 2);
 
             int subProofsCount = numChildren - 2; // first child is proofType,
                                                   // last one is consequent

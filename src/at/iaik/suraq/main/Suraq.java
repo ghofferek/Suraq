@@ -350,7 +350,7 @@ public class Suraq implements Runnable {
                     exc.printStackTrace();
                     noErrors = false;
                 }
-                System.out.println(rootProof);
+                // System.out.println(rootProof);
                 TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                         rootProof);
                 ResolutionZ3Proof resolutionZ3Proof = new ResolutionZ3Proof(
