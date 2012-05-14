@@ -42,6 +42,15 @@ public class Z3Proof implements SMTLibObject {
      */
     private boolean marked = false;
 
+    /**
+     * Flag that indicates from which assert an asserted node comes. Only valid
+     * for nodes of type ASSERTED.
+     */
+    private int assertPartition = 0;
+
+    /**
+     * A unique ID of the node.
+     */
     private final int id;
 
     private static int instanceCounter = 0;
@@ -108,6 +117,15 @@ public class Z3Proof implements SMTLibObject {
         this.subProofs.addAll(subProofs);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
+
+        if (proofType.equals(SExpressionConstants.ASSERTED)) {
+            Set<Integer> partitions = consequent.getAssertPartition();
+            assert (partitions.size() <= 2);
+            partitions.remove(new Integer(-1));
+            assert (partitions.size() == 1);
+            assertPartition = partitions.iterator().next();
+        }
+
     }
 
     /**
@@ -223,26 +241,89 @@ public class Z3Proof implements SMTLibObject {
         return (this == obj);
     }
 
-    public Set<String> getAssertFormulas() {
+    /**
+     * This method is based on just looking at nodes with type ASSERTED and
+     * checking from which assert statement they originate (according to their
+     * own claim). Symbols are not checked.
+     * 
+     * This method and the returned set does not have a notion of "global". If
+     * the subtree is just from one assert statement, the cardinality of the
+     * returned set should be 1.
+     * 
+     * @return
+     */
+    public Set<Integer> getAssertedPartitions() {
 
-        Set<String> assertStr = new HashSet<String>();
+        Set<Integer> assertPartitions = new HashSet<Integer>();
         for (Z3Proof z3Proofchild : this.subProofs) {
-            assertStr.addAll(z3Proofchild.getAssertFormulas());
+            assertPartitions.addAll(z3Proofchild.getAssertedPartitions());
         }
 
         if (proofType.equals(SExpressionConstants.ASSERTED)) {
-            assertStr.add(this.consequent.toString());
+            assertPartitions.add(new Integer(assertPartition));
         }
 
-        return assertStr;
+        return assertPartitions;
+    }
+
+    public Set<Z3Proof> getLemmas() {
+
+        Set<Z3Proof> lemmas = new HashSet<Z3Proof>();
+        if (proofType.equals(SExpressionConstants.LEMMA)) {
+            lemmas.add(this);
+        }
+        for (Z3Proof z3Proofchild : this.subProofs) {
+            lemmas.addAll(z3Proofchild.getLemmas());
+        }
+        return lemmas;
+    }
+
+    public void localLemmasToAssertions() {
+        if (proofType.equals(SExpressionConstants.LEMMA)) {
+            assert (subProofs.size() == 1);
+            Set<Integer> assertedPartitions = subProofs.get(0)
+                    .getAssertedPartitions();
+            if (assertedPartitions.size() > 1)
+                return;
+            Set<Integer> symbolsPartitions = consequent.getAssertPartition();
+            symbolsPartitions.remove(new Integer(-1));
+            if (assertedPartitions.equals(symbolsPartitions)) {
+                proofType = SExpressionConstants.ASSERTED;
+                assert (assertedPartitions.size() == 1);
+                assertPartition = assertedPartitions.iterator().next();
+                subProofs = new ArrayList<Z3Proof>();
+                return;
+            } else
+                return;
+        }
+
+        else
+            for (Z3Proof child : subProofs)
+                child.localLemmasToAssertions();
+
     }
 
     public void removeLocalSubProofs() {
         // FIXME Very inefficient! Cache results of getAssertFormulas!!
-        if (this.getAssertFormulas().size() == 1) {
-            proofType = SExpressionConstants.ASSERTED;
-            subProofs = new ArrayList<Z3Proof>();
-            return;
+        if (this.getAssertedPartitions().size() == 1) {
+            Set<Integer> thisPartitions = this.getAssertedPartitions();
+            boolean isLocal = true;
+            // Set<Z3Proof> lemmas = this.getLemmas();
+            // for (Z3Proof lemma : lemmas) {
+            // Set<Integer> lemmaPartitions = lemma.getAssertPartition();
+            // thisPartitions.remove(new Integer(-1));
+            // lemmaPartitions.remove(new Integer(-1));
+            // if (!thisPartitions.equals(lemmaPartitions)) {
+            // isLocal = false;
+            // break;
+            // }
+            // }
+
+            if (isLocal) {
+                proofType = SExpressionConstants.ASSERTED;
+                subProofs = new ArrayList<Z3Proof>();
+                return;
+            }
         }
         for (Z3Proof child : subProofs) {
             child.removeLocalSubProofs();
@@ -278,7 +359,7 @@ public class Z3Proof implements SMTLibObject {
         return result.toString();
     }
 
-    private void resetMarks() {
+    public void resetMarks() {
         marked = false;
         for (Z3Proof child : subProofs)
             child.resetMarks();

@@ -338,12 +338,14 @@ public class Suraq implements Runnable {
                     return;
                 }
                 Z3Proof rootProof = proofParser.getRootProof();
+                rootProof.localLemmasToAssertions();
                 rootProof.removeLocalSubProofs();
                 // System.out.println(rootProof);
                 try {
                     File smtfile = new File("proofWithoutLocalNodes.smt2");
                     FileWriter fstream = new FileWriter(smtfile);
                     BufferedWriter smtfilewriter = new BufferedWriter(fstream);
+                    rootProof.resetMarks();
                     smtfilewriter.write(rootProof.prettyPrint());
                     smtfilewriter.close();
                 } catch (IOException exc) {
