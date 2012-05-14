@@ -115,7 +115,20 @@ public class OrFormula extends AndOrXorFormula {
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
 
-        assert (notFlag == false);
+        if ((notFlag == true) && (this.formulas.size() == 1)) {
+            Formula subFormula = this.formulas.get(0);
+            subFormula = new NotFormula(subFormula);
+
+            Formula transformedSubFormula = subFormula
+                    .transformToConsequentsForm(notFlag, false);
+
+            List<Formula> subFormulas = new ArrayList<Formula>();
+            subFormulas.add(transformedSubFormula);
+
+            return new OrFormula(subFormulas);
+        }
+
+        assert (notFlag == true);
 
         List<Formula> subFormulas = new ArrayList<Formula>();
         for (Formula subFormula : this.formulas) {

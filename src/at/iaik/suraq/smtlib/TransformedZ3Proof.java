@@ -309,7 +309,8 @@ public class TransformedZ3Proof extends Z3Proof {
             this.literal = TransformedZ3Proof
                     .makeLiteralPositive(resolutionAssociate);
 
-            this.consequent = z3Proof.getConsequent();
+            this.consequent = z3Proof.getConsequent()
+                    .transformToConsequentsForm();
             if (!(this.consequent instanceof PropositionalConstant))
                 this.consequent = this.consequent.transformToConsequentsForm();
 
