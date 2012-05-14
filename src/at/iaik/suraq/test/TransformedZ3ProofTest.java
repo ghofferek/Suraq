@@ -152,7 +152,7 @@ public class TransformedZ3ProofTest {
         }
 
         Z3Proof rootProof = proofParser.getRootProof();
-        TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
+        Z3Proof transformedZ3Proof = new TransformedZ3Proof(
                 rootProof);
 
         return transformedZ3Proof.toString().replaceAll("\n", "")

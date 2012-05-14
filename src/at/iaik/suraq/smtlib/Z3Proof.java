@@ -12,6 +12,9 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalEq;
+import at.iaik.suraq.util.Util;
 
 /**
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
@@ -330,6 +333,46 @@ public class Z3Proof implements SMTLibObject {
         }
     }
 
+    public void dealWithModusPonens() {
+
+        if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
+            assert (subProofs.size() == 2);
+            Z3Proof child1 = subProofs.get(0);
+            assert (child1.hasSingleLiteralConsequent());
+            Formula literal1 = Util.getSingleLiteral(child1.consequent);
+
+            Z3Proof child2 = subProofs.get(1);
+            Z3Proof child3 = null;
+            assert (child2.consequent instanceof PropositionalEq);
+            while (true) {
+                if (child2.subProofs.size() == 1)
+                    child2 = child2.subProofs.get(0);
+                else {
+                    assert (child2.subProofs.size() == 2);
+                    child2 = subProofs.get(0);
+                    child3 = subProofs.get(1);
+                    assert (child2.hasSingleLiteralConsequent());
+                    assert (child3.hasSingleLiteralConsequent());
+                    break;
+                }
+            }
+            Formula literal2 = Util.getSingleLiteral(child2.consequent);
+            Formula literal3 = Util.getSingleLiteral(child3.consequent);
+
+            // FIXME NOT FINISHED YET!!
+
+            // Don't forget the recursive calls on the children!
+            child1.dealWithModusPonens();
+            child2.dealWithModusPonens();
+            child3.dealWithModusPonens();
+            return;
+        }
+
+        for (Z3Proof child : subProofs) {
+            child.dealWithModusPonens();
+        }
+    }
+
     public String prettyPrint() {
         if (this.marked)
             return "";
@@ -363,6 +406,15 @@ public class Z3Proof implements SMTLibObject {
         marked = false;
         for (Z3Proof child : subProofs)
             child.resetMarks();
+    }
+
+    /**
+     * @return <code>true</code> if the consequent of this node has only a
+     *         single literal.
+     */
+    protected boolean hasSingleLiteralConsequent() {
+        OrFormula consequent = (OrFormula) this.consequent;
+        return consequent.getDisjuncts().size() == 1;
     }
 
 }

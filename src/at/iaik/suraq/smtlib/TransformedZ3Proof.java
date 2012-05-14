@@ -148,8 +148,8 @@ public class TransformedZ3Proof extends Z3Proof {
      *            the consequent.
      * 
      */
-    public TransformedZ3Proof(Token proofType, TransformedZ3Proof subProof1,
-            TransformedZ3Proof subProof2, Formula literal, Formula consequent) {
+    public TransformedZ3Proof(Token proofType, Z3Proof subProof1,
+            Z3Proof subProof2, Formula literal, Formula consequent) {
 
         super(proofType, subProof1, subProof2, consequent
                 .transformToConsequentsForm().deepFormulaCopy());
@@ -269,7 +269,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 throw new RuntimeException(
                         "Unit-Resolution proof with less than two children. This should not happen!");
 
-            TransformedZ3Proof transformedAntecedent = new TransformedZ3Proof(
+            Z3Proof transformedAntecedent = new TransformedZ3Proof(
                     z3SubProofs.get(0));
 
             if (!(transformedAntecedent.consequent instanceof OrFormula))
@@ -397,7 +397,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     .getNodeWithConsequent(Util.getSingleLiteral(subProofs
                             .get(0).consequent));
             if (annotatedNode != null) {
-                TransformedZ3Proof update = annotatedNode.getConsequent();
+                Z3Proof update = annotatedNode.getConsequent();
                 if (annotatedNode.numPremises() == 3) {
                     List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
                             3);
@@ -410,12 +410,12 @@ public class TransformedZ3Proof extends Z3Proof {
                 subProofs.set(0, update);
             }
 
-            if (((TransformedZ3Proof) subProofs.get(1))
+            if (((Z3Proof) subProofs.get(1))
                     .hasSingleLiteralConsequent()) {
                 AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
                         .getNodeWithConsequent(Util.getSingleLiteral(subProofs
                                 .get(1).consequent));
-                TransformedZ3Proof update = annotatedNode.getConsequent();
+                Z3Proof update = annotatedNode.getConsequent();
                 if (annotatedNode2.numPremises() == 3) {
                     List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
                             3);
@@ -456,7 +456,7 @@ public class TransformedZ3Proof extends Z3Proof {
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.SYMMETRY)) {
             assert (subProofs.size() == 1);
-            TransformedZ3Proof subproof = (TransformedZ3Proof) subProofs.get(0);
+            Z3Proof subproof = (Z3Proof) subProofs.get(0);
             Formula premiseLiteral = ((OrFormula) (subproof.consequent))
                     .getDisjuncts().iterator().next();
             AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
@@ -471,7 +471,7 @@ public class TransformedZ3Proof extends Z3Proof {
                                 + (new Integer(numPremises)).toString());
             if (numPremises == 0) {
                 assert (this.subProofs.size() == 1);
-                TransformedZ3Proof premise = (TransformedZ3Proof) this.subProofs
+                Z3Proof premise = (Z3Proof) this.subProofs
                         .get(0);
                 assert (premise.hasSingleLiteralConsequent());
                 TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
@@ -546,7 +546,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             for (int count = 0; count < subProofs.size(); count++) {
                 assert (subProofs.get(count) instanceof TransformedZ3Proof);
-                TransformedZ3Proof subProof = (TransformedZ3Proof) subProofs
+                Z3Proof subProof = (Z3Proof) subProofs
                         .get(count);
                 AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
                         .getNodeWithConsequent(subProof.consequent);
@@ -556,7 +556,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     proofs.add(currentAnnotatedNode.getPremise1());
                     proofs.add(currentAnnotatedNode.getPremise2());
                     proofs.add(currentAnnotatedNode.getPremise3());
-                    TransformedZ3Proof newProof = TransformedZ3Proof
+                    Z3Proof newProof = TransformedZ3Proof
                             .createTransitivityProof(proofs);
                     subProofs.set(count, newProof);
                     TransformedZ3Proof.annotatedNodes
@@ -570,7 +570,7 @@ public class TransformedZ3Proof extends Z3Proof {
         List<AnnotatedProofNode> currentAnnotatedNodes = new ArrayList<AnnotatedProofNode>();
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
-            TransformedZ3Proof subProof = (TransformedZ3Proof) child;
+            Z3Proof subProof = (Z3Proof) child;
             AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
                     .getNodeWithConsequent(subProof.consequent);
             assert (currentAnnotatedNode != null);
@@ -978,20 +978,11 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     /**
-     * @return <code>true</code> if the consequent of this node has only a
-     *         single literal.
-     */
-    private boolean hasSingleLiteralConsequent() {
-        OrFormula consequent = (OrFormula) this.consequent;
-        return consequent.getDisjuncts().size() == 1;
-    }
-
-    /**
      * 
      * @return the parent of this node, if it is in the map, <code>null</code>
      *         otherwise.
      */
-    public TransformedZ3Proof getParent() {
+    public Z3Proof getParent() {
         return TransformedZ3Proof.parents.get(this);
     }
 
@@ -1153,7 +1144,7 @@ public class TransformedZ3Proof extends Z3Proof {
         List<DomainTerm> leftParams = new ArrayList<DomainTerm>();
         List<DomainTerm> rightParams = new ArrayList<DomainTerm>();
 
-        for (TransformedZ3Proof subProof : subProofs) {
+        for (Z3Proof subProof : subProofs) {
             Formula literal = Util.getSingleLiteral(subProof.consequent);
             assert (literal instanceof DomainEq);
             DomainEq eqLiteral = (DomainEq) literal;
@@ -1378,7 +1369,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             } else if (numChildren == 1) {
 
-                TransformedZ3Proof myChild = this;
+                Z3Proof myChild = this;
                 TransformedZ3Proof myParent = parent;
                 while (myParent.subProofs.size() == 1) {
                     myChild = myParent;

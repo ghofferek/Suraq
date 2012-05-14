@@ -4,6 +4,7 @@
 package at.iaik.suraq.proof;
 
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
+import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.Formula;
 
 /**
@@ -121,7 +122,7 @@ public class AnnotatedProofNode {
      * @return <code>true</code> if the given consequent equals the one of this
      *         node
      */
-    public boolean hasConsequent(TransformedZ3Proof consequent) {
+    public boolean hasConsequent(Z3Proof consequent) {
         return this.consequent.equals(consequent);
     }
 
