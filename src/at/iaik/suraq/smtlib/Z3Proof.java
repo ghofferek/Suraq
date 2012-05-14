@@ -247,6 +247,9 @@ public class Z3Proof implements SMTLibObject {
     public String prettyPrint() {
         StringBuffer result = new StringBuffer();
         result.append("----------------------------------------------\n");
+        result.append("ID: ");
+        result.append(this.id);
+        result.append("\n");
         result.append("Rule: ");
         result.append(proofType.toString());
         result.append("\n");
