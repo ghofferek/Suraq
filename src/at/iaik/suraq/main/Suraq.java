@@ -338,6 +338,8 @@ public class Suraq implements Runnable {
                     return;
                 }
                 Z3Proof rootProof = proofParser.getRootProof();
+                rootProof.removeLocalSubProofs();
+                System.out.println(rootProof);
                 TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                         rootProof);
                 ResolutionZ3Proof resolutionZ3Proof = new ResolutionZ3Proof(

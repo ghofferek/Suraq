@@ -4,10 +4,12 @@
 package at.iaik.suraq.smtlib;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 
@@ -16,6 +18,8 @@ import at.iaik.suraq.smtlib.formula.Formula;
  * 
  */
 public class Z3Proof implements SMTLibObject {
+
+    protected Set<String> assertedStr = new HashSet<String>();
 
     /**
      * The proof type.
@@ -207,4 +211,29 @@ public class Z3Proof implements SMTLibObject {
         return (this == obj);
     }
 
+    public Set<String> getAssertFormulas() {
+
+        Set<String> assertStr = new HashSet<String>();
+        for (Z3Proof z3Proofchild : this.subProofs) {
+            assertStr.addAll(z3Proofchild.getAssertFormulas());
+        }
+
+        if (proofType.equals(SExpressionConstants.ASSERTED)) {
+            assertStr.add(this.consequent.toString());
+        }
+
+        return assertStr;
+    }
+
+    public void removeLocalSubProofs() {
+        // FIXME Very inefficien! Cache results of getAssertFormulas!!
+        if (this.getAssertFormulas().size() == 1) {
+            proofType = SExpressionConstants.ASSERTED;
+            subProofs = new ArrayList<Z3Proof>();
+            return;
+        }
+        for (Z3Proof child : subProofs) {
+            child.removeLocalSubProofs();
+        }
+    }
 }
