@@ -152,6 +152,7 @@ public class ResolutionZ3Proof extends Z3Proof {
             for (Z3Proof z3SubProof : z3Proof.getSubProofs())
                 axiomParts.add((new NotFormula(z3SubProof.getConsequent()))
                         .transformToConsequentsForm());
+
             axiomParts.add(z3Proof.getConsequent());
             OrFormula axiomFormula = new OrFormula(axiomParts);
 
