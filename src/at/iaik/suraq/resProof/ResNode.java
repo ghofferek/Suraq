@@ -68,10 +68,6 @@ public class ResNode {
 
         if (pCl == null) {
             cl = new Clause(left.cl, right.cl, pivot);
-            // cl = new Clause(pLeft.cl);
-            // cl.rmLit(pivot, isLeftPos);
-            // cl.addAllLit(pRight.cl);
-            // cl.rmLit(pivot, !isLeftPos);
         } else {
             cl = new Clause(pCl);
         }
@@ -82,15 +78,19 @@ public class ResNode {
 
     public void cleanUP(){
         if( !isLeaf && children.isEmpty() ){
-            left.rmChild(this);
-            right.rmChild(this);
-            left.cleanUP();
-            right.cleanUP();
+            ResNode L=left, R=right;
+            left = null;
+            right = null;
+            L.rmChild(this);
+            R.rmChild(this);
+            cl.clear();
+            L.cleanUP();
+            R.cleanUP();
+            // this is ready for garbage collection.
         }
     }
     public void rmChild(ResNode n) {
-        Assert.assertTrue("Removing non-existant child",
-                children.contains(n));
+        Assert.assertTrue("Removing non-existant child", children.contains(n));
         children.remove(n);
     }
 

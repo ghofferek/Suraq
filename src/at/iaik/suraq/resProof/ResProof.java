@@ -13,7 +13,8 @@ public class ResProof{
     public static final int MAX_LIT_NUM    = 10000;
 
     public ResNode root = null;
-    public int nodeCount = 0;
+
+    public int nodeCount = 1;
 
     public ResNode[] nodeRef= new ResNode[MAX_PROOF_SIZE];
     public int[] var_part = new int[MAX_LIT_NUM];
@@ -21,6 +22,7 @@ public class ResProof{
     public boolean[] visited= new boolean[MAX_PROOF_SIZE];
 
     public ResProof(){
+        root = new ResNode(0,false);
         Arrays.fill(nodeRef, null);
         Arrays.fill(var_part, 0);
     }
@@ -43,6 +45,17 @@ public class ResProof{
         nodeCount++;
         return n;
     }
+
+
+    public void setRoot(ResNode n){
+        root.left = n;
+        n.addChild(root);
+    }
+
+    public ResNode getRoot(){ 
+        return root.left; 
+    }
+
 
     void recCheckProof( ResNode n){
         if( visited[n.id] ) return;
@@ -75,7 +88,7 @@ public class ResProof{
 
     public void checkProof(){
         Arrays.fill(visited, false);
-        recCheckProof(root);
+        recCheckProof( getRoot() );
         Assert.assertTrue("Root is not empty clause", root.cl.isEmpty() );
     }
 
@@ -127,7 +140,7 @@ public class ResProof{
         // Check Right
         int goRight = n.right.checkMovable(nl);
         
-        Assert.assertTrue("Both unmovable parent not possible!",
+        Assert.assertTrue("Both unmovable parents is not possible!",
                           goLeft != -1 || goRight != -1 );
 
         // L = Res(LL, LR), R = Res(RL, RR), N = Res(L,R)
@@ -153,7 +166,7 @@ public class ResProof{
             n.right  = RR;
             n.pivot = Rpiv;
         }else if(goRight == 3){ // -> N1 = Res(L,RR) N = Res(RL,N1)
-             n1 = addIntNode( null, L, RR, piv);
+            n1 = addIntNode( null, L, RR, piv);
             n.left  = RL;
             n.right = n1;
             n.pivot = Rpiv;
@@ -197,7 +210,7 @@ public class ResProof{
     
     public void deLocalizeProof(){
         Arrays.fill(visited, false);        
-        recDeLocalizeProof(root);
+        recDeLocalizeProof( getRoot() );
     }
 
  //End of untested code-------------------------------------------

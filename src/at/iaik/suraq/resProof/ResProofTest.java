@@ -15,6 +15,7 @@ public class ResProofTest{
     }
 
     public void t1(){
+        System.out.println("Example 1=>");
         ResProof prf = new ResProof();
         List<Lit> c1 = Arrays.asList(new Lit(1,true), new Lit(2,false));
         List<Lit> c2 = Arrays.asList(new Lit(1,false) );
@@ -23,12 +24,17 @@ public class ResProofTest{
         ResNode n2 = prf.addLeaf(c2, 2);
         ResNode n3 = prf.addLeaf(c3, 0);
         ResNode n4 = prf.addIntNode( null, n1, n2, 0);
-        prf.root = prf.addIntNode( null, n4, n3, 0);
+        ResNode n5 = prf.addIntNode( null, n4, n3, 0);
+
+        prf.setRoot(n5);
+
 
         prf.checkProof();
     }
 
     public void t2(){
+        System.out.println("Example 2=>");
+
         ResProof prf = new ResProof();
         
         int g1 = 1;
@@ -51,20 +57,22 @@ public class ResProofTest{
 
         ResNode i1 = prf.addIntNode( null, n1, n2, g1);
         ResNode i2 = prf.addIntNode( null, n3, n4, g2);
+        ResNode i3  = prf.addIntNode( null, i1, i2, l);
 
-        prf.root   = prf.addIntNode( null, i1, i2, l);
+        prf.setRoot(i3);
 
         prf.checkProof();
         prf.deLocalizeProof();
-        System.out.println("-------------------------------------------------");
+        System.out.println("===================");
         prf.checkProof();
     }
 
-    public void t3(){
+    public void t3(boolean b){
         ResProof prf = new ResProof();
+        System.out.println("Example 3=>"+b);
 
-        boolean T = true;
-        boolean F = false;
+        boolean T = b;
+        boolean F = !b;
 
         int l = 1;
         int g1 = 2;
@@ -93,17 +101,24 @@ public class ResProofTest{
         ResNode i2 = prf.addIntNode( null, n4, n5, g3);
         ResNode i3 = prf.addIntNode( null, n3, i2, g2);
         ResNode i4 = prf.addIntNode( null, i1, i3,  l);
-        prf.root   = prf.addIntNode( null, i4, n2, g1);
+        ResNode i5 = prf.addIntNode( null, i4, n2, g1);
+
+        prf.setRoot(i5);
 
         prf.checkProof();
         prf.deLocalizeProof();
-        System.out.println("-------------------------------------------------");
+        System.out.println("===================");
         prf.checkProof();        
     }
 
     public void test(){
-        // t1();
-        // t2();
-        t3();
+        System.out.println("-------------------------------------------------");
+        t1();
+        System.out.println("-------------------------------------------------");
+        t2();
+        System.out.println("-------------------------------------------------");
+        t3(true);
+        System.out.println("-------------------------------------------------");
+        t3(false);
     }
 }
