@@ -339,6 +339,17 @@ public class Suraq implements Runnable {
                 }
                 Z3Proof rootProof = proofParser.getRootProof();
                 rootProof.removeLocalSubProofs();
+                try {
+                    File smtfile = new File("proofWithoutLocalNodes.smt2");
+                    FileWriter fstream = new FileWriter(smtfile);
+                    BufferedWriter smtfilewriter = new BufferedWriter(fstream);
+                    smtfilewriter.write(rootProof.prettyPrint());
+                    smtfilewriter.close();
+                } catch (IOException exc) {
+                    System.err.println("Error while writing to smtfile.");
+                    exc.printStackTrace();
+                    noErrors = false;
+                }
                 System.out.println(rootProof);
                 TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                         rootProof);

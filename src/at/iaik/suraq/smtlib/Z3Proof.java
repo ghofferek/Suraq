@@ -37,6 +37,10 @@ public class Z3Proof implements SMTLibObject {
      */
     protected Formula consequent;
 
+    private final int id;
+
+    private static int instanceCounter = 0;
+
     /**
      * 
      * Constructs a new <code>Z3Proof</code>.
@@ -46,6 +50,7 @@ public class Z3Proof implements SMTLibObject {
         this.proofType = null;
         this.subProofs = new ArrayList<Z3Proof>();
         this.consequent = null;
+        this.id = Z3Proof.instanceCounter++;
     }
 
     /**
@@ -72,6 +77,7 @@ public class Z3Proof implements SMTLibObject {
         if (subProof2 != null)
             this.subProofs.add(subProof2);
         this.consequent = consequent;
+        this.id = Z3Proof.instanceCounter++;
     }
 
     /**
@@ -96,6 +102,7 @@ public class Z3Proof implements SMTLibObject {
         this.subProofs = new ArrayList<Z3Proof>();
         this.subProofs.addAll(subProofs);
         this.consequent = consequent;
+        this.id = Z3Proof.instanceCounter++;
     }
 
     /**
@@ -226,7 +233,7 @@ public class Z3Proof implements SMTLibObject {
     }
 
     public void removeLocalSubProofs() {
-        // FIXME Very inefficien! Cache results of getAssertFormulas!!
+        // FIXME Very inefficient! Cache results of getAssertFormulas!!
         if (this.getAssertFormulas().size() == 1) {
             proofType = SExpressionConstants.ASSERTED;
             subProofs = new ArrayList<Z3Proof>();
@@ -236,4 +243,24 @@ public class Z3Proof implements SMTLibObject {
             child.removeLocalSubProofs();
         }
     }
+
+    public String prettyPrint() {
+        StringBuffer result = new StringBuffer();
+        result.append("----------------------------------------------\n");
+        result.append("Rule: ");
+        result.append(proofType.toString());
+        result.append("\n");
+        result.append("Antecedents:\n");
+        for (Z3Proof child : subProofs) {
+            result.append(child.id);
+            result.append(": ");
+            result.append(child.consequent.toString()
+                    .replaceAll("\\s{2,}", " "));
+            result.append("\n");
+        }
+        result.append("Proofs: ");
+        result.append(consequent.toString().replaceAll("\\s{2,}", " "));
+        return result.toString();
+    }
+
 }
