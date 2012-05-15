@@ -25,7 +25,6 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
-import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
@@ -205,9 +204,9 @@ public class TransformedZ3Proof extends Z3Proof {
                         "Asserted Node should not have children");
 
             this.proofType = SExpressionConstants.ASSERTED;
-            consequent = z3Proof.getConsequent().transformToConsequentsForm();
-
-            axiom = true;
+            this.consequent = z3Proof.getConsequent()
+                    .transformToConsequentsForm();
+            this.axiom = true;
 
             return;
 
@@ -216,6 +215,8 @@ public class TransformedZ3Proof extends Z3Proof {
             // Given a proof for p and a proof for (implies p q), produces a
             // proof for q. The second antecedents may also be a proof for (iff
             // p q).
+
+            // Only dummy handling of modus ponus
 
             List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             Z3Proof child0 = z3SubProofs.get(0);
@@ -233,30 +234,7 @@ public class TransformedZ3Proof extends Z3Proof {
             this.proofType = (SExpressionConstants.RESOLUTION);
             this.subProofs.add(new TransformedZ3Proof(child0));
             this.subProofs.add(new TransformedZ3Proof(child1));
-
-            Formula newLiteral = z3SubProofs.get(0).getConsequent()
-                    .transformToConsequentsForm();
-
-            if (TransformedZ3Proof.isLiteral(newLiteral)) {
-                this.literal = TransformedZ3Proof
-                        .makeLiteralPositive(newLiteral);
-            } else {
-                if (newLiteral instanceof NotFormula)
-                    throw new RuntimeException(
-                            "Literal of modus ponens is a Not Formula. This should not happen.");
-
-                Set<Integer> partitions = newLiteral.getAssertPartition();
-                partitions.remove(-1);
-                if (partitions.size() > 1)
-                    throw new RuntimeException(
-                            "First child of Modus-Ponens has more than one local assert-partition assigned."
-                                    + newLiteral.toString());
-
-                this.literal = new FormulaTerm(newLiteral);
-            }
-
-            this.literal = newLiteral;
-
+            this.literal = new PropositionalVariable("mpTempLiteral");
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
 
@@ -284,12 +262,19 @@ public class TransformedZ3Proof extends Z3Proof {
 
                 Formula resolutionAssociate = z3SubProofs.get(count)
                         .getConsequent();
-                Formula invLiteral = TransformedZ3Proof
-                        .invertLiteral(resolutionAssociate);
-                Formula posLiteral = TransformedZ3Proof
-                        .makeLiteralPositive(resolutionAssociate);
 
-                newDisjuncts.remove(invLiteral);
+                if (!(isLiteral(resolutionAssociate)))
+                    throw new RuntimeException(
+                            "Resolution associate should be a literal");
+
+                Formula invLiteral = invertLiteral(resolutionAssociate);
+                Formula posLiteral = makeLiteralPositive(resolutionAssociate);
+
+                if (!newDisjuncts.remove(invLiteral))
+                    throw new RuntimeException(
+                            "Problem in Unit Resolution Transformation:\n"
+                                    + "Literal was not present in the remaining formula");
+
                 remainingFormula = new OrFormula(newDisjuncts);
 
                 transformedAntecedent = new TransformedZ3Proof(
@@ -306,13 +291,19 @@ public class TransformedZ3Proof extends Z3Proof {
 
             Formula resolutionAssociate = z3SubProofs.get(
                     z3SubProofs.size() - 1).getConsequent();
-            this.literal = TransformedZ3Proof
-                    .makeLiteralPositive(resolutionAssociate);
+            if (!(isLiteral(resolutionAssociate)))
+                throw new RuntimeException(
+                        "Resolution associate should be a literal");
+
+            this.literal = makeLiteralPositive(resolutionAssociate);
+
+            if (!(z3Proof.getConsequent().transformToConsequentsForm()
+                    .toString() == remainingFormula.toString()))
+                System.out
+                        .println("consequent of Unit Resolution is not as accpeted");
 
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
-            if (!(this.consequent instanceof PropositionalConstant))
-                this.consequent = this.consequent.transformToConsequentsForm();
 
             return;
 
@@ -410,8 +401,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 subProofs.set(0, update);
             }
 
-            if (((Z3Proof) subProofs.get(1))
-                    .hasSingleLiteralConsequent()) {
+            if (((Z3Proof) subProofs.get(1)).hasSingleLiteralConsequent()) {
                 AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
                         .getNodeWithConsequent(Util.getSingleLiteral(subProofs
                                 .get(1).consequent));
@@ -471,8 +461,7 @@ public class TransformedZ3Proof extends Z3Proof {
                                 + (new Integer(numPremises)).toString());
             if (numPremises == 0) {
                 assert (this.subProofs.size() == 1);
-                Z3Proof premise = (Z3Proof) this.subProofs
-                        .get(0);
+                Z3Proof premise = (Z3Proof) this.subProofs.get(0);
                 assert (premise.hasSingleLiteralConsequent());
                 TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                         annotatedNode.getPartition(), annotatedNode
@@ -546,8 +535,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             for (int count = 0; count < subProofs.size(); count++) {
                 assert (subProofs.get(count) instanceof TransformedZ3Proof);
-                Z3Proof subProof = (Z3Proof) subProofs
-                        .get(count);
+                Z3Proof subProof = (Z3Proof) subProofs.get(count);
                 AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
                         .getNodeWithConsequent(subProof.consequent);
                 if (currentAnnotatedNode.numPremises() == 3) {
@@ -1239,87 +1227,6 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     /**
-     * Checks if a given Formula is an atom. An atom is either a
-     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code> or a
-     * <code>UninterpretedPredicateInstance</code>.
-     * 
-     * @param formula
-     *            formula to check
-     * @return true, iff formula is atom
-     * 
-     */
-    private static boolean isAtom(Formula formula) {
-        if (formula instanceof EqualityFormula)
-            return true;
-        if (formula instanceof PropositionalVariable)
-            return true;
-        if (formula instanceof UninterpretedPredicateInstance)
-            return true;
-
-        return false;
-    }
-
-    /**
-     * Checks if a given Formula is a literal. An literal is either an atom or a
-     * negation of an atom.
-     * 
-     * @param formula
-     *            formula to check
-     * @return true, iff formula is literal
-     * 
-     */
-    private static boolean isLiteral(Formula formula) {
-
-        if (formula instanceof NotFormula) {
-            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
-            if (TransformedZ3Proof.isAtom(negatedFormula))
-                return true;
-        }
-        if (TransformedZ3Proof.isAtom(formula))
-            return true;
-
-        if (formula instanceof FormulaTerm)
-            return true;
-
-        return false;
-    }
-
-    /**
-     * Removes negation from literal.
-     * 
-     * @param literal
-     *            literal to make positive
-     * @return the resulting atom
-     * 
-     */
-    private static Formula makeLiteralPositive(Formula literal) {
-
-        if (literal instanceof NotFormula) {
-            literal = ((NotFormula) literal).getNegatedFormula();
-        }
-        assert (TransformedZ3Proof.isAtom(literal));
-        return literal;
-    }
-
-    /**
-     * Invert given literal.
-     * 
-     * @param literal
-     *            literal to invert
-     * @return the inverted literal
-     * 
-     */
-    private static Formula invertLiteral(Formula literal) {
-
-        assert (TransformedZ3Proof.isLiteral(literal));
-
-        if (literal instanceof NotFormula) {
-            return ((NotFormula) literal).getNegatedFormula();
-        } else
-            return new NotFormula(literal);
-    }
-
-    /**
      * Computes the set of hypotheses on which this proof is based. A map from
      * children to parents is constructed along the way. Also, the proof is
      * on-the-fly restructured so that it has no more hypotheses.
@@ -1410,6 +1317,87 @@ public class TransformedZ3Proof extends Z3Proof {
         }
 
         return result;
+    }
+
+    /**
+     * Removes negation from literal.
+     * 
+     * @param literal
+     *            literal to make positive
+     * @return the resulting atom
+     * 
+     */
+    private static Formula makeLiteralPositive(Formula literal) {
+
+        if (!isLiteral(literal))
+            throw new RuntimeException("given formula should be an literal");
+
+        if (literal instanceof NotFormula) {
+            literal = ((NotFormula) literal).getNegatedFormula();
+        }
+
+        if (!isAtom(literal))
+            throw new RuntimeException("given literal should be an atom");
+        return literal;
+    }
+
+    /**
+     * Invert given literal.
+     * 
+     * @param literal
+     *            literal to invert
+     * @return the inverted literal
+     * 
+     */
+    private static Formula invertLiteral(Formula literal) {
+
+        if (!isLiteral(literal))
+            throw new RuntimeException("given formula should be an literal");
+
+        if (literal instanceof NotFormula) {
+            return ((NotFormula) literal).getNegatedFormula();
+        } else
+            return new NotFormula(literal);
+
+    }
+
+    /**
+     * Checks if a given Formula is a literal. A literal is either an atom or a
+     * negation of an atom.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is an literal
+     */
+    private static boolean isLiteral(Formula formula) {
+        if (formula instanceof NotFormula) {
+            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
+            return isAtom(negatedFormula);
+        }
+        return isAtom(formula);
+    }
+
+    /**
+     * Checks if a given Formula is an atom. An atom is either a
+     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code>, a
+     * <code>PropositionalConstant</code> or a
+     * <code>UninterpretedPredicateInstance</code>.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is atom
+     * 
+     */
+    private static boolean isAtom(Formula formula) {
+        if (formula instanceof EqualityFormula)
+            return true;
+        if (formula instanceof PropositionalVariable)
+            return true;
+        if (formula instanceof PropositionalConstant)
+            return true;
+        if (formula instanceof UninterpretedPredicateInstance)
+            return true;
+        return false;
     }
 
     /**

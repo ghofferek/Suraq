@@ -390,6 +390,8 @@ public class ProofParser extends SMTLibParser {
                     numChildren - 1);
             Formula consequent = parseFormulaBody(consequentExpr);
 
+            Z3Proof test = new Z3Proof(proofType, subProofs, consequent);
+
             return new Z3Proof(proofType, subProofs, consequent);
         }
 

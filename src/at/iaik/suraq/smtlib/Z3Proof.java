@@ -126,7 +126,10 @@ public class Z3Proof implements SMTLibObject {
             assert (partitions.size() <= 2);
             partitions.remove(new Integer(-1));
             assert (partitions.size() == 1);
-            assertPartition = partitions.iterator().next();
+            if (partitions.size() > 0)
+                assertPartition = partitions.iterator().next();
+            else
+                assertPartition = -1;
         }
 
     }
