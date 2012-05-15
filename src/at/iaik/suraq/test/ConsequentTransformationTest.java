@@ -66,7 +66,7 @@ public class ConsequentTransformationTest {
     }
 
     /**
-     * Tests transformation of single positive literal false -->
+     * Tests transformation of porpositional constants
      */
     @Test
     public void testPropositionalConstant() {
@@ -77,6 +77,29 @@ public class ConsequentTransformationTest {
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
         subFormulas.add(new PropositionalConstant(true));
+        Formula expectedOutput = new OrFormula(subFormulas);
+
+        // create output with transformation
+        Formula output = input.transformToConsequentsForm();
+
+        Assert.assertEquals(expectedOutput.toString(), output.toString());
+    }
+
+    /**
+     * Tests transformation of porpositional constants
+     */
+    @Test
+    public void testSimpleTransformation() {
+
+        // define input
+        Formula b = new PropositionalVariable("b");
+        ArrayList<Formula> subFormulas = new ArrayList<Formula>();
+        subFormulas.add(new NotFormula(b));
+        Formula input = new NotFormula(new OrFormula(subFormulas));
+
+        // create expected output
+        subFormulas = new ArrayList<Formula>();
+        subFormulas.add(b);
         Formula expectedOutput = new OrFormula(subFormulas);
 
         // create output with transformation

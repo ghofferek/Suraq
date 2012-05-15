@@ -1249,9 +1249,11 @@ public class TransformedZ3Proof extends Z3Proof {
                     newDisjuncts = new ArrayList<Formula>();
                     newDisjuncts.add(parent.consequent);
                 }
-                newDisjuncts.add(new NotFormula(this.consequent));
+                newDisjuncts.add((new NotFormula(this.consequent))
+                        .transformToConsequentsForm());
                 parent.consequent = (new OrFormula(newDisjuncts))
                         .transformToConsequentsForm();
+                System.out.println("");
                 parent = parents.get(parent);
             }
             parent = parents.get(this);

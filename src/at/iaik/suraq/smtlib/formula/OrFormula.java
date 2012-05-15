@@ -115,18 +115,8 @@ public class OrFormula extends AndOrXorFormula {
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
 
-        // Special case: not(or(literal)) --> or(not(literal))
-        if (notFlag == true) {
-            List<Formula> subFormulas = new ArrayList<Formula>();
-            if (subFormulas.size() == 1)
-                if (isLiteral(subFormulas.get(0))) {
-                    List<Formula> literals = new ArrayList<Formula>();
-                    literals.add(new NotFormula(subFormulas.get(0)));
-                    return new OrFormula(literals);
-                }
-        }
-
-        if (notFlag == true)
+        // Special case: not(or(Literal)) --> or(not(literal)
+        if ((notFlag == true) && (this.formulas.size() != 1))
             throw new RuntimeException(
                     "an Or Formula is not allowed to occur inside an NOT formula.\n So notFlag has to be false");
 
