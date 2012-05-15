@@ -128,12 +128,12 @@ public class AndFormula extends AndOrXorFormula {
                             .getConjuncts();
                     for (Formula conjunct : conjuncts) {
                         Formula transformedSubFormula = conjunct
-                                .transformToConsequentsForm(!notFlag, false);
+                                .transformToConsequentsForm(notFlag, false);
                         subFormulas.add(transformedSubFormula);
                     }
                 } else {
                     Formula transformedSubFormula = subFormula
-                            .transformToConsequentsForm(!notFlag, false);
+                            .transformToConsequentsForm(notFlag, false);
 
                     subFormulas.add(transformedSubFormula);
                 }

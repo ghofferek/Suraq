@@ -105,8 +105,6 @@ public class ConsequentTransformationTest {
 
         // create output with transformation
         Formula output = input.transformToConsequentsForm();
-        System.out.println(output.toString() + "\n\n\n"
-                + expectedOutput.toString());
         Assert.assertEquals(expectedOutput.toString(), output.toString());
     }
 
@@ -188,6 +186,41 @@ public class ConsequentTransformationTest {
         subFormulas.add(a);
         subFormulas.add(b);
         subFormulas.add(c);
+        Formula expectedOutput = new OrFormula(subFormulas);
+
+        // create output with transformation
+        Formula output = input.transformToConsequentsForm();
+
+        Assert.assertEquals(expectedOutput.toString(), output.toString());
+    }
+
+    /**
+     * Tests nested and operations not (a and ( b and c ) ) --> (not a or not b
+     * or not c )
+     */
+    @Test
+    public void testNestedAndOperations() {
+
+        // define input
+        PropositionalTerm a = new PropositionalVariable("a");
+        PropositionalTerm b = new PropositionalVariable("b");
+        PropositionalTerm c = new PropositionalVariable("c");
+
+        List<Formula> inputAnd1Formulas = new ArrayList<Formula>();
+        inputAnd1Formulas.add(b);
+        inputAnd1Formulas.add(c);
+        Formula and1Formula = new AndFormula(inputAnd1Formulas);
+
+        List<Formula> inputAnd2Formulas = new ArrayList<Formula>();
+        inputAnd2Formulas.add(a);
+        inputAnd2Formulas.add(and1Formula);
+        Formula input = new NotFormula(new AndFormula(inputAnd2Formulas));
+
+        // create expected output
+        List<Formula> subFormulas = new ArrayList<Formula>();
+        subFormulas.add(new NotFormula(a));
+        subFormulas.add(new NotFormula(b));
+        subFormulas.add(new NotFormula(c));
         Formula expectedOutput = new OrFormula(subFormulas);
 
         // create output with transformation
