@@ -114,13 +114,16 @@ public class AndFormula extends AndOrXorFormula {
             boolean firstLevel) {
 
         if (notFlag == false)
-            return null;
+            throw new RuntimeException(
+                    "an AND Formula is only allowed to occur inside an NOT formula.\n So notFlag has to be true");
+
         // apply deMorgan rule: NOT (a AND b) <=> NOT a OR NOT b
 
         List<Formula> subFormulas = new ArrayList<Formula>();
         for (Formula subFormula : this.formulas) {
             if (isValidChild(subFormula)) {
                 if (subFormula instanceof AndFormula) {
+                    // remove nested AND Formula
                     ArrayList<Formula> conjuncts = (ArrayList<Formula>) ((AndFormula) subFormula)
                             .getConjuncts();
                     for (Formula conjunct : conjuncts) {
@@ -132,15 +135,11 @@ public class AndFormula extends AndOrXorFormula {
                     Formula transformedSubFormula = subFormula
                             .transformToConsequentsForm(!notFlag, false);
 
-                    if (isAtom(subFormula))
-                        transformedSubFormula = new NotFormula(
-                                transformedSubFormula);
-
                     subFormulas.add(transformedSubFormula);
                 }
             } else
                 throw new RuntimeException(
-                        "Unexpected Chid: Child of an AND Formula can either be an AND Formula, a NOT Formula or an atom");
+                        "Unexpected Chid: Child of an AND Formula can either be an AND Formula, NOT Formula or a Literal");
 
         }
 
@@ -149,45 +148,56 @@ public class AndFormula extends AndOrXorFormula {
     }
 
     /**
-     * Checks if a given Formula is an atom, and AND Formula or a NOT formula.
-     * An atom is either a <code>EqualityFormula</code>, a
-     * <code>PropositionalVariable</code> or a
-     * <code>UninterpretedPredicateInstance</code>.
+     * Checks if a given Formula is a literal, or an AND Formula or a NOT
+     * formula.
      * 
      * @param formula
      *            formula to check
      * @return true, iff formula is valid
-     * 
      */
-
     public boolean isValidChild(Formula formula) {
         if (formula instanceof AndFormula)
             return true;
         if (formula instanceof NotFormula)
             return true;
-        if (isAtom(formula))
+        if (isLiteral(formula))
             return true;
         return false;
     }
 
     /**
+     * Checks if a given Formula is a literal. A literal is either an atom or a
+     * negation of an atom.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is an literal
+     */
+    public boolean isLiteral(Formula formula) {
+        if (formula instanceof NotFormula) {
+            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
+            return isAtom(negatedFormula);
+        }
+        return isAtom(formula);
+    }
+
+    /**
      * Checks if a given Formula is an atom. An atom is either a
-     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code> or a
+     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code>, a
+     * <code>PropositionalConstant</code> or a
      * <code>UninterpretedPredicateInstance</code>.
      * 
      * @param formula
      *            formula to check
-     * @return true, iff formula is valid
+     * @return true, iff formula is atom
      * 
      */
     public boolean isAtom(Formula formula) {
         if (formula instanceof EqualityFormula)
             return true;
-        if (formula instanceof NotFormula)
-            return true;
-        if (formula instanceof EqualityFormula)
-            return true;
         if (formula instanceof PropositionalVariable)
+            return true;
+        if (formula instanceof PropositionalConstant)
             return true;
         if (formula instanceof UninterpretedPredicateInstance)
             return true;

@@ -61,13 +61,13 @@ public class PropositionalVariable extends PropositionalTerm {
      * @param name
      *            the <code>Token</code> representing the variable name.
      * @param assertPartition
-     * 			  the assert partition of the variable.           
-     */    
+     *            the assert partition of the variable.
+     */
     public PropositionalVariable(Token name, int assertPartition) {
         this.varName = name.toString();
-    	this.assertPartition = assertPartition;        
-    }    
-    
+        this.assertPartition = assertPartition;
+    }
+
     /**
      * 
      * Constructs a new <code>PropositionalVariable</code>.
@@ -75,14 +75,14 @@ public class PropositionalVariable extends PropositionalTerm {
      * @param name
      *            the <code>String</code> representing the variable name.
      * @param assertPartition
-     * 			  the assert partition of the variable.           
-     */    
+     *            the assert partition of the variable.
+     */
     public PropositionalVariable(String name, int assertPartition) {
-    	this.varName = name.toString();
-    	this.assertPartition = assertPartition;
-	}
+        this.varName = name.toString();
+        this.assertPartition = assertPartition;
+    }
 
-	/**
+    /**
      * Get the variable name.
      * 
      * @return the <code>varName</code>
@@ -295,7 +295,7 @@ public class PropositionalVariable extends PropositionalTerm {
             Set<Token> noDependenceVars) {
         return new PropositionalVariable(varName);
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 
@@ -311,26 +311,29 @@ public class PropositionalVariable extends PropositionalTerm {
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		return transformToConsequentsForm(false, true);
-	}
-	
-    /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
-     */
-	@Override	
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
-		
-		if (firstLevel==true){
-			List<Formula> literals = new ArrayList<Formula>();			
+    @Override
+    public Formula transformToConsequentsForm() {
+        return transformToConsequentsForm(false, true);
+    }
 
-			literals.add(this);
-			Formula orFormula = new OrFormula(literals);
-			return	orFormula;	
-		}
-		return this;
-			
-	}
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
+     */
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
+
+        if (firstLevel == true) {
+            List<Formula> literals = new ArrayList<Formula>();
+            literals.add(this);
+            return new OrFormula(literals);
+        }
+        if (notFlag == true)
+            return new NotFormula(this);
+
+        return this;
+
+    }
 
 }

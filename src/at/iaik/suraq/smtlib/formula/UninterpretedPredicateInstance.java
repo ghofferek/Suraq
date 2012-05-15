@@ -377,11 +377,14 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     @Override
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
+
         if (firstLevel == true) {
             List<Formula> literals = new ArrayList<Formula>();
             literals.add(this);
             return new OrFormula(literals);
         }
+        if (notFlag == true)
+            return new NotFormula(this);
 
         return this;
     }

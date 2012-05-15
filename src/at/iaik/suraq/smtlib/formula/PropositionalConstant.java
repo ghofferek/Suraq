@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -21,7 +23,7 @@ import at.iaik.suraq.sexp.Token;
  */
 public class PropositionalConstant extends PropositionalTerm {
 
-    private final boolean constant;
+    private boolean constant;
 
     /**
      * 
@@ -261,6 +263,16 @@ public class PropositionalConstant extends PropositionalTerm {
     @Override
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
+
+        if (notFlag == true)
+            this.constant = !this.constant;
+
+        if (firstLevel == true) {
+            List<Formula> literals = new ArrayList<Formula>();
+            literals.add(this);
+            return new OrFormula(literals);
+        }
+
         return this;
     }
 }

@@ -487,28 +487,30 @@ public abstract class EqualityFormula implements Formula {
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
 
+        List<Formula> literals = new ArrayList<Formula>();
+
         if (terms.size() != 2)
             throw new RuntimeException(
                     "Equality should have only two terms for consequents form");
 
-        Formula equalityFormula;
-        if (this.equal == false) {
+        if (((this.equal == true) && (notFlag == false))
+                || ((this.equal == false) && (notFlag == true))) {
             this.equal = true;
-            if (notFlag == true)
-                equalityFormula = this;
-            else
-                equalityFormula = new NotFormula(this);
+            if (firstLevel == true) {
+                literals.add(this);
+                return new OrFormula(literals);
+            } else
+                return this;
 
+        } else if (((this.equal == false) && (notFlag == false))
+                || ((this.equal == true) && (notFlag == true))) {
+            this.equal = true;
+            if (firstLevel == true) {
+                literals.add(new NotFormula(this));
+                return new OrFormula(literals);
+            } else
+                return new NotFormula(this);
         } else
-            equalityFormula = this;
-
-        if (firstLevel == true) {
-            List<Formula> literals = new ArrayList<Formula>();
-
-            literals.add(equalityFormula);
-            Formula orFormula = new OrFormula(literals);
-            return orFormula;
-        }
-        return equalityFormula;
+            throw new RuntimeException("This point should not be reachable");
     }
 }

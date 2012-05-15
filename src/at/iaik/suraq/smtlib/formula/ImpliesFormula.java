@@ -360,110 +360,161 @@ public class ImpliesFormula extends BooleanCombinationFormula {
 
         return partitions;
     }
-    
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-			return transformToConsequentsForm(false, true);
-	}
-	
-	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
-     */	
-	@Override
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
+    @Override
+    public Formula transformToConsequentsForm() {
+        return transformToConsequentsForm(false, true);
+    }
 
-		// a => b equals NOT a OR b
-		
-		assert(notFlag == false);		
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
+     */
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
 
-		List<Formula> subFormulas = new ArrayList<Formula>();		
-		
-		//left side
-    	if (isValidChild(this.leftSide)) {
-    		if (this.leftSide instanceof OrFormula){
-    			ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) this.leftSide).getDisjuncts();
-    			for (Formula disjunct : disjuncts){
-            		    				
-    				Formula transformedSubFormula = disjunct.transformToConsequentsForm(!notFlag, false);    				
-    				if (isAtom(disjunct))
-    					transformedSubFormula = new NotFormula(transformedSubFormula);    				
-    				subFormulas.add(transformedSubFormula);    				    			         				
-    			}
-    		}
-    		else {
-				Formula transformedSubFormula = this.leftSide.transformToConsequentsForm(!notFlag, false);    				
-				if (isAtom(this.leftSide))
-					transformedSubFormula = new NotFormula(transformedSubFormula);    				
-				subFormulas.add(transformedSubFormula);        			
-    		}
-    	}
-    	else
-			throw new RuntimeException(
-                    "Unexpected Chid: Child of an OR Formula can either be an OR Formula, a NOT Formula or an atom");		
-		
-		//right side	
-    	if (isValidChild(this.rightSide)) {
-    		if (this.rightSide instanceof OrFormula){
-    			ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) this.rightSide).getDisjuncts();
-    			for (Formula disjunct : disjuncts){
-            		Formula transformedSubFormula = disjunct.transformToConsequentsForm(notFlag, false);
-            		subFormulas.add(transformedSubFormula);         				
-    			}
-    		}
-    		else {
-        		Formula transformedSubFormula = this.rightSide.transformToConsequentsForm(notFlag, false);
-        		subFormulas.add(transformedSubFormula);        			
-    		}
-    	}
-    	else
-			throw new RuntimeException(
-                    "Unexpected Chid: Child of an OR Formula can either be an OR Formula, a NOT Formula or an atom");		
-		    	
+        // a => b equals NOT a OR b
+
+        if (notFlag == true)
+            throw new RuntimeException(
+                    "An implies formula is now allowed to occur inside an NOT formula");
+
+        List<Formula> subFormulas = new ArrayList<Formula>();
+
+        if (isValidChild(this.leftSide)) {
+            if (this.leftSide instanceof AndFormula) {
+
+                ArrayList<Formula> conjuncts = (ArrayList<Formula>) ((AndFormula) this.leftSide)
+                        .getConjuncts();
+                for (Formula conjunct : conjuncts) {
+
+                    // remove nested AND formula
+                    if (conjunct instanceof AndFormula) {
+                        ArrayList<Formula> subConjuncts = (ArrayList<Formula>) ((AndFormula) conjunct)
+                                .getConjuncts();
+                        for (Formula subConjunct : subConjuncts) {
+                            Formula transformedSubFormula = subConjunct
+                                    .transformToConsequentsForm(!notFlag, false);
+                            subFormulas.add(transformedSubFormula);
+                        }
+
+                    } else {
+                        Formula transformedSubFormula = conjunct
+                                .transformToConsequentsForm(!notFlag, false);
+                        subFormulas.add(transformedSubFormula);
+                    }
+                }
+            } else if (isLiteral(this.leftSide)
+                    || this.leftSide instanceof NotFormula) {
+                Formula transformedSubFormula = this.leftSide
+                        .transformToConsequentsForm(!notFlag, false);
+                subFormulas.add(transformedSubFormula);
+            } else
+                throw new RuntimeException(
+                        "left side of implication is OR Formula, which isn`t valid");
+
+        } else
+            throw new RuntimeException(
+                    "Unexpected Chid: left child of implies formula is not valid");
+
+        if (isValidChild(this.rightSide)) {
+            if (this.rightSide instanceof OrFormula) {
+
+                ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) this.rightSide)
+                        .getDisjuncts();
+                for (Formula disjunct : disjuncts) {
+                    // remove nested OR formula
+                    if (disjunct instanceof OrFormula) {
+                        ArrayList<Formula> subDisjuncts = (ArrayList<Formula>) ((OrFormula) disjunct)
+                                .getDisjuncts();
+                        for (Formula subDisjunct : subDisjuncts) {
+                            Formula transformedSubFormula = subDisjunct
+                                    .transformToConsequentsForm(notFlag, false);
+                            subFormulas.add(transformedSubFormula);
+                        }
+
+                    } else {
+                        Formula transformedSubFormula = disjunct
+                                .transformToConsequentsForm(notFlag, false);
+                        subFormulas.add(transformedSubFormula);
+                    }
+                }
+            } else if (isLiteral(this.rightSide)
+                    || this.rightSide instanceof NotFormula) {
+                Formula transformedSubFormula = this.rightSide
+                        .transformToConsequentsForm(notFlag, false);
+                subFormulas.add(transformedSubFormula);
+            } else
+                throw new RuntimeException(
+                        "rightSide side of implication is AND Formula, which isn`t valid");
+
+        } else
+            throw new RuntimeException(
+                    "Unexpected Chid: right child of implies formula is not valid");
+
         return new OrFormula(subFormulas);
-	}     
-	
-    /** 
-     * Checks if a given Formula is an atom or a NOT formula or a OR formula.
-     * An atom is either a <code>EqualityFormula</code>, a <code>PropositionalVariable</code>
-     * or a <code>UninterpretedPredicateInstance</code>.
-     * 
-     * @param formula
-     * 		formula to check 
-     * @return true, iff formula is valid
-     *  	 
-     */
+    }
 
-	public boolean isValidChild(Formula formula){
-		if (formula instanceof OrFormula)
-			return true;
-		if (formula instanceof NotFormula)
-			return true;		
-		if (isAtom(formula))
-			return true;
-		return false;
-	}
-	
-    /** 
-     * Checks if a given Formula is an atom.
-     * An atom is either a <code>EqualityFormula</code>, a <code>PropositionalVariable</code>
-     * or a <code>UninterpretedPredicateInstance</code>.
+    /**
+     * Checks if a given formula is a literal, or an OR formula, an AND formula
+     * or a NOT formula.
      * 
      * @param formula
-     * 		formula to check 
+     *            formula to check
      * @return true, iff formula is valid
-     *  	 
      */
-	public boolean isAtom(Formula formula){
-		if (formula instanceof EqualityFormula)
+    public boolean isValidChild(Formula formula) {
+        if (formula instanceof OrFormula)
             return true;
-		if (formula instanceof PropositionalVariable)
-            return true;		
-		if (formula instanceof UninterpretedPredicateInstance)
-            return true;		
-		return false;
-	}
-}
+        if (formula instanceof AndFormula)
+            return true;
+        if (formula instanceof NotFormula)
+            return true;
+        if (isLiteral(formula))
+            return true;
+        return false;
+    }
 
+    /**
+     * Checks if a given Formula is a literal. A literal is either an atom or a
+     * negation of an atom.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is an literal
+     */
+    public boolean isLiteral(Formula formula) {
+        if (formula instanceof NotFormula) {
+            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
+            return isAtom(negatedFormula);
+        }
+        return isAtom(formula);
+    }
+
+    /**
+     * Checks if a given Formula is an atom. An atom is either a
+     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code>, a
+     * <code>PropositionalConstant</code> or a
+     * <code>UninterpretedPredicateInstance</code>.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is atom
+     * 
+     */
+    public boolean isAtom(Formula formula) {
+        if (formula instanceof EqualityFormula)
+            return true;
+        if (formula instanceof PropositionalVariable)
+            return true;
+        if (formula instanceof PropositionalConstant)
+            return true;
+        if (formula instanceof UninterpretedPredicateInstance)
+            return true;
+        return false;
+    }
+}

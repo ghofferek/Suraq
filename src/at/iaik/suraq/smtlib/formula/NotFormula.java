@@ -408,7 +408,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula transformToConsequentsForm() {
-        return transformToConsequentsForm(false, true);
+        return transformToConsequentsForm(true, true);
     }
 
     /**
@@ -420,61 +420,86 @@ public class NotFormula extends BooleanCombinationFormula {
 
         Formula notFormula;
 
-        if (isChildAtom()) {
-            if (notFlag == false)
-                notFormula = new NotFormula(
-                        this.formula
-                                .transformToConsequentsForm(!notFlag, false));
-            else
-                // odd number of NOT operators equals no NOT operator
-                notFormula = this.formula.transformToConsequentsForm(!notFlag,
-                        false);
-        } else if (this.formula instanceof NotFormula
-                || (this.formula instanceof AndFormula && notFlag == false)
-                || (this.formula instanceof OrFormula))
+        if (isValidChild(this.formula)) {
+
             notFormula = this.formula.transformToConsequentsForm(!notFlag,
                     false);
-        else
-            throw new RuntimeException(
-                    "Unexpected Body: Body of an Not Formula can either be an OR formula, AND formula, a NOT formula or an atom");
 
-        if (firstLevel == true) {
-            List<Formula> literals = new ArrayList<Formula>();
+            if (firstLevel == true) {
+                if (isLiteral(notFormula)) {
+                    List<Formula> literals = new ArrayList<Formula>();
+                    literals.add(notFormula);
+                    Formula orFormula = new OrFormula(literals);
+                    return orFormula;
+                } else if (notFormula instanceof OrFormula) {
+                    return notFormula;
+                } else
+                    throw new RuntimeException(
+                            "Clausel should always be a Or Formula");
+            }
 
-            // resolve nested OR operations
-            if (notFormula instanceof OrFormula) {
-                ArrayList<Formula> disjuncts = (ArrayList<Formula>) ((OrFormula) notFormula)
-                        .getDisjuncts();
-                for (Formula disjunct : disjuncts) {
-                    literals.add(disjunct);
+            return notFormula;
 
-                }
-            } else
-                literals.add(notFormula);
-            Formula orFormula = new OrFormula(literals);
-
-            return orFormula;
-        }
-
-        return notFormula;
+        } else
+            throw new RuntimeException("Not formula has no valid child.");
     }
 
     /**
-     * Checks if child is an atom of a consequent proof. An atom is either a
-     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code> or a
-     * <code>UninterpretedPredicateInstance</code>
+     * Checks if a given formula is a valid child for a NOT Formula.
      * 
      * @param formula
      *            formula to check
-     * @return true, iff formula is an atom
+     * @return true, iff formula is valid
+     */
+    public boolean isValidChild(Formula formula) {
+        if (formula instanceof OrFormula)
+            return true;
+        if (formula instanceof AndFormula)
+            return true;
+        if (formula instanceof NotFormula)
+            return true;
+        if (formula instanceof ImpliesFormula)
+            return true;
+        if (isLiteral(formula))
+            return true;
+        return false;
+    }
+
+    /**
+     * Checks if a given Formula is a literal. A literal is either an atom or a
+     * negation of an atom.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is an literal
+     */
+    public boolean isLiteral(Formula formula) {
+        if (formula instanceof NotFormula) {
+            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
+            return isAtom(negatedFormula);
+        }
+        return isAtom(formula);
+    }
+
+    /**
+     * Checks if a given Formula is an atom. An atom is either a
+     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code>, a
+     * <code>PropositionalConstant</code> or a
+     * <code>UninterpretedPredicateInstance</code>.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is atom
      * 
      */
-    public boolean isChildAtom() {
-        if (this.formula instanceof EqualityFormula)
+    public boolean isAtom(Formula formula) {
+        if (formula instanceof EqualityFormula)
             return true;
-        if (this.formula instanceof PropositionalVariable)
+        if (formula instanceof PropositionalVariable)
             return true;
-        if (this.formula instanceof UninterpretedPredicateInstance)
+        if (formula instanceof PropositionalConstant)
+            return true;
+        if (formula instanceof UninterpretedPredicateInstance)
             return true;
         return false;
     }
