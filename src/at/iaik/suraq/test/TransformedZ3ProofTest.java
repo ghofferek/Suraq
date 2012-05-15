@@ -32,6 +32,31 @@ public class TransformedZ3ProofTest {
      */
 
     @Test
+    public void testUnitResolutionTransformationSimple() {
+
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+
+        propsitionalVars.add(new PropositionalVariable("a"));
+        propsitionalVars.add(new PropositionalVariable("b"));
+
+        String proof = "(|unit-resolution| (asserted (or a b)) (asserted (not a)) b)";
+        String output = parseAndTransform(proof, domainVars, propsitionalVars,
+                uninterpretedFunctions, arrayVars);
+
+        String expectedOutput = "( resolution{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a b ) ) ( or b ))";
+
+        Assert.assertEquals(expectedOutput, output);
+    }
+
+    /**
+     * Tests the transformation of unit-resolution into multiple (simple)
+     * resolutions.
+     */
+
+    @Test
     public void testUnitResolutionTransformation() {
 
         Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
@@ -53,6 +78,31 @@ public class TransformedZ3ProofTest {
     }
 
     /**
+     * Tests the transformation of unit-resolution into multiple (simple)
+     * resolutions.
+     */
+
+    @Test
+    public void testUnitResolutionTransformation2() {
+
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+
+        String resolution1 = "(|unit-resolution| (asserted (or (not a) b)) (hypothesis a) b )";
+        String proof = "(|unit-resolution| " + resolution1
+                + " (hypothesis (not b)) false )";
+
+        String output = parseAndTransform(proof, domainVars, propsitionalVars,
+                uninterpretedFunctions, arrayVars);
+
+        String expectedOutput = "( resolution{b} ( asserted ( or ( not b ) ) ) ( resolution{a} ( asserted ( or a ) ) ( asserted ( or ( not a ) b ) ) ( or b ) ) ( or false ))";
+        Assert.assertEquals(expectedOutput, output);
+
+    }
+
+    /**
      * Tests the transformation of modus-ponens into resolution.
      */
 
@@ -66,13 +116,12 @@ public class TransformedZ3ProofTest {
 
         propsitionalVars.add(new PropositionalVariable("p"));
         propsitionalVars.add(new PropositionalVariable("q"));
-        ;
 
         String proof = "(mp (asserted p) (asserted (=> p q)) q)";
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( resolution{( or p)} ( asserted ( or p ) ) ( asserted ( or ( not p ) q ) ) ( or q ))";
+        String expectedOutput = "( resolution{mpTempLiteral} ( asserted ( or p ) ) ( asserted ( or ( not p ) q ) ) ( or q ))";
 
         Assert.assertEquals(expectedOutput, output);
     }
@@ -99,7 +148,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( asserted ( or false b ( or a ) ))";
+        String expectedOutput = "( asserted ( or b ( or a ) ))";
 
         Assert.assertEquals(expectedOutput, output);
     }
@@ -152,8 +201,7 @@ public class TransformedZ3ProofTest {
         }
 
         Z3Proof rootProof = proofParser.getRootProof();
-        Z3Proof transformedZ3Proof = new TransformedZ3Proof(
-                rootProof);
+        Z3Proof transformedZ3Proof = new TransformedZ3Proof(rootProof);
 
         return transformedZ3Proof.toString().replaceAll("\n", "")
                 .replaceAll("\\s{2,}", " ");

@@ -297,10 +297,15 @@ public class TransformedZ3Proof extends Z3Proof {
 
             this.literal = makeLiteralPositive(resolutionAssociate);
 
-            if (!(z3Proof.getConsequent().transformToConsequentsForm()
-                    .toString() == remainingFormula.toString()))
-                System.out
-                        .println("consequent of Unit Resolution is not as accpeted");
+            /*
+             * if (!(z3Proof.getConsequent().transformToConsequentsForm()
+             * .toString() == remainingFormula.toString())) { System.out
+             * .println
+             * ("consequent of Unit Resolution is different than expected");
+             * System.out.println(z3Proof.getConsequent()
+             * .transformToConsequentsForm()); System.out.println("========");
+             * System.out.println(remainingFormula.toString()); }
+             */
 
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
