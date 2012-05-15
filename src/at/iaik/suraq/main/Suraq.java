@@ -26,7 +26,6 @@ import at.iaik.suraq.resProof.ResProofTest;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
-import at.iaik.suraq.smtlib.ResolutionZ3Proof;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
@@ -338,26 +337,26 @@ public class Suraq implements Runnable {
                     return;
                 }
                 Z3Proof rootProof = proofParser.getRootProof();
-                rootProof.localLemmasToAssertions();
-                rootProof.removeLocalSubProofs();
+
+                // rootProof.localLemmasToAssertions();
+                // rootProof.removeLocalSubProofs();
                 // System.out.println(rootProof);
-                try {
-                    File smtfile = new File("proofWithoutLocalNodes.smt2");
-                    FileWriter fstream = new FileWriter(smtfile);
-                    BufferedWriter smtfilewriter = new BufferedWriter(fstream);
-                    rootProof.resetMarks();
-                    smtfilewriter.write(rootProof.prettyPrint());
-                    smtfilewriter.close();
-                } catch (IOException exc) {
-                    System.err.println("Error while writing to smtfile.");
-                    exc.printStackTrace();
-                    noErrors = false;
-                }
+                /*
+                 * try { File smtfile = new File("proofWithoutLocalNodes.smt2");
+                 * FileWriter fstream = new FileWriter(smtfile); BufferedWriter
+                 * smtfilewriter = new BufferedWriter(fstream);
+                 * rootProof.resetMarks();
+                 * smtfilewriter.write(rootProof.prettyPrint());
+                 * smtfilewriter.close(); } catch (IOException exc) {
+                 * System.err.println("Error while writing to smtfile.");
+                 * exc.printStackTrace(); noErrors = false; }
+                 */
                 // System.out.println(rootProof);
                 TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                         rootProof);
-                ResolutionZ3Proof resolutionZ3Proof = new ResolutionZ3Proof(
-                        transformedZ3Proof);
+
+                // ResolutionZ3Proof resolutionZ3Proof = new ResolutionZ3Proof(
+                // transformedZ3Proof);
 
                 // System.out.println(resolutionZ3Proof);
 
