@@ -15,6 +15,7 @@ import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
@@ -56,6 +57,26 @@ public class ConsequentTransformationTest {
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
         subFormulas.add(input);
+        Formula expectedOutput = new OrFormula(subFormulas);
+
+        // create output with transformation
+        Formula output = input.transformToConsequentsForm();
+
+        Assert.assertEquals(expectedOutput.toString(), output.toString());
+    }
+
+    /**
+     * Tests transformation of single positive literal false -->
+     */
+    @Test
+    public void testPropositionalConstant() {
+
+        // define input
+        Formula input = new NotFormula(new PropositionalConstant(false));
+
+        // create expected output
+        ArrayList<Formula> subFormulas = new ArrayList<Formula>();
+        subFormulas.add(new PropositionalConstant(true));
         Formula expectedOutput = new OrFormula(subFormulas);
 
         // create output with transformation

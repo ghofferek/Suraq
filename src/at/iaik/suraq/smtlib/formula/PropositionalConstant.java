@@ -253,7 +253,7 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public Formula transformToConsequentsForm() {
-        return this;
+        return transformToConsequentsForm(false, true);
     }
 
     /**
