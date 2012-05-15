@@ -193,6 +193,9 @@ public class TransformedZ3Proof extends Z3Proof {
                     .transformToConsequentsForm();
             this.hypothesis = true;
 
+            System.out.println("Hypothesis");
+            System.out.println(this.consequent);
+
             return;
 
         } else if (proofType.equals(SExpressionConstants.AXIOM)
@@ -1249,8 +1252,20 @@ public class TransformedZ3Proof extends Z3Proof {
                     newDisjuncts = new ArrayList<Formula>();
                     newDisjuncts.add(parent.consequent);
                 }
+                newDisjuncts.remove(new PropositionalConstant(false));
+
+                System.out
+                        .println(".........consequent von hypothesis..................................");
+                System.out.println(this.consequent);
+                System.out.println("..........");
+                System.out.println((new NotFormula(this.consequent))
+                        .transformToConsequentsForm());
+                System.out
+                        .println("............................................");
+
                 newDisjuncts.add((new NotFormula(this.consequent))
                         .transformToConsequentsForm());
+
                 parent.consequent = (new OrFormula(newDisjuncts))
                         .transformToConsequentsForm();
                 System.out.println("");

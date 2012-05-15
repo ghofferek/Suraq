@@ -148,7 +148,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( asserted ( or b ( or a ) ))";
+        String expectedOutput = "( asserted ( or b ( not a ) ))";
 
         Assert.assertEquals(expectedOutput, output);
     }
