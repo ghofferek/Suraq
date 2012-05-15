@@ -14,6 +14,13 @@ public class ResProofTest{
 
     }
 
+    private void localizeProof(ResProof prf){
+        prf.checkProof(true);
+        prf.deLocalizeProof();
+        System.out.println("===================");
+        prf.checkProof(true);        
+    }
+
     public void t1(){
         System.out.println("Example 1=>");
         ResProof prf = new ResProof();
@@ -29,7 +36,7 @@ public class ResProofTest{
         prf.setRoot(n5);
 
 
-        prf.checkProof();
+        prf.checkProof(true);
     }
 
     public void t2(){
@@ -61,10 +68,8 @@ public class ResProofTest{
 
         prf.setRoot(i3);
 
-        prf.checkProof();
-        prf.deLocalizeProof();
-        System.out.println("===================");
-        prf.checkProof();
+        localizeProof(prf);
+
     }
 
     public void t3(boolean b){
@@ -105,10 +110,7 @@ public class ResProofTest{
 
         prf.setRoot(i5);
 
-        prf.checkProof();
-        prf.deLocalizeProof();
-        System.out.println("===================");
-        prf.checkProof();        
+        localizeProof(prf);
     }
 
     public void test(){

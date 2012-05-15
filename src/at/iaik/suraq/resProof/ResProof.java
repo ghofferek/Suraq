@@ -21,6 +21,8 @@ public class ResProof{
 
     public boolean[] visited= new boolean[MAX_PROOF_SIZE];
 
+    public boolean printWhileChecking = false;
+
     public ResProof(){
         root = new ResNode(0,false);
         Arrays.fill(nodeRef, null);
@@ -30,8 +32,7 @@ public class ResProof{
     // part for axioms should be 0
     ResNode addLeaf( Collection<Lit> cl, int part ){
         ResNode n = new ResNode(nodeCount, true, cl, null, null, 0, part);
-        //nodeRef[nodeCount] = n;
-        nodeCount++;
+        incNodeCount(n);
         return n;
     }
 
@@ -41,11 +42,16 @@ public class ResProof{
     // * Node: part for internal node is set to be -1.
     ResNode addIntNode(Collection<Lit> cl,ResNode left,ResNode right,int pivot){
         ResNode n = new ResNode(nodeCount, false, cl, left, right, pivot, -1);
-        //nodeRef[nodeCount] = n;
-        nodeCount++;
+        incNodeCount(n);
         return n;
     }
 
+    private void incNodeCount(ResNode n){
+        //nodeRef[nodeCount] = n;
+        nodeCount++;
+        Assert.assertTrue( "Maximum capacity of proof size reached!", 
+                           nodeCount < MAX_PROOF_SIZE );         
+    }
 
     public void setRoot(ResNode n){
         root.left = n;
@@ -59,26 +65,26 @@ public class ResProof{
 
     void recCheckProof( ResNode n){
         if( visited[n.id] ) return;
-        System.out.println(n);
+        if(printWhileChecking) System.out.println(n);
         if( n.isLeaf ){
-            Assert.assertTrue( "Pivot for leaf", n.pivot == 0 );
-            Assert.assertTrue( "Parent for leaf", 
+            Assert.assertTrue( "Pivot at leaf!", n.pivot == 0 );
+            Assert.assertTrue( "Parent of a leaf!", 
                                n.left == null && n.right == null );
             Iterator<Lit> iter = n.cl.iterator();
             while(iter.hasNext()){
                 Lit l = iter.next();
                 if(  var_part[l.var()] != 0 )
-                    Assert.assertTrue("a local is in wrong partition",
+                    Assert.assertTrue("a local is in wrong partition!",
                                       var_part[l.var()] == n.part );
             }
         }else{
-            Assert.assertTrue( "Parent missing",
+            Assert.assertTrue( "A parent missing!",
                                n.left != null && n.right != null );
-            Assert.assertTrue( "pivot litrals are not present",
+            Assert.assertTrue( "pivot litrals are not present in parents!",
                               n.left.cl.contains( n.pivot, true) &&
                               n.right.cl.contains( n.pivot, false) );
             Clause c = new Clause(n.left.cl,n.right.cl,n.pivot);
-            Assert.assertTrue("node is not result of resolution of parents",
+            Assert.assertTrue("node is not the result of resolution of parents",
                               n.cl.equals(c));
             recCheckProof( n.left  );
             recCheckProof( n.right );
@@ -86,7 +92,8 @@ public class ResProof{
         visited[n.id] = true;
     }
 
-    public void checkProof(){
+    public void checkProof(boolean doPrint){
+        printWhileChecking = doPrint;
         Arrays.fill(visited, false);
         recCheckProof( getRoot() );
         Assert.assertTrue("Root is not empty clause", root.cl.isEmpty() );
@@ -95,42 +102,48 @@ public class ResProof{
 // Start : Proof restructuring-----------------------------------------
     void reOrderStep(ResNode n){
 
-        // Convert a node into leaf 
+        //  If a node is derived form both parents 
+        //  that are "local" or "global axiom"
+        //  then convert the node into a local node by 
+        //  setting n.part
+        //
+        //  n.part == 0  -> axiom or only derived from axioms
+        //  n.part == -1 -> derived from clauses of different parts
+        //  n.part > 0   -> derived from a single part or global axioms 
         int lp = n.left.part;
         int rp = n.right.part;
         if( lp != -1 && rp != -1 && (lp == rp || lp == 0 || rp == 0) ){
             int np = 0;
             if( lp == 0 ) np = rp; else np = lp;
             n.part = np;
-            // n.convertToLeaf(np);
             return;
         }
-        // if pivot is is global then return
+        // if pivot is global then return
         if( var_part[n.pivot] == 0 ) return;
 
         //Check and fix if parents pivot is in n
         while(true){
-            boolean del = false, LeftParent = false, LeftGrandParent = false;
-            // Note: if only checks the partition.
-            // If the parent found to be inside a partition then
-            // we donot move in the direction and dont worry about it. 
+            boolean mv = false, LeftParent = false, LeftGrandParent = false;
+            // Note: the following condition only checks the partition.
+            // If the parent is derived from a single partition then
+            // we will not move in the direction and dont worry about it. 
             if(n.left.part == -1) { 
                 if(n.cl.contains( n.left.pivot, true)){ 
-                    del = true; LeftParent=true; LeftGrandParent=true; 
+                    mv = true; LeftParent=true; LeftGrandParent=true; 
                 } else if(n.cl.contains( n.left.pivot, false)) { 
-                    del = true; LeftParent=true; LeftGrandParent=false; 
+                    mv = true; LeftParent=true; LeftGrandParent=false; 
                 }
             }
 
-            if(!del && n.right.part == -1){
+            if(!mv && n.right.part == -1){
                 if( n.cl.contains( n.right.pivot, true )) { 
-                    del = true; LeftParent=false; LeftGrandParent=true; 
+                    mv = true; LeftParent=false; LeftGrandParent=true; 
                 }else if(n.cl.contains( n.right.pivot, false )) { 
-                    del = true; LeftParent=false; LeftGrandParent=false; 
+                    mv = true; LeftParent=false; LeftGrandParent=false; 
                 }
             }
 
-            if( del ){
+            if( mv ){
                 n.moveParent( LeftParent, LeftGrandParent );
                 if( !n.refresh() ) return;
                 continue;

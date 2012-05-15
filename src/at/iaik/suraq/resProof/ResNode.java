@@ -39,6 +39,9 @@ public class ResNode {
             return;
         }
 
+        Assert.assertTrue("At least a parent is missing!", 
+                          pLeft != null && pRight != null );
+        
         boolean isLeftPos = true;
 
         if (pPivot == 0) {
@@ -154,7 +157,10 @@ public class ResNode {
     
     public void moveChidren( boolean toLeftParent ){
         ResNode gainer = null;
-        if(toLeftParent) gainer = left; else gainer = right;
+        if(toLeftParent) 
+            gainer = left; 
+        else 
+            gainer = right;
 
         Iterator<ResNode> itr = children.iterator();
         while( itr.hasNext() ){
