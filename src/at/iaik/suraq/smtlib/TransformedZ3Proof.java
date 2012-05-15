@@ -297,16 +297,6 @@ public class TransformedZ3Proof extends Z3Proof {
 
             this.literal = makeLiteralPositive(resolutionAssociate);
 
-            /*
-             * if (!(z3Proof.getConsequent().transformToConsequentsForm()
-             * .toString() == remainingFormula.toString())) { System.out
-             * .println
-             * ("consequent of Unit Resolution is different than expected");
-             * System.out.println(z3Proof.getConsequent()
-             * .transformToConsequentsForm()); System.out.println("========");
-             * System.out.println(remainingFormula.toString()); }
-             */
-
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
 
@@ -319,8 +309,11 @@ public class TransformedZ3Proof extends Z3Proof {
                         "Lemma proof with not exactly one child. This should not happen!");
             TransformedZ3Proof hypotheticalProof = new TransformedZ3Proof(
                     z3SubProofs.get(0));
-            if (!hypotheticalProof.consequent.equals(new PropositionalConstant(
-                    false)))
+
+            List<Formula> falseFormula = new ArrayList<Formula>();
+            falseFormula.add(new PropositionalConstant(false));
+            if (!hypotheticalProof.consequent
+                    .equals(new OrFormula(falseFormula)))
                 throw new RuntimeException(
                         "Hypothetical proof (antecedent of lemma) does not prove false, but: "
                                 + hypotheticalProof.consequent.toString());
