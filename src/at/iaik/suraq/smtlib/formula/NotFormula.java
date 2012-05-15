@@ -408,7 +408,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula transformToConsequentsForm() {
-        return transformToConsequentsForm(true, true);
+        return transformToConsequentsForm(false, true);
     }
 
     /**
