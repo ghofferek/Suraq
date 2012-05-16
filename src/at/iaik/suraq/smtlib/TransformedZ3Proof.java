@@ -4,7 +4,6 @@
 package at.iaik.suraq.smtlib;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -483,11 +482,11 @@ public class TransformedZ3Proof extends Z3Proof {
                 TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                         annotatedNode.getPartition(), annotatedNode
                                 .getLeftPartition(), this, TransformedZ3Proof
-                                .createSymmetrieProof(annotatedNode
+                                .createSymmetryProof(annotatedNode
                                         .getPremise1()), TransformedZ3Proof
-                                .createSymmetrieProof(annotatedNode
+                                .createSymmetryProof(annotatedNode
                                         .getPremise2()), TransformedZ3Proof
-                                .createSymmetrieProof(annotatedNode
+                                .createSymmetryProof(annotatedNode
                                         .getPremise3())));
             }
             return;
@@ -694,7 +693,7 @@ public class TransformedZ3Proof extends Z3Proof {
             } else {
                 assert (!rightTerm.equals(newRightTerm));
                 result[1] = TransformedZ3Proof
-                        .createSymmetrieProof(annotatedNode.getConsequent());
+                        .createSymmetryProof(annotatedNode.getConsequent());
             }
         }
 
@@ -1036,29 +1035,17 @@ public class TransformedZ3Proof extends Z3Proof {
      *            must have a single literal as a consequence
      * @return a symmetry proof for the given premise.
      */
-    public static TransformedZ3Proof createSymmetrieProof(
+    public static TransformedZ3Proof createSymmetryProof(
             TransformedZ3Proof premise) {
-        assert (premise.hasSingleLiteralConsequent());
-        Formula literal = ((OrFormula) (premise.consequent)).getDisjuncts()
-                .iterator().next();
-        assert (literal instanceof EqualityFormula);
-        boolean equal = ((EqualityFormula) literal).isEqual();
-
-        List<Term> terms = ((EqualityFormula) literal).getTerms();
-        Collections.reverse(terms);
-        Formula consequentFormula = null;
-        try {
-            consequentFormula = EqualityFormula.create(terms, equal);
-            consequentFormula = consequentFormula.transformToConsequentsForm();
-            assert (consequentFormula != null);
-        } catch (IncomparableTermsException exc) {
-            throw new RuntimeException(
-                    "Incomparable terms while creating symmetry proof.", exc);
+        Z3Proof z3Proof = Z3Proof.createSymmetryProof(premise);
+        List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>(
+                3);
+        for (Z3Proof subProof : z3Proof.subProofs) {
+            assert (subProof instanceof TransformedZ3Proof);
+            newSubProofs.add((TransformedZ3Proof) subProof);
         }
-        List<TransformedZ3Proof> subproofs = new ArrayList<TransformedZ3Proof>();
-        subproofs.add(premise);
-        return new TransformedZ3Proof(SExpressionConstants.SYMMETRY, subproofs,
-                consequentFormula);
+        return new TransformedZ3Proof(z3Proof.proofType, newSubProofs,
+                z3Proof.consequent);
     }
 
     /**
@@ -1093,7 +1080,7 @@ public class TransformedZ3Proof extends Z3Proof {
      * 
      * @param subProofs
      *            the subproofs
-     * @return a reflexivity proof for the given term.
+     * @return a transitivity proof for the given term.
      */
     public static TransformedZ3Proof createTransitivityProof(
             List<TransformedZ3Proof> subProofs) {

@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -419,8 +420,15 @@ public class Z3Proof implements SMTLibObject {
                 if (eq2.getTerms().get(1).equals(eq1.getTerms().get(0))) {
                     proofList.add(child2);
                     proofList.add(child1);
-                    assert (eq1.getTerms().get(1).equals(eq3.getTerms().get(0)));
-                    proofList.add(child3);
+                    if (eq1.getTerms().get(1).equals(eq3.getTerms().get(0)))
+                        proofList.add(child3);
+                    else {
+                        // sometimes this term occurs "reverse" in the proof.
+                        // Quick Hack: Check second direction.
+                        assert ((eq1.getTerms().get(1).equals(eq3.getTerms()
+                                .get(1))));
+                        proofList.add(Z3Proof.createSymmetryProof(child3));
+                    }
                 } else {
                     assert (eq2.getTerms().get(1).equals(eq3.getTerms().get(0)));
                     proofList.add(child2);
@@ -448,7 +456,8 @@ public class Z3Proof implements SMTLibObject {
             Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
             this.subProofs = transProof.subProofs;
             this.proofType = transProof.proofType;
-            assert (this.consequent.equals(transProof.consequent));
+            assert (this.consequent.transformToConsequentsForm()
+                    .equals(transProof.consequent.transformToConsequentsForm()));
             this.consequent = transProof.consequent;
 
             // Don't forget the recursive calls on the children!
@@ -518,23 +527,32 @@ public class Z3Proof implements SMTLibObject {
      * 
      * @param subProofs
      *            the subproofs
-     * @return a reflexivity proof for the given term.
+     * @return a transitivity proof for the given term.
      */
     public static Z3Proof createTransitivityProof(
             List<? extends Z3Proof> subProofs) {
         assert (subProofs.size() == 2 || subProofs.size() == 3);
-        assert (subProofs.get(0).consequent instanceof EqualityFormula);
-        assert (subProofs.get(1).consequent instanceof EqualityFormula);
-        assert (subProofs.size() == 3 ? subProofs.get(2).consequent instanceof EqualityFormula
+        assert (Util.getSingleLiteral(subProofs.get(0).consequent
+                .transformToConsequentsForm()) instanceof EqualityFormula);
+        assert (Util.getSingleLiteral(subProofs.get(1).consequent
+                .transformToConsequentsForm()) instanceof EqualityFormula);
+        assert (subProofs.size() == 3 ? Util
+                .getSingleLiteral(subProofs.get(2).consequent
+                        .transformToConsequentsForm()) instanceof EqualityFormula
                 : true);
 
-        EqualityFormula firstFormula = (EqualityFormula) subProofs.get(0).consequent;
-        EqualityFormula lastFormula = (EqualityFormula) subProofs.get(subProofs
-                .size() - 1).consequent;
+        EqualityFormula firstFormula = (EqualityFormula) Util
+                .getSingleLiteral(subProofs.get(0).consequent
+                        .transformToConsequentsForm());
+        EqualityFormula lastFormula = (EqualityFormula) Util
+                .getSingleLiteral(subProofs.get(subProofs.size() - 1).consequent
+                        .transformToConsequentsForm());
 
         int numDisequalities = 0;
         for (Z3Proof child : subProofs) {
-            EqualityFormula consequent = (EqualityFormula) child.consequent;
+            EqualityFormula consequent = (EqualityFormula) Util
+                    .getSingleLiteral(child.consequent
+                            .transformToConsequentsForm());
             if (!consequent.isEqual())
                 numDisequalities++;
         }
@@ -544,7 +562,7 @@ public class Z3Proof implements SMTLibObject {
         assert (firstFormula.getTerms().size() == 2);
         Term term1 = firstFormula.getTerms().get(0);
         assert (lastFormula.getTerms().size() == 2);
-        Term term2 = firstFormula.getTerms().get(1);
+        Term term2 = lastFormula.getTerms().get(1);
 
         List<Term> newTerms = new ArrayList<Term>();
         newTerms.add(term1);
@@ -553,7 +571,8 @@ public class Z3Proof implements SMTLibObject {
         Formula newFormula = null;
         try {
             newFormula = EqualityFormula
-                    .create(newTerms, numDisequalities == 0);
+                    .create(newTerms, numDisequalities == 0)
+                    .transformToConsequentsForm();
         } catch (IncomparableTermsException exc) {
             throw new RuntimeException(
                     "Incomparable terms while creating transitivity proof.",
@@ -564,6 +583,38 @@ public class Z3Proof implements SMTLibObject {
                 subProofs, newFormula);
         return result;
 
+    }
+
+    /**
+     * Creates a symmetry proof for the given premise.
+     * 
+     * @param premise
+     *            must have a single literal as a consequence
+     * @return a symmetry proof for the given premise.
+     */
+    public static Z3Proof createSymmetryProof(Z3Proof premise) {
+        assert (premise.hasSingleLiteralConsequent());
+        Formula literal = ((OrFormula) (premise.consequent
+                .transformToConsequentsForm())).getDisjuncts().iterator()
+                .next();
+        assert (literal instanceof EqualityFormula);
+        boolean equal = ((EqualityFormula) literal).isEqual();
+
+        List<Term> terms = ((EqualityFormula) literal).getTerms();
+        Collections.reverse(terms);
+        Formula consequentFormula = null;
+        try {
+            consequentFormula = EqualityFormula.create(terms, equal);
+            consequentFormula = consequentFormula.transformToConsequentsForm();
+            assert (consequentFormula != null);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Incomparable terms while creating symmetry proof.", exc);
+        }
+        List<Z3Proof> subproofs = new ArrayList<Z3Proof>();
+        subproofs.add(premise);
+        return new Z3Proof(SExpressionConstants.SYMMETRY, subproofs,
+                consequentFormula);
     }
 
     /**
