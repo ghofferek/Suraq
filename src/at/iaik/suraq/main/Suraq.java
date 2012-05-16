@@ -339,6 +339,7 @@ public class Suraq implements Runnable {
                 Z3Proof rootProof = proofParser.getRootProof();
                 // rootProof.localLemmasToAssertions();
                 // rootProof.removeLocalSubProofs();
+                // rootProof.dealWithModusPonens();
 
                 TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                         rootProof);
