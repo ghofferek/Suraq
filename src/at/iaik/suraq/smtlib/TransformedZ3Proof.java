@@ -388,6 +388,10 @@ public class TransformedZ3Proof extends Z3Proof {
             // Update subproofs
             assert (subProofs.size() == 2); // Multi-resolution should already
                                             // have been removed
+
+            assert (subProofs.get(0).hasSingleLiteralConsequent());
+            assert (subProofs.get(1).hasSingleLiteralConsequent());
+
             AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
                     .getNodeWithConsequent(Util.getSingleLiteral(subProofs
                             .get(0).consequent));
@@ -405,10 +409,10 @@ public class TransformedZ3Proof extends Z3Proof {
                 subProofs.set(0, update);
             }
 
-            if ((subProofs.get(1)).hasSingleLiteralConsequent()) {
-                AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
-                        .getNodeWithConsequent(Util.getSingleLiteral(subProofs
-                                .get(1).consequent));
+            AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
+                    .getNodeWithConsequent(Util.getSingleLiteral(subProofs
+                            .get(1).consequent));
+            if (annotatedNode2 != null) {
                 Z3Proof update = annotatedNode.getConsequent();
                 if (annotatedNode2.numPremises() == 3) {
                     List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
