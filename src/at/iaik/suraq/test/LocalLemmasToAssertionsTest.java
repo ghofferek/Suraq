@@ -55,6 +55,37 @@ public class LocalLemmasToAssertionsTest {
     }
 
     /**
+     * Tests the transformation of local lemmas to assertions.
+     */
+    @Test
+    public void test2LocalLemmaToAssertion() {
+
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+
+        domainVars.add(new DomainVariable("a", 1));
+        domainVars.add(new DomainVariable("b"));
+        domainVars.add(new DomainVariable("c", 2));
+
+        String transitivity = "(trans (asserted (= a b)) (asserted (= b c)) (= a c))";
+        String resolution = "(|unit-resolution| " + transitivity
+                + " (asserted (not (= a c))) false )";
+        String proof = "(lemma " + resolution + "(not (= a b)))";
+
+        String output = parseAndRemoveLocalLemmas(proof, domainVars,
+                propsitionalVars, uninterpretedFunctions, arrayVars);
+
+        String expectedOutput = "( lemma ( |unit-resolution| ( trans ( asserted ( = a b ) ) "
+                + "( asserted ( = b c ) ) ( = a c ) ) "
+                + "( asserted ( not ( = a c ) ) ) false ) ( not ( = a b ) ))";
+
+        Assert.assertEquals(expectedOutput, output);
+
+    }
+
+    /**
      * Helper function to parse the proof and transform local lemmas in the
      * proof to assertions.
      * 
