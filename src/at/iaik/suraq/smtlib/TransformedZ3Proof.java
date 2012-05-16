@@ -25,7 +25,6 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
-import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
@@ -216,29 +215,33 @@ public class TransformedZ3Proof extends Z3Proof {
             // proof for q. The second antecedents may also be a proof for (iff
             // p q).
 
+            // should already have been removed
+            assert (false);
+
             // Only dummy handling of modus ponus
 
-            List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
-            Z3Proof child0 = z3SubProofs.get(0);
-            Z3Proof child1 = z3SubProofs.get(1);
-
-            if (z3SubProofs.size() != 2)
-                throw new RuntimeException(
-                        "Modus-Ponens proof with not exactly two children. This should not happen!");
-
-            if (!((child1.getConsequent() instanceof ImpliesFormula) || (child1
-                    .getConsequent() instanceof EqualityFormula)))
-                throw new RuntimeException(
-                        "Second child of Modus-Ponens should be an ImpliesFormla or of the form (iff p q).");
-
-            this.proofType = (SExpressionConstants.RESOLUTION);
-            this.subProofs.add(new TransformedZ3Proof(child0));
-            this.subProofs.add(new TransformedZ3Proof(child1));
-            this.literal = new PropositionalVariable("mpTempLiteral");
-            this.consequent = z3Proof.getConsequent()
-                    .transformToConsequentsForm();
-
-            return;
+            /*
+             * List<Z3Proof> z3SubProofs = z3Proof.getSubProofs(); Z3Proof
+             * child0 = z3SubProofs.get(0); Z3Proof child1 = z3SubProofs.get(1);
+             * 
+             * if (z3SubProofs.size() != 2) throw new RuntimeException(
+             * "Modus-Ponens proof with not exactly two children. This should not happen!"
+             * );
+             * 
+             * if (!((child1.getConsequent() instanceof ImpliesFormula) ||
+             * (child1 .getConsequent() instanceof EqualityFormula))) throw new
+             * RuntimeException(
+             * "Second child of Modus-Ponens should be an ImpliesFormla or of the form (iff p q)."
+             * );
+             * 
+             * this.proofType = (SExpressionConstants.RESOLUTION);
+             * this.subProofs.add(new TransformedZ3Proof(child0));
+             * this.subProofs.add(new TransformedZ3Proof(child1)); this.literal
+             * = new PropositionalVariable("mpTempLiteral"); this.consequent =
+             * z3Proof.getConsequent() .transformToConsequentsForm();
+             * 
+             * return;
+             */
 
         } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
 

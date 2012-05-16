@@ -296,6 +296,7 @@ public class Z3Proof implements SMTLibObject {
     }
 
     public void localLemmasToAssertions() {
+
         if (proofType.equals(SExpressionConstants.LEMMA)) {
             assert (subProofs.size() == 1);
             Set<Integer> assertedPartitions = subProofs.get(0)
@@ -323,20 +324,11 @@ public class Z3Proof implements SMTLibObject {
     public void removeLocalSubProofs() {
         // FIXME Very inefficient! Cache results of getAssertFormulas!!
         if (this.getAssertedPartitions().size() == 1) {
-            Set<Integer> thisPartitions = this.getAssertedPartitions();
-            boolean isLocal = true;
-            // Set<Z3Proof> lemmas = this.getLemmas();
-            // for (Z3Proof lemma : lemmas) {
-            // Set<Integer> lemmaPartitions = lemma.getAssertPartition();
-            // thisPartitions.remove(new Integer(-1));
-            // lemmaPartitions.remove(new Integer(-1));
-            // if (!thisPartitions.equals(lemmaPartitions)) {
-            // isLocal = false;
-            // break;
-            // }
-            // }
 
-            if (isLocal) {
+            Set<Integer> thisPartitions = this.getAssertedPartitions();
+            thisPartitions.remove(new Integer(-1));
+
+            if (thisPartitions.size() <= 1) {
                 proofType = SExpressionConstants.ASSERTED;
                 subProofs = new ArrayList<Z3Proof>();
                 return;

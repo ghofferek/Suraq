@@ -337,9 +337,21 @@ public class Suraq implements Runnable {
                     return;
                 }
                 Z3Proof rootProof = proofParser.getRootProof();
-                // rootProof.localLemmasToAssertions();
-                // rootProof.removeLocalSubProofs();
-                // rootProof.dealWithModusPonens();
+                rootProof.localLemmasToAssertions();
+                rootProof.removeLocalSubProofs();
+                rootProof.dealWithModusPonens();
+
+                try {
+                    File smtfile = new File("parsedProof.smt2");
+                    FileWriter fstream = new FileWriter(smtfile);
+                    BufferedWriter smtfilewriter = new BufferedWriter(fstream);
+                    smtfilewriter.write(rootProof.toString());
+                    smtfilewriter.close();
+                } catch (IOException exc) {
+                    System.err.println("Error while writing to smtfile.");
+                    exc.printStackTrace();
+                    noErrors = false;
+                }
 
                 rootProof.checkZ3ProofNode();
 
