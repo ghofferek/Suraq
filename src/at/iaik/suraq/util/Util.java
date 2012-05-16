@@ -214,6 +214,7 @@ public class Util {
         assert (formula instanceof OrFormula);
         List<Formula> disjuncts = ((OrFormula) formula).getDisjuncts();
         assert (disjuncts.size() == 1);
+        assert (Util.isLiteral(disjuncts.get(0)));
         return disjuncts.get(0);
     }
 
@@ -343,7 +344,7 @@ public class Util {
     public static Formula makeLiteralPositive(Formula literal) {
 
         if (!Util.isLiteral(literal))
-            throw new RuntimeException("given formula should be an literal");
+            throw new RuntimeException("given formula should be a literal");
 
         if (literal instanceof NotFormula) {
             literal = ((NotFormula) literal).getNegatedFormula();
@@ -365,7 +366,7 @@ public class Util {
     public static Formula invertLiteral(Formula literal) {
 
         if (!Util.isLiteral(literal))
-            throw new RuntimeException("given formula should be an literal");
+            throw new RuntimeException("given formula should be a literal");
 
         if (literal instanceof NotFormula) {
             return ((NotFormula) literal).getNegatedFormula();

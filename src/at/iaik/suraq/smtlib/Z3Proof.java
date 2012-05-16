@@ -559,25 +559,28 @@ public class Z3Proof implements SMTLibObject {
     public static Z3Proof createTransitivityProof(
             List<? extends Z3Proof> subProofs) {
         assert (subProofs.size() == 2 || subProofs.size() == 3);
-        assert (Util.makeLiteralPositive((subProofs.get(0).consequent
-                .transformToConsequentsForm())) instanceof EqualityFormula);
-        assert (Util.makeLiteralPositive(subProofs.get(1).consequent
-                .transformToConsequentsForm()) instanceof EqualityFormula);
-        assert (subProofs.size() == 3 ? Util.makeLiteralPositive(subProofs
-                .get(2).consequent.transformToConsequentsForm()) instanceof EqualityFormula
+        assert (Util.makeLiteralPositive(Util.getSingleLiteral((subProofs
+                .get(0).consequent.transformToConsequentsForm()))) instanceof EqualityFormula);
+        assert (Util
+                .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(1).consequent
+                        .transformToConsequentsForm())) instanceof EqualityFormula);
+        assert (subProofs.size() == 3 ? Util.makeLiteralPositive(Util
+                .getSingleLiteral(subProofs.get(2).consequent
+                        .transformToConsequentsForm())) instanceof EqualityFormula
                 : true);
 
         EqualityFormula firstFormula = (EqualityFormula) Util
-                .makeLiteralPositive(subProofs.get(0).consequent
-                        .transformToConsequentsForm());
+                .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(0).consequent
+                        .transformToConsequentsForm()));
         EqualityFormula lastFormula = (EqualityFormula) Util
-                .makeLiteralPositive(subProofs.get(subProofs.size() - 1).consequent
-                        .transformToConsequentsForm());
+                .makeLiteralPositive(Util.getSingleLiteral(subProofs
+                        .get(subProofs.size() - 1).consequent
+                        .transformToConsequentsForm()));
 
         int numDisequalities = 0;
         for (Z3Proof child : subProofs) {
-            if (Util.isNegativeLiteral(child.consequent
-                    .transformToConsequentsForm()))
+            if (Util.isNegativeLiteral(Util.getSingleLiteral(child.consequent
+                    .transformToConsequentsForm())))
                 numDisequalities++;
         }
 

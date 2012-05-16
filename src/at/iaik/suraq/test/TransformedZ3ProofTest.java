@@ -111,34 +111,37 @@ public class TransformedZ3ProofTest {
     }
 
     /**
-     * Tests the transformation of lemma into resolutions.
+     * Tests the transformation of unit-resolution into multiple (simple)
+     * resolutions.
      */
+
     @Test
-    public void test2LemmaTransformation() {
+    public void testTransitivity() {
 
         Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
         Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a12"));
-        propsitionalVars.add(new PropositionalVariable("b12"));
+        propsitionalVars.add(new PropositionalVariable("a", 1));
+        propsitionalVars.add(new PropositionalVariable("b", 2));
+        propsitionalVars.add(new PropositionalVariable("x", -1));
+        propsitionalVars.add(new PropositionalVariable("y", -1));
 
-        String resolution1 = "(|unit-resolution| (asserted (not a12)) (hypothesis a12) false )";
-        String resolution2 = "(|unit-resolution| (hypothesis (not b12)) (asserted b12) false )";
+        String symmetry = "(symm (asserted (= a y)) (= y a))";
+        String trans1 = "(trans (asserted (= a x)) (asserted (= x b)) (= a b))";
+        String trans2 = "(trans " + symmetry + trans1 + "(= y b))";
 
-        String lemma1 = "(lemma  " + resolution1 + " (not a12))";
-        String lemma2 = "(lemma  " + resolution2 + " b12)";
-
-        String proof = "(|unit-resolution| (asserted (or a12 (not b12))) "
-                + lemma1 + " " + lemma2 + " false)";
+        String proof = "(|unit-resolution| " + trans2
+                + "(asserted (not (= y b))) false)";
 
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{b12} ( asserted ( or b12 ) ) ( |unit-resolution|{a12} ( asserted ( or ( not a12 ) ) ) ( asserted ( or a12 ( not b12 ) ) ) ( or ( not b12 ) ) ) ( or false ))";
+        String expectedOutput = "( asserted ( or c ))";
 
-        Assert.assertEquals(expectedOutput, output);
+        Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
+                SExpression.fromString(output).toString());
     }
 
     /**
