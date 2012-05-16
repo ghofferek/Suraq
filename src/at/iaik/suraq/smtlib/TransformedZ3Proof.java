@@ -27,7 +27,6 @@ import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
-import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
@@ -266,13 +265,12 @@ public class TransformedZ3Proof extends Z3Proof {
                         .get(count).getConsequent()
                         .transformToConsequentsForm());
 
-                if (!(TransformedZ3Proof.isLiteral(resolutionAssociate)))
+                if (!(Util.isLiteral(resolutionAssociate)))
                     throw new RuntimeException(
                             "Resolution associate should be a literal");
 
-                Formula invLiteral = TransformedZ3Proof
-                        .invertLiteral(resolutionAssociate);
-                Formula posLiteral = TransformedZ3Proof
+                Formula invLiteral = Util.invertLiteral(resolutionAssociate);
+                Formula posLiteral = Util
                         .makeLiteralPositive(resolutionAssociate);
 
                 if (!newDisjuncts.remove(invLiteral))
@@ -298,12 +296,11 @@ public class TransformedZ3Proof extends Z3Proof {
 
             Formula resolutionAssociate = z3SubProofs.get(
                     z3SubProofs.size() - 1).getConsequent();
-            if (!(TransformedZ3Proof.isLiteral(resolutionAssociate)))
+            if (!(Util.isLiteral(resolutionAssociate)))
                 throw new RuntimeException(
                         "Resolution associate should be a literal");
 
-            this.literal = TransformedZ3Proof
-                    .makeLiteralPositive(resolutionAssociate);
+            this.literal = Util.makeLiteralPositive(resolutionAssociate);
 
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
@@ -1316,92 +1313,6 @@ public class TransformedZ3Proof extends Z3Proof {
         }
 
         return result;
-    }
-
-    /**
-     * Removes negation from literal.
-     * 
-     * @param literal
-     *            literal to make positive
-     * @return the resulting atom
-     * 
-     */
-    private static Formula makeLiteralPositive(Formula literal) {
-
-        if (!TransformedZ3Proof.isLiteral(literal))
-            throw new RuntimeException("given formula should be an literal");
-
-        if (literal instanceof NotFormula) {
-            literal = ((NotFormula) literal).getNegatedFormula();
-        }
-
-        if (!TransformedZ3Proof.isAtom(literal))
-            throw new RuntimeException("given literal should be an atom");
-        return literal;
-    }
-
-    /**
-     * Invert given literal.
-     * 
-     * @param literal
-     *            literal to invert
-     * @return the inverted literal
-     * 
-     */
-    private static Formula invertLiteral(Formula literal) {
-
-        if (!TransformedZ3Proof.isLiteral(literal))
-            throw new RuntimeException("given formula should be an literal");
-
-        if (literal instanceof NotFormula) {
-            return ((NotFormula) literal).getNegatedFormula();
-        } else
-            return new NotFormula(literal);
-
-    }
-
-    /**
-     * Checks if a given Formula is a literal. A literal is either an atom or a
-     * negation of an atom.
-     * 
-     * @param formula
-     *            formula to check
-     * @return true, iff formula is an literal
-     */
-    private static boolean isLiteral(Formula formula) {
-        if (formula instanceof NotFormula) {
-            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
-            return TransformedZ3Proof.isAtom(negatedFormula);
-        }
-        return TransformedZ3Proof.isAtom(formula);
-    }
-
-    /**
-     * Checks if a given Formula is an atom. An atom is either a
-     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code>, a
-     * <code>PropositionalConstant</code> or a
-     * <code>UninterpretedPredicateInstance</code>.
-     * 
-     * @param formula
-     *            formula to check
-     * @return true, iff formula is atom
-     * 
-     */
-    private static boolean isAtom(Formula formula) {
-        if (formula instanceof EqualityFormula)
-            return true;
-        if (formula instanceof PropositionalVariable)
-            return true;
-        if (formula instanceof PropositionalConstant)
-            return true;
-        if (formula instanceof UninterpretedPredicateInstance)
-            return true;
-        return false;
-    }
-
-    public static boolean isNegativeLiteral(Formula formula) {
-        return TransformedZ3Proof.isLiteral(formula)
-                && !TransformedZ3Proof.isAtom(formula);
     }
 
     /**

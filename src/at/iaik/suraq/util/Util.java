@@ -16,7 +16,9 @@ import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -328,5 +330,90 @@ public class Util {
             return false;
         OrFormula orFormula = (OrFormula) formula;
         return orFormula.getDisjuncts().size() == 1;
+    }
+
+    /**
+     * Removes negation from literal.
+     * 
+     * @param literal
+     *            literal to make positive
+     * @return the resulting atom
+     * 
+     */
+    public static Formula makeLiteralPositive(Formula literal) {
+
+        if (!Util.isLiteral(literal))
+            throw new RuntimeException("given formula should be an literal");
+
+        if (literal instanceof NotFormula) {
+            literal = ((NotFormula) literal).getNegatedFormula();
+        }
+
+        if (!Util.isAtom(literal))
+            throw new RuntimeException("given literal should be an atom");
+        return literal;
+    }
+
+    /**
+     * Invert given literal.
+     * 
+     * @param literal
+     *            literal to invert
+     * @return the inverted literal
+     * 
+     */
+    public static Formula invertLiteral(Formula literal) {
+
+        if (!Util.isLiteral(literal))
+            throw new RuntimeException("given formula should be an literal");
+
+        if (literal instanceof NotFormula) {
+            return ((NotFormula) literal).getNegatedFormula();
+        } else
+            return new NotFormula(literal);
+
+    }
+
+    /**
+     * Checks if a given Formula is a literal. A literal is either an atom or a
+     * negation of an atom.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is an literal
+     */
+    public static boolean isLiteral(Formula formula) {
+        if (formula instanceof NotFormula) {
+            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
+            return Util.isAtom(negatedFormula);
+        }
+        return Util.isAtom(formula);
+    }
+
+    /**
+     * Checks if a given Formula is an atom. An atom is either a
+     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code>, a
+     * <code>PropositionalConstant</code> or a
+     * <code>UninterpretedPredicateInstance</code>.
+     * 
+     * @param formula
+     *            formula to check
+     * @return true, iff formula is atom
+     * 
+     */
+    public static boolean isAtom(Formula formula) {
+        if (formula instanceof EqualityFormula)
+            return true;
+        if (formula instanceof PropositionalVariable)
+            return true;
+        if (formula instanceof PropositionalConstant)
+            return true;
+        if (formula instanceof UninterpretedPredicateInstance)
+            return true;
+        return false;
+    }
+
+    public static boolean isNegativeLiteral(Formula formula) {
+        return Util.isLiteral(formula) && !Util.isAtom(formula);
     }
 }
