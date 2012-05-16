@@ -285,13 +285,13 @@ public class TransformedZ3Proof extends Z3Proof {
                 remainingFormula = new OrFormula(newDisjuncts);
 
                 transformedAntecedent = new TransformedZ3Proof(
-                        SExpressionConstants.RESOLUTION,
+                        SExpressionConstants.UNIT_RESOLUTION,
                         new TransformedZ3Proof(z3SubProofs.get(count)),
                         transformedAntecedent, posLiteral,
                         remainingFormula.transformToConsequentsForm());
             }
 
-            this.proofType = SExpressionConstants.RESOLUTION;
+            this.proofType = SExpressionConstants.UNIT_RESOLUTION;
             this.subProofs.add(new TransformedZ3Proof(z3SubProofs
                     .get(z3SubProofs.size() - 1)));
             this.subProofs.add(transformedAntecedent);
@@ -348,7 +348,7 @@ public class TransformedZ3Proof extends Z3Proof {
             Token z3ProofType = z3Proof.getProofType();
             if (z3ProofType.equals(SExpressionConstants.TRANSITIVITY)
                     || z3ProofType.equals(SExpressionConstants.MONOTONICITY)
-                    || z3ProofType.equals(SExpressionConstants.RESOLUTION)
+                    || z3ProofType.equals(SExpressionConstants.UNIT_RESOLUTION)
                     || z3ProofType.equals(SExpressionConstants.SYMMETRY)) {
 
                 this.proofType = z3ProofType;
@@ -1436,7 +1436,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     axiomFormula.transformToConsequentsForm());
 
             TransformedZ3Proof firstResolutionStep = new TransformedZ3Proof(
-                    SExpressionConstants.RESOLUTION, subProof1, axiom,
+                    SExpressionConstants.UNIT_RESOLUTION, subProof1, axiom,
                     subProof1.getConsequent().transformToConsequentsForm(),
                     intermediateResultFormula.transformToConsequentsForm());
 
@@ -1446,7 +1446,7 @@ public class TransformedZ3Proof extends Z3Proof {
             this.literal = subProof2.getConsequent(); // TODO: check if form of
                                                       // literal is ok!
             this.consequent = this.getConsequent();
-            this.proofType = SExpressionConstants.RESOLUTION;
+            this.proofType = SExpressionConstants.UNIT_RESOLUTION;
 
             return;
 
@@ -1477,7 +1477,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 axiomParts.remove(0);
 
                 remainingAxiom = new TransformedZ3Proof(
-                        SExpressionConstants.RESOLUTION, currentEquality,
+                        SExpressionConstants.UNIT_RESOLUTION, currentEquality,
                         remainingAxiom, this.subProofs.get(count)
                                 .getConsequent().transformToConsequentsForm(),
                         (new OrFormula(axiomParts))
@@ -1495,10 +1495,10 @@ public class TransformedZ3Proof extends Z3Proof {
             this.literal = currentEquality.getConsequent()
                     .transformToConsequentsForm();
 
-            this.proofType = SExpressionConstants.RESOLUTION;
+            this.proofType = SExpressionConstants.UNIT_RESOLUTION;
             return;
 
-        } else if (proofType.equals(SExpressionConstants.RESOLUTION)) {
+        } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
             return;
 
         } else if (proofType.equals(SExpressionConstants.SYMMETRY)) {
@@ -1541,7 +1541,7 @@ public class TransformedZ3Proof extends Z3Proof {
     public SExpression toSmtlibV2() {
         List<SExpression> children = new ArrayList<SExpression>();
 
-        if (this.proofType == SExpressionConstants.RESOLUTION) {
+        if (this.proofType == SExpressionConstants.UNIT_RESOLUTION) {
             if (this.literal != null)
                 children.add(new Token(this.proofType
                         + "{"

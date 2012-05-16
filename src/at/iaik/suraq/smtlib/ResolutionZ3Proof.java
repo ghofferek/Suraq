@@ -129,7 +129,7 @@ public class ResolutionZ3Proof extends Z3Proof {
                     axiomFormula.transformToConsequentsForm());
 
             ResolutionZ3Proof firstResolutionStep = new ResolutionZ3Proof(
-                    SExpressionConstants.RESOLUTION, subProof1, axiom,
+                    SExpressionConstants.UNIT_RESOLUTION, subProof1, axiom,
                     z3SubProof1.getConsequent().transformToConsequentsForm(),
                     intermediateResultFormula.transformToConsequentsForm());
 
@@ -137,7 +137,7 @@ public class ResolutionZ3Proof extends Z3Proof {
             this.subProofs.add(firstResolutionStep);
             this.literal = z3SubProof2.getConsequent();
             this.consequent = z3Proof.getConsequent();
-            this.proofType = SExpressionConstants.RESOLUTION;
+            this.proofType = SExpressionConstants.UNIT_RESOLUTION;
 
             return;
 
@@ -166,7 +166,7 @@ public class ResolutionZ3Proof extends Z3Proof {
                         (TransformedZ3Proof) z3SubProofs.get(count));
                 axiomParts.remove(0);
                 remainingAxiom = new ResolutionZ3Proof(
-                        SExpressionConstants.RESOLUTION, currentEquality,
+                        SExpressionConstants.UNIT_RESOLUTION, currentEquality,
                         remainingAxiom, z3SubProofs.get(count).getConsequent()
                                 .transformToConsequentsForm(), (new OrFormula(
                                 axiomParts)).transformToConsequentsForm());
@@ -178,10 +178,10 @@ public class ResolutionZ3Proof extends Z3Proof {
             this.literal = z3SubProofs.get(z3SubProofs.size() - 1)
                     .getConsequent().transformToConsequentsForm();
             this.consequent = z3Proof.getConsequent();
-            this.proofType = SExpressionConstants.RESOLUTION;
+            this.proofType = SExpressionConstants.UNIT_RESOLUTION;
             return;
 
-        } else if (proofType.equals(SExpressionConstants.RESOLUTION)) {
+        } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
             this.consequent = z3Proof.consequent;
 
             for (Z3Proof subProof : z3Proof.subProofs)
@@ -189,7 +189,7 @@ public class ResolutionZ3Proof extends Z3Proof {
                         (TransformedZ3Proof) subProof));
 
             this.literal = z3Proof.getLiteral();
-            this.proofType = SExpressionConstants.RESOLUTION;
+            this.proofType = SExpressionConstants.UNIT_RESOLUTION;
 
         } else if (proofType.equals(SExpressionConstants.SYMMETRY)) {
             // Ignore symmetry. a=b and b=a should be treated as the
