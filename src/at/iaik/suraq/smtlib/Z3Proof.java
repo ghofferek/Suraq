@@ -11,9 +11,12 @@ import java.util.Set;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalEq;
+import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -435,4 +438,49 @@ public class Z3Proof implements SMTLibObject {
         return consequent.getDisjuncts().size() == 1;
     }
 
+    /**
+     * Checks recursive if node is valid. Therefore, whether the given Subproofs
+     * together produces the consequent of the node. Also checks this property
+     * recursive for every node of the subtree.
+     * 
+     * @return return true iv node is valid
+     */
+    public boolean checkZ3ProofNode() {
+
+        System.out.println("Proofing z3 node with Z3 solver...");
+
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+
+        if (this.subProofs.size() > 0) {
+
+            List<Formula> conjuncts = new ArrayList<Formula>();
+            for (Z3Proof subProof : this.subProofs) {
+                conjuncts.add(subProof.consequent);
+            }
+            conjuncts.add(new NotFormula(this.consequent));
+            Formula formulaToCheck = new AndFormula(conjuncts);
+
+            z3.solve(formulaToCheck.toString());
+
+            switch (z3.getState()) {
+            case SMTSolver.UNSAT:
+                System.out.println("....z3 tells us UNSAT, node is valid");
+                break;
+            case SMTSolver.SAT:
+                throw new RuntimeException(
+                        "....z3 tells us SAT, node is NOT valid.");
+
+            default:
+                System.out
+                        .println("....Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
+                throw (new RuntimeException(
+                        "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+            }
+
+            for (Z3Proof subProof : this.subProofs)
+                subProof.checkZ3ProofNode();
+
+        }
+        return true;
+    }
 }
