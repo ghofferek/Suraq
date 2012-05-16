@@ -154,6 +154,37 @@ public class TransformedZ3ProofTest {
     }
 
     /**
+     * Tests the transformation of lemma into resolutions.
+     */
+    @Test
+    public void test2LemmaTransformation() {
+
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+
+        propsitionalVars.add(new PropositionalVariable("a"));
+        propsitionalVars.add(new PropositionalVariable("b"));
+
+        String resolution1 = "(|unit-resolution| (asserted (not a)) (hypothesis a) false )";
+        String resolution2 = "(|unit-resolution| (hypothesis (not b)) (asserted b) false )";
+
+        String lemma1 = "(lemma  " + resolution1 + " (not a))";
+        String lemma2 = "(lemma  " + resolution2 + " b)";
+
+        String proof = "(|unit-resolution| (asserted (or a (not b))) " + lemma1
+                + " " + lemma2 + " false)";
+
+        String output = parseAndTransform(proof, domainVars, propsitionalVars,
+                uninterpretedFunctions, arrayVars);
+
+        String expectedOutput = "( resolution{b} ( asserted ( or b ) ) ( resolution{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a ( not b ) ) ) ( or ( not b ) ) ) ( or false ))";
+
+        Assert.assertEquals(expectedOutput, output);
+    }
+
+    /**
      * Helper function to parse and transform a given proof.
      * 
      * @param proof

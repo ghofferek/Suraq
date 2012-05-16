@@ -193,9 +193,6 @@ public class TransformedZ3Proof extends Z3Proof {
                     .transformToConsequentsForm();
             this.hypothesis = true;
 
-            System.out.println("Hypothesis");
-            System.out.println(this.consequent);
-
             return;
 
         } else if (proofType.equals(SExpressionConstants.AXIOM)
@@ -276,7 +273,9 @@ public class TransformedZ3Proof extends Z3Proof {
                 if (!newDisjuncts.remove(invLiteral))
                     throw new RuntimeException(
                             "Problem in Unit Resolution Transformation:\n"
-                                    + "Literal was not present in the remaining formula");
+                                    + "Literal was not present in the remaining formula:\n "
+                                    + "List of Literals:  " + remainingFormula
+                                    + "given Literal:  " + invLiteral);
 
                 remainingFormula = new OrFormula(newDisjuncts);
 
@@ -1253,22 +1252,11 @@ public class TransformedZ3Proof extends Z3Proof {
                     newDisjuncts.add(parent.consequent);
                 }
                 newDisjuncts.remove(new PropositionalConstant(false));
-
-                System.out
-                        .println(".........consequent von hypothesis..................................");
-                System.out.println(this.consequent);
-                System.out.println("..........");
-                System.out.println((new NotFormula(this.consequent))
-                        .transformToConsequentsForm());
-                System.out
-                        .println("............................................");
-
                 newDisjuncts.add((new NotFormula(this.consequent))
                         .transformToConsequentsForm());
 
                 parent.consequent = (new OrFormula(newDisjuncts))
                         .transformToConsequentsForm();
-                System.out.println("");
                 parent = parents.get(parent);
             }
             parent = parents.get(this);
@@ -1287,6 +1275,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 parent.subProofs = otherChild.subProofs;
                 parent.literal = otherChild.literal;
                 parent.hypothesis = otherChild.hypothesis;
+
                 parent.reload = true;
 
             } else if (numChildren == 1) {
@@ -1309,6 +1298,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     myParent.subProofs = otherChild.subProofs;
                     myParent.literal = otherChild.literal;
                     myParent.hypothesis = otherChild.hypothesis;
+
                     myParent.reload = true;
                 }
             }
