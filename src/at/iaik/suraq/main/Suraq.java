@@ -346,7 +346,7 @@ public class Suraq implements Runnable {
                         rootProof);
                 transformedZ3Proof.toLocalProof();
                 transformedZ3Proof.toResolutionProof();
-                transformedZ3Proof.checkZ3ProofNode();
+                assert (transformedZ3Proof.checkZ3ProofNode());
 
                 try {
                     File smtfile = new File("proofTemp.txt");

@@ -847,8 +847,9 @@ public class TransformedZ3Proof extends Z3Proof {
      * 
      */
     private void handleTransitivityCase2(int rightPartition, int leftPartition) {
-        assert (subProofs.get(0).consequent instanceof EqualityFormula);
-        EqualityFormula formula = (EqualityFormula) subProofs.get(0).consequent;
+        assert (Util.getSingleLiteral(subProofs.get(0).consequent) instanceof EqualityFormula);
+        EqualityFormula formula = (EqualityFormula) Util
+                .getSingleLiteral(subProofs.get(0).consequent);
         assert (formula.getTerms().size() == 2);
         Term term = formula.getTerms().get(1);
         TransformedZ3Proof reflexivity = TransformedZ3Proof
