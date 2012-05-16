@@ -375,7 +375,6 @@ public class Suraq implements Runnable {
 
                 // ResolutionZ3Proof resolutionZ3Proof = new ResolutionZ3Proof(
                 // transformedZ3Proof);
-
                 // System.out.println(resolutionZ3Proof);
 
                 Set<Integer> partitions = rootProof.getAssertPartition();

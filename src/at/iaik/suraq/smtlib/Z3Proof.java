@@ -301,14 +301,21 @@ public class Z3Proof implements SMTLibObject {
             assert (subProofs.size() == 1);
             Set<Integer> assertedPartitions = subProofs.get(0)
                     .getAssertedPartitions();
+            assertedPartitions.remove(new Integer(-1));
             if (assertedPartitions.size() > 1)
                 return;
             Set<Integer> symbolsPartitions = consequent.getAssertPartition();
             symbolsPartitions.remove(new Integer(-1));
             if (assertedPartitions.equals(symbolsPartitions)) {
                 proofType = SExpressionConstants.ASSERTED;
-                assert (assertedPartitions.size() == 1);
-                assertPartition = assertedPartitions.iterator().next();
+                if (assertedPartitions.size() == 1)
+                    assertPartition = assertedPartitions.iterator().next();
+                else if (assertedPartitions.size() == 0)
+                    assertPartition = -1;
+                else
+                    throw new RuntimeException(
+                            "Assert proof can only have one local assert partition");
+
                 subProofs = new ArrayList<Z3Proof>();
                 return;
             } else
