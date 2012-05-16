@@ -8,14 +8,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
+import at.iaik.suraq.smtlib.formula.DomainEq;
+import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalEq;
+import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.Util;
 
@@ -343,6 +347,8 @@ public class Z3Proof implements SMTLibObject {
 
         if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
             assert (subProofs.size() == 2);
+            assert (this.hasSingleLiteralConsequent());
+            Formula consequentLiteral = Util.getSingleLiteral(consequent);
             Z3Proof child1 = subProofs.get(0);
             if (Util.checkForFlippedDisequality(this.consequent,
                     child1.consequent)) {
@@ -375,10 +381,72 @@ public class Z3Proof implements SMTLibObject {
                     break;
                 }
             }
+            assert (child2 != null);
+            assert (child3 != null);
             Formula literal2 = Util.getSingleLiteral(child2.consequent);
             Formula literal3 = Util.getSingleLiteral(child3.consequent);
 
-            // FIXME NOT FINISHED YET!!
+            assert (consequentLiteral instanceof DomainEq);
+            assert (literal1 instanceof DomainEq);
+            assert (literal2 instanceof DomainEq);
+            assert (literal3 instanceof DomainEq);
+
+            EqualityFormula eq1 = (DomainEq) literal1;
+            EqualityFormula eq2 = (DomainEq) literal2;
+            EqualityFormula eq3 = (DomainEq) literal3;
+            EqualityFormula consequentEq = (DomainEq) consequentLiteral;
+
+            List<Z3Proof> proofList = new ArrayList<Z3Proof>();
+
+            if (consequentEq.getTerms().get(0).equals(eq1.getTerms().get(0))) {
+                if (eq1.getTerms().get(1).equals(eq2.getTerms().get(0))) {
+                    proofList.add(child1);
+                    proofList.add(child2);
+                    assert (eq2.getTerms().get(1).equals(eq3.getTerms().get(0)));
+                    proofList.add(child3);
+                } else {
+                    assert (eq1.getTerms().get(1).equals(eq3.getTerms().get(0)));
+                    proofList.add(child1);
+                    proofList.add(child3);
+                    assert (eq3.getTerms().get(1).equals(eq2.getTerms().get(0)));
+                    proofList.add(child2);
+                }
+            } else if (consequentEq.getTerms().get(0)
+                    .equals(eq2.getTerms().get(0))) {
+                if (eq2.getTerms().get(1).equals(eq1.getTerms().get(0))) {
+                    proofList.add(child2);
+                    proofList.add(child1);
+                    assert (eq1.getTerms().get(1).equals(eq3.getTerms().get(0)));
+                    proofList.add(child3);
+                } else {
+                    assert (eq2.getTerms().get(1).equals(eq3.getTerms().get(0)));
+                    proofList.add(child2);
+                    proofList.add(child3);
+                    assert (eq3.getTerms().get(1).equals(eq1.getTerms().get(0)));
+                    proofList.add(child1);
+                }
+            } else {
+                assert (consequentEq.getTerms().get(0).equals(eq3.getTerms()
+                        .get(0)));
+                if (eq3.getTerms().get(1).equals(eq1.getTerms().get(0))) {
+                    proofList.add(child3);
+                    proofList.add(child1);
+                    assert (eq1.getTerms().get(1).equals(eq2.getTerms().get(0)));
+                    proofList.add(child2);
+                } else {
+                    assert (eq3.getTerms().get(1).equals(eq2.getTerms().get(0)));
+                    proofList.add(child3);
+                    proofList.add(child2);
+                    assert (eq2.getTerms().get(1).equals(eq1.getTerms().get(0)));
+                    proofList.add(child1);
+                }
+            }
+
+            Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
+            this.subProofs = transProof.subProofs;
+            this.proofType = transProof.proofType;
+            assert (this.consequent.equals(transProof.consequent));
+            this.consequent = transProof.consequent;
 
             // Don't forget the recursive calls on the children!
             child1.dealWithModusPonens();
@@ -439,6 +507,61 @@ public class Z3Proof implements SMTLibObject {
     }
 
     /**
+     * Creates a transitivity proof for the given list of subproofs. The list
+     * must have exactly two or three elements, which match a transitivity
+     * premise of the form [(a=b), (b=c)] or [(a=b), (b=c), (c=d)].
+     * 
+     * @param subProofs
+     *            the subproofs
+     * @return a reflexivity proof for the given term.
+     */
+    public static Z3Proof createTransitivityProof(
+            List<? extends Z3Proof> subProofs) {
+        assert (subProofs.size() == 2 || subProofs.size() == 3);
+        assert (subProofs.get(0).consequent instanceof EqualityFormula);
+        assert (subProofs.get(1).consequent instanceof EqualityFormula);
+        assert (subProofs.size() == 3 ? subProofs.get(2).consequent instanceof EqualityFormula
+                : true);
+
+        EqualityFormula firstFormula = (EqualityFormula) subProofs.get(0).consequent;
+        EqualityFormula lastFormula = (EqualityFormula) subProofs.get(subProofs
+                .size() - 1).consequent;
+
+        int numDisequalities = 0;
+        for (Z3Proof child : subProofs) {
+            EqualityFormula consequent = (EqualityFormula) child.consequent;
+            if (!consequent.isEqual())
+                numDisequalities++;
+        }
+
+        assert (numDisequalities <= 1);
+
+        assert (firstFormula.getTerms().size() == 2);
+        Term term1 = firstFormula.getTerms().get(0);
+        assert (lastFormula.getTerms().size() == 2);
+        Term term2 = firstFormula.getTerms().get(1);
+
+        List<Term> newTerms = new ArrayList<Term>();
+        newTerms.add(term1);
+        newTerms.add(term2);
+
+        Formula newFormula = null;
+        try {
+            newFormula = EqualityFormula
+                    .create(newTerms, numDisequalities == 0);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Incomparable terms while creating transitivity proof.",
+                    exc);
+        }
+
+        Z3Proof result = new Z3Proof(SExpressionConstants.TRANSITIVITY,
+                subProofs, newFormula);
+        return result;
+
+    }
+
+    /**
      * Checks recursive if node is valid. Therefore, whether the given Subproofs
      * together produces the consequent of the node. Also checks this property
      * recursive for every node of the subtree.
@@ -483,4 +606,5 @@ public class Z3Proof implements SMTLibObject {
         }
         return true;
     }
+
 }

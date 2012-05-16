@@ -1089,47 +1089,16 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     public static TransformedZ3Proof createTransitivityProof(
             List<TransformedZ3Proof> subProofs) {
-        assert (subProofs.size() == 2 || subProofs.size() == 3);
-        assert (subProofs.get(0).consequent instanceof EqualityFormula);
-        assert (subProofs.get(1).consequent instanceof EqualityFormula);
-        assert (subProofs.size() == 3 ? subProofs.get(2).consequent instanceof EqualityFormula
-                : true);
 
-        EqualityFormula firstFormula = (EqualityFormula) subProofs.get(0).consequent;
-        EqualityFormula lastFormula = (EqualityFormula) subProofs.get(subProofs
-                .size() - 1).consequent;
-
-        int numDisequalities = 0;
-        for (TransformedZ3Proof child : subProofs) {
-            EqualityFormula consequent = (EqualityFormula) child.consequent;
-            if (!consequent.isEqual())
-                numDisequalities++;
+        Z3Proof z3Proof = Z3Proof.createTransitivityProof(subProofs);
+        List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>(
+                3);
+        for (Z3Proof subProof : z3Proof.subProofs) {
+            assert (subProof instanceof TransformedZ3Proof);
+            newSubProofs.add((TransformedZ3Proof) subProof);
         }
-
-        assert (numDisequalities <= 1);
-
-        assert (firstFormula.getTerms().size() == 2);
-        Term term1 = firstFormula.getTerms().get(0);
-        assert (lastFormula.getTerms().size() == 2);
-        Term term2 = firstFormula.getTerms().get(1);
-
-        List<Term> newTerms = new ArrayList<Term>();
-        newTerms.add(term1);
-        newTerms.add(term2);
-
-        Formula newFormula = null;
-        try {
-            newFormula = EqualityFormula
-                    .create(newTerms, numDisequalities == 0);
-        } catch (IncomparableTermsException exc) {
-            throw new RuntimeException(
-                    "Incomparable terms while creating transitivity proof.",
-                    exc);
-        }
-
-        TransformedZ3Proof result = new TransformedZ3Proof(
-                SExpressionConstants.TRANSITIVITY, subProofs, newFormula);
-        return result;
+        return new TransformedZ3Proof(z3Proof.proofType, newSubProofs,
+                z3Proof.consequent);
 
     }
 
