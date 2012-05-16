@@ -311,6 +311,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         "Lemma proof with not exactly one child. This should not happen!");
             TransformedZ3Proof hypotheticalProof = new TransformedZ3Proof(
                     z3SubProofs.get(0));
+            hypotheticalProof.toLocalProof();
 
             List<Formula> falseFormula = new ArrayList<Formula>();
             falseFormula.add(new PropositionalConstant(false));
