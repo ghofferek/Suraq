@@ -55,8 +55,10 @@ public class AnnotatedProofNode {
         this.premise2 = premise2;
         this.premise3 = premise3;
 
-        this.hash = premise1.hashCode() ^ premise2.hashCode()
-                ^ premise3.hashCode() ^ consequent.hashCode()
+        this.hash = (premise1 == null ? 0 : premise1.hashCode())
+                ^ (premise2 == null ? 0 : premise2.hashCode())
+                ^ (premise3 == null ? 0 : premise3.hashCode())
+                ^ consequent.hashCode()
                 ^ (new Integer(leftPartition)).toString().hashCode()
                 ^ (new Integer(rightPartition)).toString().hashCode();
     }

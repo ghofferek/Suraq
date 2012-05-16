@@ -262,8 +262,9 @@ public class TransformedZ3Proof extends Z3Proof {
             for (int count = 1; count < z3SubProofs.size() - 1; count++) {
                 List<Formula> newDisjuncts = remainingFormula.getDisjuncts();
 
-                Formula resolutionAssociate = z3SubProofs.get(count)
-                        .getConsequent();
+                Formula resolutionAssociate = Util.getSingleLiteral(z3SubProofs
+                        .get(count).getConsequent()
+                        .transformToConsequentsForm());
 
                 if (!(TransformedZ3Proof.isLiteral(resolutionAssociate)))
                     throw new RuntimeException(
