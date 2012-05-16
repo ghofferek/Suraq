@@ -346,9 +346,10 @@ public class Suraq implements Runnable {
                         rootProof);
                 transformedZ3Proof.toLocalProof();
                 transformedZ3Proof.toResolutionProof();
+                transformedZ3Proof.checkZ3ProofNode();
 
                 try {
-                    File smtfile = new File("proofWithoutLocalNodes.smt2");
+                    File smtfile = new File("proofTemp.txt");
                     FileWriter fstream = new FileWriter(smtfile);
                     BufferedWriter smtfilewriter = new BufferedWriter(fstream);
                     rootProof.resetMarks();
@@ -359,22 +360,6 @@ public class Suraq implements Runnable {
                     exc.printStackTrace();
                     noErrors = false;
                 }
-
-                try {
-                    File smtfile = new File("parsedProof.smt2");
-                    FileWriter fstream = new FileWriter(smtfile);
-                    BufferedWriter smtfilewriter = new BufferedWriter(fstream);
-                    smtfilewriter.write(rootProof.toString());
-                    smtfilewriter.close();
-                } catch (IOException exc) {
-                    System.err.println("Error while writing to smtfile.");
-                    exc.printStackTrace();
-                    noErrors = false;
-                }
-
-                // ResolutionZ3Proof resolutionZ3Proof = new ResolutionZ3Proof(
-                // transformedZ3Proof);
-                // System.out.println(resolutionZ3Proof);
 
                 Set<Integer> partitions = rootProof.getAssertPartition();
                 System.out.println("partitions" + partitions);
