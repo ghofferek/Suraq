@@ -361,9 +361,9 @@ public class ArrayRead extends DomainTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
-        Set<Integer> partitions = arrayTerm.getAssertPartition();
-        partitions.addAll(indexTerm.getAssertPartition());
+    public Set<Integer> getPartitionsFromSymbols() {
+        Set<Integer> partitions = arrayTerm.getPartitionsFromSymbols();
+        partitions.addAll(indexTerm.getPartitionsFromSymbols());
 
         return partitions;
     }

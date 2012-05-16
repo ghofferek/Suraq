@@ -361,7 +361,7 @@ public class Suraq implements Runnable {
                     noErrors = false;
                 }
 
-                Set<Integer> partitions = rootProof.getAssertPartition();
+                Set<Integer> partitions = rootProof.getPartitionsFromSymbols();
                 System.out.println("partitions" + partitions);
             }
 

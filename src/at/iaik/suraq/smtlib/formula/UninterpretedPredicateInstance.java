@@ -353,11 +353,11 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
+    public Set<Integer> getPartitionsFromSymbols() {
         Set<Integer> partitions = function.getAssertPartition();
 
         for (DomainTerm term : parameters)
-            partitions.addAll(term.getAssertPartition());
+            partitions.addAll(term.getPartitionsFromSymbols());
 
         return partitions;
     }

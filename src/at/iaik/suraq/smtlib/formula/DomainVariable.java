@@ -286,7 +286,7 @@ public class DomainVariable extends DomainTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
+    public Set<Integer> getPartitionsFromSymbols() {
         Set <Integer> partitions = new TreeSet<Integer>();
         partitions.add(assertPartition);
     	return partitions;

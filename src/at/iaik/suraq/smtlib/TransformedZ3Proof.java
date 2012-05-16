@@ -446,7 +446,8 @@ public class TransformedZ3Proof extends Z3Proof {
         if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
             Formula literal = ((OrFormula) (this.consequent)).getDisjuncts()
                     .iterator().next();
-            Set<Integer> partitions = literal.getAssertPartition();
+            Set<Integer> partitions = literal.getPartitionsFromSymbols();
+            assert (partitions.size() > 0);
             if (partitions.size() > 2)
                 throw new RuntimeException(
                         "Asserted literal seems to come from more than one partitions. This should not happen!");
@@ -454,7 +455,11 @@ public class TransformedZ3Proof extends Z3Proof {
             Iterator<Integer> iterator = partitions.iterator();
             do {
                 partition = iterator.next();
-            } while (partition < 0);
+            } while (partition < 0 && iterator.hasNext());
+
+            if (partition < 0)
+                partition = 1; // put global stuff in partition 1 (arbitrary
+                               // choice)
 
             AnnotatedProofNode annotatedNode = new AnnotatedProofNode(
                     partition, partition, this, null, null, null);
@@ -531,7 +536,7 @@ public class TransformedZ3Proof extends Z3Proof {
         DomainTerm rightTerm = (DomainTerm) eqLiteral.getTerms().get(
                 eqLiteral.getTerms().size() - 1);
 
-        Set<Integer> leftPartitions = leftTerm.getAssertPartition();
+        Set<Integer> leftPartitions = leftTerm.getPartitionsFromSymbols();
         assert (leftPartitions.size() <= 2);
         int leftPartition;
         Iterator<Integer> leftIterator = leftPartitions.iterator();
@@ -539,7 +544,7 @@ public class TransformedZ3Proof extends Z3Proof {
             leftPartition = leftIterator.next();
         } while (leftPartition < 0);
 
-        Set<Integer> rightPartitions = rightTerm.getAssertPartition();
+        Set<Integer> rightPartitions = rightTerm.getPartitionsFromSymbols();
         assert (rightPartitions.size() <= 2);
         int rightPartition;
         Iterator<Integer> rightIterator = rightPartitions.iterator();

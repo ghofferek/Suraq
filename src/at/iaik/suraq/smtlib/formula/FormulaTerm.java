@@ -251,8 +251,8 @@ public class FormulaTerm extends PropositionalTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
-        return formula.getAssertPartition();
+    public Set<Integer> getPartitionsFromSymbols() {
+        return formula.getPartitionsFromSymbols();
     }
 
     /**

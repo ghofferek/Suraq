@@ -12,7 +12,7 @@ public interface SMTLibObject {
      * @return assert-partition of the element.
      * contains -1, iff global elements are present.
      */
-    public Set<Integer> getAssertPartition(); 
+    public Set<Integer> getPartitionsFromSymbols(); 
     
     /**
      * Converts this formula into an s-expression compatible with SMTLIBv2. Only

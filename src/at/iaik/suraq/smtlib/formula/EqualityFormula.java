@@ -463,11 +463,11 @@ public abstract class EqualityFormula implements Formula {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
+    public Set<Integer> getPartitionsFromSymbols() {
         Set<Integer> partitions = new TreeSet<Integer>();
 
         for (Term term : terms)
-            partitions.addAll(term.getAssertPartition());
+            partitions.addAll(term.getPartitionsFromSymbols());
 
         return partitions;
     }

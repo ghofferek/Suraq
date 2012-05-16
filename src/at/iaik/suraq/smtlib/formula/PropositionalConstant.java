@@ -244,8 +244,10 @@ public class PropositionalConstant extends PropositionalTerm {
     }
 
     @Override
-    public Set<Integer> getAssertPartition() {
-        return new TreeSet<Integer>();
+    public Set<Integer> getPartitionsFromSymbols() {
+        Set<Integer> partitions = new TreeSet<Integer>();
+        partitions.add(-1);
+        return partitions;
     }
 
     /**

@@ -398,9 +398,9 @@ public class NotFormula extends BooleanCombinationFormula {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
+    public Set<Integer> getPartitionsFromSymbols() {
 
-        return formula.getAssertPartition();
+        return formula.getPartitionsFromSymbols();
     }
 
     /**

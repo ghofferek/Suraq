@@ -271,6 +271,6 @@ public abstract class Term {
      * 
      * @return assert-partition of the element.
      */
-    public abstract Set<Integer> getAssertPartition();
+    public abstract Set<Integer> getPartitionsFromSymbols();
 
 }

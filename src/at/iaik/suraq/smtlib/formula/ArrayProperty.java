@@ -616,12 +616,12 @@ public class ArrayProperty implements Formula {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
-        Set<Integer> partitions = this.indexGuard.getAssertPartition();
-        partitions.addAll(this.valueConstraint.getAssertPartition());
+    public Set<Integer> getPartitionsFromSymbols() {
+        Set<Integer> partitions = this.indexGuard.getPartitionsFromSymbols();
+        partitions.addAll(this.valueConstraint.getPartitionsFromSymbols());
 
         for (DomainVariable var : uVars)
-            partitions.addAll(var.getAssertPartition());
+            partitions.addAll(var.getPartitionsFromSymbols());
 
         return partitions;
     }

@@ -413,7 +413,7 @@ public abstract class SMTLibParser extends Parser {
 		
     	for(PropositionalVariable var : boolVariables)
     		if(var.equals(new PropositionalVariable((Token)expression))){
-    			Set<Integer> partitions = var.getAssertPartition();		
+    			Set<Integer> partitions = var.getPartitionsFromSymbols();		
     			return partitions.iterator().next();
     		}
     			
@@ -431,7 +431,7 @@ public abstract class SMTLibParser extends Parser {
     private int getPartitionDomainVariable(SExpression expression) {
     	for(DomainVariable var : domainVariables)
     		if(var.equals(new DomainVariable((Token)expression))){
-    			Set<Integer> partitions = var.getAssertPartition();		
+    			Set<Integer> partitions = var.getPartitionsFromSymbols();		
     			return partitions.iterator().next();
     		}
     			
@@ -449,7 +449,7 @@ public abstract class SMTLibParser extends Parser {
     private int getPartitionArrayVariable(SExpression expression) {
     	for(ArrayVariable var : arrayVariables)
     		if(var.equals(new ArrayVariable((Token)expression))){
-    			Set<Integer> partitions = var.getAssertPartition();		
+    			Set<Integer> partitions = var.getPartitionsFromSymbols();		
     			return partitions.iterator().next();
     		}
     			

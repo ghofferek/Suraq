@@ -378,11 +378,11 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
+    public Set<Integer> getPartitionsFromSymbols() {
         Set<Integer> partitions = new TreeSet<Integer>();
 
         for (Formula formula : formulas)
-            partitions.addAll(formula.getAssertPartition());
+            partitions.addAll(formula.getPartitionsFromSymbols());
         return partitions;
     }
 

@@ -399,11 +399,11 @@ public class TermFunctionMacroInstance extends DomainTerm {
      * @return assert-partition of the element.
      */
     @Override
-    public Set<Integer> getAssertPartition() {
+    public Set<Integer> getPartitionsFromSymbols() {
         Set<Integer> partitions = macro.getAssertPartition();
 
         for (Term term : paramMap.values())
-            partitions.addAll(term.getAssertPartition());
+            partitions.addAll(term.getPartitionsFromSymbols());
 
         return partitions;
     }

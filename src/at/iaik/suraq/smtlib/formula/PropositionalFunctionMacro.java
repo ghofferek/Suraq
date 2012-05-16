@@ -284,6 +284,6 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      */
     @Override
     public Set<Integer> getAssertPartition() {
-        return body.getAssertPartition();
+        return body.getPartitionsFromSymbols();
     }
 }
