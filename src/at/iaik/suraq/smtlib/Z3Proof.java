@@ -14,12 +14,16 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.DomainEq;
+import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalEq;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.Util;
 
@@ -570,8 +574,6 @@ public class Z3Proof implements SMTLibObject {
      */
     public boolean checkZ3ProofNode() {
 
-        System.out.println("Proofing z3 node with Z3 solver...");
-
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
 
         if (this.subProofs.size() > 0) {
@@ -583,16 +585,19 @@ public class Z3Proof implements SMTLibObject {
             conjuncts.add(new NotFormula(this.consequent));
             Formula formulaToCheck = new AndFormula(conjuncts);
 
-            z3.solve(formulaToCheck.toString());
+            String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
+            String formulaSmtStr = buildSMTDescription(declarationStr,
+                    formulaToCheck.toString());
+
+            z3.solve(formulaSmtStr);
 
             switch (z3.getState()) {
             case SMTSolver.UNSAT:
-                System.out.println("....z3 tells us UNSAT, node is valid");
                 break;
             case SMTSolver.SAT:
                 throw new RuntimeException(
-                        "....z3 tells us SAT, node is NOT valid.");
-
+                        "Error while testing vality of Z3-node with Z3-solver: \n"
+                                + "z3 tells us SAT, node is NOT valid.");
             default:
                 System.out
                         .println("....Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
@@ -605,6 +610,72 @@ public class Z3Proof implements SMTLibObject {
 
         }
         return true;
+    }
+
+    /**
+     * Writes the declarations of all domain variables, propositional variables,
+     * uninterpreted functions, as well as the definition of all macros in
+     * <code>formula</code>.
+     * 
+     * @param formula
+     *            The formula for which to write the definitions.
+     * @return the declaration
+     */
+    protected String makeDeclarationsAndDefinitions(Formula formula) {
+
+        Set<SExpression> outputExpressions = new HashSet<SExpression>();
+
+        for (PropositionalVariable var : formula.getPropositionalVariables())
+            outputExpressions
+                    .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
+                            SExpressionConstants.BOOL_TYPE, 0));
+
+        for (DomainVariable var : formula.getDomainVariables())
+            outputExpressions.add(SExpression.makeDeclareFun(
+                    (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
+                    0));
+
+        for (UninterpretedFunction function : formula
+                .getUninterpretedFunctions())
+            outputExpressions.add(SExpression.makeDeclareFun(
+                    function.getName(), function.getType(),
+                    function.getNumParams()));
+
+        for (FunctionMacro macro : this.consequent.getFunctionMacros())
+            outputExpressions.add(macro.toSmtlibV2());
+
+        String declarationsStr = "";
+        for (SExpression declaration : outputExpressions)
+            declarationsStr += declaration.toString();
+
+        return declarationsStr;
+    }
+
+    /**
+     * Creates an SMT description for a given formula
+     * 
+     * @param declarationStr
+     *            declarations of the SMT description
+     * @param formulaStr
+     *            formula to be checked
+     * @return SMT description
+     * 
+     */
+    protected String buildSMTDescription(String declarationStr,
+            String formulaStr) {
+        String smtStr = "";
+
+        smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+        smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+
+        smtStr += declarationStr;
+
+        smtStr += "(assert" + formulaStr + ")";
+
+        smtStr += SExpressionConstants.CHECK_SAT.toString();
+        smtStr += SExpressionConstants.EXIT.toString();
+
+        return smtStr;
     }
 
 }

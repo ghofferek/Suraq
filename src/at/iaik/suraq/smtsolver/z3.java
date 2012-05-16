@@ -28,8 +28,8 @@ public class z3 extends SMTSolver {
      *            base-path to the Z3 distribution.
      */
     public z3(String solverBasePath) {
-    	z3Path = solverBasePath;
-    } 
+        z3Path = solverBasePath;
+    }
 
     /**
      * @see at.iaik.suraq.smtsolver.SMTSolver#solveStr(String)
@@ -37,55 +37,57 @@ public class z3 extends SMTSolver {
     @Override
     public void solve(String smtStr) {
         String executionPath = z3Path;
-        
-        if(System.getProperty("os.name").toLowerCase().contains("windows"))
-        	executionPath = executionPath.concat(" /smt2 /in");
-        else
-        	executionPath = executionPath.concat(" -smt2 -in");
 
-        ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath, smtStr);
-        
+        if (System.getProperty("os.name").toLowerCase().contains("windows"))
+            executionPath = executionPath.concat(" /smt2 /in");
+        else
+            executionPath = executionPath.concat(" -smt2 -in");
+
+        ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
+                smtStr);
+
         String[] lines = pResult.getOutputStream().split("\n");
         StringBuffer proofBuffer = new StringBuffer();
-        
-        for(String line : lines){
-           if (!line.equals("success") 
-        		   && !line.equals("sat")
-                   && !line.equals("unsat")) {
-               proofBuffer.append(line + "\n");
-           }
-           if (line.equals("sat"))
-               state = SMTSolver.SAT;
-           else if (line.equals("unsat"))
-               state = SMTSolver.UNSAT;
+
+        for (String line : lines) {
+            if (!line.equals("success") && !line.equals("sat")
+                    && !line.equals("unsat")) {
+                proofBuffer.append(line + "\n");
+            }
+            if (line.equals("sat"))
+                state = SMTSolver.SAT;
+            else if (line.equals("unsat"))
+                state = SMTSolver.UNSAT;
         }
-        
+
         if (state == SMTSolver.NOT_RUN)
-          state = SMTSolver.UNKNOWN;
+            state = SMTSolver.UNKNOWN;
 
         if (state == SMTSolver.UNSAT)
-          this.proof = proofBuffer.toString();
-    
-        System.out.println("EXIT CODE: " + pResult.getExitCode());
-        System.out.println("ERROR from Z3:" + pResult.getErrorStream());
+            this.proof = proofBuffer.toString();
+
+        if (pResult.getExitCode() != 0) {
+            System.out.println("EXIT CODE: " + pResult.getExitCode());
+            System.out.println("ERROR from Z3:" + pResult.getErrorStream());
+        }
     }
- 
-    
+
     /**
      * @see at.iaik.suraq.smtsolver.SMTSolver#simplify(String)
      */
     @Override
     public String simplify(String smtStr) {
         String executionPath = z3Path;
-        if(System.getProperty("os.name").toLowerCase().contains("windows"))
-        	executionPath = executionPath.concat(" /smt2 /in");
+        if (System.getProperty("os.name").toLowerCase().contains("windows"))
+            executionPath = executionPath.concat(" /smt2 /in");
         else
-        	executionPath = executionPath.concat(" -smt2 -in");
-        
-        ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath, smtStr);
-             
+            executionPath = executionPath.concat(" -smt2 -in");
+
+        ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
+                smtStr);
+
         System.out.println("EXIT CODE: " + pResult.getExitCode());
-        System.out.println("ERROR from Z3: "+ pResult.getErrorStream()); 
+        System.out.println("ERROR from Z3: " + pResult.getErrorStream());
 
         return pResult.getOutputStream();
     }

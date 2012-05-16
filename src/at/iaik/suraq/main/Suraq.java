@@ -341,8 +341,12 @@ public class Suraq implements Runnable {
                 // rootProof.removeLocalSubProofs();
                 // rootProof.dealWithModusPonens();
 
+                rootProof.checkZ3ProofNode();
+
                 TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                         rootProof);
+
+                transformedZ3Proof.checkZ3ProofNode();
 
                 try {
                     File smtfile = new File("proofWithoutLocalNodes.smt2");
