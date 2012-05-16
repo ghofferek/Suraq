@@ -315,26 +315,33 @@ public class TransformedZ3Proof extends Z3Proof {
             if (z3SubProofs.size() != 1)
                 throw new RuntimeException(
                         "Lemma proof with not exactly one child. This should not happen!");
-            TransformedZ3Proof hypotheticalProof = new TransformedZ3Proof(
-                    z3SubProofs.get(0));
-            hypotheticalProof.toLocalProof();
-            // transformToResolutionProof();
+
+            Z3Proof hypotheticalProof = z3SubProofs.get(0);
+
+            hypotheticalProof.localLemmasToAssertions();
+            hypotheticalProof.removeLocalSubProofs();
+            hypotheticalProof.dealWithModusPonens();
+            TransformedZ3Proof transformedHypotheticalProof = new TransformedZ3Proof(
+                    hypotheticalProof);
+            transformedHypotheticalProof.toLocalProof();
+            transformedHypotheticalProof.toResolutionProof();
 
             List<Formula> falseFormula = new ArrayList<Formula>();
             falseFormula.add(new PropositionalConstant(false));
-            if (!hypotheticalProof.consequent
-                    .equals(new OrFormula(falseFormula)))
+            if (!transformedHypotheticalProof.consequent.equals(new OrFormula(
+                    falseFormula)))
                 throw new RuntimeException(
                         "Hypothetical proof (antecedent of lemma) does not prove false, but: "
-                                + hypotheticalProof.consequent.toString());
+                                + transformedHypotheticalProof.consequent
+                                        .toString());
 
             Map<TransformedZ3Proof, TransformedZ3Proof> parents = new HashMap<TransformedZ3Proof, TransformedZ3Proof>();
-            hypotheticalProof.removeHypotheses(parents);
+            transformedHypotheticalProof.removeHypotheses(parents);
 
-            this.proofType = hypotheticalProof.proofType;
-            this.subProofs = hypotheticalProof.subProofs;
-            this.consequent = hypotheticalProof.consequent;
-            this.literal = hypotheticalProof.literal;
+            this.proofType = transformedHypotheticalProof.proofType;
+            this.subProofs = transformedHypotheticalProof.subProofs;
+            this.consequent = transformedHypotheticalProof.consequent;
+            this.literal = transformedHypotheticalProof.literal;
             return;
 
         } else {
@@ -1384,6 +1391,143 @@ public class TransformedZ3Proof extends Z3Proof {
         if (formula instanceof UninterpretedPredicateInstance)
             return true;
         return false;
+    }
+
+    /**
+     * Transforms a proof with transitivity, monotonicity, resolution and
+     * symmetry into a pure resolution proof
+     */
+    public void toResolutionProof() {
+        if (this.proofType.equals(SExpressionConstants.TRANSITIVITY)) {
+
+            if (this.subProofs.size() != 2)
+                throw new RuntimeException(
+                        "Transitivity proof with not exactly two children. This should not happen!");
+
+            TransformedZ3Proof subProof1 = (TransformedZ3Proof) this.subProofs
+                    .get(0);
+            TransformedZ3Proof subProof2 = (TransformedZ3Proof) this.subProofs
+                    .get(1);
+
+            List<Formula> axiomParts = new ArrayList<Formula>();
+            axiomParts.add((new NotFormula(subProof1.getConsequent()))
+                    .transformToConsequentsForm());
+            axiomParts.add((new NotFormula(subProof2.getConsequent()))
+                    .transformToConsequentsForm());
+            axiomParts.add(this.consequent);
+            OrFormula axiomFormula = new OrFormula(axiomParts);
+
+            List<Formula> intermediateResultParts = new ArrayList<Formula>();
+            intermediateResultParts.add((new NotFormula(subProof2
+                    .getConsequent())).transformToConsequentsForm());
+            intermediateResultParts.add(this.getConsequent());
+            OrFormula intermediateResultFormula = new OrFormula(
+                    intermediateResultParts);
+
+            // Recursion for subproofs
+            subProof1.toResolutionProof();
+            subProof2.toResolutionProof();
+
+            // Putting things together
+
+            TransformedZ3Proof axiom = new TransformedZ3Proof(
+                    SExpressionConstants.ASSERTED,
+                    new ArrayList<TransformedZ3Proof>(),
+                    axiomFormula.transformToConsequentsForm());
+
+            TransformedZ3Proof firstResolutionStep = new TransformedZ3Proof(
+                    SExpressionConstants.RESOLUTION, subProof1, axiom,
+                    subProof1.getConsequent().transformToConsequentsForm(),
+                    intermediateResultFormula.transformToConsequentsForm());
+
+            this.subProofs = new ArrayList<Z3Proof>();
+            this.subProofs.add(subProof2);
+            this.subProofs.add(firstResolutionStep);
+            this.literal = subProof2.getConsequent(); // TODO: check if form of
+                                                      // literal is ok!
+            this.consequent = this.getConsequent();
+            this.proofType = SExpressionConstants.RESOLUTION;
+
+            return;
+
+        } else if (this.proofType.equals(SExpressionConstants.MONOTONICITY)) {
+
+            if (this.subProofs.size() < 1)
+                throw new RuntimeException(
+                        "Monotonicity proof with less than one child. This should not happen!");
+
+            List<Formula> axiomParts = new ArrayList<Formula>();
+            for (Z3Proof subProof : this.subProofs)
+                axiomParts.add((new NotFormula(subProof.getConsequent()))
+                        .transformToConsequentsForm());
+
+            axiomParts.add(this.consequent);
+            OrFormula axiomFormula = new OrFormula(axiomParts);
+
+            TransformedZ3Proof remainingAxiom = new TransformedZ3Proof(
+                    SExpressionConstants.ASSERTED,
+                    new ArrayList<TransformedZ3Proof>(), null,
+                    axiomFormula.transformToConsequentsForm());
+
+            for (int count = 0; count < this.subProofs.size() - 1; count++) {
+
+                TransformedZ3Proof currentEquality = (TransformedZ3Proof) this.subProofs
+                        .get(count);
+                currentEquality.toResolutionProof();
+                axiomParts.remove(0);
+
+                remainingAxiom = new TransformedZ3Proof(
+                        SExpressionConstants.RESOLUTION, currentEquality,
+                        remainingAxiom, this.subProofs.get(count)
+                                .getConsequent().transformToConsequentsForm(),
+                        (new OrFormula(axiomParts))
+                                .transformToConsequentsForm());
+            }
+
+            TransformedZ3Proof currentEquality = (TransformedZ3Proof) this.subProofs
+                    .get(this.subProofs.size() - 1);
+            currentEquality.toResolutionProof();
+
+            this.subProofs = new ArrayList<Z3Proof>();
+            this.subProofs.add(currentEquality);
+            this.subProofs.add(remainingAxiom);
+
+            this.literal = currentEquality.getConsequent()
+                    .transformToConsequentsForm();
+
+            this.proofType = SExpressionConstants.RESOLUTION;
+            return;
+
+        } else if (proofType.equals(SExpressionConstants.RESOLUTION)) {
+            return;
+
+        } else if (proofType.equals(SExpressionConstants.SYMMETRY)) {
+            // Ignore symmetry. a=b and b=a should be treated as the
+            // same object by later steps anyway.
+            // NOTE (GH): Not sure if this is actually a correct assumption.
+
+            if (this.subProofs.size() != 1)
+                throw new RuntimeException(
+                        "Symmetry proof with not exactly one child. This should not happen!");
+
+            TransformedZ3Proof z3SubProof = (TransformedZ3Proof) this.subProofs
+                    .get(0);
+            z3SubProof.toLocalProof();
+
+            this.consequent = z3SubProof.consequent;
+            this.subProofs = z3SubProof.subProofs;
+            this.literal = z3SubProof.literal;
+            this.proofType = z3SubProof.proofType;
+            return;
+
+        } else if (proofType.equals(SExpressionConstants.ASSERTED)) {
+            return;
+
+        } else {
+            throw new RuntimeException("Encountered unexpected proof rule "
+                    + proofType.toString()
+                    + " while trying to rewrite z3 proof.");
+        }
     }
 
     /**

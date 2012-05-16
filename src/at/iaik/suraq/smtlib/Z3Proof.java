@@ -729,5 +729,4 @@ public class Z3Proof implements SMTLibObject {
 
         return smtStr;
     }
-
 }

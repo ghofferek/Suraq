@@ -336,9 +336,17 @@ public class Suraq implements Runnable {
                     noErrors = false;
                     return;
                 }
+
+                // Main Flow
                 Z3Proof rootProof = proofParser.getRootProof();
                 rootProof.localLemmasToAssertions();
                 rootProof.removeLocalSubProofs();
+                rootProof.dealWithModusPonens();
+                TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
+                        rootProof);
+                transformedZ3Proof.toLocalProof();
+                transformedZ3Proof.toResolutionProof();
+
                 try {
                     File smtfile = new File("proofWithoutLocalNodes.smt2");
                     FileWriter fstream = new FileWriter(smtfile);
@@ -351,7 +359,6 @@ public class Suraq implements Runnable {
                     exc.printStackTrace();
                     noErrors = false;
                 }
-                rootProof.dealWithModusPonens();
 
                 try {
                     File smtfile = new File("parsedProof.smt2");
@@ -364,13 +371,6 @@ public class Suraq implements Runnable {
                     exc.printStackTrace();
                     noErrors = false;
                 }
-
-                rootProof.checkZ3ProofNode();
-
-                TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
-                        rootProof);
-
-                transformedZ3Proof.checkZ3ProofNode();
 
                 // ResolutionZ3Proof resolutionZ3Proof = new ResolutionZ3Proof(
                 // transformedZ3Proof);
