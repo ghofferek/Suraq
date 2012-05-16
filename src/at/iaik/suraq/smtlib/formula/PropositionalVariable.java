@@ -28,11 +28,6 @@ public class PropositionalVariable extends PropositionalTerm {
     private final String varName;
 
     /**
-     * The assert-partitions
-     */
-    protected int assertPartition = Term.GLOBAL_PARTITION;
-
-    /**
      * 
      * Constructs a new <code>PropositionalVariable</code>.
      * 
@@ -114,7 +109,8 @@ public class PropositionalVariable extends PropositionalTerm {
      */
     @Override
     public Formula deepFormulaCopy() {
-        return new PropositionalVariable(new String(varName));
+        return new PropositionalVariable(new String(varName),
+                this.assertPartition);
     }
 
     /**
@@ -122,7 +118,8 @@ public class PropositionalVariable extends PropositionalTerm {
      */
     @Override
     public Term deepTermCopy() {
-        return new PropositionalVariable(new String(varName));
+        return new PropositionalVariable(new String(varName),
+                this.assertPartition);
     }
 
     /**
@@ -304,7 +301,7 @@ public class PropositionalVariable extends PropositionalTerm {
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
         Set<Integer> partitions = new TreeSet<Integer>();
-        partitions.add(-1);
+        partitions.add(this.assertPartition);
         return partitions;
     }
 

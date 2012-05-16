@@ -47,7 +47,6 @@ public class DomainVariable extends DomainTerm {
         this.varName = name.toString();
     }
 
-    
     /**
      * 
      * Constructs a new <code>DomainVariable</code>.
@@ -56,12 +55,12 @@ public class DomainVariable extends DomainTerm {
      *            the <code>String</code> representing the variable name.
      * @param assertPartition
      *            the assert partition of the <code>DomainVariable</code>.
-     */    
+     */
     public DomainVariable(String name, int assertPartition) {
         this.varName = name;
         this.assertPartition = assertPartition;
     }
-    
+
     /**
      * 
      * Constructs a new <code>DomainVariable</code>.
@@ -70,11 +69,11 @@ public class DomainVariable extends DomainTerm {
      *            the <code>Token</code> representing the variable name.
      * @param assertPartition
      *            the assert partition of the <code>DomainVariable</code>.
-     */    
+     */
     public DomainVariable(Token name, int assertPartition) {
         this.varName = name.toString();
         this.assertPartition = assertPartition;
-    }    
+    }
 
     /**
      * Get the variable name.
@@ -116,7 +115,7 @@ public class DomainVariable extends DomainTerm {
      */
     @Override
     public DomainTerm deepTermCopy() {
-        return new DomainVariable(new String(varName));
+        return new DomainVariable(new String(varName), this.assertPartition);
     }
 
     /**
@@ -287,9 +286,9 @@ public class DomainVariable extends DomainTerm {
      */
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
-        Set <Integer> partitions = new TreeSet<Integer>();
+        Set<Integer> partitions = new TreeSet<Integer>();
         partitions.add(assertPartition);
-    	return partitions;
+        return partitions;
     }
 
 }

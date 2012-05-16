@@ -56,16 +56,6 @@ public class ProofParser extends SMTLibParser {
         this.functions = uninterpretedFunctions;
         this.rootExpr = root;
 
-        this.boolVariables.add(new PropositionalVariable("a"));
-        this.boolVariables.add(new PropositionalVariable("b"));
-        this.boolVariables.add(new PropositionalVariable("c"));
-        this.boolVariables.add(new PropositionalVariable("d"));
-
-        // proof = "(let ((?x5 (f1 input))) (and a b))";
-        this.functions.add(new UninterpretedFunction("f1", 1,
-                new Token("Value")));
-        this.domainVariables.add(new DomainVariable("input"));
-
     }
 
     /**
@@ -173,7 +163,7 @@ public class ProofParser extends SMTLibParser {
         Token proofType = (Token) expression.getChildren().get(0);
 
         int numChildren = expression.getChildren().size();
-        assert (numChildren <= 2);
+        assert (numChildren >= 2);
 
         int subProofsCount = numChildren - 2;
 

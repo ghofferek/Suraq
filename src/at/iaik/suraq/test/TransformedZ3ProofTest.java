@@ -46,7 +46,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( resolution{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a b ) ) ( or b ))";
+        String expectedOutput = "( |unit-resolution|{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a b ) ) ( or b ))";
 
         Assert.assertEquals(expectedOutput, output);
     }
@@ -72,7 +72,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( resolution{b} ( asserted ( or ( not b ) ) ) ( resolution{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a b c ) ) ( or b c ) ) ( or c ))";
+        String expectedOutput = "( |unit-resolution|{b} ( asserted ( or ( not b ) ) ) ( |unit-resolution|{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a b c ) ) ( or b c ) ) ( or c ))";
 
         Assert.assertEquals(expectedOutput, output);
     }
@@ -90,6 +90,9 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
+        propsitionalVars.add(new PropositionalVariable("a"));
+        propsitionalVars.add(new PropositionalVariable("b"));
+
         String resolution1 = "(|unit-resolution| (asserted (or (not a) b)) (hypothesis a) b )";
         String proof = "(|unit-resolution| " + resolution1
                 + " (hypothesis (not b)) false )";
@@ -97,33 +100,9 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( resolution{b} ( asserted ( or ( not b ) ) ) ( resolution{a} ( asserted ( or a ) ) ( asserted ( or ( not a ) b ) ) ( or b ) ) ( or false ))";
+        String expectedOutput = "( |unit-resolution|{b} ( asserted ( or ( not b ) ) ) ( |unit-resolution|{a} ( asserted ( or a ) ) ( asserted ( or ( not a ) b ) ) ( or b ) ) ( or false ))";
         Assert.assertEquals(expectedOutput, output);
 
-    }
-
-    /**
-     * Tests the transformation of modus-ponens into resolution.
-     */
-
-    @Test
-    public void testModusPonensTransformation() {
-
-        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
-        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
-        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
-        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
-
-        propsitionalVars.add(new PropositionalVariable("p"));
-        propsitionalVars.add(new PropositionalVariable("q"));
-
-        String proof = "(mp (asserted p) (asserted (=> p q)) q)";
-        String output = parseAndTransform(proof, domainVars, propsitionalVars,
-                uninterpretedFunctions, arrayVars);
-
-        String expectedOutput = "( resolution{mpTempLiteral} ( asserted ( or p ) ) ( asserted ( or ( not p ) q ) ) ( or q ))";
-
-        Assert.assertEquals(expectedOutput, output);
     }
 
     /**
@@ -137,18 +116,21 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a"));
-        propsitionalVars.add(new PropositionalVariable("b"));
+        propsitionalVars.add(new PropositionalVariable("a", 1));
+        propsitionalVars.add(new PropositionalVariable("b", 2));
+        propsitionalVars.add(new PropositionalVariable("c"));
 
-        String resolution1 = "(|unit-resolution| (asserted (or (not a) b)) (hypothesis a) b )";
-        String resolution2 = "(|unit-resolution| " + resolution1
-                + " (hypothesis (not b)) false )";
-        String proof = "(lemma  " + resolution2 + " (or (not a) b))";
+        String resolution1 = "(|unit-resolution| (asserted (or (not a) c)) (hypothesis a) c )";
+        String resolution2 = "(|unit-resolution| (asserted (or b (not c))) (hypothesis (not b)) (not c) )";
+        String resolution3 = "(|unit-resolution| " + resolution1 + resolution2
+                + " false)";
+
+        String proof = "(lemma  " + resolution3 + "(or (not a) b))";
 
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( asserted ( or b ( not a ) ))";
+        String expectedOutput = "( |unit-resolution|{c} ( asserted ( or c ( not a ) ) ) ( asserted ( or ( not c ) b ) ) ( or ( not a ) b ))";
 
         Assert.assertEquals(expectedOutput, output);
     }
@@ -164,22 +146,22 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a"));
-        propsitionalVars.add(new PropositionalVariable("b"));
+        propsitionalVars.add(new PropositionalVariable("a12"));
+        propsitionalVars.add(new PropositionalVariable("b12"));
 
-        String resolution1 = "(|unit-resolution| (asserted (not a)) (hypothesis a) false )";
-        String resolution2 = "(|unit-resolution| (hypothesis (not b)) (asserted b) false )";
+        String resolution1 = "(|unit-resolution| (asserted (not a12)) (hypothesis a12) false )";
+        String resolution2 = "(|unit-resolution| (hypothesis (not b12)) (asserted b12) false )";
 
-        String lemma1 = "(lemma  " + resolution1 + " (not a))";
-        String lemma2 = "(lemma  " + resolution2 + " b)";
+        String lemma1 = "(lemma  " + resolution1 + " (not a12))";
+        String lemma2 = "(lemma  " + resolution2 + " b12)";
 
-        String proof = "(|unit-resolution| (asserted (or a (not b))) " + lemma1
-                + " " + lemma2 + " false)";
+        String proof = "(|unit-resolution| (asserted (or a12 (not b12))) "
+                + lemma1 + " " + lemma2 + " false)";
 
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( resolution{b} ( asserted ( or b ) ) ( resolution{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a ( not b ) ) ) ( or ( not b ) ) ) ( or false ))";
+        String expectedOutput = "( |unit-resolution|{b12} ( asserted ( or b12 ) ) ( |unit-resolution|{a12} ( asserted ( or ( not a12 ) ) ) ( asserted ( or a12 ( not b12 ) ) ) ( or ( not b12 ) ) ) ( or false ))";
 
         Assert.assertEquals(expectedOutput, output);
     }

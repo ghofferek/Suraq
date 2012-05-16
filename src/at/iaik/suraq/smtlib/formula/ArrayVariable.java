@@ -51,29 +51,28 @@ public class ArrayVariable extends ArrayTerm {
      * Constructs a new <code>ArrayVariable</code>.
      * 
      * @param name
-     *            the <code>String</code> representing the variable name.           
+     *            the <code>String</code> representing the variable name.
      * @param assertPartition
      *            the assert-partition of the variable
      */
     public ArrayVariable(String name, int assertPartition) {
         this.varName = name;
-        this.assertPartition=assertPartition;
+        this.assertPartition = assertPartition;
     }
-    
+
     /**
      * 
      * Constructs a new <code>ArrayVariable</code>.
      * 
      * @param name
-     *            the <code>Token</code> representing the variable name.           
+     *            the <code>Token</code> representing the variable name.
      * @param assertPartition
      *            the assert-partition of the variable
      */
     public ArrayVariable(Token name, int assertPartition) {
         this.varName = name.toString();
-        this.assertPartition=assertPartition;
+        this.assertPartition = assertPartition;
     }
-    
 
     /**
      * Get the variable name.
@@ -107,7 +106,7 @@ public class ArrayVariable extends ArrayTerm {
      */
     @Override
     public Term deepTermCopy() {
-        return new ArrayVariable(new String(varName));
+        return new ArrayVariable(new String(varName), this.assertPartition);
     }
 
     /**

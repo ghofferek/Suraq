@@ -304,6 +304,22 @@ public class Z3Proof implements SMTLibObject {
         return lemmas;
     }
 
+    public Set<Z3Proof> getHypotheses() {
+
+        Set<Z3Proof> hypotheses = new HashSet<Z3Proof>();
+        if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
+            hypotheses.add(this);
+        }
+        if (this instanceof TransformedZ3Proof) {
+            if (((TransformedZ3Proof) this).isHypothesis())
+                hypotheses.add(this);
+        }
+        for (Z3Proof z3Proofchild : this.subProofs) {
+            hypotheses.addAll(z3Proofchild.getHypotheses());
+        }
+        return hypotheses;
+    }
+
     public void localLemmasToAssertions() {
 
         if (proofType.equals(SExpressionConstants.LEMMA)) {
@@ -344,8 +360,8 @@ public class Z3Proof implements SMTLibObject {
             Set<Integer> symbolPartitions = this.getPartitionsFromSymbols();
             assert (symbolPartitions.size() > 0);
             symbolPartitions.remove(-1);
-            if (symbolPartitions.equals(partitionsFromAsserts)
-                    || symbolPartitions.size() == 0) {
+            if ((symbolPartitions.equals(partitionsFromAsserts) || symbolPartitions
+                    .size() == 0) && this.getHypotheses().size() == 0) {
                 proofType = SExpressionConstants.ASSERTED;
                 this.setAssertPartition();
                 subProofs = new ArrayList<Z3Proof>();
