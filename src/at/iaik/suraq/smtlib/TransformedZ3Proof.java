@@ -263,12 +263,14 @@ public class TransformedZ3Proof extends Z3Proof {
                 Formula resolutionAssociate = z3SubProofs.get(count)
                         .getConsequent();
 
-                if (!(isLiteral(resolutionAssociate)))
+                if (!(TransformedZ3Proof.isLiteral(resolutionAssociate)))
                     throw new RuntimeException(
                             "Resolution associate should be a literal");
 
-                Formula invLiteral = invertLiteral(resolutionAssociate);
-                Formula posLiteral = makeLiteralPositive(resolutionAssociate);
+                Formula invLiteral = TransformedZ3Proof
+                        .invertLiteral(resolutionAssociate);
+                Formula posLiteral = TransformedZ3Proof
+                        .makeLiteralPositive(resolutionAssociate);
 
                 if (!newDisjuncts.remove(invLiteral))
                     throw new RuntimeException(
@@ -293,11 +295,12 @@ public class TransformedZ3Proof extends Z3Proof {
 
             Formula resolutionAssociate = z3SubProofs.get(
                     z3SubProofs.size() - 1).getConsequent();
-            if (!(isLiteral(resolutionAssociate)))
+            if (!(TransformedZ3Proof.isLiteral(resolutionAssociate)))
                 throw new RuntimeException(
                         "Resolution associate should be a literal");
 
-            this.literal = makeLiteralPositive(resolutionAssociate);
+            this.literal = TransformedZ3Proof
+                    .makeLiteralPositive(resolutionAssociate);
 
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
@@ -402,7 +405,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 subProofs.set(0, update);
             }
 
-            if (((Z3Proof) subProofs.get(1)).hasSingleLiteralConsequent()) {
+            if ((subProofs.get(1)).hasSingleLiteralConsequent()) {
                 AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
                         .getNodeWithConsequent(Util.getSingleLiteral(subProofs
                                 .get(1).consequent));
@@ -447,7 +450,7 @@ public class TransformedZ3Proof extends Z3Proof {
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.SYMMETRY)) {
             assert (subProofs.size() == 1);
-            Z3Proof subproof = (Z3Proof) subProofs.get(0);
+            Z3Proof subproof = subProofs.get(0);
             Formula premiseLiteral = ((OrFormula) (subproof.consequent))
                     .getDisjuncts().iterator().next();
             AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
@@ -462,7 +465,7 @@ public class TransformedZ3Proof extends Z3Proof {
                                 + (new Integer(numPremises)).toString());
             if (numPremises == 0) {
                 assert (this.subProofs.size() == 1);
-                Z3Proof premise = (Z3Proof) this.subProofs.get(0);
+                Z3Proof premise = this.subProofs.get(0);
                 assert (premise.hasSingleLiteralConsequent());
                 TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                         annotatedNode.getPartition(), annotatedNode
@@ -536,7 +539,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             for (int count = 0; count < subProofs.size(); count++) {
                 assert (subProofs.get(count) instanceof TransformedZ3Proof);
-                Z3Proof subProof = (Z3Proof) subProofs.get(count);
+                Z3Proof subProof = subProofs.get(count);
                 AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
                         .getNodeWithConsequent(subProof.consequent);
                 if (currentAnnotatedNode.numPremises() == 3) {
@@ -559,7 +562,7 @@ public class TransformedZ3Proof extends Z3Proof {
         List<AnnotatedProofNode> currentAnnotatedNodes = new ArrayList<AnnotatedProofNode>();
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
-            Z3Proof subProof = (Z3Proof) child;
+            Z3Proof subProof = child;
             AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
                     .getNodeWithConsequent(subProof.consequent);
             assert (currentAnnotatedNode != null);
@@ -1031,13 +1034,13 @@ public class TransformedZ3Proof extends Z3Proof {
         Formula literal = ((OrFormula) (premise.consequent)).getDisjuncts()
                 .iterator().next();
         assert (literal instanceof EqualityFormula);
-        assert (((EqualityFormula) literal).isEqual());
+        boolean equal = ((EqualityFormula) literal).isEqual();
 
         List<Term> terms = ((EqualityFormula) literal).getTerms();
         Collections.reverse(terms);
         Formula consequentFormula = null;
         try {
-            consequentFormula = EqualityFormula.create(terms, true);
+            consequentFormula = EqualityFormula.create(terms, equal);
             consequentFormula = consequentFormula.transformToConsequentsForm();
             assert (consequentFormula != null);
         } catch (IncomparableTermsException exc) {
@@ -1089,10 +1092,21 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (subProofs.size() == 2 || subProofs.size() == 3);
         assert (subProofs.get(0).consequent instanceof EqualityFormula);
         assert (subProofs.get(1).consequent instanceof EqualityFormula);
+        assert (subProofs.size() == 3 ? subProofs.get(2).consequent instanceof EqualityFormula
+                : true);
 
         EqualityFormula firstFormula = (EqualityFormula) subProofs.get(0).consequent;
         EqualityFormula lastFormula = (EqualityFormula) subProofs.get(subProofs
                 .size() - 1).consequent;
+
+        int numDisequalities = 0;
+        for (TransformedZ3Proof child : subProofs) {
+            EqualityFormula consequent = (EqualityFormula) child.consequent;
+            if (!consequent.isEqual())
+                numDisequalities++;
+        }
+
+        assert (numDisequalities <= 1);
 
         assert (firstFormula.getTerms().size() == 2);
         Term term1 = firstFormula.getTerms().get(0);
@@ -1105,7 +1119,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
         Formula newFormula = null;
         try {
-            newFormula = EqualityFormula.create(newTerms, true);
+            newFormula = EqualityFormula
+                    .create(newTerms, numDisequalities == 0);
         } catch (IncomparableTermsException exc) {
             throw new RuntimeException(
                     "Incomparable terms while creating transitivity proof.",
@@ -1335,14 +1350,14 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private static Formula makeLiteralPositive(Formula literal) {
 
-        if (!isLiteral(literal))
+        if (!TransformedZ3Proof.isLiteral(literal))
             throw new RuntimeException("given formula should be an literal");
 
         if (literal instanceof NotFormula) {
             literal = ((NotFormula) literal).getNegatedFormula();
         }
 
-        if (!isAtom(literal))
+        if (!TransformedZ3Proof.isAtom(literal))
             throw new RuntimeException("given literal should be an atom");
         return literal;
     }
@@ -1357,7 +1372,7 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private static Formula invertLiteral(Formula literal) {
 
-        if (!isLiteral(literal))
+        if (!TransformedZ3Proof.isLiteral(literal))
             throw new RuntimeException("given formula should be an literal");
 
         if (literal instanceof NotFormula) {
@@ -1378,9 +1393,9 @@ public class TransformedZ3Proof extends Z3Proof {
     private static boolean isLiteral(Formula formula) {
         if (formula instanceof NotFormula) {
             Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
-            return isAtom(negatedFormula);
+            return TransformedZ3Proof.isAtom(negatedFormula);
         }
-        return isAtom(formula);
+        return TransformedZ3Proof.isAtom(formula);
     }
 
     /**

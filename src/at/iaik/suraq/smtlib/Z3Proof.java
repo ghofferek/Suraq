@@ -341,6 +341,19 @@ public class Z3Proof implements SMTLibObject {
         if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
             assert (subProofs.size() == 2);
             Z3Proof child1 = subProofs.get(0);
+            if (Util.checkForFlippedDisequality(this.consequent,
+                    child1.consequent)) {
+                // TransformedZ3Proof premise = new
+                // TransformedZ3Proof(SExpressionConstants.ASSERTED, new
+                // ArrayList<TransformedZ3Proof>(), child1.consequent);
+                // TransformedZ3Proof symmProof =
+                // TransformedZ3Proof.createSymmetrieProof(premise);
+                this.subProofs.clear();
+                this.subProofs.add(child1);
+                this.proofType = SExpressionConstants.SYMMETRY;
+                child1.dealWithModusPonens();
+                return;
+            }
             assert (child1.hasSingleLiteralConsequent());
             Formula literal1 = Util.getSingleLiteral(child1.consequent);
 
@@ -416,6 +429,8 @@ public class Z3Proof implements SMTLibObject {
      *         single literal.
      */
     protected boolean hasSingleLiteralConsequent() {
+        if (!(this.consequent instanceof OrFormula))
+            return false;
         OrFormula consequent = (OrFormula) this.consequent;
         return consequent.getDisjuncts().size() == 1;
     }

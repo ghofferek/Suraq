@@ -277,4 +277,55 @@ public class Util {
             return result;
         }
     }
+
+    /**
+     * @param formula1
+     * @param formula2
+     * @return <code>true</code> iff the two formulas are of the form a!=b and
+     *         b!=a.
+     */
+    public static boolean checkForFlippedDisequality(Formula formula1,
+            Formula formula2) {
+        if (!Util.isSingleLiteral(formula1))
+            return false;
+        if (!Util.isSingleLiteral(formula2))
+            return false;
+
+        Formula literal1 = Util.getSingleLiteral(formula1);
+        Formula literal2 = Util.getSingleLiteral(formula2);
+
+        if (!(literal1 instanceof DomainEq))
+            return false;
+        if (!(literal2 instanceof DomainEq))
+            return false;
+
+        if (((DomainEq) literal1).isEqual())
+            return false;
+        if (((DomainEq) literal2).isEqual())
+            return false;
+
+        assert (((DomainEq) literal1).getTerms().size() == 2);
+        assert (((DomainEq) literal2).getTerms().size() == 2);
+
+        DomainTerm term1 = (DomainTerm) ((DomainEq) literal1).getTerms().get(0);
+        DomainTerm term2 = (DomainTerm) ((DomainEq) literal1).getTerms().get(1);
+
+        if (!term1.equals(((DomainEq) literal2).getTerms().get(1)))
+            return false;
+        if (!term2.equals(((DomainEq) literal2).getTerms().get(0)))
+            return false;
+
+        return true;
+    }
+
+    /**
+     * @return <code>true</code> if the given formula is only a single literal
+     *         (encapsulated in an OR).
+     */
+    public static boolean isSingleLiteral(Formula formula) {
+        if (!(formula instanceof OrFormula))
+            return false;
+        OrFormula orFormula = (OrFormula) formula;
+        return orFormula.getDisjuncts().size() == 1;
+    }
 }
