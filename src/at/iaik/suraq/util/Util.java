@@ -208,8 +208,9 @@ public class Util {
      * @return the single literal
      */
     public static Formula getSingleLiteral(Formula clause) {
-        assert (clause instanceof OrFormula);
-        List<Formula> disjuncts = ((OrFormula) clause).getDisjuncts();
+        Formula formula = clause.transformToConsequentsForm();
+        assert (formula instanceof OrFormula);
+        List<Formula> disjuncts = ((OrFormula) formula).getDisjuncts();
         assert (disjuncts.size() == 1);
         return disjuncts.get(0);
     }

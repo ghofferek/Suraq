@@ -348,7 +348,7 @@ public class Z3Proof implements SMTLibObject {
 
     public void dealWithModusPonens() {
 
-        if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
+        if (this.proofType.equals(SExpressionConstants.MODUS_PONENS)) {
             assert (subProofs.size() == 2);
             assert (this.hasSingleLiteralConsequent());
             Formula consequentLiteral = Util.getSingleLiteral(consequent);
@@ -377,8 +377,8 @@ public class Z3Proof implements SMTLibObject {
                     child2 = child2.subProofs.get(0);
                 else {
                     assert (child2.subProofs.size() == 2);
-                    child2 = subProofs.get(0);
-                    child3 = subProofs.get(1);
+                    child3 = child2.subProofs.get(1);
+                    child2 = child2.subProofs.get(0);
                     assert (child2.hasSingleLiteralConsequent());
                     assert (child3.hasSingleLiteralConsequent());
                     break;
@@ -503,9 +503,11 @@ public class Z3Proof implements SMTLibObject {
      *         single literal.
      */
     protected boolean hasSingleLiteralConsequent() {
-        if (!(this.consequent instanceof OrFormula))
+
+        Formula formula = this.consequent.transformToConsequentsForm();
+        if (!(formula instanceof OrFormula))
             return false;
-        OrFormula consequent = (OrFormula) this.consequent;
+        OrFormula consequent = (OrFormula) formula;
         return consequent.getDisjuncts().size() == 1;
     }
 
