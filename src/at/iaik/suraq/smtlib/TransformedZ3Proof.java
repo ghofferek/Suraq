@@ -1399,6 +1399,11 @@ public class TransformedZ3Proof extends Z3Proof {
         return false;
     }
 
+    public static boolean isNegativeLiteral(Formula formula) {
+        return TransformedZ3Proof.isLiteral(formula)
+                && !TransformedZ3Proof.isAtom(formula);
+    }
+
     /**
      * Transforms a proof with transitivity, monotonicity, resolution and
      * symmetry into a pure resolution proof
