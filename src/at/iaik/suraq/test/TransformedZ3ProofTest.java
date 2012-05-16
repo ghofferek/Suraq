@@ -13,6 +13,7 @@ import org.junit.Test;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -46,9 +47,10 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a b ) ) ( or b ))";
+        String expectedOutput = "( asserted ( or b ))";
 
-        Assert.assertEquals(expectedOutput, output);
+        Assert.assertEquals(SExpression.fromString(expectedOutput),
+                SExpression.fromString(output));
     }
 
     /**
@@ -64,45 +66,18 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a"));
-        propsitionalVars.add(new PropositionalVariable("b"));
-        propsitionalVars.add(new PropositionalVariable("c"));
+        propsitionalVars.add(new PropositionalVariable("a", -1));
+        propsitionalVars.add(new PropositionalVariable("b", 1));
+        propsitionalVars.add(new PropositionalVariable("c", 1));
 
         String proof = "(|unit-resolution| (asserted (or a b c)) (asserted (not a)) (asserted (not b)) c)";
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{b} ( asserted ( or ( not b ) ) ) ( |unit-resolution|{a} ( asserted ( or ( not a ) ) ) ( asserted ( or a b c ) ) ( or b c ) ) ( or c ))";
+        String expectedOutput = "( asserted ( or c ))";
 
-        Assert.assertEquals(expectedOutput, output);
-    }
-
-    /**
-     * Tests the transformation of unit-resolution into multiple (simple)
-     * resolutions.
-     */
-
-    @Test
-    public void testUnitResolutionTransformation2() {
-
-        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
-        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
-        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
-        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
-
-        propsitionalVars.add(new PropositionalVariable("a"));
-        propsitionalVars.add(new PropositionalVariable("b"));
-
-        String resolution1 = "(|unit-resolution| (asserted (or (not a) b)) (hypothesis a) b )";
-        String proof = "(|unit-resolution| " + resolution1
-                + " (hypothesis (not b)) false )";
-
-        String output = parseAndTransform(proof, domainVars, propsitionalVars,
-                uninterpretedFunctions, arrayVars);
-
-        String expectedOutput = "( |unit-resolution|{b} ( asserted ( or ( not b ) ) ) ( |unit-resolution|{a} ( asserted ( or a ) ) ( asserted ( or ( not a ) b ) ) ( or b ) ) ( or false ))";
-        Assert.assertEquals(expectedOutput, output);
-
+        Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
+                SExpression.fromString(output).toString());
     }
 
     /**
@@ -214,7 +189,13 @@ public class TransformedZ3ProofTest {
         }
 
         Z3Proof rootProof = proofParser.getRootProof();
-        Z3Proof transformedZ3Proof = new TransformedZ3Proof(rootProof);
+        rootProof.localLemmasToAssertions();
+        rootProof.removeLocalSubProofs();
+        rootProof.dealWithModusPonens();
+        TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
+                rootProof);
+        transformedZ3Proof.toLocalProof();
+        transformedZ3Proof.toResolutionProof();
 
         return transformedZ3Proof.toString().replaceAll("\n", "")
                 .replaceAll("\\s{2,}", " ");
