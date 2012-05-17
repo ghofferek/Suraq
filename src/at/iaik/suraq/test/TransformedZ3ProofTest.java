@@ -144,11 +144,6 @@ public class TransformedZ3ProofTest {
                 SExpression.fromString(output).toString());
     }
 
-    /**
-     * Tests the transformation of transitivity and lemma into multiple (simple)
-     * resolutions.
-     */
-
     @Test
     public void testLemma() {
 
@@ -173,6 +168,47 @@ public class TransformedZ3ProofTest {
         String unitResolution3 = "(|unit-resolution| " + unitResolution2
                 + " (asserted (not (= c d))) false)";
         String proof = "(lemma " + unitResolution3 + "(= x b))";
+
+        String output = parseAndTransform(proof, domainVars, propsitionalVars,
+                uninterpretedFunctions, arrayVars);
+
+        String expectedOutput = "( |unit-resolution|{( = c d)} ( |unit-resolution|{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ))";
+
+        Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
+                SExpression.fromString(output).toString());
+    }
+
+    @Test
+    public void testLemmaAndTransitivity() {
+
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+
+        propsitionalVars.add(new PropositionalVariable("a", 1));
+        propsitionalVars.add(new PropositionalVariable("b", 2));
+        propsitionalVars.add(new PropositionalVariable("c", 3));
+        propsitionalVars.add(new PropositionalVariable("d", 3));
+        propsitionalVars.add(new PropositionalVariable("e", -1));
+        propsitionalVars.add(new PropositionalVariable("f", -1));
+
+        propsitionalVars.add(new PropositionalVariable("x", -1));
+        propsitionalVars.add(new PropositionalVariable("y", -1));
+
+        String unitResolution1 = "(|unit-resolution| (hypothesis (not (= x b))) (asserted (or (= b x) (not (= e f)))) (not (= e f)))";
+        String unitResolution2 = "(|unit-resolution| (asserted (or (= c d) (= e f)))"
+                + unitResolution1 + "(= c d))";
+        String unitResolution3 = "(|unit-resolution| " + unitResolution2
+                + " (asserted (not (= c d))) false)";
+        String lemmaProof = "(lemma " + unitResolution3 + "(= x b))";
+
+        String symmetry = "(symm (asserted (= a y)) (= y a))";
+        String trans1 = "(trans (asserted (= a x)) " + lemmaProof + " (= a b))";
+        String trans2 = "(trans " + symmetry + trans1 + "(= y b))";
+
+        String proof = "(|unit-resolution| " + trans2
+                + "(asserted (not (= y b))) false)";
 
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
