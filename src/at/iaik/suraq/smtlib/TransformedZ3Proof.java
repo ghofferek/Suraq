@@ -364,6 +364,7 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public void toLocalProof() {
+        TransformedZ3Proof.annotatedNodes.clear();
         this.toLocalProofRecursion();
         TransformedZ3Proof.annotatedNodes.clear();
     }
@@ -382,98 +383,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // Recursive calls are completed. Now handle this particular node.
         // -------------------------------------------------------------
-        if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
-            // FIXME An ASSERTED could have more than one literal
-            Formula literal = ((OrFormula) (this.consequent)).getDisjuncts()
-                    .iterator().next();
-            Set<Integer> partitions = literal.getPartitionsFromSymbols();
-            assert (partitions.size() > 0);
-            partitions.remove(-1);
-            if (partitions.size() > 1)
-                throw new RuntimeException(
-                        "Asserted literal seems to come from more than one partitions. This should not happen!");
-            int partition;
-            if (partitions.size() == 0)
-                partition = 1; // put global stuff in partition 1 (arbitrary
-                               // choice)
-            else {
-                assert (partitions.iterator().hasNext());
-                assert (partitions.size() == 1);
-                partition = partitions.iterator().next();
-            }
-
-            AnnotatedProofNode annotatedNode = new AnnotatedProofNode(
-                    partition, partition, this, null, null, null);
-            TransformedZ3Proof.annotatedNodes.add(annotatedNode);
-            return;
-        }
-        if (!this.hasSingleLiteralConsequent()
-                || this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
-
-            // The following is based on the assumption that resolution uses
-            // "bad" (=non-local) literals only if it directly concludes
-            // "false".
-            //
-            // This is justified as follows:
-            // The original formula does not use bad literals.
-            // Theory rules produce only single-literal consequents.
-            // Therefore, bad literals can only occur in unit clauses.
-            // TODO Check if this assumption is valid. If not, change code
-            // accordingly!
-
-            // This must be an (intermediate) resolution node
-            assert (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION));
-
-            // Update subproofs
-            assert (subProofs.size() == 2); // Multi-resolution should already
-                                            // have been removed
-
-            if (Util.isLiteral(subProofs.get(0).consequent)) {
-                AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
-                        .getNodeWithConsequent(Util.getSingleLiteral(subProofs
-                                .get(0).consequent));
-                if (annotatedNode != null) {
-                    Z3Proof update = annotatedNode.getConsequent();
-                    if (annotatedNode.numPremises() == 3) {
-                        List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
-                                3);
-                        transSubProofs.add(annotatedNode.getPremise1());
-                        transSubProofs.add(annotatedNode.getPremise2());
-                        transSubProofs.add(annotatedNode.getPremise3());
-                        update = TransformedZ3Proof
-                                .createTransitivityProof(transSubProofs);
-                    }
-                    subProofs.set(0, update);
-                }
-            }
-
-            if (Util.isLiteral(subProofs.get(1).consequent)) {
-                AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
-                        .getNodeWithConsequent(Util.getSingleLiteral(subProofs
-                                .get(1).consequent));
-                if (annotatedNode2 != null) {
-                    Z3Proof update = annotatedNode2.getConsequent();
-                    if (annotatedNode2.numPremises() == 3) {
-                        List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
-                                3);
-                        transSubProofs.add(annotatedNode2.getPremise1());
-                        transSubProofs.add(annotatedNode2.getPremise2());
-                        transSubProofs.add(annotatedNode2.getPremise3());
-                        update = TransformedZ3Proof
-                                .createTransitivityProof(transSubProofs);
-                    }
-                    subProofs.set(1, update);
-                }
-            }
-            return;
-        }
-
-        // All rules except unit-resolution should have single literal
-        // consequents
-        assert (this.hasSingleLiteralConsequent());
-
-        // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.SYMMETRY)) {
+            assert (this.hasSingleLiteralConsequent());
             assert (subProofs.size() == 1);
             Z3Proof subproof = subProofs.get(0);
             Formula premiseLiteral = ((OrFormula) (subproof.consequent))
@@ -512,13 +423,108 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.TRANSITIVITY)) {
+            assert (this.hasSingleLiteralConsequent());
             handleTransitivity();
             return;
         }
 
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.MONOTONICITY)) {
+            assert (this.hasSingleLiteralConsequent());
             handleMonotonicity();
+            return;
+        }
+
+        // -------------------------------------------------------------
+        if (this.hasSingleLiteralConsequent()) {
+            Formula literal = ((OrFormula) (this.consequent)).getDisjuncts()
+                    .iterator().next();
+            Set<Integer> partitions = literal.getPartitionsFromSymbols();
+            assert (partitions.size() > 0);
+            partitions.remove(-1);
+            if (partitions.size() > 1)
+                // this is a bad literal. We ignore it. It will be
+                // removed by this method anyway
+                return;
+
+            int partition;
+            if (partitions.size() == 0)
+                partition = 1; // put global stuff in partition 1 (arbitrary
+                               // choice)
+            else {
+                assert (partitions.iterator().hasNext());
+                assert (partitions.size() == 1);
+                partition = partitions.iterator().next();
+            }
+
+            AnnotatedProofNode annotatedNode = new AnnotatedProofNode(
+                    partition, partition, this, null, null, null);
+            TransformedZ3Proof.annotatedNodes.add(annotatedNode);
+
+            if (this.proofType.equals(SExpressionConstants.ASSERTED))
+                // for UNIT-RESOLUTION we still need to update the subProofs
+                return;
+        }
+        if (!this.hasSingleLiteralConsequent()
+                || this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
+
+            // The following is based on the assumption that resolution uses
+            // "bad" (=non-local) literals only if it directly concludes
+            // "false".
+            //
+            // This is justified as follows:
+            // The original formula does not use bad literals.
+            // Theory rules produce only single-literal consequents.
+            // Therefore, bad literals can only occur in unit clauses.
+            // TODO Check if this assumption is valid. If not, change code
+            // accordingly!
+
+            assert (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION) || this.proofType
+                    .equals(SExpressionConstants.ASSERTED));
+
+            if (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
+                // Update subproofs
+                assert (subProofs.size() == 2); // Multi-resolution should
+                                                // already have been removed
+
+                if (Util.isLiteral(subProofs.get(0).consequent)) {
+                    AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
+                            .getNodeWithConsequent(Util
+                                    .getSingleLiteral(subProofs.get(0).consequent));
+                    if (annotatedNode != null) {
+                        Z3Proof update = annotatedNode.getConsequent();
+                        if (annotatedNode.numPremises() == 3) {
+                            List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
+                                    3);
+                            transSubProofs.add(annotatedNode.getPremise1());
+                            transSubProofs.add(annotatedNode.getPremise2());
+                            transSubProofs.add(annotatedNode.getPremise3());
+                            update = TransformedZ3Proof
+                                    .createTransitivityProof(transSubProofs);
+                        }
+                        subProofs.set(0, update);
+                    }
+                }
+
+                if (Util.isLiteral(subProofs.get(1).consequent)) {
+                    AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
+                            .getNodeWithConsequent(Util
+                                    .getSingleLiteral(subProofs.get(1).consequent));
+                    if (annotatedNode2 != null) {
+                        Z3Proof update = annotatedNode2.getConsequent();
+                        if (annotatedNode2.numPremises() == 3) {
+                            List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
+                                    3);
+                            transSubProofs.add(annotatedNode2.getPremise1());
+                            transSubProofs.add(annotatedNode2.getPremise2());
+                            transSubProofs.add(annotatedNode2.getPremise3());
+                            update = TransformedZ3Proof
+                                    .createTransitivityProof(transSubProofs);
+                        }
+                        subProofs.set(1, update);
+                    }
+                }
+            }
             return;
         }
 
