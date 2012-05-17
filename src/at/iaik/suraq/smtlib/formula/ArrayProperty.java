@@ -625,22 +625,24 @@ public class ArrayProperty implements Formula {
 
         return partitions;
     }
-    
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by now.");
-	}
-	
-	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
-     */	
-	@Override
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
-		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by now.");
-	}    
+    @Override
+    public OrFormula transformToConsequentsForm() {
+        throw new RuntimeException(
+                "transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by now.");
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
+     */
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
+        throw new RuntimeException(
+                "transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by now.");
+    }
 }

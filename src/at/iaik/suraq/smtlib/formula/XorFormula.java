@@ -75,7 +75,7 @@ public class XorFormula extends AndOrXorFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
     @Override
-    public Formula transformToConsequentsForm() {
+    public OrFormula transformToConsequentsForm() {
         throw new RuntimeException(
                 "transformToConsequentsForm cannot be called on a Xor Formula.\n"
                         + "Xor Formulas should not occur in the consequents of a proof.");

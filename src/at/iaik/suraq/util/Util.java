@@ -3,9 +3,11 @@
  */
 package at.iaik.suraq.util;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -424,5 +426,54 @@ public class Util {
 
     public static boolean isNegativeLiteral(Formula formula) {
         return Util.isLiteral(formula) && !Util.isAtom(formula);
+    }
+
+    /**
+     * @param resolutionAssociate
+     * @param transformedAntecedent
+     * @return
+     */
+    public static Formula findResolvingLiteral(OrFormula clause1,
+            OrFormula clause2) {
+        for (Formula formula : clause1.getDisjuncts()) {
+            assert (Util.isLiteral(formula));
+            Formula inverseLiteral = Util.invertLiteral(formula);
+            if (clause2.getDisjuncts().contains(inverseLiteral))
+                return Util.makeLiteralPositive(inverseLiteral);
+            else if (Util.makeLiteralPositive(inverseLiteral) instanceof EqualityFormula) {
+                EqualityFormula reverseLiteral = Util
+                        .reverseEquality((EqualityFormula) (Util
+                                .makeLiteralPositive(inverseLiteral)));
+                Formula reverseInverseLiteral = null;
+                if (Util.isNegativeLiteral(inverseLiteral))
+                    reverseInverseLiteral = Util
+                            .getSingleLiteral((new NotFormula(reverseLiteral))
+                                    .transformToConsequentsForm());
+                else
+                    reverseInverseLiteral = Util
+                            .getSingleLiteral(reverseLiteral
+                                    .transformToConsequentsForm());
+                if (clause2.getDisjuncts().contains(reverseInverseLiteral))
+                    return Util.makeLiteralPositive(reverseInverseLiteral);
+            }
+
+        }
+        throw new RuntimeException(
+                "Did not find a matching literal in clauses.");
+    }
+
+    public static EqualityFormula reverseEquality(EqualityFormula formula) {
+        assert (formula.getTerms().size() == 2);
+        Term term1 = formula.getTerms().get(0);
+        Term term2 = formula.getTerms().get(1);
+        List<Term> terms = new ArrayList<Term>(2);
+        terms.add(term2);
+        terms.add(term1);
+        try {
+            return EqualityFormula.create(terms, formula.isEqual());
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Incomparable terms during equality reversal.", exc);
+        }
     }
 }

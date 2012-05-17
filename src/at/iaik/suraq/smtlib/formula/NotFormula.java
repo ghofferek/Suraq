@@ -407,14 +407,15 @@ public class NotFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
     @Override
-    public Formula transformToConsequentsForm() {
-        return transformToConsequentsForm(false, true);
+    public OrFormula transformToConsequentsForm() {
+        return (OrFormula) transformToConsequentsForm(false, true);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
      *      boolean)
      */
+    @Override
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
 

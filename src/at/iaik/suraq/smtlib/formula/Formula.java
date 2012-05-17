@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.util.Map;
 import java.util.Set;
+
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
@@ -16,7 +17,7 @@ import at.iaik.suraq.smtlib.SMTLibObject;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public interface Formula extends SMTLibObject{
+public interface Formula extends SMTLibObject {
 
     /**
      * Returns a deep copy of the formula.
@@ -149,7 +150,6 @@ public interface Formula extends SMTLibObject{
      */
     public Formula flatten();
 
-
     /**
      * Recursively replaces all array writes by applying the write axiom.
      * 
@@ -194,7 +194,6 @@ public interface Formula extends SMTLibObject{
      */
     public Set<UninterpretedFunction> getUninterpretedFunctions();
 
- 
     /**
      * Replaces all indices of array reads which are not simple domain variables
      * with fresh simple domain variables. Corresponding equality constraints
@@ -229,39 +228,39 @@ public interface Formula extends SMTLibObject{
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
-    
-    /** 
-     * Transforms formulas to consequent formulas.
-     * Consequent formulas should have the following structure:
-     *  		- each atom is either a positive equality of two terms, a propositional variable,
-     *  			or an uninterpreted predicate.
-     *   		- each literal is either an atom or a negation of an atom.
-     *   		- formula is always an OR-formula which consists of at least one literal.
-     *   
-     * @return if transformation is possible, returns formula,
-     * 			otherwise returns null.
-     *  	 
+
+    /**
+     * Transforms formulas to consequent formulas. Consequent formulas should
+     * have the following structure: - each atom is either a positive equality
+     * of two terms, a propositional variable, or an uninterpreted predicate. -
+     * each literal is either an atom or a negation of an atom. - formula is
+     * always an OR-formula which consists of at least one literal.
+     * 
+     * @return if transformation is possible, returns formula, otherwise returns
+     *         null.
+     * 
      */
-    
-    public Formula transformToConsequentsForm();
-    
-    /** 
-     * Transforms formulas to consequent formulas.
-     * Consequent formulas should have the following structure:
-     *  		- each atom is either a positive equality of two terms, a propositional variable,
-     *  			or an uninterpreted predicate.
-     *   		- each literal is either an atom or a negation of an atom.
-     *   		- formula is always an OR-formula which consists of at least one literal.
-     *   
+
+    public OrFormula transformToConsequentsForm();
+
+    /**
+     * Transforms formulas to consequent formulas. Consequent formulas should
+     * have the following structure: - each atom is either a positive equality
+     * of two terms, a propositional variable, or an uninterpreted predicate. -
+     * each literal is either an atom or a negation of an atom. - formula is
+     * always an OR-formula which consists of at least one literal.
+     * 
      * @param notFlag
-     * 			indicates that the number of NOT operations occurred so far is even or odd .
-     * 			(notFlag=true equals an odd number)
+     *            indicates that the number of NOT operations occurred so far is
+     *            even or odd . (notFlag=true equals an odd number)
      * @param firstLevel
-     * 			indicates that the function call appeared in the first recursion step.
-     * @return if transformation is possible, returns formula,
-     * 			otherwise returns null.
-     *  	 
+     *            indicates that the function call appeared in the first
+     *            recursion step.
+     * @return if transformation is possible, returns formula, otherwise returns
+     *         null.
+     * 
      */
-    public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel);
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel);
 
 }

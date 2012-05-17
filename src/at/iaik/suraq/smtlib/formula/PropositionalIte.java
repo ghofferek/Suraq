@@ -410,30 +410,32 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
-    	Set<Integer> partitions = condition.getPartitionsFromSymbols();
+        Set<Integer> partitions = condition.getPartitionsFromSymbols();
         partitions.addAll(thenBranch.getPartitionsFromSymbols());
         partitions.addAll(elseBranch.getPartitionsFromSymbols());
 
         return partitions;
     }
-    
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm()
      */
-	@Override
-	public Formula transformToConsequentsForm() {
-		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on a Propositional Ite.\n" +
-				"Propositional Ite should not occur in the consequents of a proof.");
-	}
-	
-	 /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean, boolean)
-     */	
-	@Override
-	public Formula transformToConsequentsForm(boolean notFlag, boolean firstLevel) {
-		throw new RuntimeException(
-				"transformToConsequentsForm cannot be called on a Propositional Ite.\n" +
-				"Propositional Ite should not occur in the consequents of a proof.");
-	}     
+    @Override
+    public OrFormula transformToConsequentsForm() {
+        throw new RuntimeException(
+                "transformToConsequentsForm cannot be called on a Propositional Ite.\n"
+                        + "Propositional Ite should not occur in the consequents of a proof.");
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#transformToConsequentsForm(boolean,
+     *      boolean)
+     */
+    @Override
+    public Formula transformToConsequentsForm(boolean notFlag,
+            boolean firstLevel) {
+        throw new RuntimeException(
+                "transformToConsequentsForm cannot be called on a Propositional Ite.\n"
+                        + "Propositional Ite should not occur in the consequents of a proof.");
+    }
 }

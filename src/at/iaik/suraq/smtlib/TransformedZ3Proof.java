@@ -246,17 +246,12 @@ public class TransformedZ3Proof extends Z3Proof {
         } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
 
             List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
-            if (z3SubProofs.size() < 2)
-                throw new RuntimeException(
-                        "Unit-Resolution proof with less than two children. This should not happen!");
+            assert (z3SubProofs.size() >= 2);
 
             Z3Proof transformedAntecedent = new TransformedZ3Proof(
                     z3SubProofs.get(0));
 
-            if (!(transformedAntecedent.consequent instanceof OrFormula))
-                throw new RuntimeException(
-                        "Antecedent of Unit-Resolution proof is not an OrFormula. This should not happen."
-                                + transformedAntecedent.consequent);
+            assert (transformedAntecedent.consequent instanceof OrFormula);
 
             OrFormula remainingFormula = (OrFormula) transformedAntecedent.consequent;
 
@@ -296,13 +291,16 @@ public class TransformedZ3Proof extends Z3Proof {
             this.subProofs.add(new TransformedZ3Proof(z3SubProofs
                     .get(z3SubProofs.size() - 1)));
 
-            Formula resolutionAssociate = z3SubProofs.get(
-                    z3SubProofs.size() - 1).getConsequent();
-            if (!(Util.isLiteral(resolutionAssociate)))
-                throw new RuntimeException(
-                        "Resolution associate should be a literal");
+            Formula resolutionAssociate = z3SubProofs
+                    .get(z3SubProofs.size() - 1).getConsequent()
+                    .transformToConsequentsForm();
 
-            this.literal = Util.makeLiteralPositive(resolutionAssociate);
+            assert (transformedAntecedent.getConsequent()
+                    .transformToConsequentsForm() instanceof OrFormula);
+            assert (resolutionAssociate instanceof OrFormula);
+            this.literal = Util.findResolvingLiteral(
+                    (OrFormula) resolutionAssociate, transformedAntecedent
+                            .getConsequent().transformToConsequentsForm());
 
             this.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
