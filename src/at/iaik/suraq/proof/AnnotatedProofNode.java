@@ -5,7 +5,9 @@ package at.iaik.suraq.proof;
 
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
+import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.util.Util;
 
 /**
  * 
@@ -54,6 +56,46 @@ public class AnnotatedProofNode {
         this.premise1 = premise1;
         this.premise2 = premise2;
         this.premise3 = premise3;
+
+        if (numPremises() > 0) {
+            // Do some checks
+
+            assert (this.premise1 != null);
+            assert (this.premise2 != null);
+            assert (this.premise3 != null);
+
+            assert (Util.isLiteral(Util.getSingleLiteral(this.premise1
+                    .getConsequent())));
+            assert (Util.isLiteral(Util.getSingleLiteral(this.premise2
+                    .getConsequent())));
+            assert (Util.isLiteral(Util.getSingleLiteral(this.premise3
+                    .getConsequent())));
+
+            Formula[] premises = {
+                    Util.getSingleLiteral(this.premise1.getConsequent()),
+                    Util.getSingleLiteral(this.premise2.getConsequent()),
+                    Util.getSingleLiteral(this.premise3.getConsequent()) };
+
+            int numDisequalities = 0;
+            for (Formula premise : premises) {
+                if (Util.isNegativeLiteral(premise))
+                    numDisequalities++;
+            }
+            assert (numDisequalities <= 1);
+
+            Object[] part1 = ((EqualityFormula) Util
+                    .getSingleLiteral((this.premise1.getConsequent())))
+                    .getTerms().toArray();
+            Object[] part2 = ((EqualityFormula) Util
+                    .getSingleLiteral((this.premise2.getConsequent())))
+                    .getTerms().toArray();
+            Object[] part3 = ((EqualityFormula) Util
+                    .getSingleLiteral((this.premise3.getConsequent())))
+                    .getTerms().toArray();
+
+            assert (part1[1].equals(part2[0]));
+            assert (part2[1].equals(part3[0]));
+        }
 
         this.hash = (premise1 == null ? 0 : premise1.hashCode())
                 ^ (premise2 == null ? 0 : premise2.hashCode())

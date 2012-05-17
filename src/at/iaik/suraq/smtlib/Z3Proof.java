@@ -621,11 +621,13 @@ public class Z3Proof implements SMTLibObject {
      */
     public static Z3Proof createSymmetryProof(Z3Proof premise) {
         assert (premise.hasSingleLiteralConsequent());
-        Formula literal = Util.makeLiteralPositive((premise.consequent
-                .transformToConsequentsForm()));
+        Formula literal = Util.makeLiteralPositive(Util
+                .getSingleLiteral((premise.consequent
+                        .transformToConsequentsForm())));
         assert (literal instanceof EqualityFormula);
-        boolean equal = Util.isAtom(premise.consequent
-                .transformToConsequentsForm());
+        boolean equal = !Util.isNegativeLiteral(Util
+                .getSingleLiteral(premise.consequent
+                        .transformToConsequentsForm()));
 
         List<Term> terms = ((EqualityFormula) literal).getTerms();
         Collections.reverse(terms);

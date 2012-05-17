@@ -409,14 +409,14 @@ public class TransformedZ3Proof extends Z3Proof {
             } else {
                 assert (numPremises == 3);
                 TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                        annotatedNode.getPartition(), annotatedNode
+                        annotatedNode.getRightPartition(), annotatedNode
                                 .getLeftPartition(), this, TransformedZ3Proof
                                 .createSymmetryProof(annotatedNode
-                                        .getPremise1()), TransformedZ3Proof
+                                        .getPremise3()), TransformedZ3Proof
                                 .createSymmetryProof(annotatedNode
                                         .getPremise2()), TransformedZ3Proof
                                 .createSymmetryProof(annotatedNode
-                                        .getPremise3())));
+                                        .getPremise1())));
             }
             return;
         }
@@ -548,20 +548,24 @@ public class TransformedZ3Proof extends Z3Proof {
                 eqLiteral.getTerms().size() - 1);
 
         Set<Integer> leftPartitions = leftTerm.getPartitionsFromSymbols();
-        assert (leftPartitions.size() <= 2);
+        leftPartitions.remove(-1);
+        assert (leftPartitions.size() <= 1);
         int leftPartition;
         Iterator<Integer> leftIterator = leftPartitions.iterator();
-        do {
+        if (leftIterator.hasNext())
             leftPartition = leftIterator.next();
-        } while (leftPartition < 0);
+        else
+            leftPartition = 1; // arbitrary choice
 
         Set<Integer> rightPartitions = rightTerm.getPartitionsFromSymbols();
-        assert (rightPartitions.size() <= 2);
+        rightPartitions.remove(-1);
+        assert (rightPartitions.size() <= 1);
         int rightPartition;
         Iterator<Integer> rightIterator = rightPartitions.iterator();
-        do {
+        if (rightIterator.hasNext())
             rightPartition = rightIterator.next();
-        } while (rightPartition < 0);
+        else
+            rightPartition = leftPartition; // arbitrary choice
 
         if (leftPartition == rightPartition) {
             // this is a local node
@@ -617,16 +621,19 @@ public class TransformedZ3Proof extends Z3Proof {
 
             TransformedZ3Proof newTransitivityProofNode = null;
             if (currentAnnotatedNode.numPremises() == 3) {
+                DomainTerm[] currentTerms = Util
+                        .getDomainTerms(currentAnnotatedNode);
+                assert (currentTerms.length == 4);
                 List<TransformedZ3Proof> currentSubProofs = new ArrayList<TransformedZ3Proof>();
                 currentSubProofs
-                        .add(leftTerm.equals(currentLeftTerm) ? currentAnnotatedNode
+                        .add(currentTerms[0].equals(currentLeftTerm) ? currentAnnotatedNode
                                 .getPremise1() : TransformedZ3Proof
-                                .createReflexivityProof(leftTerm));
+                                .createReflexivityProof(currentLeftTerm));
                 currentSubProofs.add(currentAnnotatedNode.getPremise2());
                 currentSubProofs
-                        .add(rightTerm.equals(currentRightTerm) ? currentAnnotatedNode
+                        .add(currentTerms[3].equals(currentRightTerm) ? currentAnnotatedNode
                                 .getPremise3() : TransformedZ3Proof
-                                .createReflexivityProof(rightTerm));
+                                .createReflexivityProof(currentRightTerm));
                 newTransitivityProofNode = TransformedZ3Proof
                         .createTransitivityProof(currentSubProofs);
             }
@@ -723,11 +730,11 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // result[2]
         if (rightTerm.equals(newRightTerm))
-            result[0] = TransformedZ3Proof.createReflexivityProof(newRightTerm);
+            result[2] = TransformedZ3Proof.createReflexivityProof(newRightTerm);
         else if (annotatedNode.numPremises() == 3)
-            result[0] = annotatedNode.getPremise3();
+            result[2] = annotatedNode.getPremise3();
         else
-            result[0] = annotatedNode.getConsequent();
+            result[2] = annotatedNode.getConsequent();
 
         return result;
     }
@@ -742,21 +749,24 @@ public class TransformedZ3Proof extends Z3Proof {
     private DomainTerm computeCurrentRightTermForMonotonicity(
             int rightPartition, AnnotatedProofNode currentAnnotatedNode) {
         if (currentAnnotatedNode.getRightPartition() != rightPartition) {
-            Formula formula = currentAnnotatedNode.getConsequent().consequent;
+            Formula formula = Util.getSingleLiteral(currentAnnotatedNode
+                    .getConsequent().consequent);
             assert (formula instanceof DomainEq);
             DomainEq eqFormula = (DomainEq) formula;
             assert (eqFormula.getTerms().size() == 2);
             assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
             return (DomainTerm) eqFormula.getTerms().get(1);
         } else if (currentAnnotatedNode.numPremises() == 3) {
-            Formula formula = currentAnnotatedNode.getPremise3().consequent;
+            Formula formula = Util.getSingleLiteral(currentAnnotatedNode
+                    .getPremise3().consequent);
             assert (formula instanceof DomainEq);
             DomainEq eqFormula = (DomainEq) formula;
             assert (eqFormula.getTerms().size() == 2);
             assert (eqFormula.getTerms().get(0) instanceof DomainTerm);
             return (DomainTerm) eqFormula.getTerms().get(0);
         } else {
-            Formula formula = currentAnnotatedNode.getConsequent().consequent;
+            Formula formula = Util.getSingleLiteral(currentAnnotatedNode
+                    .getConsequent().consequent);
             assert (formula instanceof DomainEq);
             DomainEq eqFormula = (DomainEq) formula;
             assert (eqFormula.getTerms().size() == 2);
@@ -776,21 +786,24 @@ public class TransformedZ3Proof extends Z3Proof {
             AnnotatedProofNode currentAnnotatedNode) {
 
         if (currentAnnotatedNode.getLeftPartition() != leftPartition) {
-            Formula formula = currentAnnotatedNode.getConsequent().consequent;
+            Formula formula = Util.getSingleLiteral(currentAnnotatedNode
+                    .getConsequent().consequent);
             assert (formula instanceof DomainEq);
             DomainEq eqFormula = (DomainEq) formula;
             assert (eqFormula.getTerms().size() == 2);
             assert (eqFormula.getTerms().get(0) instanceof DomainTerm);
             return (DomainTerm) eqFormula.getTerms().get(0);
         } else if (currentAnnotatedNode.numPremises() == 3) {
-            Formula formula = currentAnnotatedNode.getPremise1().consequent;
+            Formula formula = Util.getSingleLiteral(currentAnnotatedNode
+                    .getPremise1().consequent);
             assert (formula instanceof DomainEq);
             DomainEq eqFormula = (DomainEq) formula;
             assert (eqFormula.getTerms().size() == 2);
             assert (eqFormula.getTerms().get(1) instanceof DomainTerm);
             return (DomainTerm) eqFormula.getTerms().get(1);
         } else {
-            Formula formula = currentAnnotatedNode.getConsequent().consequent;
+            Formula formula = Util.getSingleLiteral(currentAnnotatedNode
+                    .getConsequent().consequent);
             assert (formula instanceof DomainEq);
             DomainEq eqFormula = (DomainEq) formula;
             assert (eqFormula.getTerms().size() == 2);
@@ -1413,7 +1426,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             TransformedZ3Proof z3SubProof = (TransformedZ3Proof) this.subProofs
                     .get(0);
-            z3SubProof.toLocalProof();
+            z3SubProof.toResolutionProof();
 
             this.consequent = z3SubProof.consequent;
             this.subProofs = z3SubProof.subProofs;

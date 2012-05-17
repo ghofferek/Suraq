@@ -265,23 +265,33 @@ public class Util {
 
     /**
      * @param currentAnnotatedNode
-     * @return the domain terms occuring in the given node, from left to right.
+     * @return the domain terms occurring in the given node, from left to right.
      */
     public static DomainTerm[] getDomainTerms(AnnotatedProofNode node) {
-        if (node.numPremises() == 0)
-            return (DomainTerm[]) ((EqualityFormula) (node.getConsequent()
-                    .getConsequent())).getTerms().toArray();
-        else {
+        if (node.numPremises() == 0) {
+            DomainTerm[] result = new DomainTerm[2];
+            Object[] tmp = ((EqualityFormula) Util.getSingleLiteral((node
+                    .getConsequent().getConsequent()))).getTerms().toArray();
+            assert (tmp.length == 2);
+            for (int count = 0; count < 2; count++) {
+                assert (tmp[count] != null);
+                assert (tmp[count] instanceof DomainTerm);
+                result[count] = (DomainTerm) tmp[count];
+            }
+            return result;
+        } else {
             assert (node.numPremises() == 3);
-            DomainTerm[] part1 = (DomainTerm[]) ((EqualityFormula) (node
-                    .getPremise1().getConsequent())).getTerms().toArray();
-            DomainTerm[] part2 = (DomainTerm[]) ((EqualityFormula) (node
-                    .getPremise3().getConsequent())).getTerms().toArray();
+            Object[] part1 = ((EqualityFormula) Util.getSingleLiteral((node
+                    .getPremise1().getConsequent()))).getTerms().toArray();
+            Object[] part2 = ((EqualityFormula) Util.getSingleLiteral((node
+                    .getPremise3().getConsequent()))).getTerms().toArray();
             DomainTerm[] result = new DomainTerm[4];
-            result[0] = part1[0];
-            result[1] = part1[1];
-            result[2] = part2[0];
-            result[3] = part2[1];
+            result[0] = (DomainTerm) part1[0];
+            result[1] = (DomainTerm) part1[1];
+            result[2] = (DomainTerm) part2[0];
+            result[3] = (DomainTerm) part2[1];
+            for (int count = 0; count < 4; count++)
+                assert (result[count] != null);
             return result;
         }
     }

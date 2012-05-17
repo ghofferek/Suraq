@@ -14,6 +14,7 @@ import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -219,6 +220,42 @@ public class TransformedZ3ProofTest {
                 SExpression.fromString(output).toString());
     }
 
+    @Test
+    public void test1ToLocalProof() {
+
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+
+        domainVars.add(new DomainVariable("a", 1));
+        domainVars.add(new DomainVariable("b", 2));
+
+        domainVars.add(new DomainVariable("x", -1));
+        domainVars.add(new DomainVariable("y", -1));
+
+        uninterpretedFunctions.add(new UninterpretedFunction("f", 1,
+                SExpressionConstants.VALUE_TYPE));
+
+        String trans1 = "(trans (asserted (= a x)) (asserted (= x b)) (= a b))";
+        String monotonicity1 = "(monotonicity " + trans1 + "(= (f a) (f b)))";
+        String symmetrie = "(symm " + monotonicity1 + "(= (f b) (f a)))";
+        String trans2 = "(trans " + symmetrie
+                + "(asserted (= (f a) y)) (= (f b) y))";
+
+        String proof = "(|unit-resolution| " + trans2
+                + "(symm (asserted (not (= y (f b)))) (not (= (f b) y)))"
+                + "false)";
+
+        String output = parseAndTransform(proof, domainVars, propsitionalVars,
+                uninterpretedFunctions, arrayVars);
+
+        String expectedOutput = "( |unit-resolution|{( = y b)} ( |unit-resolution|{( = x b)} ( |unit-resolution|{( = c d)} ( |unit-resolution|{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ) ) ( |unit-resolution|{( = x x)} ( asserted ( or ( = x x ) ) ) ( |unit-resolution|{( = y x)} ( |unit-resolution|{( = a x)} ( asserted ( or ( = a x ) ) ) ( |unit-resolution|{( = y a)} ( asserted ( or ( = y a ) ) ) ( asserted ( or ( not ( = y a ) ) ( not ( = a x ) ) ( = y x ) ) ) ( or ( not ( = a x ) ) ( = y x ) ) ) ( or ( = y x ) ) ) ( asserted ( or ( not ( = y x ) ) ( not ( = x x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x b ) ) ( = y b ) ) ) ( or ( = y b ) ) ) ( asserted ( or ( not ( = y b ) ) ) ) ( or false ))";
+
+        Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
+                SExpression.fromString(output).toString());
+    }
+
     /**
      * Helper function to parse and transform a given proof.
      * 
@@ -269,12 +306,20 @@ public class TransformedZ3ProofTest {
         }
 
         Z3Proof rootProof = proofParser.getRootProof();
+        String proofString = rootProof.prettyPrint();
+        rootProof.checkZ3ProofNode();
+
         rootProof.localLemmasToAssertions();
+        rootProof.checkZ3ProofNode();
         rootProof.removeLocalSubProofs();
+        rootProof.checkZ3ProofNode();
         rootProof.dealWithModusPonens();
+        rootProof.checkZ3ProofNode();
         TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                 rootProof);
+        transformedZ3Proof.checkZ3ProofNode();
         transformedZ3Proof.toLocalProof();
+        transformedZ3Proof.checkZ3ProofNode();
         transformedZ3Proof.toResolutionProof();
         transformedZ3Proof.checkZ3ProofNode();
         String test = transformedZ3Proof.prettyPrint();
