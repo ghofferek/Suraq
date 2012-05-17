@@ -377,13 +377,18 @@ public class Util {
 
     /**
      * Checks if a given Formula is a literal. A literal is either an atom or a
-     * negation of an atom.
+     * negation of an atom. Also handles unit clauses.
      * 
      * @param formula
      *            formula to check
      * @return true, iff formula is an literal
      */
     public static boolean isLiteral(Formula formula) {
+        if (formula instanceof OrFormula) {
+            assert (((OrFormula) formula).getDisjuncts().size() == 1);
+            formula = ((OrFormula) formula).getDisjuncts().get(0);
+
+        }
         if (formula instanceof NotFormula) {
             Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
             return Util.isAtom(negatedFormula);

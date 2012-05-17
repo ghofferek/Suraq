@@ -377,22 +377,24 @@ public class TransformedZ3Proof extends Z3Proof {
         // Recursive calls are completed. Now handle this particular node.
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
+            // FIXME An ASSERTED could have more than one literal
             Formula literal = ((OrFormula) (this.consequent)).getDisjuncts()
                     .iterator().next();
             Set<Integer> partitions = literal.getPartitionsFromSymbols();
             assert (partitions.size() > 0);
-            if (partitions.size() > 2)
+            partitions.remove(-1);
+            if (partitions.size() > 1)
                 throw new RuntimeException(
                         "Asserted literal seems to come from more than one partitions. This should not happen!");
             int partition;
-            Iterator<Integer> iterator = partitions.iterator();
-            do {
-                partition = iterator.next();
-            } while (partition < 0 && iterator.hasNext());
-
-            if (partition < 0)
+            if (partitions.size() == 0)
                 partition = 1; // put global stuff in partition 1 (arbitrary
                                // choice)
+            else {
+                assert (partitions.iterator().hasNext());
+                assert (partitions.size() == 1);
+                partition = partitions.iterator().next();
+            }
 
             AnnotatedProofNode annotatedNode = new AnnotatedProofNode(
                     partition, partition, this, null, null, null);
@@ -420,7 +422,7 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (subProofs.size() == 2); // Multi-resolution should already
                                             // have been removed
 
-            if (Util.isLiteral(subProofs.get(1).consequent)) {
+            if (Util.isLiteral(subProofs.get(0).consequent)) {
                 AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
                         .getNodeWithConsequent(Util.getSingleLiteral(subProofs
                                 .get(0).consequent));
@@ -848,12 +850,23 @@ public class TransformedZ3Proof extends Z3Proof {
      * @param rightPartition
      * 
      */
-    private void handleTransitivityCase2(int rightPartition, int leftPartition) {
-        assert (Util.getSingleLiteral(subProofs.get(0).consequent) instanceof EqualityFormula);
+    private void handleTransitivityCase2(int leftPartition, int rightPartition) {
+        assert (Util
+                .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(0).consequent)) instanceof EqualityFormula);
         EqualityFormula formula = (EqualityFormula) Util
-                .getSingleLiteral(subProofs.get(0).consequent);
+                .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(0).consequent));
         assert (formula.getTerms().size() == 2);
         Term term = formula.getTerms().get(1);
+
+        assert (Util
+                .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(1).consequent)) instanceof EqualityFormula);
+        EqualityFormula formula2 = (EqualityFormula) Util
+                .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(1).consequent));
+        assert (formula2.getTerms().size() == 2);
+        Term term2 = formula2.getTerms().get(0);
+
+        assert (term.equals(term2));
+
         TransformedZ3Proof reflexivity = TransformedZ3Proof
                 .createReflexivityProof(term);
         TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
@@ -1078,7 +1091,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     "Incomparable terms while creating reflexivity proof.", exc);
         }
         TransformedZ3Proof result = new TransformedZ3Proof(
-                SExpressionConstants.REFLEXIVITY,
+                SExpressionConstants.ASSERTED,
                 new ArrayList<TransformedZ3Proof>(), formula);
         result.axiom = true;
         return result;

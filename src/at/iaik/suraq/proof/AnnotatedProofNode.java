@@ -115,7 +115,8 @@ public class AnnotatedProofNode {
      *         node
      */
     public boolean hasConsequent(Formula consequent) {
-        return this.consequent.getConsequent().equals(consequent);
+        return this.consequent.getConsequent().transformToConsequentsForm()
+                .equals(consequent.transformToConsequentsForm());
     }
 
     /**
@@ -200,6 +201,41 @@ public class AnnotatedProofNode {
             return 2;
         else
             return 3;
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Partitions: ");
+        buffer.append(leftPartition);
+        buffer.append(", ");
+        buffer.append(rightPartition);
+        buffer.append("\n");
+
+        buffer.append("Premise 1: ");
+        buffer.append(premise1 == null ? "null" : premise1.getConsequent()
+                .toString().replaceAll("\\s{2,}", " ").replace("\n", ""));
+        buffer.append("\n");
+
+        buffer.append("Premise 2: ");
+        buffer.append(premise2 == null ? "null" : premise2.getConsequent()
+                .toString().replaceAll("\\s{2,}", " ").replace("\n", ""));
+        buffer.append("\n");
+
+        buffer.append("Premise 3: ");
+        buffer.append(premise3 == null ? "null" : premise3.getConsequent()
+                .toString().replaceAll("\\s{2,}", " ").replace("\n", ""));
+        buffer.append("\n");
+
+        buffer.append("Consequent: ");
+        buffer.append(consequent == null ? "null" : consequent.getConsequent()
+                .toString().replaceAll("\\s{2,}", " ").replace("\n", ""));
+        buffer.append("\n");
+        return buffer.toString();
     }
 
 }
