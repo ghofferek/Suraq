@@ -516,7 +516,7 @@ public class Z3Proof implements SMTLibObject {
             result.append(child.id);
             result.append(": ");
             result.append(child.consequent.toString()
-                    .replaceAll("\\s{2,}", " "));
+                    .replaceAll("\\s{2,}", " ").replace("\n", ""));
             result.append("\n");
         }
         result.append("Proofs: ");

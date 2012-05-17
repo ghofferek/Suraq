@@ -103,8 +103,8 @@ public class OrFormula extends AndOrXorFormula {
      */
 
     @Override
-    public Formula transformToConsequentsForm() {
-        return transformToConsequentsForm(false, true);
+    public OrFormula transformToConsequentsForm() {
+        return (OrFormula) transformToConsequentsForm(false, true);
     }
 
     /**
@@ -112,6 +112,7 @@ public class OrFormula extends AndOrXorFormula {
      *      boolean)
      */
 
+    @Override
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
 
