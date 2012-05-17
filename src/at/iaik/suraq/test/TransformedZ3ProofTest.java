@@ -213,7 +213,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{( = c d)} ( |unit-resolution|{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ))";
+        String expectedOutput = "( |unit-resolution|{( = y b)} ( |unit-resolution|{( = x b)} ( |unit-resolution|{( = c d)} ( |unit-resolution|{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ) ) ( |unit-resolution|{( = x x)} ( asserted ( or ( = x x ) ) ) ( |unit-resolution|{( = y x)} ( |unit-resolution|{( = a x)} ( asserted ( or ( = a x ) ) ) ( |unit-resolution|{( = y a)} ( asserted ( or ( = y a ) ) ) ( asserted ( or ( not ( = y a ) ) ( not ( = a x ) ) ( = y x ) ) ) ( or ( not ( = a x ) ) ( = y x ) ) ) ( or ( = y x ) ) ) ( asserted ( or ( not ( = y x ) ) ( not ( = x x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x b ) ) ( = y b ) ) ) ( or ( = y b ) ) ) ( asserted ( or ( not ( = y b ) ) ) ) ( or false ))";
 
         Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
                 SExpression.fromString(output).toString());
