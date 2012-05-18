@@ -28,7 +28,7 @@ public class ResProof {
     public ResProof() {
         root = new ResNode(0, false);
         Arrays.fill(nodeRef, null);
-        Arrays.fill(var_part, 0);
+        Arrays.fill(var_part, -1);
     }
 
     // part for axioms should be 0
@@ -107,6 +107,11 @@ public class ResProof {
         if(doPrint){
             System.out.println("===============Checking Proof============");
             System.out.println("Number of active nodes"+"<"+nodeCount);
+            System.out.print("var partitions:");
+            for(int v=1; var_part[v] != -1;v++ ){
+                System.out.print(" "+v+":p"+var_part[v]);
+            }
+            System.out.println("");
             System.out.println("==========================================");
         }
         printWhileChecking = doPrint;
