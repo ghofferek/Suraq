@@ -817,7 +817,7 @@ public class TransformedZ3Proof extends Z3Proof {
      * Deals with transforming a transitivity node to a local proof.
      */
     private void handleTransitivity() {
-        assert (subProofs.size() == 2);
+        assert (subProofs.size() == 2 || subProofs.size() == 3);
 
         AnnotatedProofNode firstAnnotatedNode = TransformedZ3Proof.annotatedNodes
                 .getNodeWithConsequent(subProofs.get(0).consequent);
@@ -1282,8 +1282,13 @@ public class TransformedZ3Proof extends Z3Proof {
                     newDisjuncts.add(parent.consequent);
                 }
                 newDisjuncts.remove(new PropositionalConstant(false));
-                newDisjuncts.add((new NotFormula(this.consequent))
-                        .transformToConsequentsForm());
+
+                Formula newDisjunct = (new NotFormula(this.consequent))
+                        .transformToConsequentsForm();
+                while (newDisjuncts.remove(newDisjunct))
+                    ;
+
+                newDisjuncts.add(newDisjunct);
 
                 parent.consequent = (new OrFormula(newDisjuncts))
                         .transformToConsequentsForm();

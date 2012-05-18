@@ -132,13 +132,16 @@ public class OrFormula extends AndOrXorFormula {
                     for (Formula disjunct : disjuncts) {
                         Formula transformedSubFormula = disjunct
                                 .transformToConsequentsForm(notFlag, false);
-                        subFormulas.add(transformedSubFormula);
+
+                        if (!subFormulas.contains(transformedSubFormula))
+                            subFormulas.add(transformedSubFormula);
                     }
                 } else {
+
                     Formula transformedSubFormula = subFormula
                             .transformToConsequentsForm(notFlag, false);
-
-                    subFormulas.add(transformedSubFormula);
+                    if (!subFormulas.contains(transformedSubFormula))
+                        subFormulas.add(transformedSubFormula);
                 }
             } else
                 throw new RuntimeException(

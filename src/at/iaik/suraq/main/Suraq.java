@@ -340,14 +340,25 @@ public class Suraq implements Runnable {
 
                 // Main Flow
                 Z3Proof rootProof = proofParser.getRootProof();
+                assert (rootProof.checkZ3ProofNode());
+
                 rootProof.localLemmasToAssertions();
+                assert (rootProof.checkZ3ProofNode());
+
                 rootProof.removeLocalSubProofs();
+                assert (rootProof.checkZ3ProofNode());
+
                 rootProof.dealWithModusPonens();
+                assert (rootProof.checkZ3ProofNode());
+
                 TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
                         rootProof);
-                transformedZ3Proof.toLocalProof();
-                transformedZ3Proof.toResolutionProof();
+                assert (transformedZ3Proof.checkZ3ProofNode());
 
+                transformedZ3Proof.toLocalProof();
+                assert (transformedZ3Proof.checkZ3ProofNode());
+
+                transformedZ3Proof.toResolutionProof();
                 assert (transformedZ3Proof.checkZ3ProofNode());
 
                 try {

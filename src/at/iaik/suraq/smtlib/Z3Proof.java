@@ -468,6 +468,16 @@ public class Z3Proof implements SMTLibObject {
                             }
                         }
 
+                        Z3Proof transProof = Z3Proof
+                                .createTransitivityProof(proofList);
+                        this.subProofs = transProof.subProofs;
+                        this.proofType = transProof.proofType;
+                        assert (this.consequent.transformToConsequentsForm()
+                                .equals(transProof.consequent
+                                        .transformToConsequentsForm()));
+                        this.consequent = transProof.consequent
+                                .transformToConsequentsForm();
+
                         // Recursive Calls on children
                         child1.dealWithModusPonens();
                         child2.dealWithModusPonens();

@@ -83,14 +83,14 @@ public class AnnotatedProofNode {
             }
             assert (numDisequalities <= 1);
 
-            Object[] part1 = ((EqualityFormula) Util
-                    .getSingleLiteral((this.premise1.getConsequent())))
+            Object[] part1 = ((EqualityFormula) Util.makeLiteralPositive(Util
+                    .getSingleLiteral((this.premise1.getConsequent()))))
                     .getTerms().toArray();
-            Object[] part2 = ((EqualityFormula) Util
-                    .getSingleLiteral((this.premise2.getConsequent())))
+            Object[] part2 = ((EqualityFormula) Util.makeLiteralPositive(Util
+                    .getSingleLiteral((this.premise2.getConsequent()))))
                     .getTerms().toArray();
-            Object[] part3 = ((EqualityFormula) Util
-                    .getSingleLiteral((this.premise3.getConsequent())))
+            Object[] part3 = ((EqualityFormula) Util.makeLiteralPositive(Util
+                    .getSingleLiteral((this.premise3.getConsequent()))))
                     .getTerms().toArray();
 
             assert (part1[1].equals(part2[0]));
