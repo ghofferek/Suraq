@@ -369,6 +369,9 @@ public class Suraq implements Runnable {
                 // START: ASHUTOSH code
                 ResProof resolutionProof = Util
                         .createResolutionProof(transformedZ3Proof);
+                resolutionProof.checkProof(true);
+                resolutionProof.deLocalizeProof();
+                resolutionProof.checkProof(true);
                 // END: ASHUTOSH code
 
             }

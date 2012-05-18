@@ -379,6 +379,9 @@ public class TransformedZ3ProofTest {
         // START: ASHUTOSH code
         ResProof resolutionProof = Util
                 .createResolutionProof(transformedZ3Proof);
+        resolutionProof.checkProof(true);
+        resolutionProof.deLocalizeProof();
+        resolutionProof.checkProof(true);
         // END: ASHUTOSH code
 
         return transformedZ3Proof.toString().replaceAll("\n", "")
