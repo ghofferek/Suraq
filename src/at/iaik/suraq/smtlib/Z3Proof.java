@@ -5,8 +5,10 @@ package at.iaik.suraq.smtlib;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
@@ -421,67 +423,143 @@ public class Z3Proof implements SMTLibObject {
             Formula literal2 = Util.getSingleLiteral(child2.consequent);
             Formula literal3 = Util.getSingleLiteral(child3.consequent);
 
-            assert (consequentLiteral instanceof DomainEq);
-            assert (literal1 instanceof DomainEq);
-            assert (literal2 instanceof DomainEq);
-            assert (literal3 instanceof DomainEq);
+            assert (Util.makeLiteralPositive(consequentLiteral) instanceof DomainEq);
+            assert (Util.makeLiteralPositive(literal1) instanceof DomainEq);
+            assert (Util.makeLiteralPositive(literal2) instanceof DomainEq);
+            assert (Util.makeLiteralPositive(literal3) instanceof DomainEq);
 
-            EqualityFormula eq1 = (DomainEq) literal1;
-            EqualityFormula eq2 = (DomainEq) literal2;
-            EqualityFormula eq3 = (DomainEq) literal3;
-            EqualityFormula consequentEq = (DomainEq) consequentLiteral;
+            EqualityFormula eq1 = (DomainEq) Util.makeLiteralPositive(literal1);
+            EqualityFormula eq2 = (DomainEq) Util.makeLiteralPositive(literal2);
+            EqualityFormula eq3 = (DomainEq) Util.makeLiteralPositive(literal3);
+            EqualityFormula consequentEq = (DomainEq) Util
+                    .makeLiteralPositive(consequentLiteral);
 
             List<Z3Proof> proofList = new ArrayList<Z3Proof>();
+            /*
+             * if (consequentEq.getTerms().get(0).equals(eq1.getTerms().get(0)))
+             * { if (eq1.getTerms().get(1).equals(eq2.getTerms().get(0))) {
+             * proofList.add(child1); proofList.add(child2); assert
+             * (eq2.getTerms().get(1).equals(eq3.getTerms().get(0))); assert
+             * (consequentEq.getTerms().get(1).equals(eq3 .getTerms().get(1)));
+             * proofList.add(child3); } else { assert
+             * (eq1.getTerms().get(1).equals(eq3.getTerms().get(0)));
+             * proofList.add(child1); proofList.add(child3); assert
+             * (eq3.getTerms().get(1).equals(eq2.getTerms().get(0))); assert
+             * (consequentEq.getTerms().get(1).equals(eq2 .getTerms().get(1)));
+             * proofList.add(child2); } } else if
+             * (consequentEq.getTerms().get(0) .equals(eq2.getTerms().get(0))) {
+             * if (eq2.getTerms().get(1).equals(eq1.getTerms().get(0))) {
+             * proofList.add(child2); proofList.add(child1); if
+             * (eq1.getTerms().get(1).equals(eq3.getTerms().get(0))) { assert
+             * (consequentEq.getTerms().get(1).equals(eq3 .getTerms().get(1)));
+             * proofList.add(child3); } else { // sometimes this term occurs
+             * "reverse" in the proof. // Quick Hack: Check second direction.
+             * assert ((eq1.getTerms().get(1).equals(eq3.getTerms() .get(1))));
+             * assert (consequentEq.getTerms().get(1).equals(eq3
+             * .getTerms().get(0)));
+             * proofList.add(Z3Proof.createSymmetryProof(child3)); } } else {
+             * assert (eq2.getTerms().get(1).equals(eq3.getTerms().get(0)));
+             * proofList.add(child2); proofList.add(child3); assert
+             * (eq3.getTerms().get(1).equals(eq1.getTerms().get(0))); assert
+             * (consequentEq.getTerms().get(1).equals(eq1 .getTerms().get(1)));
+             * proofList.add(child1); } } else { assert
+             * (consequentEq.getTerms().get(0).equals(eq3.getTerms() .get(0)));
+             * if (eq3.getTerms().get(1).equals(eq1.getTerms().get(0))) {
+             * proofList.add(child3); proofList.add(child1); assert
+             * (eq1.getTerms().get(1).equals(eq2.getTerms().get(0))); assert
+             * (consequentEq.getTerms().get(1).equals(eq2 .getTerms().get(1)));
+             * proofList.add(child2); } else { assert
+             * (eq3.getTerms().get(1).equals(eq2.getTerms().get(0)));
+             * proofList.add(child3); proofList.add(child2); assert
+             * (eq2.getTerms().get(1).equals(eq1.getTerms().get(0))); assert
+             * (consequentEq.getTerms().get(1).equals(eq1 .getTerms().get(1)));
+             * proofList.add(child1); } }
+             */
 
-            if (consequentEq.getTerms().get(0).equals(eq1.getTerms().get(0))) {
-                if (eq1.getTerms().get(1).equals(eq2.getTerms().get(0))) {
-                    proofList.add(child1);
-                    proofList.add(child2);
-                    assert (eq2.getTerms().get(1).equals(eq3.getTerms().get(0)));
-                    proofList.add(child3);
-                } else {
-                    assert (eq1.getTerms().get(1).equals(eq3.getTerms().get(0)));
-                    proofList.add(child1);
-                    proofList.add(child3);
-                    assert (eq3.getTerms().get(1).equals(eq2.getTerms().get(0)));
-                    proofList.add(child2);
+            assert (consequentEq.getTerms().size() == 2);
+            assert (eq1.getTerms().size() == 2);
+            assert (eq2.getTerms().size() == 2);
+            assert (eq3.getTerms().size() == 2);
+
+            Term startTerm = consequentEq.getTerms().get(0);
+            Term endTerm = consequentEq.getTerms().get(1);
+            Term middleTerm = null;
+
+            Set<EqualityFormula> containsStartTerm = new HashSet<EqualityFormula>();
+            Set<EqualityFormula> containsEndTerm = new HashSet<EqualityFormula>();
+
+            EqualityFormula[] equalities = { eq1, eq2, eq3 };
+            Map<EqualityFormula, Z3Proof> map = new HashMap<EqualityFormula, Z3Proof>();
+            map.put(eq1, child1);
+            map.put(eq2, child2);
+            map.put(eq3, child3);
+
+            for (EqualityFormula eq : equalities)
+                if (eq.getTerms().contains(startTerm))
+                    containsStartTerm.add(eq);
+
+            for (EqualityFormula eq : equalities)
+                if (eq.getTerms().contains(endTerm))
+                    containsEndTerm.add(eq);
+
+            Set<EqualityFormula> toRemove = new HashSet<EqualityFormula>();
+            for (EqualityFormula eq : containsStartTerm) {
+                if (Util.isReflexivity(eq)) {
+                    proofList.add(map.get(eq));
+                    toRemove.add(eq);
                 }
-            } else if (consequentEq.getTerms().get(0)
-                    .equals(eq2.getTerms().get(0))) {
-                if (eq2.getTerms().get(1).equals(eq1.getTerms().get(0))) {
-                    proofList.add(child2);
-                    proofList.add(child1);
-                    if (eq1.getTerms().get(1).equals(eq3.getTerms().get(0)))
-                        proofList.add(child3);
-                    else {
-                        // sometimes this term occurs "reverse" in the proof.
-                        // Quick Hack: Check second direction.
-                        assert ((eq1.getTerms().get(1).equals(eq3.getTerms()
-                                .get(1))));
-                        proofList.add(Z3Proof.createSymmetryProof(child3));
-                    }
-                } else {
-                    assert (eq2.getTerms().get(1).equals(eq3.getTerms().get(0)));
-                    proofList.add(child2);
-                    proofList.add(child3);
-                    assert (eq3.getTerms().get(1).equals(eq1.getTerms().get(0)));
-                    proofList.add(child1);
-                }
+            }
+            containsStartTerm.removeAll(toRemove);
+            assert (containsStartTerm.size() == 1);
+            if (containsStartTerm.iterator().next().getTerms().get(0)
+                    .equals(startTerm)) {
+                proofList.add(map.get(containsStartTerm.iterator().next()));
+                middleTerm = containsStartTerm.iterator().next().getTerms()
+                        .get(1);
             } else {
-                assert (consequentEq.getTerms().get(0).equals(eq3.getTerms()
-                        .get(0)));
-                if (eq3.getTerms().get(1).equals(eq1.getTerms().get(0))) {
-                    proofList.add(child3);
-                    proofList.add(child1);
-                    assert (eq1.getTerms().get(1).equals(eq2.getTerms().get(0)));
-                    proofList.add(child2);
-                } else {
-                    assert (eq3.getTerms().get(1).equals(eq2.getTerms().get(0)));
-                    proofList.add(child3);
-                    proofList.add(child2);
-                    assert (eq2.getTerms().get(1).equals(eq1.getTerms().get(0)));
-                    proofList.add(child1);
+                assert (containsStartTerm.iterator().next().getTerms().get(1)
+                        .equals(startTerm));
+                proofList.add(Z3Proof.createSymmetryProof(map
+                        .get(containsStartTerm.iterator().next())));
+                middleTerm = containsStartTerm.iterator().next().getTerms()
+                        .get(0);
+            }
+
+            toRemove.clear();
+            for (EqualityFormula eq : containsEndTerm) {
+                if (!Util.isReflexivity(eq)) {
+                    if (eq.getTerms().get(1).equals(endTerm))
+                        proofList.add(map.get(eq));
+                    else
+                        proofList.add(Z3Proof.createSymmetryProof(map.get(eq)));
+                    toRemove.add(eq);
                 }
+            }
+            containsEndTerm.removeAll(toRemove);
+            assert (toRemove.size() <= 1);
+            for (EqualityFormula eq : containsEndTerm) {
+                assert (Util.isReflexivity(eq));
+                proofList.add(map.get(eq));
+            }
+
+            if (proofList.size() != 3) {
+                assert (proofList.size() == 2);
+                EqualityFormula notUsedYet = null;
+                if (!proofList.contains(child1))
+                    notUsedYet = eq1;
+                else if (!proofList.contains(child2))
+                    notUsedYet = eq2;
+                else
+                    notUsedYet = eq3;
+                assert (middleTerm != null);
+
+                Z3Proof middleProof = map.get(notUsedYet);
+                if (!notUsedYet.getTerms().get(0).equals(middleTerm))
+                    middleProof = Z3Proof.createSymmetryProof(middleProof);
+
+                Z3Proof lastElement = proofList.get(proofList.size() - 1);
+                proofList.set(1, middleProof);
+                proofList.add(lastElement);
             }
 
             Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
@@ -489,7 +567,8 @@ public class Z3Proof implements SMTLibObject {
             this.proofType = transProof.proofType;
             assert (this.consequent.transformToConsequentsForm()
                     .equals(transProof.consequent.transformToConsequentsForm()));
-            this.consequent = transProof.consequent;
+            this.consequent = transProof.consequent
+                    .transformToConsequentsForm();
 
             // Don't forget the recursive calls on the children!
             child1.dealWithModusPonens();

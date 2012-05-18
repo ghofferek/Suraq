@@ -316,33 +316,39 @@ public class Util {
      */
     public static boolean checkForFlippedDisequality(Formula formula1,
             Formula formula2) {
-        if (!Util.isUnitClause(formula1))
+        if (!Util.isLiteral(formula1))
             return false;
-        if (!Util.isUnitClause(formula2))
+        if (!Util.isLiteral(formula2))
             return false;
 
         Formula literal1 = Util.getSingleLiteral(formula1);
         Formula literal2 = Util.getSingleLiteral(formula2);
 
-        if (!(literal1 instanceof DomainEq))
+        if (!(Util.makeLiteralPositive(literal1) instanceof EqualityFormula))
             return false;
-        if (!(literal2 instanceof DomainEq))
-            return false;
-
-        if (((DomainEq) literal1).isEqual())
-            return false;
-        if (((DomainEq) literal2).isEqual())
+        if (!(Util.makeLiteralPositive(literal2) instanceof EqualityFormula))
             return false;
 
-        assert (((DomainEq) literal1).getTerms().size() == 2);
-        assert (((DomainEq) literal2).getTerms().size() == 2);
-
-        DomainTerm term1 = (DomainTerm) ((DomainEq) literal1).getTerms().get(0);
-        DomainTerm term2 = (DomainTerm) ((DomainEq) literal1).getTerms().get(1);
-
-        if (!term1.equals(((DomainEq) literal2).getTerms().get(1)))
+        if (!Util.isNegativeLiteral(literal1))
             return false;
-        if (!term2.equals(((DomainEq) literal2).getTerms().get(0)))
+        if (!Util.isNegativeLiteral(literal2))
+            return false;
+
+        literal1 = Util.makeLiteralPositive(literal1);
+        literal2 = Util.makeLiteralPositive(literal2);
+
+        assert (((EqualityFormula) literal1).isEqual());
+        assert (((EqualityFormula) literal2).isEqual());
+
+        assert (((EqualityFormula) literal1).getTerms().size() == 2);
+        assert (((EqualityFormula) literal2).getTerms().size() == 2);
+
+        Term term1 = ((EqualityFormula) literal1).getTerms().get(0);
+        Term term2 = ((EqualityFormula) literal1).getTerms().get(1);
+
+        if (!term1.equals(((EqualityFormula) literal2).getTerms().get(1)))
+            return false;
+        if (!term2.equals(((EqualityFormula) literal2).getTerms().get(0)))
             return false;
 
         return true;
@@ -545,9 +551,6 @@ public class Util {
 
         ResNode rootNode = Util.createResolutionProofRecursive(proof);
         Util.resProof.setRoot(rootNode);
-
-        Util.literalsID.clear();
-        Util.resNodes.clear();
 
         return Util.resProof;
     }
