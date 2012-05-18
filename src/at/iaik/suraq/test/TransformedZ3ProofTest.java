@@ -13,6 +13,7 @@ import org.junit.Test;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
@@ -21,6 +22,7 @@ import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.util.Util;
 
 /**
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
@@ -323,6 +325,11 @@ public class TransformedZ3ProofTest {
         transformedZ3Proof.toResolutionProof();
         transformedZ3Proof.checkZ3ProofNode();
         String test = transformedZ3Proof.prettyPrint();
+
+        // START: ASHUTOSH code
+        ResProof resolutionProof = Util
+                .createResolutionProof(transformedZ3Proof);
+        // END: ASHUTOSH code
 
         return transformedZ3Proof.toString().replaceAll("\n", "")
                 .replaceAll("\\s{2,}", " ");

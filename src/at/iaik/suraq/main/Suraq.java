@@ -22,6 +22,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.resProof.ResProofTest;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -346,6 +347,7 @@ public class Suraq implements Runnable {
                         rootProof);
                 transformedZ3Proof.toLocalProof();
                 transformedZ3Proof.toResolutionProof();
+
                 assert (transformedZ3Proof.checkZ3ProofNode());
 
                 try {
@@ -363,6 +365,12 @@ public class Suraq implements Runnable {
 
                 Set<Integer> partitions = rootProof.getPartitionsFromSymbols();
                 System.out.println("partitions" + partitions);
+
+                // START: ASHUTOSH code
+                ResProof resolutionProof = Util
+                        .createResolutionProof(transformedZ3Proof);
+                // END: ASHUTOSH code
+
             }
 
             System.out.println(" done!");

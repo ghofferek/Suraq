@@ -292,6 +292,10 @@ public class Z3Proof implements SMTLibObject {
         return assertPartitions;
     }
 
+    public int getID() {
+        return this.id;
+    }
+
     public Set<Z3Proof> getLemmas() {
 
         Set<Z3Proof> lemmas = new HashSet<Z3Proof>();

@@ -17,6 +17,7 @@ import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.proof.AnnotatedProofNodes;
+import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -1444,6 +1445,12 @@ public class TransformedZ3Proof extends Z3Proof {
                     + proofType.toString()
                     + " while trying to rewrite z3 proof.");
         }
+    }
+
+    public static final ResProof createResolutionProof(
+            TransformedZ3Proof transformedZ3Proof) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /**

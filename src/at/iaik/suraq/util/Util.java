@@ -4,14 +4,22 @@
 package at.iaik.suraq.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
+import at.iaik.suraq.resProof.Lit;
+import at.iaik.suraq.resProof.ResNode;
+import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -35,6 +43,10 @@ import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
  * 
  */
 public class Util {
+
+    private static Map<String, Integer> literalsID = new HashMap<String, Integer>();
+    private static Map<Integer, ResNode> resNodes = new HashMap<Integer, ResNode>();
+    private static ResProof resProof;
 
     /**
      * Chooses a fresh variable name with respect to the given formula. The name
@@ -485,5 +497,145 @@ public class Util {
             throw new RuntimeException(
                     "Incomparable terms during equality reversal.", exc);
         }
+    }
+
+    private static String makeIdString(Formula formula) {
+
+        assert (!(formula instanceof NotFormula));
+        assert (isLiteral(formula));
+
+        // (a=b) (a!=b) (b!=a) (b=a) should have same IDs
+        if (formula instanceof EqualityFormula) {
+            ArrayList<String> terms = new ArrayList<String>();
+            for (Term t : ((EqualityFormula) formula).getTerms())
+                terms.add(t.toString());
+
+            Collections.sort(terms);
+            return terms.toString();
+        } else
+            return formula.toString();
+    }
+
+    private static boolean getSignValue(Formula formula) {
+
+        assert (isLiteral(formula));
+        boolean sign = true;
+
+        if (formula instanceof NotFormula) {
+            sign = false;
+            formula = ((NotFormula) formula).getNegatedFormula();
+        }
+
+        if (formula instanceof EqualityFormula) {
+            if (((EqualityFormula) formula).isEqual())
+                return sign;
+            else
+                return !sign;
+        }
+        return sign;
+    }
+
+    public static final ResProof createResolutionProof(TransformedZ3Proof proof) {
+
+        resProof = new ResProof();
+
+        ResNode rootNode = createResolutionProofRecursive(proof);
+        resProof.setRoot(rootNode);
+
+        literalsID.clear();
+        resNodes.clear();
+
+        return resProof;
+    }
+
+    private static final ResNode createResolutionProofRecursive(
+            TransformedZ3Proof proof) {
+
+        Token proofType = proof.getProofType();
+
+        if (proofType.equals(SExpressionConstants.ASSERTED)) {
+
+            Formula clause = proof.getConsequent();
+            assert (clause instanceof OrFormula);
+
+            List<Lit> resClause = new ArrayList<Lit>();
+            // TODO: check if correct
+            Set<Integer> resClausePartitions = new HashSet<Integer>();
+
+            for (Formula literal : ((OrFormula) clause).getDisjuncts()) {
+
+                // assign literal IDs
+                Formula posLiteral = Util.makeLiteralPositive(literal);
+                assert (Util.isLiteral(posLiteral));
+
+                Integer resLiteralID = Util.literalsID
+                        .get(makeIdString(posLiteral));
+
+                Set<Integer> partitions = literal.getPartitionsFromSymbols();
+                if (partitions.size() == 2)
+                    partitions.remove(-1);
+                assert (partitions.size() == 1);
+                int partition = partitions.iterator().next();
+
+                if (resLiteralID == null) {
+                    resLiteralID = Util.literalsID.size() + 1;
+                    Util.literalsID.put(makeIdString(posLiteral), resLiteralID);
+
+                    resProof.var_part[resLiteralID] = partition;
+                }
+                resClause.add(new Lit(resLiteralID, getSignValue(literal)));
+                resClausePartitions.add(partition);
+            }
+
+            // build leaf ResNodes
+            ResNode resLeafNode = resNodes.get(proof.getID() + 1);
+            if (resLeafNode == null) {
+
+                if (resClausePartitions.size() == 2)
+                    resClausePartitions.remove(-1);
+                assert (resClausePartitions.size() == 1);
+
+                resLeafNode = resProof.addLeaf(resClause, resClausePartitions
+                        .iterator().next());
+
+                resNodes.put(proof.getID() + 1, resLeafNode);
+            }
+            return resLeafNode;
+
+        } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
+
+            assert (proof.getSubProofs().size() == 2);
+
+            ResNode resIntNode = resNodes.get(proof.getID() + 1);
+            if (resIntNode == null) {
+
+                TransformedZ3Proof child1 = (TransformedZ3Proof) proof
+                        .getSubProofs().get(0);
+                TransformedZ3Proof child2 = (TransformedZ3Proof) proof
+                        .getSubProofs().get(1);
+
+                ResNode resNode1 = createResolutionProofRecursive(child1);
+                ResNode resNode2 = createResolutionProofRecursive(child2);
+
+                // build literal of resolution
+                Formula posLiteral = Util.makeLiteralPositive(proof
+                        .getLiteral());
+
+                Integer literalID = Util.literalsID
+                        .get(makeIdString(posLiteral));
+
+                assert (literalID != null);
+
+                resIntNode = resProof.addIntNode(null, resNode1, resNode2,
+                        literalID);
+                resNodes.put(proof.getID() + 1, resIntNode);
+            }
+
+            return resIntNode;
+
+        } else
+            throw new RuntimeException(
+                    "Resolution proof should only consits of asserted and unit-resolution elements");
+
     }
 }
