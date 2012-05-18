@@ -340,27 +340,20 @@ public class Suraq implements Runnable {
 
                 // Main Flow
                 Z3Proof rootProof = proofParser.getRootProof();
-                assert (rootProof.checkZ3ProofNode());
+                // assert (rootProof.checkZ3ProofNode());
 
                 rootProof.localLemmasToAssertions();
-                assert (rootProof.checkZ3ProofNode());
+                // assert (rootProof.checkZ3ProofNode());
 
                 rootProof.removeLocalSubProofs();
-                assert (rootProof.checkZ3ProofNode());
+                // assert (rootProof.checkZ3ProofNode());
 
                 rootProof.dealWithModusPonens();
-                assert (rootProof.checkZ3ProofNode());
-
-                TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
-                        rootProof);
-                assert (transformedZ3Proof.checkZ3ProofNode());
-
-                transformedZ3Proof.toLocalProof();
-                assert (transformedZ3Proof.checkZ3ProofNode());
-
-                transformedZ3Proof.toResolutionProof();
-                assert (transformedZ3Proof.checkZ3ProofNode());
-
+                // assert (rootProof.checkZ3ProofNode());
+                System.out.println("Num Instances: " + Z3Proof.numInstances());
+                TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
+                        .convertToTransformedZ3Proof(rootProof);
+                System.out.println("Num Instances: " + Z3Proof.numInstances());
                 try {
                     File smtfile = new File("proofTemp.txt");
                     FileWriter fstream = new FileWriter(smtfile);
@@ -373,6 +366,13 @@ public class Suraq implements Runnable {
                     exc.printStackTrace();
                     noErrors = false;
                 }
+                assert (transformedZ3Proof.checkZ3ProofNode());
+
+                transformedZ3Proof.toLocalProof();
+                assert (transformedZ3Proof.checkZ3ProofNode());
+
+                transformedZ3Proof.toResolutionProof();
+                assert (transformedZ3Proof.checkZ3ProofNode());
 
                 Set<Integer> partitions = rootProof.getPartitionsFromSymbols();
                 System.out.println("partitions" + partitions);

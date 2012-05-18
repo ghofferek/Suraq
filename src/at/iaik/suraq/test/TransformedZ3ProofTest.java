@@ -367,8 +367,8 @@ public class TransformedZ3ProofTest {
         Assert.assertTrue(rootProof.checkZ3ProofNode());
         rootProof.dealWithModusPonens();
         Assert.assertTrue(rootProof.checkZ3ProofNode());
-        TransformedZ3Proof transformedZ3Proof = new TransformedZ3Proof(
-                rootProof);
+        TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
+                .convertToTransformedZ3Proof(rootProof);
         Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());
         transformedZ3Proof.toLocalProof();
         Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());

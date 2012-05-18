@@ -56,6 +56,12 @@ public class TransformedZ3Proof extends Z3Proof {
     private static Map<TransformedZ3Proof, TransformedZ3Proof> parents = new HashMap<TransformedZ3Proof, TransformedZ3Proof>();
 
     /**
+     * This maps IDs of Z3Proofs to their TransformedZ3Proof counterparts. This
+     * is to avoid DAG unwinding during conversion.
+     */
+    private static Map<Integer, TransformedZ3Proof> proofMap = new HashMap<Integer, TransformedZ3Proof>();
+
+    /**
      * Specifies if this proof object is an axiom introduced during
      * transformation.
      */
@@ -156,7 +162,10 @@ public class TransformedZ3Proof extends Z3Proof {
                 .deepFormulaCopy());
     }
 
-    public TransformedZ3Proof(Z3Proof z3Proof) {
+    public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
+
+        if (TransformedZ3Proof.proofMap.containsKey(z3Proof.id))
+            return TransformedZ3Proof.proofMap.get(z3Proof.id);
 
         // Go through all possible cases of z3 proof rules
 
@@ -172,43 +181,46 @@ public class TransformedZ3Proof extends Z3Proof {
             // for things that have been asserted, and not on things are are
             // proven separately.
 
-            if (!(subProofs.size() == 0))
+            if (!(z3Proof.subProofs.size() == 0))
                 throw new RuntimeException(
                         "Asserted Node should not have children");
 
-            this.proofType = SExpressionConstants.ASSERTED;
-            this.consequent = z3Proof.getConsequent()
-                    .transformToConsequentsForm();
-
-            return;
+            TransformedZ3Proof result = new TransformedZ3Proof(
+                    SExpressionConstants.ASSERTED,
+                    new ArrayList<TransformedZ3Proof>(), z3Proof
+                            .getConsequent().transformToConsequentsForm());
+            TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            return result;
 
         } else if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
             // Treat this as a leave.
-            if (!(subProofs.size() == 0))
+            if (!(z3Proof.subProofs.size() == 0))
                 throw new RuntimeException(
                         "Asserted Node should not have children");
 
-            this.proofType = SExpressionConstants.ASSERTED;
-            this.consequent = z3Proof.getConsequent()
-                    .transformToConsequentsForm();
-            this.hypothesis = true;
-
-            return;
+            TransformedZ3Proof result = new TransformedZ3Proof(
+                    SExpressionConstants.ASSERTED,
+                    new ArrayList<TransformedZ3Proof>(), z3Proof
+                            .getConsequent().transformToConsequentsForm());
+            result.hypothesis = true;
+            TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            return result;
 
         } else if (proofType.equals(SExpressionConstants.AXIOM)
                 || proofType.equals(SExpressionConstants.REFLEXIVITY)) {
             // Treat this as a leave.
             // It should be a propositional tautology.
-            if (!(subProofs.size() == 0))
+            if (!(z3Proof.subProofs.size() == 0))
                 throw new RuntimeException(
                         "Asserted Node should not have children");
 
-            this.proofType = SExpressionConstants.ASSERTED;
-            this.consequent = z3Proof.getConsequent()
-                    .transformToConsequentsForm();
-            this.axiom = true;
-
-            return;
+            TransformedZ3Proof result = new TransformedZ3Proof(
+                    SExpressionConstants.ASSERTED,
+                    new ArrayList<TransformedZ3Proof>(), z3Proof
+                            .getConsequent().transformToConsequentsForm());
+            result.axiom = true;
+            TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            return result;
 
         } else if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
 
@@ -218,39 +230,15 @@ public class TransformedZ3Proof extends Z3Proof {
 
             // should already have been removed
             assert (false);
-
-            // Only dummy handling of modus ponus
-
-            /*
-             * List<Z3Proof> z3SubProofs = z3Proof.getSubProofs(); Z3Proof
-             * child0 = z3SubProofs.get(0); Z3Proof child1 = z3SubProofs.get(1);
-             * 
-             * if (z3SubProofs.size() != 2) throw new RuntimeException(
-             * "Modus-Ponens proof with not exactly two children. This should not happen!"
-             * );
-             * 
-             * if (!((child1.getConsequent() instanceof ImpliesFormula) ||
-             * (child1 .getConsequent() instanceof EqualityFormula))) throw new
-             * RuntimeException(
-             * "Second child of Modus-Ponens should be an ImpliesFormla or of the form (iff p q)."
-             * );
-             * 
-             * this.proofType = (SExpressionConstants.RESOLUTION);
-             * this.subProofs.add(new TransformedZ3Proof(child0));
-             * this.subProofs.add(new TransformedZ3Proof(child1)); this.literal
-             * = new PropositionalVariable("mpTempLiteral"); this.consequent =
-             * z3Proof.getConsequent() .transformToConsequentsForm();
-             * 
-             * return;
-             */
+            return null;
 
         } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
 
             List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             assert (z3SubProofs.size() >= 2);
 
-            Z3Proof transformedAntecedent = new TransformedZ3Proof(
-                    z3SubProofs.get(0));
+            TransformedZ3Proof transformedAntecedent = TransformedZ3Proof
+                    .convertToTransformedZ3Proof(z3SubProofs.get(0));
 
             assert (transformedAntecedent.consequent instanceof OrFormula);
 
@@ -282,31 +270,36 @@ public class TransformedZ3Proof extends Z3Proof {
 
                 transformedAntecedent = new TransformedZ3Proof(
                         SExpressionConstants.UNIT_RESOLUTION,
-                        new TransformedZ3Proof(z3SubProofs.get(count)),
-                        transformedAntecedent, posLiteral,
+                        TransformedZ3Proof
+                                .convertToTransformedZ3Proof(z3SubProofs
+                                        .get(count)), transformedAntecedent,
+                        posLiteral,
                         remainingFormula.transformToConsequentsForm());
             }
 
-            this.proofType = SExpressionConstants.UNIT_RESOLUTION;
-            this.subProofs.add(transformedAntecedent);
-            this.subProofs.add(new TransformedZ3Proof(z3SubProofs
-                    .get(z3SubProofs.size() - 1)));
+            List<TransformedZ3Proof> subproofs = new ArrayList<TransformedZ3Proof>();
+            subproofs.add(transformedAntecedent);
+            subproofs.add(TransformedZ3Proof
+                    .convertToTransformedZ3Proof(z3SubProofs.get(z3SubProofs
+                            .size() - 1)));
+            TransformedZ3Proof result = new TransformedZ3Proof(
+                    proofType = SExpressionConstants.UNIT_RESOLUTION,
+                    subproofs, z3Proof.getConsequent()
+                            .transformToConsequentsForm());
 
             Formula resolutionAssociate = z3SubProofs
                     .get(z3SubProofs.size() - 1).getConsequent()
                     .transformToConsequentsForm();
 
-            assert (transformedAntecedent.getConsequent()
-                    .transformToConsequentsForm() instanceof OrFormula);
             assert (resolutionAssociate instanceof OrFormula);
-            this.literal = Util.findResolvingLiteral(
+            result.literal = Util.findResolvingLiteral(
                     (OrFormula) resolutionAssociate, transformedAntecedent
                             .getConsequent().transformToConsequentsForm());
 
-            this.consequent = z3Proof.getConsequent()
+            result.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
-
-            return;
+            TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            return result;
 
         } else if (proofType.equals(SExpressionConstants.LEMMA)) {
             List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
@@ -320,8 +313,8 @@ public class TransformedZ3Proof extends Z3Proof {
             hypotheticalProof.localLemmasToAssertions();
             hypotheticalProof.removeLocalSubProofs();
             hypotheticalProof.dealWithModusPonens();
-            TransformedZ3Proof transformedHypotheticalProof = new TransformedZ3Proof(
-                    hypotheticalProof);
+            TransformedZ3Proof transformedHypotheticalProof = TransformedZ3Proof
+                    .convertToTransformedZ3Proof(hypotheticalProof);
             transformedHypotheticalProof.toLocalProof();
             transformedHypotheticalProof.toResolutionProof();
 
@@ -337,12 +330,19 @@ public class TransformedZ3Proof extends Z3Proof {
             Map<TransformedZ3Proof, TransformedZ3Proof> parents = new HashMap<TransformedZ3Proof, TransformedZ3Proof>();
             transformedHypotheticalProof.removeHypotheses(parents);
 
-            this.proofType = transformedHypotheticalProof.proofType;
-            this.subProofs = transformedHypotheticalProof.subProofs;
-            this.consequent = transformedHypotheticalProof.consequent;
-            this.literal = Util
+            List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
+            for (Z3Proof proof : transformedHypotheticalProof.subProofs) {
+                assert (proof instanceof TransformedZ3Proof);
+                subProofs.add((TransformedZ3Proof) proof);
+            }
+
+            TransformedZ3Proof result = new TransformedZ3Proof(
+                    transformedHypotheticalProof.proofType, subProofs,
+                    transformedHypotheticalProof.consequent);
+            result.literal = Util
                     .getSingleLiteral(transformedHypotheticalProof.literal);
-            return;
+            TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            return result;
 
         } else {
             Token z3ProofType = z3Proof.getProofType();
@@ -351,12 +351,16 @@ public class TransformedZ3Proof extends Z3Proof {
                     || z3ProofType.equals(SExpressionConstants.UNIT_RESOLUTION)
                     || z3ProofType.equals(SExpressionConstants.SYMMETRY)) {
 
-                this.proofType = z3ProofType;
-                for (Z3Proof proof : z3Proof.getSubProofs()) {
-                    this.subProofs.add(new TransformedZ3Proof(proof));
+                List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
+                for (Z3Proof proof : z3Proof.subProofs) {
+                    subProofs.add(TransformedZ3Proof
+                            .convertToTransformedZ3Proof(proof));
                 }
-                this.consequent = z3Proof.getConsequent()
-                        .transformToConsequentsForm();
+                TransformedZ3Proof result = new TransformedZ3Proof(z3ProofType,
+                        subProofs, z3Proof.getConsequent()
+                                .transformToConsequentsForm());
+                TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+                return result;
             } else {
                 throw new RuntimeException("Encountered unexpected proof rule "
                         + proofType.toString()

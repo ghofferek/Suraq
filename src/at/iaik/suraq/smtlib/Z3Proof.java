@@ -68,7 +68,7 @@ public class Z3Proof implements SMTLibObject {
     /**
      * A unique ID of the node.
      */
-    private final int id;
+    protected final int id;
 
     private static int instanceCounter = 0;
 
@@ -813,6 +813,7 @@ public class Z3Proof implements SMTLibObject {
             case SMTSolver.UNSAT:
                 break;
             case SMTSolver.SAT:
+                System.out.println("Bad Node: " + this.id);
                 throw new RuntimeException(
                         "Error while testing vality of Z3-node with Z3-solver: \n"
                                 + "z3 tells us SAT, node is NOT valid.");
@@ -907,4 +908,9 @@ public class Z3Proof implements SMTLibObject {
 
         return smtStr;
     }
+
+    public static int numInstances() {
+        return Z3Proof.instanceCounter;
+    }
+
 }
