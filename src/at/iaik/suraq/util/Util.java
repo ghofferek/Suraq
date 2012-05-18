@@ -503,10 +503,11 @@ public class Util {
 
         assert (!(formula instanceof NotFormula));
         assert (Util.isLiteral(formula));
+        assert (Util.isAtom(formula));
 
         // (a=b) (a!=b) (b!=a) (b=a) should have same IDs
         if (formula instanceof EqualityFormula) {
-            ArrayList<String> terms = new ArrayList<String>();
+            List<String> terms = new ArrayList<String>();
             for (Term t : ((EqualityFormula) formula).getTerms())
                 terms.add(t.toString());
 
@@ -516,18 +517,18 @@ public class Util {
             return formula.toString();
     }
 
-    private static boolean getSignValue(Formula formula) {
+    private static boolean getSignValue(Formula literal) {
 
-        assert (Util.isLiteral(formula));
+        assert (Util.isLiteral(literal));
         boolean sign = true;
 
-        if (formula instanceof NotFormula) {
+        if (literal instanceof NotFormula) {
             sign = false;
-            formula = ((NotFormula) formula).getNegatedFormula();
+            literal = ((NotFormula) literal).getNegatedFormula();
         }
 
-        if (formula instanceof EqualityFormula) {
-            if (((EqualityFormula) formula).isEqual())
+        if (literal instanceof EqualityFormula) {
+            if (((EqualityFormula) literal).isEqual())
                 return sign;
             else
                 return !sign;
@@ -538,6 +539,9 @@ public class Util {
     public static final ResProof createResolutionProof(TransformedZ3Proof proof) {
 
         Util.resProof = new ResProof();
+
+        Util.literalsID.clear();
+        Util.resNodes.clear();
 
         ResNode rootNode = Util.createResolutionProofRecursive(proof);
         Util.resProof.setRoot(rootNode);
@@ -567,6 +571,7 @@ public class Util {
                 // assign literal IDs
                 Formula posLiteral = Util.makeLiteralPositive(literal);
                 assert (Util.isLiteral(posLiteral));
+                assert (Util.isAtom(posLiteral));
 
                 Integer resLiteralID = Util.literalsID.get(Util
                         .makeIdString(posLiteral));
@@ -579,6 +584,8 @@ public class Util {
 
                 if (resLiteralID == null) {
                     resLiteralID = Util.literalsID.size() + 1;
+                    assert (!Util.literalsID.containsValue(new Integer(
+                            resLiteralID)));
                     Util.literalsID.put(Util.makeIdString(posLiteral),
                             resLiteralID);
 
@@ -597,8 +604,13 @@ public class Util {
                     resClausePartitions.remove(-1);
                 assert (resClausePartitions.size() == 1);
 
-                resLeafNode = Util.resProof.addLeaf(resClause,
-                        resClausePartitions.iterator().next());
+                int leafPartition = resClausePartitions.iterator().next();
+                if (proof.isAxiom())
+                    leafPartition = 0; // axioms should go to 0
+                else if (leafPartition < 0)
+                    leafPartition = 1; // arbitrary choice
+
+                resLeafNode = Util.resProof.addLeaf(resClause, leafPartition);
 
                 Util.resNodes.put(proof.getID() + 1, resLeafNode);
             }
