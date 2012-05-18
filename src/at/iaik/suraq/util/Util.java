@@ -581,8 +581,6 @@ public class Util {
                     partitions.remove(-1);
                 assert (partitions.size() == 1);
                 int partition = partitions.iterator().next();
-                if (partition < 0)
-                    partition = 1; // arbitrary choice
 
                 if (resLiteralID == null) {
                     resLiteralID = Util.literalsID.size() + 1;
@@ -591,7 +589,8 @@ public class Util {
                     Util.literalsID.put(Util.makeIdString(posLiteral),
                             resLiteralID);
 
-                    Util.resProof.var_part[resLiteralID] = partition;
+                    Util.resProof.var_part[resLiteralID] = partition < 0 ? 0
+                            : partition;
                 }
                 resClause
                         .add(new Lit(resLiteralID, Util.getSignValue(literal)));
