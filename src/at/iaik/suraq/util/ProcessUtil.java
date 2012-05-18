@@ -17,32 +17,32 @@ import java.io.OutputStreamWriter;
  * 
  */
 public class ProcessUtil {
-	
-	/**
+
+    /**
      * Runs an external process and gets the output and error stream.
      * 
      * @param executable
      *            path to the external executable
      * @return structure containing the process results.
      */
-	public static ProcessResult runExternalProcess(String executable){
-		int exitCode = -1;
-		String outputStream=null;
-		String errorStream=null;
-		
-		try {
+    public static ProcessResult runExternalProcess(String executable) {
+        int exitCode = -1;
+        String outputStream = null;
+        String errorStream = null;
+
+        try {
             Process p = Runtime.getRuntime().exec(executable);
-    
+
             BufferedReader input = new BufferedReader(new InputStreamReader(
                     p.getInputStream()));
             BufferedReader error = new BufferedReader(new InputStreamReader(
                     p.getErrorStream()));
 
             StringBuffer resultBuffer = new StringBuffer();
-            
+
             String line;
             line = input.readLine();
-            while (line != null && !line.trim().equals("--EOF--")) { 
+            while (line != null && !line.trim().equals("--EOF--")) {
                 resultBuffer.append(line + "\n");
                 line = input.readLine();
             }
@@ -52,23 +52,22 @@ public class ProcessUtil {
 
             resultBuffer = new StringBuffer();
             line = error.readLine();
-            while (line != null && !line.trim().equals("--EOF--")) { 
-            	resultBuffer.append(line + "\n");
+            while (line != null && !line.trim().equals("--EOF--")) {
+                resultBuffer.append(line + "\n");
                 line = error.readLine();
             }
             errorStream = resultBuffer.toString();
-     
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-		
-		return new ProcessResult(outputStream,errorStream,exitCode);
-	}
-	
-	
-	/**
-     * Runs an external process writes a string to stdin 
-     * and gets the output and error stream.
+
+        return new ProcessResult(outputStream, errorStream, exitCode);
+    }
+
+    /**
+     * Runs an external process writes a string to stdin and gets the output and
+     * error stream.
      * 
      * @param executable
      *            path to the external executable
@@ -76,50 +75,55 @@ public class ProcessUtil {
      *            String to write to the process' stdin
      * @return structure containing the process results.
      */
-	public static ProcessResult runExternalProcess(String executable, String inputStr){
-		int exitCode = -1;
-		String outputStream=null;
-		String errorStream=null;
-		
-		try {
+    public static ProcessResult runExternalProcess(String executable,
+            String inputStr) {
+        int exitCode = -1;
+        String outputStream = null;
+        String errorStream = null;
+
+        try {
             Process p = Runtime.getRuntime().exec(executable);
-    
+
             BufferedReader input = new BufferedReader(new InputStreamReader(
                     p.getInputStream()));
             BufferedReader error = new BufferedReader(new InputStreamReader(
                     p.getErrorStream()));
-            
+
             BufferedWriter stdin = new BufferedWriter(new OutputStreamWriter(
                     p.getOutputStream()));
-            
+
             stdin.write(inputStr);
             stdin.flush();
             stdin.close();
 
             StringBuffer resultBuffer = new StringBuffer();
-            
+
             String line;
             line = input.readLine();
-            while (line != null && !line.trim().equals("--EOF--")) { 
+            while (line != null && !line.trim().equals("--EOF--")) {
                 resultBuffer.append(line + "\n");
                 line = input.readLine();
             }
 
-            exitCode = p.exitValue();
+            try {
+                exitCode = p.waitFor();
+            } catch (InterruptedException exc) {
+                throw new RuntimeException("InterruptedException...", exc);
+            }
             outputStream = resultBuffer.toString();
 
             resultBuffer = new StringBuffer();
             line = error.readLine();
-            while (line != null && !line.trim().equals("--EOF--")) { 
-            	resultBuffer.append(line + "\n");
+            while (line != null && !line.trim().equals("--EOF--")) {
+                resultBuffer.append(line + "\n");
                 line = error.readLine();
             }
             errorStream = resultBuffer.toString();
-     
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-		
-		return new ProcessResult(outputStream,errorStream,exitCode);
-	}
+
+        return new ProcessResult(outputStream, errorStream, exitCode);
+    }
 }
