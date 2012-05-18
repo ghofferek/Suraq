@@ -56,8 +56,16 @@ public class ResNode {
             }
             Assert.assertTrue("pivot not found!", pPivot != 0);
         }else{
-            if( pRight.cl.contains( pPivot, true ) ) 
+            if( pLeft.cl.contains( pPivot, true ) 
+                && pRight.cl.contains( pPivot, false) ){
+                isLeftPos = true;
+            }else if( pRight.cl.contains( pPivot, true ) 
+                      && pLeft.cl.contains( pPivot, false) ) {
                 isLeftPos = false;
+            }else{
+                Assert.assertTrue( "Parents do not contain lietrals of pivot!", 
+                                   pPivot != 0);                
+            }
         }
         pivot = pPivot;
 

@@ -14,7 +14,9 @@ public class Clause extends HashSet<Lit> {
     /**
      * 
      */
+
     private static final long serialVersionUID = 1L;
+    public static boolean chkNegLit = false;
 
     public Clause() {
         super();
@@ -29,8 +31,12 @@ public class Clause extends HashSet<Lit> {
         super();
         addAllLit( clLeft );
         rmLit(pivot, true);
-        addAllLit( clRight );
-        rmLit(pivot, false);
+        if( contains(pivot, false) ){
+            addAllLit( clRight );
+        }else{
+            addAllLit( clRight );
+            rmLit(pivot, false);
+        }
     }
 
     public void addAllLit(Collection<Lit> cl) {
@@ -40,7 +46,8 @@ public class Clause extends HashSet<Lit> {
     }
 
     public void addLit(Lit l) {
-        Assert.assertTrue("~l or l in a clause", !this.contains(l.negLit()));
+        if(chkNegLit) 
+            Assert.assertTrue("~l and l in a clause", !this.contains(l.negLit()));
         this.add(l);
     }
 

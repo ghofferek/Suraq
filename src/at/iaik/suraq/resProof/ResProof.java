@@ -70,6 +70,11 @@ public class ResProof {
             return;
         if (printWhileChecking)
             System.out.println(n);
+        if(n.id == 9){
+            System.out.println(n.left);
+            System.out.println(n.right);
+        }
+        // Todo: Check double lits issue if disabled globally
         if (n.isLeaf) {
             Assert.assertTrue("Pivot at leaf!", n.pivot == 0);
             Assert.assertTrue("Parent of a leaf!", n.left == null
@@ -99,11 +104,47 @@ public class ResProof {
     }
 
     public void checkProof(boolean doPrint) {
+        if(doPrint){
+            System.out.println("===============Checking Proof============");
+            System.out.println("Number of active nodes"+"<"+nodeCount);
+            System.out.println("==========================================");
+        }
         printWhileChecking = doPrint;
         Arrays.fill(visited, false);
         recCheckProof(getRoot());
         Assert.assertTrue("Root is not empty clause", root.cl.isEmpty());
+        if(doPrint)
+            System.out.println("==========================================");
     }
+
+    // Start : remove double literals
+
+    void recRmDoubleLits(ResNode n){
+        if (visited[n.id])
+            return;
+        if (n.isLeaf) {
+            visited[n.id] = true;
+            return;
+        }
+
+        recRmDoubleLits(n.left);
+        recRmDoubleLits(n.right);
+        visited[n.id] = true;
+        // Node may get removed in refresh
+        if (!n.refresh()) return;
+
+        if( n.cl.contains(n.pivot, true) ){
+            n.moveChidren(true);               
+        }else if( n.cl.contains(n.pivot, false) ){
+            n.moveChidren(false);
+        }
+    }
+
+    public void rmDoubleLits() {
+        Arrays.fill(visited, false);
+        recRmDoubleLits(getRoot());
+    }
+    
 
     // Start : Proof restructuring-----------------------------------------
     void reOrderStep(ResNode n) {
