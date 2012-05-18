@@ -111,6 +111,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
         super(proofType, subProofs, consequent.transformToConsequentsForm()
                 .deepFormulaCopy());
+        checkZ3ProofNode();
     }
 
     /**
@@ -371,8 +372,10 @@ public class TransformedZ3Proof extends Z3Proof {
 
     public void toLocalProof() {
         TransformedZ3Proof.annotatedNodes.clear();
+        this.resetMarks();
         this.toLocalProofRecursion();
         TransformedZ3Proof.annotatedNodes.clear();
+        this.resetMarks();
     }
 
     /**
@@ -380,7 +383,9 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private void toLocalProofRecursion() {
         // this.computeParents(); // FIXME do we really need this?
-
+        if (this.marked)
+            return;
+        this.marked = true;
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;

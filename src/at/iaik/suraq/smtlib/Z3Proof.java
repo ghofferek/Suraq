@@ -57,7 +57,7 @@ public class Z3Proof implements SMTLibObject {
     /**
      * A flag used for marking during recursive algorithms
      */
-    private boolean marked = false;
+    protected boolean marked = false;
 
     /**
      * Flag that indicates from which assert an asserted node comes. Only valid
@@ -138,7 +138,7 @@ public class Z3Proof implements SMTLibObject {
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
         this.setAssertPartition();
-        this.checkZ3ProofNode();
+        // this.checkZ3ProofNode();
     }
 
     private void setAssertPartition() {

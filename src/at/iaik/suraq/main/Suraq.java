@@ -340,16 +340,16 @@ public class Suraq implements Runnable {
 
                 // Main Flow
                 Z3Proof rootProof = proofParser.getRootProof();
-                // assert (rootProof.checkZ3ProofNode());
+                // assert (rootProof.checkZ3ProofNodeRecursive);
 
                 rootProof.localLemmasToAssertions();
-                // assert (rootProof.checkZ3ProofNode());
+                // assert (rootProof.checkZ3ProofNodeRecursive());
 
                 rootProof.removeLocalSubProofs();
-                // assert (rootProof.checkZ3ProofNode());
+                // assert (rootProof.checkZ3ProofNodeRecursive());
 
                 rootProof.dealWithModusPonens();
-                // assert (rootProof.checkZ3ProofNode());
+                // assert (rootProof.checkZ3ProofNodeRecursive());
                 System.out.println("Num Instances: " + Z3Proof.numInstances());
                 TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
                         .convertToTransformedZ3Proof(rootProof);
@@ -366,13 +366,13 @@ public class Suraq implements Runnable {
                     exc.printStackTrace();
                     noErrors = false;
                 }
-                assert (transformedZ3Proof.checkZ3ProofNode());
+                assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
 
                 transformedZ3Proof.toLocalProof();
                 assert (transformedZ3Proof.checkZ3ProofNode());
 
                 transformedZ3Proof.toResolutionProof();
-                assert (transformedZ3Proof.checkZ3ProofNode());
+                assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
 
                 Set<Integer> partitions = rootProof.getPartitionsFromSymbols();
                 System.out.println("partitions" + partitions);
