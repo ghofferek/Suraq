@@ -501,7 +501,7 @@ public class TransformedZ3Proof extends Z3Proof {
                             transSubProofs.add(annotatedNode.getPremise2());
                             transSubProofs.add(annotatedNode.getPremise3());
                             update = TransformedZ3Proof
-                                    .createTransitivityProof(transSubProofs);
+                                    .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
                         }
                         subProofs.set(0, update);
                     }
@@ -520,7 +520,7 @@ public class TransformedZ3Proof extends Z3Proof {
                             transSubProofs.add(annotatedNode2.getPremise2());
                             transSubProofs.add(annotatedNode2.getPremise3());
                             update = TransformedZ3Proof
-                                    .createTransitivityProof(transSubProofs);
+                                    .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
                         }
                         subProofs.set(1, update);
                     }
@@ -585,7 +585,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     proofs.add(currentAnnotatedNode.getPremise2());
                     proofs.add(currentAnnotatedNode.getPremise3());
                     Z3Proof newProof = TransformedZ3Proof
-                            .createTransitivityProof(proofs);
+                            .createTransitivityProofForTransformedZ3Proofs(proofs);
                     subProofs.set(count, newProof);
                     TransformedZ3Proof.annotatedNodes
                             .add(new AnnotatedProofNode(leftPartition,
@@ -636,7 +636,7 @@ public class TransformedZ3Proof extends Z3Proof {
                                 .getPremise3() : TransformedZ3Proof
                                 .createReflexivityProof(currentRightTerm));
                 newTransitivityProofNode = TransformedZ3Proof
-                        .createTransitivityProof(currentSubProofs);
+                        .createTransitivityProofForTransformedZ3Proofs(currentSubProofs);
             }
 
             TransformedZ3Proof[] proofsForCurrentTerms = createProofForCurrentTerms(
@@ -917,7 +917,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(firstAnnotatedNode.getPremise3());
         newSubProofs.add(secondAnnotatedNode.getConsequent());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
-                .createTransitivityProof(newSubProofs);
+                .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
         TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                 firstAnnotatedNode.getLeftPartition(), firstAnnotatedNode
                         .getRightPartition(), this, firstAnnotatedNode
@@ -940,7 +940,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(firstAnnotatedNode.getConsequent());
         newSubProofs.add(secondAnnotatedNode.getPremise1());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
-                .createTransitivityProof(newSubProofs);
+                .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
         TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                 firstAnnotatedNode.getPartition(), secondAnnotatedNode
                         .getRightPartition(), this, newProofNode,
@@ -965,7 +965,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(firstAnnotatedNode.getPremise2());
         newSubProofs.add(firstAnnotatedNode.getPremise3());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
-                .createTransitivityProof(newSubProofs);
+                .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
         TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                 firstAnnotatedNode.getLeftPartition(), secondAnnotatedNode
                         .getPartition(), this,
@@ -990,7 +990,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getPremise1());
         newSubProofs.add(secondAnnotatedNode.getPremise2());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
-                .createTransitivityProof(newSubProofs);
+                .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
         TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                 firstAnnotatedNode.getPartition(), secondAnnotatedNode
                         .getRightPartition(), this, firstAnnotatedNode
@@ -1010,14 +1010,14 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs1.add(firstAnnotatedNode.getPremise3());
         newSubProofs1.add(secondAnnotatedNode.getPremise1());
         TransformedZ3Proof newProofNode1 = TransformedZ3Proof
-                .createTransitivityProof(newSubProofs1);
+                .createTransitivityProofForTransformedZ3Proofs(newSubProofs1);
 
         List<TransformedZ3Proof> newSubProofs2 = new ArrayList<TransformedZ3Proof>();
         newSubProofs2.add(firstAnnotatedNode.getPremise2());
         newSubProofs2.add(newProofNode1);
         newSubProofs2.add(secondAnnotatedNode.getPremise2());
         TransformedZ3Proof newProofNode2 = TransformedZ3Proof
-                .createTransitivityProof(newSubProofs2);
+                .createTransitivityProofForTransformedZ3Proofs(newSubProofs2);
 
         TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                 firstAnnotatedNode.getLeftPartition(), secondAnnotatedNode
@@ -1132,7 +1132,7 @@ public class TransformedZ3Proof extends Z3Proof {
      *            the subproofs
      * @return a transitivity proof for the given term.
      */
-    public static TransformedZ3Proof createTransitivityProof(
+    public static TransformedZ3Proof createTransitivityProofForTransformedZ3Proofs(
             List<TransformedZ3Proof> subProofs) {
 
         Z3Proof z3Proof = Z3Proof.createTransitivityProof(subProofs);
