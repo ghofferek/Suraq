@@ -258,6 +258,56 @@ public class TransformedZ3ProofTest {
                 SExpression.fromString(output).toString());
     }
 
+    @Test
+    public void test2ToLocalProof() {
+
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+
+        domainVars.add(new DomainVariable("a", 1));
+        domainVars.add(new DomainVariable("b", 1));
+
+        domainVars.add(new DomainVariable("c", 2));
+        domainVars.add(new DomainVariable("d", 2));
+
+        domainVars.add(new DomainVariable("x", -1));
+        domainVars.add(new DomainVariable("y", -1));
+        domainVars.add(new DomainVariable("z", -1));
+        domainVars.add(new DomainVariable("u", -1));
+        domainVars.add(new DomainVariable("v", -1));
+        domainVars.add(new DomainVariable("w", -1));
+
+        uninterpretedFunctions.add(new UninterpretedFunction("f", 2,
+                SExpressionConstants.VALUE_TYPE));
+
+        String trans1 = "(trans (asserted (= a x)) (asserted (= x c)) (= a c))";
+        String trans2 = "(trans (asserted (= b y)) (asserted (= y d)) (= b d))";
+
+        String mono1 = "(monotonicity " + trans1 + trans2
+                + " (= (f a b) (f c d)))";
+        String trans3 = "(trans (asserted (= u (f a b))) " + mono1
+                + " (= u (f c d)))";
+
+        String sym1 = "(symm " + trans3 + " (= (f c d) u))";
+
+        String trans4 = "(trans " + sym1 + " (asserted (= u v)) (= (f c d) v))";
+
+        String sym2 = "(symm " + trans4 + " (= v (f c d)))";
+
+        String proof = "(|unit-resolution| " + sym2
+                + " (asserted (not (= v (f c d)))) false)";
+
+        String output = parseAndTransform(proof, domainVars, propsitionalVars,
+                uninterpretedFunctions, arrayVars);
+
+        String expectedOutput = "( |unit-resolution|{( = y b)} ( |unit-resolution|{( = x b)} ( |unit-resolution|{( = c d)} ( |unit-resolution|{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ) ) ( |unit-resolution|{( = x x)} ( asserted ( or ( = x x ) ) ) ( |unit-resolution|{( = y x)} ( |unit-resolution|{( = a x)} ( asserted ( or ( = a x ) ) ) ( |unit-resolution|{( = y a)} ( asserted ( or ( = y a ) ) ) ( asserted ( or ( not ( = y a ) ) ( not ( = a x ) ) ( = y x ) ) ) ( or ( not ( = a x ) ) ( = y x ) ) ) ( or ( = y x ) ) ) ( asserted ( or ( not ( = y x ) ) ( not ( = x x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x b ) ) ( = y b ) ) ) ( or ( = y b ) ) ) ( asserted ( or ( not ( = y b ) ) ) ) ( or false ))";
+
+        Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
+                SExpression.fromString(output).toString());
+    }
+
     /**
      * Helper function to parse and transform a given proof.
      * 
