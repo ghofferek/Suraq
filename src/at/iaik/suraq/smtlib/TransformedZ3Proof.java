@@ -1367,10 +1367,18 @@ public class TransformedZ3Proof extends Z3Proof {
                 throw new RuntimeException(
                         "Monotonicity/Transitivity proof with less than one child. This should not happen!");
 
+            Set<Z3Proof> redundantSubproofs = new HashSet<Z3Proof>();
+            for (Z3Proof subProof : this.subProofs) {
+                if (Util.isReflexivity(subProof.consequent))
+                    redundantSubproofs.add(subProof);
+            }
+            subProofs.removeAll(redundantSubproofs);
+
             List<Formula> axiomParts = new ArrayList<Formula>();
-            for (Z3Proof subProof : this.subProofs)
-                axiomParts.add((new NotFormula(subProof.getConsequent()))
+            for (Z3Proof subProof : this.subProofs) {
+                axiomParts.add((new NotFormula(subProof.consequent))
                         .transformToConsequentsForm());
+            }
 
             axiomParts.add(this.consequent);
             OrFormula axiomFormula = new OrFormula(axiomParts);

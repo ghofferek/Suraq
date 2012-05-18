@@ -316,9 +316,9 @@ public class Util {
      */
     public static boolean checkForFlippedDisequality(Formula formula1,
             Formula formula2) {
-        if (!Util.isSingleLiteral(formula1))
+        if (!Util.isUnitClause(formula1))
             return false;
-        if (!Util.isSingleLiteral(formula2))
+        if (!Util.isUnitClause(formula2))
             return false;
 
         Formula literal1 = Util.getSingleLiteral(formula1);
@@ -352,7 +352,7 @@ public class Util {
      * @return <code>true</code> if the given formula is only a single literal
      *         (encapsulated in an OR).
      */
-    public static boolean isSingleLiteral(Formula formula) {
+    public static boolean isUnitClause(Formula formula) {
         if (!(formula instanceof OrFormula))
             return false;
         OrFormula orFormula = (OrFormula) formula;
@@ -407,7 +407,7 @@ public class Util {
      * 
      * @param formula
      *            formula to check
-     * @return true, iff formula is an literal
+     * @return true, iff formula is an literal or a unit clause
      */
     public static boolean isLiteral(Formula formula) {
         if (formula instanceof OrFormula) {
@@ -502,7 +502,7 @@ public class Util {
     private static String makeIdString(Formula formula) {
 
         assert (!(formula instanceof NotFormula));
-        assert (isLiteral(formula));
+        assert (Util.isLiteral(formula));
 
         // (a=b) (a!=b) (b!=a) (b=a) should have same IDs
         if (formula instanceof EqualityFormula) {
@@ -518,7 +518,7 @@ public class Util {
 
     private static boolean getSignValue(Formula formula) {
 
-        assert (isLiteral(formula));
+        assert (Util.isLiteral(formula));
         boolean sign = true;
 
         if (formula instanceof NotFormula) {
@@ -537,15 +537,15 @@ public class Util {
 
     public static final ResProof createResolutionProof(TransformedZ3Proof proof) {
 
-        resProof = new ResProof();
+        Util.resProof = new ResProof();
 
-        ResNode rootNode = createResolutionProofRecursive(proof);
-        resProof.setRoot(rootNode);
+        ResNode rootNode = Util.createResolutionProofRecursive(proof);
+        Util.resProof.setRoot(rootNode);
 
-        literalsID.clear();
-        resNodes.clear();
+        Util.literalsID.clear();
+        Util.resNodes.clear();
 
-        return resProof;
+        return Util.resProof;
     }
 
     private static final ResNode createResolutionProofRecursive(
@@ -568,8 +568,8 @@ public class Util {
                 Formula posLiteral = Util.makeLiteralPositive(literal);
                 assert (Util.isLiteral(posLiteral));
 
-                Integer resLiteralID = Util.literalsID
-                        .get(makeIdString(posLiteral));
+                Integer resLiteralID = Util.literalsID.get(Util
+                        .makeIdString(posLiteral));
 
                 Set<Integer> partitions = literal.getPartitionsFromSymbols();
                 if (partitions.size() == 2)
@@ -579,26 +579,28 @@ public class Util {
 
                 if (resLiteralID == null) {
                     resLiteralID = Util.literalsID.size() + 1;
-                    Util.literalsID.put(makeIdString(posLiteral), resLiteralID);
+                    Util.literalsID.put(Util.makeIdString(posLiteral),
+                            resLiteralID);
 
-                    resProof.var_part[resLiteralID] = partition;
+                    Util.resProof.var_part[resLiteralID] = partition;
                 }
-                resClause.add(new Lit(resLiteralID, getSignValue(literal)));
+                resClause
+                        .add(new Lit(resLiteralID, Util.getSignValue(literal)));
                 resClausePartitions.add(partition);
             }
 
             // build leaf ResNodes
-            ResNode resLeafNode = resNodes.get(proof.getID() + 1);
+            ResNode resLeafNode = Util.resNodes.get(proof.getID() + 1);
             if (resLeafNode == null) {
 
                 if (resClausePartitions.size() == 2)
                     resClausePartitions.remove(-1);
                 assert (resClausePartitions.size() == 1);
 
-                resLeafNode = resProof.addLeaf(resClause, resClausePartitions
-                        .iterator().next());
+                resLeafNode = Util.resProof.addLeaf(resClause,
+                        resClausePartitions.iterator().next());
 
-                resNodes.put(proof.getID() + 1, resLeafNode);
+                Util.resNodes.put(proof.getID() + 1, resLeafNode);
             }
             return resLeafNode;
 
@@ -606,7 +608,7 @@ public class Util {
 
             assert (proof.getSubProofs().size() == 2);
 
-            ResNode resIntNode = resNodes.get(proof.getID() + 1);
+            ResNode resIntNode = Util.resNodes.get(proof.getID() + 1);
             if (resIntNode == null) {
 
                 TransformedZ3Proof child1 = (TransformedZ3Proof) proof
@@ -614,21 +616,21 @@ public class Util {
                 TransformedZ3Proof child2 = (TransformedZ3Proof) proof
                         .getSubProofs().get(1);
 
-                ResNode resNode1 = createResolutionProofRecursive(child1);
-                ResNode resNode2 = createResolutionProofRecursive(child2);
+                ResNode resNode1 = Util.createResolutionProofRecursive(child1);
+                ResNode resNode2 = Util.createResolutionProofRecursive(child2);
 
                 // build literal of resolution
                 Formula posLiteral = Util.makeLiteralPositive(proof
                         .getLiteral());
 
-                Integer literalID = Util.literalsID
-                        .get(makeIdString(posLiteral));
+                Integer literalID = Util.literalsID.get(Util
+                        .makeIdString(posLiteral));
 
                 assert (literalID != null);
 
-                resIntNode = resProof.addIntNode(null, resNode1, resNode2,
+                resIntNode = Util.resProof.addIntNode(null, resNode1, resNode2,
                         literalID);
-                resNodes.put(proof.getID() + 1, resIntNode);
+                Util.resNodes.put(proof.getID() + 1, resIntNode);
             }
 
             return resIntNode;
@@ -637,5 +639,35 @@ public class Util {
             throw new RuntimeException(
                     "Resolution proof should only consits of asserted and unit-resolution elements");
 
+    }
+
+    /**
+     * 
+     * 
+     * @param formula
+     * @return <code>true</code> iff the given <code>formula</code> is a
+     *         reflexivity (e.g.: a=a).
+     */
+    public static boolean isReflexivity(Formula formula) {
+        Formula tmp = formula.transformToConsequentsForm();
+        if (!Util.isLiteral(tmp))
+            return false;
+        tmp = Util.getSingleLiteral(tmp);
+        if (!(tmp instanceof EqualityFormula))
+            return false;
+
+        EqualityFormula equality = (EqualityFormula) tmp;
+
+        if (equality.getTerms().size() != 2)
+            return false;
+
+        if (!equality.isEqual())
+            return false;
+
+        Term term1 = equality.getTerms().get(0);
+        Term term2 = equality.getTerms().get(1);
+        assert (term1 != null);
+        assert (term2 != null);
+        return (term1.equals(term2));
     }
 }
