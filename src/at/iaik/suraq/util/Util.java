@@ -686,4 +686,21 @@ public class Util {
         assert (term2 != null);
         return (term1.equals(term2));
     }
+
+    /**
+     * @param equalities
+     * @return <code>true</code> iff the given chain forms a transitivity chain
+     */
+    public static boolean checkEqualityChain(EqualityFormula[] equalities) {
+        for (EqualityFormula eq : equalities)
+            assert (eq.getTerms().size() == 2);
+        Term match = equalities[0].getTerms().get(1);
+        for (int count = 1; count < equalities.length; count++) {
+            Term current = equalities[count].getTerms().get(0);
+            if (!current.equals(match))
+                return false;
+            match = equalities[count].getTerms().get(1);
+        }
+        return true;
+    }
 }

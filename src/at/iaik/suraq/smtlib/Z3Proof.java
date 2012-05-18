@@ -407,10 +407,72 @@ public class Z3Proof implements SMTLibObject {
             Z3Proof child3 = null;
             assert (child2.consequent instanceof PropositionalEq);
             while (true) {
-                if (child2.subProofs.size() == 1)
+                assert (child2.subProofs.size() > 0);
+                if (child2.subProofs.get(0).consequent instanceof PropositionalEq)
                     child2 = child2.subProofs.get(0);
                 else {
-                    assert (child2.subProofs.size() == 2);
+                    assert (child2.subProofs.size() <= 2);
+                    if (child2.subProofs.size() == 1) {
+                        child2 = child2.subProofs.get(0);
+                        EqualityFormula consequentEq = (EqualityFormula) Util
+                                .makeLiteralPositive(consequentLiteral);
+                        Term startTerm = consequentEq.getTerms().get(0);
+                        Term endTerm = consequentEq.getTerms().get(1);
+                        Formula literal2 = Util
+                                .getSingleLiteral(child2.consequent);
+                        EqualityFormula eq1 = (EqualityFormula) Util
+                                .makeLiteralPositive(literal1);
+                        EqualityFormula eq2 = (EqualityFormula) Util
+                                .makeLiteralPositive(literal2);
+
+                        List<Z3Proof> proofList = new ArrayList<Z3Proof>();
+
+                        if (eq1.getTerms().contains(startTerm)) {
+                            if (eq1.getTerms().get(0).equals(startTerm)) {
+                                proofList.add(child1);
+                                assert (eq2.getTerms().contains(endTerm));
+                                if (eq2.getTerms().get(1).equals(endTerm))
+                                    proofList.add(child2);
+                                else
+                                    proofList.add(Z3Proof
+                                            .createSymmetryProof(child2));
+                            } else {
+                                proofList.add(Z3Proof
+                                        .createSymmetryProof(child1));
+                                assert (eq2.getTerms().contains(endTerm));
+                                if (eq2.getTerms().get(1).equals(endTerm))
+                                    proofList.add(child2);
+                                else
+                                    proofList.add(Z3Proof
+                                            .createSymmetryProof(child2));
+                            }
+                        } else {
+                            assert (eq2.getTerms().contains(startTerm));
+                            if (eq2.getTerms().get(0).equals(startTerm)) {
+                                proofList.add(child2);
+                                assert (eq1.getTerms().contains(endTerm));
+                                if (eq1.getTerms().get(1).equals(endTerm))
+                                    proofList.add(child1);
+                                else
+                                    proofList.add(Z3Proof
+                                            .createSymmetryProof(child1));
+                            } else {
+                                proofList.add(Z3Proof
+                                        .createSymmetryProof(child2));
+                                assert (eq1.getTerms().contains(endTerm));
+                                if (eq1.getTerms().get(1).equals(endTerm))
+                                    proofList.add(child1);
+                                else
+                                    proofList.add(Z3Proof
+                                            .createSymmetryProof(child1));
+                            }
+                        }
+
+                        // Recursive Calls on children
+                        child1.dealWithModusPonens();
+                        child2.dealWithModusPonens();
+                        return;
+                    }
                     child3 = child2.subProofs.get(1);
                     child2 = child2.subProofs.get(0);
                     assert (child2.hasSingleLiteralConsequent());
@@ -428,53 +490,16 @@ public class Z3Proof implements SMTLibObject {
             assert (Util.makeLiteralPositive(literal2) instanceof DomainEq);
             assert (Util.makeLiteralPositive(literal3) instanceof DomainEq);
 
-            EqualityFormula eq1 = (DomainEq) Util.makeLiteralPositive(literal1);
-            EqualityFormula eq2 = (DomainEq) Util.makeLiteralPositive(literal2);
-            EqualityFormula eq3 = (DomainEq) Util.makeLiteralPositive(literal3);
-            EqualityFormula consequentEq = (DomainEq) Util
+            EqualityFormula eq1 = (EqualityFormula) Util
+                    .makeLiteralPositive(literal1);
+            EqualityFormula eq2 = (EqualityFormula) Util
+                    .makeLiteralPositive(literal2);
+            EqualityFormula eq3 = (EqualityFormula) Util
+                    .makeLiteralPositive(literal3);
+            EqualityFormula consequentEq = (EqualityFormula) Util
                     .makeLiteralPositive(consequentLiteral);
 
             List<Z3Proof> proofList = new ArrayList<Z3Proof>();
-            /*
-             * if (consequentEq.getTerms().get(0).equals(eq1.getTerms().get(0)))
-             * { if (eq1.getTerms().get(1).equals(eq2.getTerms().get(0))) {
-             * proofList.add(child1); proofList.add(child2); assert
-             * (eq2.getTerms().get(1).equals(eq3.getTerms().get(0))); assert
-             * (consequentEq.getTerms().get(1).equals(eq3 .getTerms().get(1)));
-             * proofList.add(child3); } else { assert
-             * (eq1.getTerms().get(1).equals(eq3.getTerms().get(0)));
-             * proofList.add(child1); proofList.add(child3); assert
-             * (eq3.getTerms().get(1).equals(eq2.getTerms().get(0))); assert
-             * (consequentEq.getTerms().get(1).equals(eq2 .getTerms().get(1)));
-             * proofList.add(child2); } } else if
-             * (consequentEq.getTerms().get(0) .equals(eq2.getTerms().get(0))) {
-             * if (eq2.getTerms().get(1).equals(eq1.getTerms().get(0))) {
-             * proofList.add(child2); proofList.add(child1); if
-             * (eq1.getTerms().get(1).equals(eq3.getTerms().get(0))) { assert
-             * (consequentEq.getTerms().get(1).equals(eq3 .getTerms().get(1)));
-             * proofList.add(child3); } else { // sometimes this term occurs
-             * "reverse" in the proof. // Quick Hack: Check second direction.
-             * assert ((eq1.getTerms().get(1).equals(eq3.getTerms() .get(1))));
-             * assert (consequentEq.getTerms().get(1).equals(eq3
-             * .getTerms().get(0)));
-             * proofList.add(Z3Proof.createSymmetryProof(child3)); } } else {
-             * assert (eq2.getTerms().get(1).equals(eq3.getTerms().get(0)));
-             * proofList.add(child2); proofList.add(child3); assert
-             * (eq3.getTerms().get(1).equals(eq1.getTerms().get(0))); assert
-             * (consequentEq.getTerms().get(1).equals(eq1 .getTerms().get(1)));
-             * proofList.add(child1); } } else { assert
-             * (consequentEq.getTerms().get(0).equals(eq3.getTerms() .get(0)));
-             * if (eq3.getTerms().get(1).equals(eq1.getTerms().get(0))) {
-             * proofList.add(child3); proofList.add(child1); assert
-             * (eq1.getTerms().get(1).equals(eq2.getTerms().get(0))); assert
-             * (consequentEq.getTerms().get(1).equals(eq2 .getTerms().get(1)));
-             * proofList.add(child2); } else { assert
-             * (eq3.getTerms().get(1).equals(eq2.getTerms().get(0)));
-             * proofList.add(child3); proofList.add(child2); assert
-             * (eq2.getTerms().get(1).equals(eq1.getTerms().get(0))); assert
-             * (consequentEq.getTerms().get(1).equals(eq1 .getTerms().get(1)));
-             * proofList.add(child1); } }
-             */
 
             assert (consequentEq.getTerms().size() == 2);
             assert (eq1.getTerms().size() == 2);
@@ -659,6 +684,24 @@ public class Z3Proof implements SMTLibObject {
                 .makeLiteralPositive(Util.getSingleLiteral(subProofs
                         .get(subProofs.size() - 1).consequent
                         .transformToConsequentsForm()));
+        EqualityFormula middleFormula = subProofs.size() == 3 ? (EqualityFormula) Util
+                .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(1).consequent
+                        .transformToConsequentsForm()))
+                : null;
+
+        EqualityFormula[] equalities;
+        if (middleFormula != null) {
+            equalities = new EqualityFormula[3];
+            equalities[0] = firstFormula;
+            equalities[1] = middleFormula;
+            equalities[2] = lastFormula;
+        } else {
+            equalities = new EqualityFormula[2];
+            equalities[0] = firstFormula;
+            equalities[1] = lastFormula;
+        }
+
+        assert (Util.checkEqualityChain(equalities));
 
         int numDisequalities = 0;
         for (Z3Proof child : subProofs) {
