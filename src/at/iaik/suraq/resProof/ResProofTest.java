@@ -51,9 +51,9 @@ public class ResProofTest {
         List<Lit> c3 = Arrays.asList(new Lit(g2, false), new Lit(l, false));
         List<Lit> c4 = Arrays.asList(new Lit(g2, true));
 
-        prf.var_part[g1] = 0;
-        prf.var_part[g2] = 0;
-        prf.var_part[l] = 2;
+        prf.var_part[g1] = 0; // global variable
+        prf.var_part[g2] = 0; // global variable
+        prf.var_part[l] = 2;  // partition 2 local variable
 
         ResNode n1 = prf.addLeaf(c1, 1);
         ResNode n2 = prf.addLeaf(c2, 2);
