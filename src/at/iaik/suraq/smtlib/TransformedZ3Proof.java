@@ -316,6 +316,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             Z3Proof hypotheticalProof = z3SubProofs.get(0);
 
+            assert (hypotheticalProof.checkZ3ProofNode());
             hypotheticalProof.localLemmasToAssertions();
             hypotheticalProof.removeLocalSubProofs();
             hypotheticalProof.dealWithModusPonens();
@@ -1138,6 +1139,7 @@ public class TransformedZ3Proof extends Z3Proof {
         Z3Proof z3Proof = Z3Proof.createTransitivityProof(subProofs);
         List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>(
                 3);
+
         for (Z3Proof subProof : z3Proof.subProofs) {
             assert (subProof instanceof TransformedZ3Proof);
             newSubProofs.add((TransformedZ3Proof) subProof);

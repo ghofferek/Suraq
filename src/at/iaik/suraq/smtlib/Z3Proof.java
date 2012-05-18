@@ -111,6 +111,7 @@ public class Z3Proof implements SMTLibObject {
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
         this.setAssertPartition();
+        this.checkZ3ProofNode();
     }
 
     /**
@@ -137,6 +138,7 @@ public class Z3Proof implements SMTLibObject {
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
         this.setAssertPartition();
+        this.checkZ3ProofNode();
     }
 
     private void setAssertPartition() {
@@ -783,11 +785,10 @@ public class Z3Proof implements SMTLibObject {
     }
 
     /**
-     * Checks recursive if node is valid. Therefore, whether the given Subproofs
-     * together produces the consequent of the node. Also checks this property
-     * recursive for every node of the subtree.
+     * Checks if node is valid. Therefore, whether the given Subproofs together
+     * produces the consequent of the node.
      * 
-     * @return return true iv node is valid
+     * @return return true if node is valid
      */
     public boolean checkZ3ProofNode() {
 
@@ -821,12 +822,24 @@ public class Z3Proof implements SMTLibObject {
                 throw (new RuntimeException(
                         "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
             }
-
-            for (Z3Proof subProof : this.subProofs)
-                subProof.checkZ3ProofNode();
-
         }
         return true;
+    }
+
+    /**
+     * Checks recursive if node is valid. Therefore, whether the given Subproofs
+     * together produces the consequent of the node. Also checks this property
+     * recursive for every node of the subtree.
+     * 
+     * @return return true if node is valid
+     */
+    public boolean checkZ3ProofNodeRecursive() {
+
+        if (this.subProofs.size() > 0)
+            for (Z3Proof subProof : this.subProofs)
+                subProof.checkZ3ProofNodeRecursive();
+
+        return checkZ3ProofNode();
     }
 
     /**
