@@ -479,7 +479,7 @@ public class Suraq implements Runnable {
 
         // Flattening formula, because macros cause problems when
         // replacing arrays with uninterpreted functions
-        // (functions canynot be macro parameters)
+        // (functions cannot be macro parameters)
         System.out.println("Flattening formula...");
         Formula formula = logicParser.getMainFormula().flatten();
         assert (formula.getFunctionMacros().size() == 0);

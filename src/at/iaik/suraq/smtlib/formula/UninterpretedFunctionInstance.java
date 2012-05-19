@@ -35,6 +35,16 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     private final List<DomainTerm> parameters;
 
+    public UninterpretedFunctionInstance(UninterpretedFunction function,
+            List<DomainTerm> parameters, int partition)
+            throws WrongNumberOfParametersException, WrongFunctionTypeException {
+        this(function, parameters);
+        if (partition != -1) {
+            assert (partition == this.assertPartition || this.assertPartition == -1);
+            this.assertPartition = partition;
+        }
+    }
+
     /**
      * Constructs a new <code>UninterpretedFunctionInstance</code> with the
      * given values.
@@ -61,6 +71,15 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                     "Expected a domain function. Received type: "
                             + function.getType().toString());
         this.parameters = new ArrayList<DomainTerm>(parameters);
+
+        Set<Integer> partitions = new HashSet<Integer>();
+        for (DomainTerm parameter : this.parameters)
+            partitions.addAll(parameter.getPartitionsFromSymbols());
+        assert (partitions.size() <= 2);
+        if (partitions.size() == 2)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        this.assertPartition = partitions.iterator().next();
     }
 
     /**
@@ -405,7 +424,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
-        Set<Integer> partitions = function.getAssertPartition();
+        Set<Integer> partitions = function.getAssertPartitionFromSymbols();
 
         for (DomainTerm term : parameters)
             partitions.addAll(term.getPartitionsFromSymbols());

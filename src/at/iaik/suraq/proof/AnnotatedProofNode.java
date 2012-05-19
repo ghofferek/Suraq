@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.proof;
 
+import java.util.Set;
+
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
@@ -92,9 +94,39 @@ public class AnnotatedProofNode {
             Object[] part3 = ((EqualityFormula) Util.makeLiteralPositive(Util
                     .getSingleLiteral((this.premise3.getConsequent()))))
                     .getTerms().toArray();
+            Object[] consequentTerms = ((EqualityFormula) Util
+                    .makeLiteralPositive(Util.getSingleLiteral((this.consequent
+                            .getConsequent())))).getTerms().toArray();
 
+            assert (consequentTerms[0].equals(part1[0]));
+            assert (consequentTerms[1].equals(part3[1]));
             assert (part1[1].equals(part2[0]));
             assert (part2[1].equals(part3[0]));
+
+            Set<Integer> premise1Partitions = this.premise1.getConsequent()
+                    .getPartitionsFromSymbols();
+            Set<Integer> premise2Partitions = this.premise2.getConsequent()
+                    .getPartitionsFromSymbols();
+            Set<Integer> premise3Partitions = this.premise3.getConsequent()
+                    .getPartitionsFromSymbols();
+            Set<Integer> consequentPartitions = this.consequent.getConsequent()
+                    .getPartitionsFromSymbols();
+
+            assert (premise1Partitions.size() == 1 || (premise1Partitions
+                    .size() == 2 && premise1Partitions.contains(-1)));
+            assert (premise1Partitions.contains(this.leftPartition) || (premise1Partitions
+                    .size() == 1 && premise1Partitions.contains(-1)));
+            assert (premise2Partitions.size() == 1 && premise2Partitions
+                    .contains(-1));
+            assert (premise3Partitions.size() == 1 || (premise3Partitions
+                    .size() == 2 && premise3Partitions.contains(-1)));
+            assert (premise3Partitions.contains(this.rightPartition) || (premise3Partitions
+                    .size() == 1 && premise3Partitions.contains(-1)));
+            assert (consequentPartitions.size() <= 2);
+            assert (consequentPartitions.contains(leftPartition) || consequentPartitions
+                    .contains(-1));
+            assert (consequentPartitions.contains(rightPartition) || consequentPartitions
+                    .contains(-1));
         }
 
         this.hash = (premise1 == null ? 0 : premise1.hashCode())

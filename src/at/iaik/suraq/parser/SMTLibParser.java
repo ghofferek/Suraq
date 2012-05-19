@@ -51,24 +51,23 @@ import at.iaik.suraq.smtlib.formula.XorFormula;
 
 public abstract class SMTLibParser extends Parser {
 
-	/**
+    /**
      * maps containing proof references
      */
-	protected final Map<Token, Z3Proof> proofs = new HashMap<Token, Z3Proof>();
-	
-	protected final Map<Token, Formula> formulas = new HashMap<Token, Formula>();
-	
-	protected final Map<Token, Term> terms = new HashMap<Token, Term>();
-	
-	private static final int GLOBAL_PARTITION = -1;
-	
+    protected final Map<Token, Z3Proof> proofs = new HashMap<Token, Z3Proof>();
+
+    protected final Map<Token, Formula> formulas = new HashMap<Token, Formula>();
+
+    protected final Map<Token, Term> terms = new HashMap<Token, Term>();
+
+    private static final int GLOBAL_PARTITION = -1;
+
     /**
      * constants for let expression types
      */
-    public static final char REF_PROOF ='@';   
-    public static final char REF_FORMULA = '$';     
+    public static final char REF_PROOF = '@';
+    public static final char REF_FORMULA = '$';
     public static final char REF_TERM = '?';
-
 
     /**
      * The list of control variables found during parsing
@@ -108,7 +107,7 @@ public abstract class SMTLibParser extends Parser {
     /**
      * The root of the s-expression to be parsed.
      */
-    protected SExpression rootExpr=null;
+    protected SExpression rootExpr = null;
 
     /**
      * A map of current local variables while parsing a function macro.
@@ -120,8 +119,7 @@ public abstract class SMTLibParser extends Parser {
      */
     protected Collection<DomainVariable> currentUVars = null;
 
-	
-	 /**
+    /**
      * Parses a given s-expression into a formula.
      * 
      * @param expression
@@ -130,21 +128,22 @@ public abstract class SMTLibParser extends Parser {
      * @throws ParseError
      *             if parsing fails.
      */
-    protected Formula parseFormulaBody(SExpression expression) throws ParseError {
-    	
-    	if (expression.toString().charAt(0)== REF_FORMULA) {
-    		//resolve reference with LUT
-    		assert(expression instanceof Token);
-    		Token pureKey = new Token (expression.toString().substring(1));
-    		Formula formula = this.formulas.get(pureKey);
-    		
-    		if (formula==null)
-    			throw new ParseError(expression,
-    					"could not find a matching formula-LUT-entry!");
-    		
-    		return formula;
-    	}
-    	
+    protected Formula parseFormulaBody(SExpression expression)
+            throws ParseError {
+
+        if (expression.toString().charAt(0) == SMTLibParser.REF_FORMULA) {
+            // resolve reference with LUT
+            assert (expression instanceof Token);
+            Token pureKey = new Token(expression.toString().substring(1));
+            Formula formula = this.formulas.get(pureKey);
+
+            if (formula == null)
+                throw new ParseError(expression,
+                        "could not find a matching formula-LUT-entry!");
+
+            return formula;
+        }
+
         if (isPropositionalConstant(expression)) {
             PropositionalConstant constant = null;
             if (expression.equals(SExpressionConstants.TRUE))
@@ -165,18 +164,18 @@ public abstract class SMTLibParser extends Parser {
                 throw new ParseError(expression,
                         "Found non-Boolean local variable where Bool sort was expected: "
                                 + expression.toString());
-            
-            int partition = getPartitionBoolVariable(expression); 
+
+            int partition = getPartitionBoolVariable(expression);
             return new PropositionalVariable((Token) expression, partition);
         }
 
         if (isPropositionalVariable(expression)) {
-        	int partition = getPartitionBoolVariable(expression); 
-            return new PropositionalVariable((Token) expression,partition);
+            int partition = getPartitionBoolVariable(expression);
+            return new PropositionalVariable((Token) expression, partition);
         }
 
         Token operator = isBooleanCombination(expression);
-              
+
         if (operator != null) {
             if (operator.equals(SExpressionConstants.NOT)) {
                 if (expression.getChildren().size() != 2)
@@ -223,9 +222,8 @@ public abstract class SMTLibParser extends Parser {
                 return new XorFormula(formulaList);
             }
 
-          
-            if (operator.equals(SExpressionConstants.IMPLIES) 
-            		|| operator.equals(SExpressionConstants.IMPLIES_ALT)) {
+            if (operator.equals(SExpressionConstants.IMPLIES)
+                    || operator.equals(SExpressionConstants.IMPLIES_ALT)) {
                 if (expression.getChildren().size() != 3)
                     throw new ParseError(expression,
                             "Expected 2 arguments for '=>'.");
@@ -294,8 +292,10 @@ public abstract class SMTLibParser extends Parser {
                 if (property.getChildren().size() <= 2) { // not an implication
                     indexGuard = new PropositionalConstant(true);
                     valueConstraint = parseFormulaBody(property);
-                } else if (!property.getChildren().get(0).equals(SExpressionConstants.IMPLIES)
-                		&& !property.getChildren().get(0).equals(SExpressionConstants.IMPLIES_ALT)) {
+                } else if (!property.getChildren().get(0)
+                        .equals(SExpressionConstants.IMPLIES)
+                        && !property.getChildren().get(0)
+                                .equals(SExpressionConstants.IMPLIES_ALT)) {
                     // also not an implication
                     indexGuard = new PropositionalConstant(true);
                     valueConstraint = parseFormulaBody(property);
@@ -303,9 +303,11 @@ public abstract class SMTLibParser extends Parser {
                     if (property.getChildren().size() != 3)
                         throw new ParseError(property,
                                 "Malformed array property!");
-                    assert (property.getChildren().get(0).equals(SExpressionConstants.IMPLIES)
-                    		|| property.getChildren().get(0).equals(SExpressionConstants.IMPLIES_ALT));
-              
+                    assert (property.getChildren().get(0)
+                            .equals(SExpressionConstants.IMPLIES) || property
+                            .getChildren().get(0)
+                            .equals(SExpressionConstants.IMPLIES_ALT));
+
                     indexGuard = parseFormulaBody(property.getChildren().get(1));
                     valueConstraint = parseFormulaBody(property.getChildren()
                             .get(2));
@@ -348,7 +350,9 @@ public abstract class SMTLibParser extends Parser {
                 parameters.add((DomainTerm) term);
             }
             try {
-                return new UninterpretedPredicateInstance(function, parameters);
+                int partition = getPartitionUninterpretedFunction(function);
+                return new UninterpretedPredicateInstance(function, parameters,
+                        partition);
             } catch (SuraqException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing uninterpreted function instance.");
@@ -400,63 +404,85 @@ public abstract class SMTLibParser extends Parser {
         else
             throw new ParseError(expression, "Error parsing formula body.");
     }
-    
-	/**
-     * Determines the assert partition of a <code>PropositionalVariable</code>, based on
-     * previous assert-partition information stored in  <code>boolVariables</code>.
+
+    /**
+     * Determines the assert partition of a <code>PropositionalVariable</code>,
+     * based on previous assert-partition information stored in
+     * <code>boolVariables</code>.
      * 
      * @param expression
      *            the expression to check
      * @return the variables assert partition
      */
     private int getPartitionBoolVariable(SExpression expression) {
-		
-    	for(PropositionalVariable var : boolVariables)
-    		if(var.equals(new PropositionalVariable((Token)expression))){
-    			Set<Integer> partitions = var.getPartitionsFromSymbols();		
-    			return partitions.iterator().next();
-    		}
-    			
-    	return GLOBAL_PARTITION;
-	}
-    
+
+        for (PropositionalVariable var : boolVariables)
+            if (var.equals(new PropositionalVariable((Token) expression))) {
+                Set<Integer> partitions = var.getPartitionsFromSymbols();
+                return partitions.iterator().next();
+            }
+
+        return SMTLibParser.GLOBAL_PARTITION;
+    }
+
     /**
-     * Determines the assert partition of a <code>DomainVariable</code>, based on
-     * previous assert-partition information stored in  <code>domainVariables</code>.
+     * Determines the assert partition of a <code>DomainVariable</code>, based
+     * on previous assert-partition information stored in
+     * <code>domainVariables</code>.
      * 
      * @param expression
      *            the expression to check
      * @return the variables assert partition
      */
     private int getPartitionDomainVariable(SExpression expression) {
-    	for(DomainVariable var : domainVariables)
-    		if(var.equals(new DomainVariable((Token)expression))){
-    			Set<Integer> partitions = var.getPartitionsFromSymbols();		
-    			return partitions.iterator().next();
-    		}
-    			
-    	return GLOBAL_PARTITION;
-	}
-    
+        for (DomainVariable var : domainVariables)
+            if (var.equals(new DomainVariable((Token) expression))) {
+                Set<Integer> partitions = var.getPartitionsFromSymbols();
+                return partitions.iterator().next();
+            }
+
+        return SMTLibParser.GLOBAL_PARTITION;
+    }
+
     /**
-     * Determines the assert partition of a  <code>ArrayVariable</code>, based on
-     * previous assert-partition information stored in  <code>arrayVariables</code>.
+     * Determines the assert partition of a <code>ArrayVariable</code>, based on
+     * previous assert-partition information stored in
+     * <code>arrayVariables</code>.
      * 
      * @param expression
      *            the expression to check
      * @return the variables assert partition
      */
     private int getPartitionArrayVariable(SExpression expression) {
-    	for(ArrayVariable var : arrayVariables)
-    		if(var.equals(new ArrayVariable((Token)expression))){
-    			Set<Integer> partitions = var.getPartitionsFromSymbols();		
-    			return partitions.iterator().next();
-    		}
-    			
-    	return GLOBAL_PARTITION;
-	}
-    
-	/**
+        for (ArrayVariable var : arrayVariables)
+            if (var.equals(new ArrayVariable((Token) expression))) {
+                Set<Integer> partitions = var.getPartitionsFromSymbols();
+                return partitions.iterator().next();
+            }
+
+        return SMTLibParser.GLOBAL_PARTITION;
+    }
+
+    /**
+     * Determines the assert partition of an <code>UninterpretedFunction</code>,
+     * based on previous assert-partition information stored in
+     * <code>uninterpretedFunctions</code>.
+     * 
+     * @param function
+     *            the function to check
+     * @return the <code>function</code>'s assert partition
+     */
+    private int getPartitionUninterpretedFunction(UninterpretedFunction function) {
+        for (UninterpretedFunction fun : functions)
+            if (fun.equals(function)) {
+                Set<Integer> partitions = fun.getAssertPartitionFromSymbols();
+                return partitions.iterator().next();
+            }
+
+        return SMTLibParser.GLOBAL_PARTITION;
+    }
+
+    /**
      * Parses the given expression as a term.
      * 
      * @param expression
@@ -467,21 +493,21 @@ public abstract class SMTLibParser extends Parser {
      */
     protected Term parseTerm(SExpression expression) throws ParseError {
 
-    	if (expression.toString().charAt(0)== REF_TERM) {
-    		//resolve reference with LUT
-    		assert(expression instanceof Token);
-    		Token pureKey = new Token (expression.toString().substring(1));
-    		Term term = this.terms.get(pureKey);
-    		
-    		if (term==null)
-    			throw new ParseError(expression,
-    					"could not find a matching term-LUT-entry!");
-    		
-    		return term;
-    	}    	
-    	
+        if (expression.toString().charAt(0) == SMTLibParser.REF_TERM) {
+            // resolve reference with LUT
+            assert (expression instanceof Token);
+            Token pureKey = new Token(expression.toString().substring(1));
+            Term term = this.terms.get(pureKey);
+
+            if (term == null)
+                throw new ParseError(expression,
+                        "could not find a matching term-LUT-entry!");
+
+            return term;
+        }
+
         if (isUVar(expression)) { // Takes precedence over other variable types
-            int partition = getPartitionDomainVariable(expression); 
+            int partition = getPartitionDomainVariable(expression);
             return new DomainVariable((Token) expression, partition);
         }
 
@@ -489,18 +515,18 @@ public abstract class SMTLibParser extends Parser {
                                                         // global variables.
         if (type != null) {
             if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
-            	int partition = getPartitionArrayVariable(expression);
-                return new ArrayVariable((Token) expression,partition);
+                int partition = getPartitionArrayVariable(expression);
+                return new ArrayVariable((Token) expression, partition);
             }
             if (type.equals(SExpressionConstants.VALUE_TYPE)) {
-            	int partition = getPartitionDomainVariable(expression); 
+                int partition = getPartitionDomainVariable(expression);
                 return new DomainVariable((Token) expression, partition);
             }
             if (type.equals(SExpressionConstants.BOOL_TYPE)
                     || type.equals(SExpressionConstants.CONTROL_TYPE)) {
-            	
-            	int partition = getPartitionBoolVariable(expression);
-                return new PropositionalVariable((Token) expression,partition);
+
+                int partition = getPartitionBoolVariable(expression);
+                return new PropositionalVariable((Token) expression, partition);
             }
             // In case we have a type that should not exist:
             throw new RuntimeException(
@@ -538,8 +564,8 @@ public abstract class SMTLibParser extends Parser {
         }
 
         if (isArrayVariable(expression)) {
-        	int partition = getPartitionArrayVariable(expression);
-            return new ArrayVariable(expression.toString(),partition);
+            int partition = getPartitionArrayVariable(expression);
+            return new ArrayVariable(expression.toString(), partition);
         }
 
         if (isArrayWrite(expression)) {
@@ -567,8 +593,8 @@ public abstract class SMTLibParser extends Parser {
         }
 
         if (isDomainVariable(expression)) {
-        	int partition = getPartitionDomainVariable(expression); 
-            return new DomainVariable(expression.toString(),partition);
+            int partition = getPartitionDomainVariable(expression);
+            return new DomainVariable(expression.toString(), partition);
         }
 
         UninterpretedFunction function = isUninterpredFunctionInstance(expression);
@@ -590,7 +616,9 @@ public abstract class SMTLibParser extends Parser {
                 parameters.add((DomainTerm) term);
             }
             try {
-                return new UninterpretedFunctionInstance(function, parameters);
+                int partition = getPartitionUninterpretedFunction(function);
+                return new UninterpretedFunctionInstance(function, parameters,
+                        partition);
             } catch (SuraqException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing uninterpreted function instance.");
@@ -681,8 +709,7 @@ public abstract class SMTLibParser extends Parser {
         return new FormulaTerm(formula);
     }
 
-
-	/**
+    /**
      * Parses the list of universally quantified variables.
      * 
      * @param uVarsExpression
@@ -705,21 +732,20 @@ public abstract class SMTLibParser extends Parser {
             if (!(child.getChildren().get(0) instanceof Token))
                 throw new ParseError(child.getChildren().get(0),
                         "Expected variable name.");
-            
-            int partition = getPartitionDomainVariable(child.getChildren()
-                    .get(0)); 
+
+            int partition = getPartitionDomainVariable(child.getChildren().get(
+                    0));
             if (!uVars.add(new DomainVariable((Token) child.getChildren()
-                    .get(0),partition))) {
+                    .get(0), partition))) {
                 throw new ParseError(child.getChildren().get(0),
                         "Duplicate variable in quantifier scope: "
                                 + child.getChildren().get(0).toString());
             }
         }
         return uVars;
-    }    
-    
-	
-	  /**
+    }
+
+    /**
      * Checks if the given expression is an if-then-else term
      * 
      * @param expression
@@ -737,8 +763,7 @@ public abstract class SMTLibParser extends Parser {
 
         return false;
     }
-    
-    
+
     /**
      * Checks if the given expression is a macro instance. If so, the
      * corresponding macro is returned.
@@ -826,8 +851,7 @@ public abstract class SMTLibParser extends Parser {
         else
             return true;
     }
-    
-    
+
     /**
      * Checks whether the given expression is an equality instance.
      * 
@@ -917,7 +941,7 @@ public abstract class SMTLibParser extends Parser {
     protected boolean isPropositionalConstant(SExpression expression) {
         return (expression.equals(SExpressionConstants.TRUE) || expression
                 .equals(SExpressionConstants.FALSE));
-    }    
+    }
 
     /**
      * Checks if the given expression is a current local variable. Returns the
@@ -933,9 +957,9 @@ public abstract class SMTLibParser extends Parser {
             return null;
 
         return currentLocals.get(expression);
-    }    
+    }
 
-    /**  
+    /**
      * Checks if the given expression is a propositional variable or constant.
      * 
      * @param expression
@@ -956,12 +980,12 @@ public abstract class SMTLibParser extends Parser {
         PropositionalVariable variable = new PropositionalVariable(
                 (Token) expression);
         if (boolVariables.contains(variable))
-                //|| controlVariables.contains(variable))
+            // || controlVariables.contains(variable))
             return true;
         else
             return false;
     }
-    
+
     /**
      * Checks whether the given expression is a domain variable
      * 
@@ -974,7 +998,7 @@ public abstract class SMTLibParser extends Parser {
         if (!(expression instanceof Token))
             return false;
         return domainVariables.contains(new DomainVariable((Token) expression));
-    }    
+    }
 
     /**
      * Checks whether the given expression is an array variable
@@ -990,7 +1014,6 @@ public abstract class SMTLibParser extends Parser {
         return arrayVariables.contains(new ArrayVariable((Token) expression));
     }
 
-    
     /**
      * Checks whether the given expression is an uninterpreted function
      * instance. If so, the function is returned.
@@ -1015,8 +1038,8 @@ public abstract class SMTLibParser extends Parser {
                 return function;
         }
         return null;
-    }    
-    
+    }
+
     /**
      * Checks if the given expression is a universally quantified variable (in
      * current scope).
@@ -1035,8 +1058,8 @@ public abstract class SMTLibParser extends Parser {
 
         return (this.currentUVars.contains(new DomainVariable(
                 (Token) expression)));
-    }   
-    
+    }
+
     /**
      * Returns a copy of the list of control variables.
      * 
@@ -1100,5 +1123,5 @@ public abstract class SMTLibParser extends Parser {
      */
     public List<FunctionMacro> getMacros() {
         return new ArrayList<FunctionMacro>(macros.values());
-    }	
+    }
 }

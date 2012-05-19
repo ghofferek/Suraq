@@ -111,7 +111,9 @@ public class TransformedZ3Proof extends Z3Proof {
 
         super(proofType, subProofs, consequent.transformToConsequentsForm()
                 .deepFormulaCopy());
-        checkZ3ProofNode();
+        if (this.id == 548)
+            this.checkZ3ProofNodeRecursive();
+        assert (this.checkZ3ProofNode());
     }
 
     /**
@@ -136,6 +138,9 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.literal = literal == null ? null : Util.getSingleLiteral(literal
                 .deepFormulaCopy());
+        if (this.id == 548)
+            this.checkZ3ProofNodeRecursive();
+        assert (this.checkZ3ProofNode());
     }
 
     /**
@@ -161,6 +166,9 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.literal = literal == null ? null : Util.getSingleLiteral(literal
                 .deepFormulaCopy());
+        if (this.id == 548 || subProof1.id == 548 || subProof2.id == 548)
+            this.checkZ3ProofNodeRecursive();
+        assert (this.checkZ3ProofNode());
     }
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
@@ -276,6 +284,7 @@ public class TransformedZ3Proof extends Z3Proof {
                                         .get(count)), transformedAntecedent,
                         posLiteral,
                         remainingFormula.transformToConsequentsForm());
+
             }
 
             List<TransformedZ3Proof> subproofs = new ArrayList<TransformedZ3Proof>();
@@ -303,6 +312,10 @@ public class TransformedZ3Proof extends Z3Proof {
             return result;
 
         } else if (proofType.equals(SExpressionConstants.LEMMA)) {
+
+            if (z3Proof.id == 548)
+                assert (z3Proof.checkZ3ProofNodeRecursive());
+
             List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() != 1)
                 throw new RuntimeException(
@@ -310,14 +323,27 @@ public class TransformedZ3Proof extends Z3Proof {
 
             Z3Proof hypotheticalProof = z3SubProofs.get(0);
 
-            assert (hypotheticalProof.checkZ3ProofNode());
+            // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
             hypotheticalProof.localLemmasToAssertions();
+
+            // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
             hypotheticalProof.removeLocalSubProofs();
+
+            // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
             hypotheticalProof.dealWithModusPonens();
+
+            // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
             TransformedZ3Proof transformedHypotheticalProof = TransformedZ3Proof
                     .convertToTransformedZ3Proof(hypotheticalProof);
+
+            assert (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
             transformedHypotheticalProof.toLocalProof();
+
+            assert (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
             transformedHypotheticalProof.toResolutionProof();
+
+            // assert
+            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
 
             List<Formula> falseFormula = new ArrayList<Formula>();
             falseFormula.add(new PropositionalConstant(false));
@@ -329,7 +355,11 @@ public class TransformedZ3Proof extends Z3Proof {
                                         .toString());
 
             Map<TransformedZ3Proof, TransformedZ3Proof> parents = new HashMap<TransformedZ3Proof, TransformedZ3Proof>();
+            // assert
+            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
             transformedHypotheticalProof.removeHypotheses(parents);
+            // assert
+            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
 
             List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
             for (Z3Proof proof : transformedHypotheticalProof.subProofs) {
@@ -343,6 +373,7 @@ public class TransformedZ3Proof extends Z3Proof {
             result.literal = Util
                     .getSingleLiteral(transformedHypotheticalProof.literal);
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            assert (result.checkZ3ProofNode());
             return result;
 
         } else {
@@ -390,7 +421,11 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
             subProof.toLocalProofRecursion();
+            if (this.id == 548)
+                assert (child.checkZ3ProofNodeRecursive());
         }
+        if (this.id == 548)
+            assert (this.checkZ3ProofNode());
 
         // Recursive calls are completed. Now handle this particular node.
         // -------------------------------------------------------------
@@ -914,7 +949,7 @@ public class TransformedZ3Proof extends Z3Proof {
     /**
      * Deals with the case that the first equalities has an annotated nodes with
      * 3 premises, the second one has an annotated node with 0 premises, and the
-     * right partition of the first node equals the partition of the second
+     * partition of the second node equals the right partition of the first
      * node.
      * 
      * @param firstAnnotatedNode
@@ -923,11 +958,13 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private void handleTransitivityCase3(AnnotatedProofNode firstAnnotatedNode,
             AnnotatedProofNode secondAnnotatedNode) {
-        List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>();
+        List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>(
+                3);
         newSubProofs.add(firstAnnotatedNode.getPremise3());
         newSubProofs.add(secondAnnotatedNode.getConsequent());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        assert (newProofNode.checkZ3ProofNode());
         TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                 firstAnnotatedNode.getLeftPartition(), firstAnnotatedNode
                         .getRightPartition(), this, firstAnnotatedNode

@@ -33,6 +33,16 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     private final List<DomainTerm> parameters;
 
+    public UninterpretedPredicateInstance(UninterpretedFunction function,
+            List<DomainTerm> parameters, int partition)
+            throws WrongNumberOfParametersException, WrongFunctionTypeException {
+        this(function, parameters);
+        if (partition != -1) {
+            assert (partition == this.assertPartition || this.assertPartition == -1);
+            this.assertPartition = partition;
+        }
+    }
+
     /**
      * Constructs a new <code>UninterpretedPredicateInstance</code> with the
      * given values.
@@ -59,6 +69,15 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                     "Expected a domain function. Received type: "
                             + function.getType().toString());
         this.parameters = new ArrayList<DomainTerm>(parameters);
+
+        Set<Integer> partitions = new HashSet<Integer>();
+        for (DomainTerm parameter : this.parameters)
+            partitions.addAll(parameter.getPartitionsFromSymbols());
+        assert (partitions.size() <= 2);
+        if (partitions.size() == 2)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        this.assertPartition = partitions.iterator().next();
     }
 
     /**
@@ -354,7 +373,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
-        Set<Integer> partitions = function.getAssertPartition();
+        Set<Integer> partitions = function.getAssertPartitionFromSymbols();
 
         for (DomainTerm term : parameters)
             partitions.addAll(term.getPartitionsFromSymbols());
