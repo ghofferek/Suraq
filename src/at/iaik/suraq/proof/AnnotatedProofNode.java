@@ -122,7 +122,7 @@ public class AnnotatedProofNode {
                     .size() == 2 && premise3Partitions.contains(-1)));
             assert (premise3Partitions.contains(this.rightPartition) || (premise3Partitions
                     .size() == 1 && premise3Partitions.contains(-1)));
-            assert (consequentPartitions.size() <= 2);
+            assert (consequentPartitions.size() <= 3);
             assert (consequentPartitions.contains(leftPartition) || consequentPartitions
                     .contains(-1));
             assert (consequentPartitions.contains(rightPartition) || consequentPartitions

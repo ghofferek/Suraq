@@ -87,6 +87,7 @@ public class UninterpretedFunction {
         this.numParams = original.numParams;
         this.name = new Token(original.name);
         this.type = new Token(original.type);
+        this.assertPartition = original.assertPartition;
     }
 
     /**

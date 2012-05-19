@@ -42,6 +42,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         if (partition != -1) {
             assert (partition == this.assertPartition || this.assertPartition == -1);
             this.assertPartition = partition;
+            this.assertPartition = partition;
         }
     }
 
@@ -144,7 +145,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             parameters.add(term.deepTermCopy());
         try {
             return new UninterpretedFunctionInstance(new UninterpretedFunction(
-                    function), parameters);
+                    function), parameters, assertPartition);
         } catch (SuraqException exc) {
             // This should never happen!
             assert (false);

@@ -108,7 +108,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             parameterCopies.add(term.deepTermCopy());
         try {
             return new UninterpretedPredicateInstance(
-                    new UninterpretedFunction(function), parameterCopies);
+                    new UninterpretedFunction(function), parameterCopies,
+                    assertPartition);
         } catch (SuraqException exc) {
             throw new RuntimeException(
                     "Unexpected situation whily copying predicate.", exc);

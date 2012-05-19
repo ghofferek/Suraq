@@ -36,8 +36,9 @@ import at.iaik.suraq.util.Util;
 
 /**
  * 
- * Should only contain the following proof rules: Asserted, Symmetry,
- * Transitivity, Monotonicity and (simple) Resolution.
+ * Should only contain the following proof rules: Asserted, Symmetry, (simple,
+ * i.e., 2-subproof) Transitivity, Monotonicity and (simple, i.e. 2-subproof)
+ * Resolution.
  * 
  * Formulas for consequents should have the following structure: - each atom is
  * either a positive equality of two terms, a propositional variable, or an
@@ -47,6 +48,7 @@ import at.iaik.suraq.util.Util;
  * Formulas for literals should be positive atoms as defined above.
  * 
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
+ * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  */
 public class TransformedZ3Proof extends Z3Proof {
 
@@ -376,28 +378,43 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (result.checkZ3ProofNode());
             return result;
 
-        } else {
-            Token z3ProofType = z3Proof.getProofType();
-            if (z3ProofType.equals(SExpressionConstants.TRANSITIVITY)
-                    || z3ProofType.equals(SExpressionConstants.MONOTONICITY)
-                    || z3ProofType.equals(SExpressionConstants.UNIT_RESOLUTION)
-                    || z3ProofType.equals(SExpressionConstants.SYMMETRY)) {
+        } else if (proofType.equals(SExpressionConstants.TRANSITIVITY)) {
 
-                List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
-                for (Z3Proof proof : z3Proof.subProofs) {
-                    subProofs.add(TransformedZ3Proof
-                            .convertToTransformedZ3Proof(proof));
-                }
-                TransformedZ3Proof result = new TransformedZ3Proof(z3ProofType,
-                        subProofs, z3Proof.getConsequent()
-                                .transformToConsequentsForm());
-                TransformedZ3Proof.proofMap.put(z3Proof.id, result);
-                return result;
-            } else {
-                throw new RuntimeException("Encountered unexpected proof rule "
-                        + proofType.toString()
-                        + " while trying to rewrite z3 proof.");
+            assert (z3Proof.subProofs.size() >= 2);
+            TransformedZ3Proof current1 = TransformedZ3Proof
+                    .convertToTransformedZ3Proof(z3Proof.subProofs.get(0));
+            for (int count = 1; count < z3Proof.subProofs.size(); count++) {
+                TransformedZ3Proof current2 = TransformedZ3Proof
+                        .convertToTransformedZ3Proof(z3Proof.subProofs
+                                .get(count));
+                List<TransformedZ3Proof> currentSubProofs = new ArrayList<TransformedZ3Proof>(
+                        2);
+                currentSubProofs.add(current1);
+                currentSubProofs.add(current2);
+                current1 = TransformedZ3Proof
+                        .createTransitivityProofForTransformedZ3Proofs(currentSubProofs);
+                assert (current1.subProofs.size() == 2);
             }
+            TransformedZ3Proof.proofMap.put(z3Proof.id, current1);
+            return current1;
+
+        } else if (proofType.equals(SExpressionConstants.MONOTONICITY)
+                || proofType.equals(SExpressionConstants.SYMMETRY)) {
+
+            List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
+            for (Z3Proof proof : z3Proof.subProofs) {
+                subProofs.add(TransformedZ3Proof
+                        .convertToTransformedZ3Proof(proof));
+            }
+            TransformedZ3Proof result = new TransformedZ3Proof(proofType,
+                    subProofs, z3Proof.getConsequent()
+                            .transformToConsequentsForm());
+            TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            return result;
+        } else {
+            throw new RuntimeException("Encountered unexpected proof rule "
+                    + proofType.toString()
+                    + " while trying to rewrite z3 proof.");
         }
     }
 
@@ -862,7 +879,12 @@ public class TransformedZ3Proof extends Z3Proof {
      * Deals with transforming a transitivity node to a local proof.
      */
     private void handleTransitivity() {
-        assert (subProofs.size() == 2 || subProofs.size() == 3);
+        // At this point, there should be only simple (2 subproof)
+        // transitivities. 3-subproof transitivities may be added later (by
+        // conversion from annotated nodes). Our transformation rules cannot
+        // deal with 3-subproof transitivities at the moment, thus DO NOT REMOVE
+        // THE FOLLOWING ASSERT!
+        assert (subProofs.size() == 2);
 
         AnnotatedProofNode firstAnnotatedNode = TransformedZ3Proof.annotatedNodes
                 .getNodeWithConsequent(subProofs.get(0).consequent);
