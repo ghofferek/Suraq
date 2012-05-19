@@ -1108,6 +1108,7 @@ public class TransformedZ3Proof extends Z3Proof {
      * Recursively computes the parents in the proof, starting from
      * <code>this</code> downwards.
      */
+    @SuppressWarnings("unused")
     private void computeParents() {
         for (Z3Proof child : subProofs) {
             if (!(child instanceof TransformedZ3Proof))

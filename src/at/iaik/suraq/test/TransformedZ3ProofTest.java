@@ -358,6 +358,7 @@ public class TransformedZ3ProofTest {
         }
 
         Z3Proof rootProof = proofParser.getRootProof();
+        @SuppressWarnings("unused")
         String proofString = rootProof.prettyPrint();
         Assert.assertTrue(rootProof.checkZ3ProofNode());
 
@@ -374,6 +375,7 @@ public class TransformedZ3ProofTest {
         Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());
         transformedZ3Proof.toResolutionProof();
         Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());
+        @SuppressWarnings("unused")
         String test = transformedZ3Proof.prettyPrint();
 
         // START: ASHUTOSH code

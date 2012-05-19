@@ -23,7 +23,6 @@ import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.resProof.ResProof;
-import at.iaik.suraq.resProof.ResProofTest;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -150,11 +149,11 @@ public class Suraq implements Runnable {
     @Override
     public void run() {
         // START: ASHUTOSH code
-        if (false) {
-            ResProofTest pTst = new ResProofTest();
-            pTst.test();
-            return;
-        }
+        // if (false) {
+        // ResProofTest pTst = new ResProofTest();
+        // pTst.test();
+        // return;
+        // }
         // END: ASHUTOSH code
         printWelcome();
 
