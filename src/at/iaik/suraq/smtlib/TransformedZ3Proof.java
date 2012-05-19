@@ -175,6 +175,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
 
+        TransformedZ3Proof node = TransformedZ3Proof.proofMap.get(307);
+
         if (TransformedZ3Proof.proofMap.containsKey(z3Proof.id))
             return TransformedZ3Proof.proofMap.get(z3Proof.id);
 
@@ -200,6 +202,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     SExpressionConstants.ASSERTED,
                     new ArrayList<TransformedZ3Proof>(), z3Proof
                             .getConsequent().transformToConsequentsForm());
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
 
@@ -214,6 +217,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     new ArrayList<TransformedZ3Proof>(), z3Proof
                             .getConsequent().transformToConsequentsForm());
             result.hypothesis = true;
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
 
@@ -230,6 +234,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     new ArrayList<TransformedZ3Proof>(), z3Proof
                             .getConsequent().transformToConsequentsForm());
             result.axiom = true;
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
 
@@ -310,6 +315,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             result.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
 
@@ -338,10 +344,13 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof transformedHypotheticalProof = TransformedZ3Proof
                     .convertToTransformedZ3Proof(hypotheticalProof);
 
-            assert (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
+            // assert
+            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
             transformedHypotheticalProof.toLocalProof();
+            assert (transformedHypotheticalProof.isLocal());
 
-            assert (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
+            // assert
+            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
             transformedHypotheticalProof.toResolutionProof();
 
             // assert
@@ -374,6 +383,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     transformedHypotheticalProof.consequent);
             result.literal = Util
                     .getSingleLiteral(transformedHypotheticalProof.literal);
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             assert (result.checkZ3ProofNode());
             return result;
@@ -395,6 +405,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         .createTransitivityProofForTransformedZ3Proofs(currentSubProofs);
                 assert (current1.subProofs.size() == 2);
             }
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, current1);
             return current1;
 
@@ -409,6 +420,7 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof result = new TransformedZ3Proof(proofType,
                     subProofs, z3Proof.getConsequent()
                             .transformToConsequentsForm());
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
         } else {
@@ -548,53 +560,43 @@ public class TransformedZ3Proof extends Z3Proof {
 
                 assert (Util.checkResolutionNodeForBadLiterals(this));
 
-                if (this.consequent.transformToConsequentsForm().equals(
-                        (new PropositionalConstant(false)
-                                .transformToConsequentsForm()))) {
-                    // Update subproofs only in case that we are at the root
-                    // that deduces false.
-                    // In other cases, there should not be any bad literals in
-                    // this node anyway... (The above assert should check that.)
-
-                    if (Util.isLiteral(subProofs.get(0).consequent)) {
-                        AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
-                                .getNodeWithConsequent(Util
-                                        .getSingleLiteral(subProofs.get(0).consequent));
-                        if (annotatedNode != null) {
-                            Z3Proof update = annotatedNode.getConsequent();
-                            if (annotatedNode.numPremises() == 3) {
-                                List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
-                                        3);
-                                transSubProofs.add(annotatedNode.getPremise1());
-                                transSubProofs.add(annotatedNode.getPremise2());
-                                transSubProofs.add(annotatedNode.getPremise3());
-                                update = TransformedZ3Proof
-                                        .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
-                            }
-                            subProofs.set(0, update);
+                if (Util.isLiteral(subProofs.get(0).consequent)) {
+                    AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
+                            .getNodeWithConsequent(Util
+                                    .getSingleLiteral(subProofs.get(0).consequent));
+                    if (annotatedNode != null) {
+                        Z3Proof update = annotatedNode.getConsequent();
+                        if (annotatedNode.numPremises() == 3) {
+                            List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
+                                    3);
+                            transSubProofs.add(annotatedNode.getPremise1());
+                            transSubProofs.add(annotatedNode.getPremise2());
+                            transSubProofs.add(annotatedNode.getPremise3());
+                            update = TransformedZ3Proof
+                                    .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
                         }
+                        assert (((TransformedZ3Proof) update).isLocal());
+                        subProofs.set(0, update);
                     }
+                }
 
-                    if (Util.isLiteral(subProofs.get(1).consequent)) {
-                        AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
-                                .getNodeWithConsequent(Util
-                                        .getSingleLiteral(subProofs.get(1).consequent));
-                        if (annotatedNode2 != null) {
-                            Z3Proof update = annotatedNode2.getConsequent();
-                            if (annotatedNode2.numPremises() == 3) {
-                                List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
-                                        3);
-                                transSubProofs
-                                        .add(annotatedNode2.getPremise1());
-                                transSubProofs
-                                        .add(annotatedNode2.getPremise2());
-                                transSubProofs
-                                        .add(annotatedNode2.getPremise3());
-                                update = TransformedZ3Proof
-                                        .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
-                            }
-                            subProofs.set(1, update);
+                if (Util.isLiteral(subProofs.get(1).consequent)) {
+                    AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
+                            .getNodeWithConsequent(Util
+                                    .getSingleLiteral(subProofs.get(1).consequent));
+                    if (annotatedNode2 != null) {
+                        Z3Proof update = annotatedNode2.getConsequent();
+                        if (annotatedNode2.numPremises() == 3) {
+                            List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
+                                    3);
+                            transSubProofs.add(annotatedNode2.getPremise1());
+                            transSubProofs.add(annotatedNode2.getPremise2());
+                            transSubProofs.add(annotatedNode2.getPremise3());
+                            update = TransformedZ3Proof
+                                    .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
                         }
+                        assert (((TransformedZ3Proof) update).isLocal());
+                        subProofs.set(1, update);
                     }
                 }
             }
@@ -1575,5 +1577,24 @@ public class TransformedZ3Proof extends Z3Proof {
 
         children.add(this.consequent.toSmtlibV2());
         return new SExpression(children);
+    }
+
+    /**
+     * 
+     * @return <code>true</code> if this is a local proof, <code>false</code> if
+     *         it contains bad literals.
+     */
+    public boolean isLocal() {
+
+        if (Util.containsBadLiteral((OrFormula) consequent))
+            return false;
+
+        for (Z3Proof child : subProofs) {
+            assert (child instanceof TransformedZ3Proof);
+            if (!((TransformedZ3Proof) child).isLocal())
+                return false;
+        }
+
+        return true;
     }
 }

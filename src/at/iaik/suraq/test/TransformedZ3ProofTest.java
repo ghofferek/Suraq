@@ -372,6 +372,7 @@ public class TransformedZ3ProofTest {
                 .convertToTransformedZ3Proof(rootProof);
         Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());
         transformedZ3Proof.toLocalProof();
+        Assert.assertTrue(transformedZ3Proof.isLocal());
         Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());
         transformedZ3Proof.toResolutionProof();
         Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());

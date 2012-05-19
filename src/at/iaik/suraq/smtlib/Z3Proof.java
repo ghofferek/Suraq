@@ -111,7 +111,7 @@ public class Z3Proof implements SMTLibObject {
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
         this.setAssertPartition();
-        this.checkZ3ProofNode();
+        assert (this.checkZ3ProofNode());
     }
 
     /**
@@ -138,7 +138,7 @@ public class Z3Proof implements SMTLibObject {
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
         this.setAssertPartition();
-        // this.checkZ3ProofNode();
+        assert (this.checkZ3ProofNode());
     }
 
     private void setAssertPartition() {
@@ -913,4 +913,43 @@ public class Z3Proof implements SMTLibObject {
         return Z3Proof.instanceCounter;
     }
 
+    /**
+     * 
+     * @return number of nodes in this proof
+     */
+    public int size() {
+        return this.size(false);
+    }
+
+    /**
+     * 
+     * @param unwind
+     *            if <code>true</code>unwind DAG into a tree
+     * @return number of nodes in this proof, unwinding the DAG into a tree, if
+     *         <code>unwind</code> is <code>true</code>.
+     */
+    public int size(boolean unwind) {
+
+        int result = 1;
+        if (!unwind) {
+            for (Z3Proof child : subProofs)
+                result += child.size();
+            return result;
+        } else {
+            this.resetMarks();
+            result = this.sizeRecursion();
+            this.resetMarks();
+            return result;
+        }
+    }
+
+    private int sizeRecursion() {
+        int result = 1;
+        if (this.marked)
+            return 0;
+        marked = true;
+        for (Z3Proof child : subProofs)
+            result += child.sizeRecursion();
+        return 0;
+    }
 }

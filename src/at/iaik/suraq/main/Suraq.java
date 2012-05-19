@@ -365,10 +365,11 @@ public class Suraq implements Runnable {
                     exc.printStackTrace();
                     noErrors = false;
                 }
-                assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
+                // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
 
                 transformedZ3Proof.toLocalProof();
-                assert (transformedZ3Proof.checkZ3ProofNode());
+                // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
+                assert (transformedZ3Proof.isLocal());
 
                 transformedZ3Proof.toResolutionProof();
                 assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
