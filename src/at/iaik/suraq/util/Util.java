@@ -20,6 +20,7 @@ import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
+import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -702,5 +703,61 @@ public class Util {
             match = equalities[count].getTerms().get(1);
         }
         return true;
+    }
+
+    /**
+     * 
+     * @param formula
+     * @return <code>true</code> if this is a bad literal (having more than one
+     *         partition). <code>false</code> if it is a good literal, or not a
+     *         literal at all.
+     */
+    public static boolean isBadLiteral(Formula formula) {
+        if (!Util.isLiteral(formula))
+            return false;
+        Set<Integer> partitions = formula.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        if (partitions.size() > 1)
+            return true;
+        return false;
+
+    }
+
+    /**
+     * 
+     * @param clause
+     * @return <code>true</code> if the given formula contains a bad literal
+     */
+    public static boolean containsBadLiteral(OrFormula clause) {
+        for (Formula disjunct : clause.getDisjuncts())
+            if (Util.isBadLiteral(disjunct))
+                return true;
+        return false;
+    }
+
+    /**
+     * Checks the given <code>node</code> for bad literals. Allows bad literals
+     * only in unit clauses, and if the node deduces false. Also, allows only 2
+     * subproofs.
+     * 
+     * @param node
+     * @return <code>true</code> if the <code>node</code> passed the check
+     */
+    public static boolean checkResolutionNodeForBadLiterals(Z3Proof node) {
+        if (node.getSubProofs().size() != 2)
+            return false;
+
+        Z3Proof sub1 = node.getSubProofs().get(0);
+        Z3Proof sub2 = node.getSubProofs().get(1);
+
+        if (!Util.containsBadLiteral((OrFormula) sub1.getConsequent())
+                && !Util.containsBadLiteral((OrFormula) sub2.getConsequent()))
+            return true;
+
+        if (node.getConsequent().equals(new PropositionalConstant(false)))
+            return true;
+
+        return false;
+
     }
 }

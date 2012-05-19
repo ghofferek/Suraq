@@ -438,11 +438,7 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
             subProof.toLocalProofRecursion();
-            if (this.id == 548)
-                assert (child.checkZ3ProofNodeRecursive());
         }
-        if (this.id == 548)
-            assert (this.checkZ3ProofNode());
 
         // Recursive calls are completed. Now handle this particular node.
         // -------------------------------------------------------------
@@ -550,41 +546,53 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (subProofs.size() == 2); // Multi-resolution should
                                                 // already have been removed
 
-                if (Util.isLiteral(subProofs.get(0).consequent)) {
-                    AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
-                            .getNodeWithConsequent(Util
-                                    .getSingleLiteral(subProofs.get(0).consequent));
-                    if (annotatedNode != null) {
-                        Z3Proof update = annotatedNode.getConsequent();
-                        if (annotatedNode.numPremises() == 3) {
-                            List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
-                                    3);
-                            transSubProofs.add(annotatedNode.getPremise1());
-                            transSubProofs.add(annotatedNode.getPremise2());
-                            transSubProofs.add(annotatedNode.getPremise3());
-                            update = TransformedZ3Proof
-                                    .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
-                        }
-                        subProofs.set(0, update);
-                    }
-                }
+                assert (Util.checkResolutionNodeForBadLiterals(this));
 
-                if (Util.isLiteral(subProofs.get(1).consequent)) {
-                    AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
-                            .getNodeWithConsequent(Util
-                                    .getSingleLiteral(subProofs.get(1).consequent));
-                    if (annotatedNode2 != null) {
-                        Z3Proof update = annotatedNode2.getConsequent();
-                        if (annotatedNode2.numPremises() == 3) {
-                            List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
-                                    3);
-                            transSubProofs.add(annotatedNode2.getPremise1());
-                            transSubProofs.add(annotatedNode2.getPremise2());
-                            transSubProofs.add(annotatedNode2.getPremise3());
-                            update = TransformedZ3Proof
-                                    .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
+                if (this.consequent.equals(new PropositionalConstant(false))) {
+                    // Update subproofs only in case that we are at the root
+                    // that deduces false.
+                    // In other cases, there should not be any bad literals in
+                    // this node anyway... (The above assert should check that.)
+
+                    if (Util.isLiteral(subProofs.get(0).consequent)) {
+                        AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
+                                .getNodeWithConsequent(Util
+                                        .getSingleLiteral(subProofs.get(0).consequent));
+                        if (annotatedNode != null) {
+                            Z3Proof update = annotatedNode.getConsequent();
+                            if (annotatedNode.numPremises() == 3) {
+                                List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
+                                        3);
+                                transSubProofs.add(annotatedNode.getPremise1());
+                                transSubProofs.add(annotatedNode.getPremise2());
+                                transSubProofs.add(annotatedNode.getPremise3());
+                                update = TransformedZ3Proof
+                                        .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
+                            }
+                            subProofs.set(0, update);
                         }
-                        subProofs.set(1, update);
+                    }
+
+                    if (Util.isLiteral(subProofs.get(1).consequent)) {
+                        AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
+                                .getNodeWithConsequent(Util
+                                        .getSingleLiteral(subProofs.get(1).consequent));
+                        if (annotatedNode2 != null) {
+                            Z3Proof update = annotatedNode2.getConsequent();
+                            if (annotatedNode2.numPremises() == 3) {
+                                List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
+                                        3);
+                                transSubProofs
+                                        .add(annotatedNode2.getPremise1());
+                                transSubProofs
+                                        .add(annotatedNode2.getPremise2());
+                                transSubProofs
+                                        .add(annotatedNode2.getPremise3());
+                                update = TransformedZ3Proof
+                                        .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
+                            }
+                            subProofs.set(1, update);
+                        }
                     }
                 }
             }
