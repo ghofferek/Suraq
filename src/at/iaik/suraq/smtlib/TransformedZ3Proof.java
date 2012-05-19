@@ -548,7 +548,9 @@ public class TransformedZ3Proof extends Z3Proof {
 
                 assert (Util.checkResolutionNodeForBadLiterals(this));
 
-                if (this.consequent.equals(new PropositionalConstant(false))) {
+                if (this.consequent.transformToConsequentsForm().equals(
+                        (new PropositionalConstant(false)
+                                .transformToConsequentsForm()))) {
                     // Update subproofs only in case that we are at the root
                     // that deduces false.
                     // In other cases, there should not be any bad literals in
