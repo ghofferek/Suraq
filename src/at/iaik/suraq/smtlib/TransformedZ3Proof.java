@@ -17,6 +17,8 @@ import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.proof.AnnotatedProofNodes;
+import at.iaik.suraq.resProof.Lit;
+import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -28,6 +30,7 @@ import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.PropositionalIte;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
@@ -91,6 +94,8 @@ public class TransformedZ3Proof extends Z3Proof {
      * changes parents subproofs.
      */
     private boolean reload = true;
+
+    private int assertPartition = 0;
 
     /**
      * Storage for annotated nodes used during proof conversion.
@@ -171,6 +176,42 @@ public class TransformedZ3Proof extends Z3Proof {
         if (this.id == 548 || subProof1.id == 548 || subProof2.id == 548)
             this.checkZ3ProofNodeRecursive();
         assert (this.checkZ3ProofNode());
+    }
+
+    public TransformedZ3Proof(ResNode node, Map<Integer, Formula> literalMap) {
+
+        if (!node.isLeaf) { // CREATE RESOLUTION NODE
+
+            ResNode left = node.left;
+            ResNode right = node.right;
+
+            assert (left instanceof ResNode);
+            assert (right instanceof ResNode);
+
+            this.proofType = SExpressionConstants.UNIT_RESOLUTION;
+            this.literal = literalMap.get(node.pivot);
+
+            this.subProofs.add(new TransformedZ3Proof(node.left, literalMap));
+            this.subProofs.add(new TransformedZ3Proof(node.right, literalMap));
+        } else { // CREATE ASSERTED NODE
+
+            this.proofType = SExpressionConstants.ASSERTED;
+        }
+
+        // build conseqent from clause
+        List<Formula> disjuncts = new ArrayList<Formula>();
+        for (Lit literal : node.cl) {
+            Formula elem = literalMap.get(literal.var());
+            if (!literal.isPos())
+                elem = new NotFormula(elem);
+            disjuncts.add(elem);
+        }
+
+        if (disjuncts.size() == 0)
+            disjuncts.add(new PropositionalConstant(false));
+
+        this.consequent = new OrFormula(disjuncts);
+        this.assertPartition = node.part;
     }
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
@@ -1561,11 +1602,18 @@ public class TransformedZ3Proof extends Z3Proof {
         List<SExpression> children = new ArrayList<SExpression>();
 
         if (this.proofType == SExpressionConstants.UNIT_RESOLUTION) {
-            if (this.literal != null)
-                children.add(new Token(this.proofType
+            if (this.literal != null) {
+                String child = this.proofType
                         + "{"
                         + this.literal.toString().replaceAll("\n", "")
-                                .replaceAll("\\s{2,}", " ") + "}"));
+                                .replaceAll("\\s{2,}", " ") + "}";
+
+                if (this.assertPartition != 0)
+                    child += "(p:" + this.assertPartition + ")";
+
+                children.add(new Token(child));
+            }
+
             else
                 throw new RuntimeException(
                         "resolution proof always needs a literal.");
@@ -1596,5 +1644,58 @@ public class TransformedZ3Proof extends Z3Proof {
         }
 
         return true;
+    }
+
+    public List<PropositionalIte> createITETrees() {
+        List<PropositionalIte> trees = new ArrayList<PropositionalIte>();
+
+        // for every control signal
+        // call createITETree(SIGNAL);
+
+        return trees;
+    }
+
+    private PropositionalIte createITETree() {
+
+        if (this.proofType == SExpressionConstants.UNIT_RESOLUTION) {
+            OrFormula leftConsequent = ((OrFormula) subProofs.get(0)
+                    .getConsequent());
+
+            OrFormula rightConsequent = ((OrFormula) subProofs.get(1)
+                    .getConsequent());
+
+            if (checkPresence(leftConsequent, this.literal)) {
+                if (!checkPresence(rightConsequent, this.literal)) { // sanity
+                                                                     // check!
+
+                    // wenn linke seite positiv hat.
+                }
+            } else if (!checkPresence(leftConsequent, this.literal)) {
+                if (checkPresence(rightConsequent, this.literal)) { // sanity
+                                                                    // check!
+                    // wenn rechte seite das positive hat.
+                }
+            }
+
+        }
+
+        return new PropositionalIte(null, null, null);
+    }
+
+    private boolean checkPresence(OrFormula haystack, Formula needle) {
+
+        for (Formula disjunct : haystack.getDisjuncts()) {
+            if (disjunct instanceof NotFormula) {// unwrap
+                Formula tmp = ((NotFormula) disjunct).getNegatedFormula();
+                if (tmp.equals(needle))
+                    return false;
+            } else {
+                if (disjunct.equals(needle))
+                    return true;
+            }
+        }
+
+        throw new RuntimeException(
+                "literal not found in both subformulas! this should not happen!!");
     }
 }

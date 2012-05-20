@@ -48,6 +48,7 @@ public class Util {
     private static Map<String, Integer> literalsID = new HashMap<String, Integer>();
     private static Map<Integer, ResNode> resNodes = new HashMap<Integer, ResNode>();
     private static ResProof resProof;
+    private static Map<Integer, Formula> literalMap = new HashMap<Integer, Formula>();
 
     /**
      * Chooses a fresh variable name with respect to the given formula. The name
@@ -519,9 +520,11 @@ public class Util {
                 terms.add(t.toString());
 
             Collections.sort(terms);
-            return terms.toString();
+            return terms.toString().replaceAll("\n", "")
+                    .replaceAll("\\s{2,}", " ");
         } else
-            return formula.toString();
+            return formula.toString().replaceAll("\n", "")
+                    .replaceAll("\\s{2,}", " ");
     }
 
     private static boolean getSignValue(Formula literal) {
@@ -554,6 +557,10 @@ public class Util {
         Util.resProof.setRoot(rootNode);
 
         return Util.resProof;
+    }
+
+    public static final Map<Integer, Formula> getLiteralMap() {
+        return new HashMap<Integer, Formula>(literalMap);
     }
 
     private static final ResNode createResolutionProofRecursive(
@@ -592,6 +599,7 @@ public class Util {
                             resLiteralID)));
                     Util.literalsID.put(Util.makeIdString(posLiteral),
                             resLiteralID);
+                    Util.literalMap.put(resLiteralID, posLiteral);
 
                     Util.resProof.var_part[resLiteralID] = partition < 0 ? 0
                             : partition;

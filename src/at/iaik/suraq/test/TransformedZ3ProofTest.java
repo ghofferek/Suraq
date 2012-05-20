@@ -389,6 +389,13 @@ public class TransformedZ3ProofTest {
         resolutionProof.checkProof(false);
         // END: ASHUTOSH code
 
+        // Transform back into Z3Proof format
+        TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
+                resolutionProof.getRoot(), Util.getLiteralMap());
+
+        // System.out.println(recoveredProof);
+        // System.out.println(recoveredProof.prettyPrint());
+
         return transformedZ3Proof.toString().replaceAll("\n", "")
                 .replaceAll("\\s{2,}", " ");
     }

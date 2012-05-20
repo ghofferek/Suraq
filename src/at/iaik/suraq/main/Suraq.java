@@ -387,6 +387,16 @@ public class Suraq implements Runnable {
                 resolutionProof.checkProof(true);
                 // END: ASHUTOSH code
 
+                // Transform back into Z3Proof format
+                TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
+                        resolutionProof.getRoot(), Util.getLiteralMap());
+
+                // System.out.println(recoveredProof);
+
+                // traverse tree
+                // List<PropositionalIte> iteTrees = recoveredProof
+                // .createITETrees();
+
             }
 
             System.out.println(" done!");
