@@ -31,6 +31,7 @@ import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.PropositionalIte;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
@@ -1646,7 +1647,8 @@ public class TransformedZ3Proof extends Z3Proof {
         return true;
     }
 
-    public List<PropositionalIte> createITETrees() {
+    public List<PropositionalIte> createITETrees(
+            List<PropositionalVariable> list) {
         List<PropositionalIte> trees = new ArrayList<PropositionalIte>();
 
         // for every control signal
@@ -1668,12 +1670,10 @@ public class TransformedZ3Proof extends Z3Proof {
                 if (!checkPresence(rightConsequent, this.literal)) { // sanity
                                                                      // check!
 
-                    // wenn linke seite positiv hat.
                 }
             } else if (!checkPresence(leftConsequent, this.literal)) {
                 if (checkPresence(rightConsequent, this.literal)) { // sanity
-                                                                    // check!
-                    // wenn rechte seite das positive hat.
+
                 }
             }
 

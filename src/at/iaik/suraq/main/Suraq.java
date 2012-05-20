@@ -38,6 +38,7 @@ import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.PropositionalIte;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -394,8 +395,8 @@ public class Suraq implements Runnable {
                 // System.out.println(recoveredProof);
 
                 // traverse tree
-                // List<PropositionalIte> iteTrees = recoveredProof
-                // .createITETrees();
+                List<PropositionalIte> iteTrees = recoveredProof
+                        .createITETrees(logicParser.getControlVariables());
 
             }
 
