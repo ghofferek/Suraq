@@ -70,6 +70,12 @@ public class Z3Proof implements SMTLibObject {
      */
     protected final int id;
 
+    /**
+     * Specifies if this proof object is an axiom introduced during
+     * transformation.
+     */
+    protected boolean axiom = false;
+
     private static int instanceCounter = 0;
 
     /**
@@ -723,6 +729,33 @@ public class Z3Proof implements SMTLibObject {
                 .getSingleLiteral(subProofs.get(2).consequent
                         .transformToConsequentsForm())) instanceof EqualityFormula
                 : true);
+
+        Set<Z3Proof> toRemove = new HashSet<Z3Proof>();
+        for (Z3Proof subProof : subProofs) {
+            if (Util.isReflexivity(subProof.consequent))
+                toRemove.add(subProof);
+        }
+        subProofs.removeAll(toRemove);
+        if (subProofs.size() < 2) {
+            if (subProofs.size() == 1)
+                return subProofs.get(0);
+            else {
+                assert (toRemove.size() == 3);
+                Object[] proofs = toRemove.toArray();
+                assert (proofs.length == 3);
+                assert (proofs[0] instanceof Z3Proof);
+                assert (proofs[1] instanceof Z3Proof);
+                assert (proofs[2] instanceof Z3Proof);
+                assert (((Z3Proof) proofs[0]).consequent
+                        .equals(((Z3Proof) proofs[1]).consequent) && ((Z3Proof) proofs[1]).consequent
+                        .equals(((Z3Proof) proofs[2]).consequent));
+                Z3Proof result = new Z3Proof(SExpressionConstants.ASSERTED,
+                        new ArrayList<Z3Proof>(),
+                        ((Z3Proof) proofs[0]).consequent);
+                result.axiom = true;
+                return result;
+            }
+        }
 
         EqualityFormula firstFormula = (EqualityFormula) Util
                 .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(0).consequent

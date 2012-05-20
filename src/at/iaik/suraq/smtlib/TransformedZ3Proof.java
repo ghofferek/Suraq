@@ -64,12 +64,6 @@ public class TransformedZ3Proof extends Z3Proof {
     private static Map<Integer, TransformedZ3Proof> proofMap = new HashMap<Integer, TransformedZ3Proof>();
 
     /**
-     * Specifies if this proof object is an axiom introduced during
-     * transformation.
-     */
-    private boolean axiom = false;
-
-    /**
      * The "literal" on which resolution is applied. This could e.g. be an
      * equality of the form (a=b), or (f(a)=c). It could also be a propositional
      * variable, or an (uninterpreted) predicate instance. <code>literal</code>
@@ -1179,8 +1173,7 @@ public class TransformedZ3Proof extends Z3Proof {
      *            must have a single literal as a consequence
      * @return a symmetry proof for the given premise.
      */
-    public static TransformedZ3Proof createSymmetryProof(
-            TransformedZ3Proof premise) {
+    public static TransformedZ3Proof createSymmetryProof(Z3Proof premise) {
         Z3Proof z3Proof = Z3Proof.createSymmetryProof(premise);
         List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>(
                 3);
@@ -1432,7 +1425,7 @@ public class TransformedZ3Proof extends Z3Proof {
             axiomParts.add(this.consequent);
             OrFormula axiomFormula = new OrFormula(axiomParts);
 
-            TransformedZ3Proof remainingAxiom = new TransformedZ3Proof(
+            Z3Proof remainingAxiom = new TransformedZ3Proof(
                     SExpressionConstants.ASSERTED,
                     new ArrayList<TransformedZ3Proof>(), null,
                     axiomFormula.transformToConsequentsForm());
@@ -1505,7 +1498,7 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public static final ResProof createResolutionProof(
-            TransformedZ3Proof transformedZ3Proof) {
+            Z3Proof transformedZ3Proof) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -1653,7 +1646,8 @@ public class TransformedZ3Proof extends Z3Proof {
                 throw new RuntimeException("found invalid unit-resolution.");
         } else if (this.proofType == SExpressionConstants.ASSERTED) {
 
-            BitSet bits = bitSetFromLong(new Long(this.assertPartition));
+            BitSet bits = TransformedZ3Proof.bitSetFromLong(new Long(
+                    this.assertPartition));
             boolean isSet = bits.get(signalNum);
 
             return new PropositionalConstant(isSet);
