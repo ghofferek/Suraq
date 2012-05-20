@@ -399,22 +399,22 @@ public class TransformedZ3ProofTest {
         Z3Proof rootProof = proofParser.getRootProof();
         @SuppressWarnings("unused")
         String proofString = rootProof.prettyPrint();
-        Assert.assertTrue(rootProof.checkZ3ProofNode());
+        Assert.assertTrue(rootProof.checkZ3ProofNodeRecursive());
 
         rootProof.localLemmasToAssertions();
-        Assert.assertTrue(rootProof.checkZ3ProofNode());
+        Assert.assertTrue(rootProof.checkZ3ProofNodeRecursive());
         rootProof.removeLocalSubProofs();
-        Assert.assertTrue(rootProof.checkZ3ProofNode());
+        Assert.assertTrue(rootProof.checkZ3ProofNodeRecursive());
         rootProof.dealWithModusPonens();
-        Assert.assertTrue(rootProof.checkZ3ProofNode());
+        Assert.assertTrue(rootProof.checkZ3ProofNodeRecursive());
         TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
                 .convertToTransformedZ3Proof(rootProof);
-        Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());
+        Assert.assertTrue(transformedZ3Proof.checkZ3ProofNodeRecursive());
         transformedZ3Proof.toLocalProof();
         Assert.assertTrue(transformedZ3Proof.isLocal());
-        Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());
+        Assert.assertTrue(transformedZ3Proof.checkZ3ProofNodeRecursive());
         transformedZ3Proof.toResolutionProof();
-        Assert.assertTrue(transformedZ3Proof.checkZ3ProofNode());
+        Assert.assertTrue(transformedZ3Proof.checkZ3ProofNodeRecursive());
         @SuppressWarnings("unused")
         String test = transformedZ3Proof.prettyPrint();
 
