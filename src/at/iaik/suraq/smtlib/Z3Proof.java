@@ -745,6 +745,8 @@ public class Z3Proof implements SMTLibObject {
                         .transformToConsequentsForm())) instanceof EqualityFormula
                 : true);
 
+        final int initialSize = subProofs.size();
+        assert (initialSize == 2 || initialSize == 3);
         Set<Z3Proof> toRemove = new HashSet<Z3Proof>();
         for (Z3Proof subProof : subProofs) {
             if (Util.isReflexivity(subProof.consequent))
@@ -755,15 +757,20 @@ public class Z3Proof implements SMTLibObject {
             if (subProofs.size() == 1)
                 return subProofs.get(0);
             else {
-                assert (toRemove.size() == 3);
+                assert (toRemove.size() == initialSize);
                 Object[] proofs = toRemove.toArray();
-                assert (proofs.length == 3);
+                assert (proofs.length == initialSize);
                 assert (proofs[0] instanceof Z3Proof);
                 assert (proofs[1] instanceof Z3Proof);
-                assert (proofs[2] instanceof Z3Proof);
-                assert (((Z3Proof) proofs[0]).consequent
-                        .equals(((Z3Proof) proofs[1]).consequent) && ((Z3Proof) proofs[1]).consequent
-                        .equals(((Z3Proof) proofs[2]).consequent));
+                if (proofs.length > 2) {
+                    assert (proofs[2] instanceof Z3Proof);
+                    assert (((Z3Proof) proofs[0]).consequent
+                            .equals(((Z3Proof) proofs[1]).consequent) && ((Z3Proof) proofs[1]).consequent
+                            .equals(((Z3Proof) proofs[2]).consequent));
+                } else {
+                    assert (((Z3Proof) proofs[0]).consequent
+                            .equals(((Z3Proof) proofs[1]).consequent));
+                }
                 Z3Proof result = new Z3Proof(SExpressionConstants.ASSERTED,
                         new ArrayList<Z3Proof>(),
                         ((Z3Proof) proofs[0]).consequent);
@@ -829,6 +836,22 @@ public class Z3Proof implements SMTLibObject {
 
         Z3Proof result = new Z3Proof(SExpressionConstants.TRANSITIVITY,
                 subProofs, newFormula);
+
+        // If we have three subproofs, we need to split them,
+        // because conversion to local proof cannot deal with
+        // three subproofs.
+        assert (result.subProofs.size() <= 3);
+        if (result.subProofs.size() == 3) {
+            assert (result.proofType == SExpressionConstants.TRANSITIVITY);
+            Z3Proof intermediate = Z3Proof
+                    .createTransitivityProof(new ArrayList<Z3Proof>(
+                            result.subProofs.subList(0, 2)));
+            Z3Proof rest = result.subProofs.get(2);
+            result.subProofs.clear();
+            result.subProofs.add(intermediate);
+            result.subProofs.add(rest);
+        }
+
         return result;
 
     }
