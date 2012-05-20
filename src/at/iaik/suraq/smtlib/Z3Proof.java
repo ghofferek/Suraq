@@ -634,6 +634,21 @@ public class Z3Proof implements SMTLibObject {
             this.consequent = transProof.consequent
                     .transformToConsequentsForm();
 
+            // If we have three subproofs, we need to split them,
+            // because conversion to local proof cannot deal with
+            // three subproofs.
+            assert (subProofs.size() <= 3);
+            if (subProofs.size() == 3) {
+                assert (this.proofType == SExpressionConstants.TRANSITIVITY);
+                Z3Proof intermediate = Z3Proof
+                        .createTransitivityProof(new ArrayList<Z3Proof>(
+                                subProofs.subList(0, 2)));
+                Z3Proof rest = subProofs.get(2);
+                subProofs.clear();
+                subProofs.add(intermediate);
+                subProofs.add(rest);
+            }
+
             // Don't forget the recursive calls on the children!
             child1.dealWithModusPonens();
             child2.dealWithModusPonens();
