@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1575,39 +1576,105 @@ public class TransformedZ3Proof extends Z3Proof {
         return true;
     }
 
-    public List<PropositionalIte> createITETrees(
-            List<PropositionalVariable> list) {
-        List<PropositionalIte> trees = new ArrayList<PropositionalIte>();
+    public Map<PropositionalVariable, PropositionalIte> createITETrees(
+            List<PropositionalVariable> ctrlSignals) {
 
-        // for every control signal
-        // call createITETree(SIGNAL);
+        Map<PropositionalVariable, PropositionalIte> trees = new HashMap<PropositionalVariable, PropositionalIte>();
+
+        // remove local parts of tree
+        this.removeLocalParts();
+
+        // create ITE tree for each signal
+        int signalNum = 0;
+        for (PropositionalVariable signal : ctrlSignals) {
+            PropositionalIte tree = (PropositionalIte) createITETree(signalNum);
+            trees.put(signal, tree);
+            signalNum += 1;
+        }
 
         return trees;
     }
 
-    private PropositionalIte createITETree() {
+    public int getAssertPartition() {
+        return this.assertPartition;
+    }
+
+    public void removeLocalParts() {
+        if (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
+            if (this.assertPartition > 0) {
+                System.out.println("removing for node");
+                this.subProofs.clear();
+                this.proofType = SExpressionConstants.ASSERTED;
+                this.literal = null;
+                this.assertPartition -= 1;
+            } else {
+                // call recursive
+                TransformedZ3Proof left = (TransformedZ3Proof) subProofs.get(0);
+                TransformedZ3Proof right = (TransformedZ3Proof) subProofs
+                        .get(1);
+
+                left.removeLocalParts();
+                right.removeLocalParts();
+            }
+
+        } else if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
+            return;
+        } else
+            throw new RuntimeException("encountered illegal proof type.");
+    }
+
+    private Formula createITETree(int signalNum) {
 
         if (this.proofType == SExpressionConstants.UNIT_RESOLUTION) {
+
+            // call recursive
+            Formula leftResult = ((TransformedZ3Proof) subProofs.get(0))
+                    .createITETree(signalNum);
+            Formula rightResult = ((TransformedZ3Proof) subProofs.get(1))
+                    .createITETree(signalNum);
+
+            // handle result of recursion
             OrFormula leftConsequent = ((OrFormula) subProofs.get(0)
                     .getConsequent());
-
             OrFormula rightConsequent = ((OrFormula) subProofs.get(1)
                     .getConsequent());
 
             if (checkPresence(leftConsequent, this.literal)) {
-                if (!checkPresence(rightConsequent, this.literal)) { // sanity
-                                                                     // check!
-
+                if (!checkPresence(rightConsequent, this.literal)) {
+                    return new PropositionalIte(this.literal, leftResult,
+                            rightResult);
                 }
             } else if (!checkPresence(leftConsequent, this.literal)) {
-                if (checkPresence(rightConsequent, this.literal)) { // sanity
-
+                if (checkPresence(rightConsequent, this.literal)) {
+                    return new PropositionalIte(this.literal, rightResult,
+                            leftResult);
                 }
+            } else
+                throw new RuntimeException("found invalid unit-resolution.");
+        } else if (this.proofType == SExpressionConstants.ASSERTED) {
+
+            BitSet bits = bitSetFromLong(new Long(this.assertPartition));
+            boolean isSet = bits.get(signalNum);
+
+            return new PropositionalConstant(isSet);
+
+        } else
+            throw new RuntimeException(
+                    "only resolution and asserted proof types allowed here.");
+        return null;
+    }
+
+    public static BitSet bitSetFromLong(long value) {
+        BitSet bits = new BitSet();
+        int index = 0;
+        while (value != 0L) {
+            if (value % 2L != 0) {
+                bits.set(index);
             }
-
+            ++index;
+            value = value >>> 1;
         }
-
-        return new PropositionalIte(null, null, null);
+        return bits;
     }
 
     private boolean checkPresence(OrFormula haystack, Formula needle) {

@@ -392,12 +392,11 @@ public class Suraq implements Runnable {
                 TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
                         resolutionProof.getRoot(), Util.getLiteralMap());
 
-                // System.out.println(recoveredProof);
-
-                // traverse tree
-                List<PropositionalIte> iteTrees = recoveredProof
+                // create ITE-tree for every control signal
+                Map<PropositionalVariable, PropositionalIte> iteTrees = recoveredProof
                         .createITETrees(logicParser.getControlVariables());
 
+                System.out.println("trees created");
             }
 
             System.out.println(" done!");
