@@ -108,9 +108,10 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{c} ( asserted ( or c ( not a ) ) ) ( asserted ( or ( not c ) b ) ) ( or ( not a ) b ))";
+        String expectedOutput = "( |unit-resolution|{c} ( asserted ( or c ( not a ) ) ) ( asserted ( or ( not c ) b ) ) ( or b ( not a )  ))";
 
-        Assert.assertEquals(expectedOutput, output);
+        Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
+                SExpression.fromString(output).toString());
     }
 
     /**
@@ -155,15 +156,15 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a", 1));
-        propsitionalVars.add(new PropositionalVariable("b", 2));
-        propsitionalVars.add(new PropositionalVariable("c", 3));
-        propsitionalVars.add(new PropositionalVariable("d", 3));
-        propsitionalVars.add(new PropositionalVariable("e", -1));
-        propsitionalVars.add(new PropositionalVariable("f", -1));
+        domainVars.add(new DomainVariable("a", 1));
+        domainVars.add(new DomainVariable("b", 2));
+        domainVars.add(new DomainVariable("c", 3));
+        domainVars.add(new DomainVariable("d", 3));
+        domainVars.add(new DomainVariable("e", -1));
+        domainVars.add(new DomainVariable("f", -1));
 
-        propsitionalVars.add(new PropositionalVariable("x", -1));
-        propsitionalVars.add(new PropositionalVariable("y", -1));
+        domainVars.add(new DomainVariable("x", -1));
+        domainVars.add(new DomainVariable("y", -1));
 
         String unitResolution1 = "(|unit-resolution| (hypothesis (not (= x b))) (asserted (or (= b x) (not (= e f)))) (not (= e f)))";
         String unitResolution2 = "(|unit-resolution| (asserted (or (= c d) (= e f)))"
@@ -308,6 +309,44 @@ public class TransformedZ3ProofTest {
                 SExpression.fromString(output).toString());
     }
 
+    @Test
+    public void testDAGProofWithHypotheses() {
+
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+
+        propsitionalVars.add(new PropositionalVariable("a", -1));
+        propsitionalVars.add(new PropositionalVariable("b", -1));
+        propsitionalVars.add(new PropositionalVariable("c", 1));
+        propsitionalVars.add(new PropositionalVariable("d", 2));
+        propsitionalVars.add(new PropositionalVariable("e", 2));
+
+        String unitResolutionE = "(|unit-resolution| (hypothesis e) (asserted (or (not b) (not d) (not e))) (or (not b) (not d)))";
+        String unitResolutionD = "(|unit-resolution| (hypothesis d) "
+                + unitResolutionE + " (or (not b)))";
+        String unitResolutionC = "(|unit-resolution| (hypothesis (not c)) (asserted (or (not a) b c)) (or (not a) b))";
+        String unitResolutionB1 = "(|unit-resolution| (asserted (or  a b )) @x1 (or  a))";
+        String unitResolutionB2 = "(|unit-resolution| @x1 " + unitResolutionC
+                + "(not  a))";
+        String unitResolutionA = "(|unit-resolution| " + unitResolutionB1 + " "
+                + unitResolutionB2 + "false)";
+
+        String letExpression = "(let ((@x1 " + unitResolutionD + "))"
+                + unitResolutionA + ")";
+
+        String proof = "(lemma " + letExpression + "(or c (not d) (not e)))";
+
+        String output = parseAndTransform(proof, domainVars, propsitionalVars,
+                uninterpretedFunctions, arrayVars);
+        System.out.println(output);
+        String expectedOutput = "( |unit-resolution|{a} ( |unit-resolution|{b} ( asserted ( or a b ) ) ( asserted ( or ( not b ) ( not d ) ( not e ) ) ) ( or a ( not d ) ( not e ) ) ) ( |unit-resolution|{b} ( asserted ( or ( not b ) ( not d ) ( not e ) ) ) ( asserted ( or ( not a ) b c ) ) ( or ( not a ) c ( not d ) ( not e ) ) ) ( or c ( not d ) ( not e ) ))";
+
+        Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
+                SExpression.fromString(output).toString());
+    }
+
     /**
      * Helper function to parse and transform a given proof.
      * 
@@ -390,6 +429,7 @@ public class TransformedZ3ProofTest {
         // END: ASHUTOSH code
 
         // Transform back into Z3Proof format
+        @SuppressWarnings("unused")
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
                 resolutionProof.getRoot(), Util.getLiteralMap());
 

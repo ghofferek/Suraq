@@ -13,6 +13,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
  * A class for formulas of the form (a => b).
@@ -516,5 +517,13 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         if (formula instanceof UninterpretedPredicateInstance)
             return true;
         return false;
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
     }
 }

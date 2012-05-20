@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -79,12 +80,6 @@ public class TransformedZ3Proof extends Z3Proof {
      * also a leave.
      */
     private boolean hypothesis = false;
-
-    /**
-     * <<<<<<< .mine ======= Allows child to trigger restart of child recursion.
-     * Needed when child changes parents subproofs.
-     */
-    private boolean reload = true;
 
     private int assertPartition = 0;
 
@@ -172,12 +167,6 @@ public class TransformedZ3Proof extends Z3Proof {
     public TransformedZ3Proof(ResNode node, Map<Integer, Formula> literalMap) {
 
         if (!node.isLeaf) { // CREATE RESOLUTION NODE
-
-            ResNode left = node.left;
-            ResNode right = node.right;
-
-            assert (left instanceof ResNode);
-            assert (right instanceof ResNode);
 
             this.proofType = SExpressionConstants.UNIT_RESOLUTION;
             this.literal = literalMap.get(node.pivot);
@@ -396,11 +385,9 @@ public class TransformedZ3Proof extends Z3Proof {
                                 + transformedHypotheticalProof.consequent
                                         .toString());
 
-            // assert
-            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
+            assert (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
             transformedHypotheticalProof.removeHypotheses();
-            // assert
-            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
+            assert (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
 
             List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
             for (Z3Proof proof : transformedHypotheticalProof.subProofs) {
@@ -1385,7 +1372,8 @@ public class TransformedZ3Proof extends Z3Proof {
     private Set<Formula> removeHypotheses() {
 
         Set<Formula> result = new HashSet<Formula>();
-        Set<Z3Proof> hypotheses = this.getHypotheses();
+        List<Z3Proof> hypotheses = new ArrayList<Z3Proof>(this.getHypotheses());
+        Collections.sort(hypotheses);
         for (Z3Proof hypothesis : hypotheses) {
             assert (Util.isLiteral(hypothesis.consequent));
             result.add(hypothesis.consequent);

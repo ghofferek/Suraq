@@ -13,6 +13,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
  * Represents an if-then-else-style formula.
@@ -437,5 +438,13 @@ public class PropositionalIte extends BooleanCombinationFormula {
         throw new RuntimeException(
                 "transformToConsequentsForm cannot be called on a Propositional Ite.\n"
                         + "Propositional Ite should not occur in the consequents of a proof.");
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
     }
 }

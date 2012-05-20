@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -513,5 +514,13 @@ public abstract class EqualityFormula implements Formula {
                 return new NotFormula(this);
         } else
             throw new RuntimeException("This point should not be reachable");
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
     }
 }

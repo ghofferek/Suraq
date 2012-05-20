@@ -8,6 +8,7 @@ import java.util.Set;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
  * A propositional term. I.e., either a propositional constant or a
@@ -17,7 +18,6 @@ import at.iaik.suraq.sexp.Token;
  * 
  */
 public abstract class PropositionalTerm extends Term implements Formula {
-
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getType()
@@ -57,4 +57,12 @@ public abstract class PropositionalTerm extends Term implements Formula {
     public abstract PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
+    }
 }

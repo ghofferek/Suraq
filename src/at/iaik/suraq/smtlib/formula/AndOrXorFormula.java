@@ -15,6 +15,7 @@ import java.util.TreeSet;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
  * A common superclass for And- Or- and Xor-formulas to avoid code redundancy.
@@ -384,6 +385,14 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         for (Formula formula : formulas)
             partitions.addAll(formula.getPartitionsFromSymbols());
         return partitions;
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
     }
 
 }

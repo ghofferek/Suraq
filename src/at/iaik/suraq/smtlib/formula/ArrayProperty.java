@@ -17,6 +17,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -644,5 +645,13 @@ public class ArrayProperty implements Formula {
             boolean firstLevel) {
         throw new RuntimeException(
                 "transformToConsequentsForm cannot be called on an ArrayProperty.\nArrays should be removed by now.");
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
     }
 }

@@ -14,6 +14,7 @@ import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -445,5 +446,13 @@ public class PropositionalFunctionMacroInstance implements Formula {
         throw new RuntimeException(
                 "transformToConsequentsForm cannot be called on an PropositionalFunctionMacroInstance.\n"
                         + "PropositionalFunctionMacroInstance should be removed by now.");
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
     }
 }

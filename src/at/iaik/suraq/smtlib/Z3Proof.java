@@ -1134,4 +1134,12 @@ public class Z3Proof implements SMTLibObject {
         }
         return result;
     }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
+    }
 }
