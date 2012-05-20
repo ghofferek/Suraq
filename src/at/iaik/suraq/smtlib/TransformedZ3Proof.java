@@ -57,11 +57,6 @@ import at.iaik.suraq.util.Util;
 public class TransformedZ3Proof extends Z3Proof {
 
     /**
-     * A map from child nodes to parent nodes.
-     */
-    private static Map<TransformedZ3Proof, TransformedZ3Proof> parents = new HashMap<TransformedZ3Proof, TransformedZ3Proof>();
-
-    /**
      * This maps IDs of Z3Proofs to their TransformedZ3Proof counterparts. This
      * is to avoid DAG unwinding during conversion.
      */
@@ -91,15 +86,15 @@ public class TransformedZ3Proof extends Z3Proof {
     private boolean hypothesis = false;
 
     /**
-     * Allows child to trigger restart of child recursion. Needed when child
-     * changes parents subproofs.
+     * <<<<<<< .mine ======= Allows child to trigger restart of child recursion.
+     * Needed when child changes parents subproofs.
      */
     private boolean reload = true;
 
     private int assertPartition = 0;
 
     /**
-     * Storage for annotated nodes used during proof conversion.
+     * >>>>>>> .r376 Storage for annotated nodes used during proof conversion.
      */
     private static AnnotatedProofNodes annotatedNodes = new AnnotatedProofNodes();
 
@@ -217,7 +212,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
 
-        TransformedZ3Proof node = TransformedZ3Proof.proofMap.get(307);
+        // TransformedZ3Proof node = TransformedZ3Proof.proofMap.get(307);
 
         if (TransformedZ3Proof.proofMap.containsKey(z3Proof.id))
             return TransformedZ3Proof.proofMap.get(z3Proof.id);
@@ -398,19 +393,17 @@ public class TransformedZ3Proof extends Z3Proof {
             // assert
             // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
 
-            List<Formula> falseFormula = new ArrayList<Formula>();
-            falseFormula.add(new PropositionalConstant(false));
-            if (!transformedHypotheticalProof.consequent.equals(new OrFormula(
-                    falseFormula)))
+            if (!transformedHypotheticalProof.consequent
+                    .equals((new PropositionalConstant(false))
+                            .transformToConsequentsForm()))
                 throw new RuntimeException(
                         "Hypothetical proof (antecedent of lemma) does not prove false, but: "
                                 + transformedHypotheticalProof.consequent
                                         .toString());
 
-            Map<TransformedZ3Proof, TransformedZ3Proof> parents = new HashMap<TransformedZ3Proof, TransformedZ3Proof>();
             // assert
             // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
-            transformedHypotheticalProof.removeHypotheses(parents);
+            transformedHypotheticalProof.removeHypotheses();
             // assert
             // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
 
@@ -1151,30 +1144,6 @@ public class TransformedZ3Proof extends Z3Proof {
 
     /**
      * 
-     * @return the parent of this node, if it is in the map, <code>null</code>
-     *         otherwise.
-     */
-    public Z3Proof getParent() {
-        return TransformedZ3Proof.parents.get(this);
-    }
-
-    /**
-     * Recursively computes the parents in the proof, starting from
-     * <code>this</code> downwards.
-     */
-    @SuppressWarnings("unused")
-    private void computeParents() {
-        for (Z3Proof child : subProofs) {
-            if (!(child instanceof TransformedZ3Proof))
-                throw new RuntimeException(
-                        "Base class z3Proof appears in tree of derived class TransformedZ3Proof. This should not happen!");
-            TransformedZ3Proof.parents.put((TransformedZ3Proof) child, this);
-            ((TransformedZ3Proof) child).computeParents();
-        }
-    }
-
-    /**
-     * 
      * @return A list of all leafs of this proof.
      */
     public List<TransformedZ3Proof> getLeafs() {
@@ -1184,7 +1153,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 throw new RuntimeException(
                         "Base class z3Proof appears in tree of derived class TransformedZ3Proof. This should not happen!");
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
-            TransformedZ3Proof.parents.put(subProof, this);
+
             if (subProof.isLeaf())
                 result.add(subProof);
             else
@@ -1378,110 +1347,59 @@ public class TransformedZ3Proof extends Z3Proof {
      * @return the <code>hypothesis</code>
      */
     public boolean isHypothesis() {
-        return hypothesis;
+        return hypothesis || proofType.equals(SExpressionConstants.HYPOTHESIS);
     }
 
     /**
-     * Computes the set of hypotheses on which this proof is based. A map from
-     * children to parents is constructed along the way. Also, the proof is
-     * on-the-fly restructured so that it has no more hypotheses.
+     * Computes the set of hypotheses on which this proof is based. Also, the
+     * proof is on-the-fly restructured so that it has no more hypotheses.
      * 
-     * @param parents
-     *            call-by-reference parameter for child->parent map.
      * @return The set of hypotheses that were removed from the proof.
      */
-    private Set<Formula> removeHypotheses(
-            Map<TransformedZ3Proof, TransformedZ3Proof> parents) {
+    private Set<Formula> removeHypotheses() {
+
         Set<Formula> result = new HashSet<Formula>();
-        if (hypothesis) {
-            // update ancestors' consequents
-            TransformedZ3Proof parent = parents.get(this);
+        Set<Z3Proof> hypotheses = this.getHypotheses();
+        for (Z3Proof hypothesis : hypotheses) {
+            assert (Util.isLiteral(hypothesis.consequent));
+            result.add(hypothesis.consequent);
 
-            while (parent != null) {
-                List<Formula> newDisjuncts = null;
-                if (parent.consequent instanceof OrFormula) {
-                    newDisjuncts = ((OrFormula) parent.consequent)
-                            .getDisjuncts();
-                } else {
-                    newDisjuncts = new ArrayList<Formula>();
-                    newDisjuncts.add(parent.consequent);
-                }
+            // update the DAG with the negated literal
+            Set<Z3Proof> nodes = nodesOnPathTo(hypothesis);
+            Formula negatedLiteral = Util.invertLiteral(hypothesis.consequent);
+            for (Z3Proof z3ProofNode : nodes) {
+                // update the node.
+                assert (z3ProofNode instanceof TransformedZ3Proof);
+                TransformedZ3Proof node = (TransformedZ3Proof) z3ProofNode;
+
+                assert (!node.isHypothesis());
+                assert (node.consequent instanceof OrFormula);
+                if (((OrFormula) node.consequent).getDisjuncts().contains(
+                        negatedLiteral))
+                    // Literal is already present. No need to add it.
+                    continue;
+
+                assert (node.subProofs.size() == 2);
+                List<Formula> newDisjuncts = ((OrFormula) node.consequent)
+                        .getDisjuncts();
+                assert (!newDisjuncts.contains(negatedLiteral));
                 newDisjuncts.remove(new PropositionalConstant(false));
+                newDisjuncts.add(negatedLiteral);
+                node.consequent = new OrFormula(newDisjuncts);
 
-                Formula newDisjunct = (new NotFormula(this.consequent))
-                        .transformToConsequentsForm();
-                while (newDisjuncts.remove(newDisjunct))
-                    ;
-
-                newDisjuncts.add(newDisjunct);
-
-                parent.consequent = (new OrFormula(newDisjuncts))
-                        .transformToConsequentsForm();
-                parent = parents.get(parent);
-            }
-            parent = parents.get(this);
-            // update parent's subproofs and literal
-
-            int numChildren = parent.subProofs.size();
-
-            if (numChildren > 2) {
-                parent.subProofs.remove(this);
-                parent.reload = true;
-            }
-            if (numChildren == 2) {
-                TransformedZ3Proof otherChild = (TransformedZ3Proof) parent.subProofs
-                        .get((this == parent.subProofs.get(0)) ? 1 : 0);
-                parent.proofType = otherChild.proofType;
-                parent.subProofs = otherChild.subProofs;
-                parent.literal = Util.getSingleLiteral(otherChild.literal);
-                parent.hypothesis = otherChild.hypothesis;
-
-                parent.reload = true;
-
-            } else if (numChildren == 1) {
-
-                Z3Proof myChild = this;
-                TransformedZ3Proof myParent = parent;
-                while (myParent.subProofs.size() == 1) {
-                    myChild = myParent;
-                    myParent = parents.get(myParent);
-                }
-                if (myParent.subProofs.size() > 2) {
-                    myParent.subProofs.remove(myChild);
-                    myParent.reload = true;
-                }
-
-                if (myParent.subProofs.size() == 2) {
-                    TransformedZ3Proof otherChild = (TransformedZ3Proof) myParent.subProofs
-                            .get((myChild == myParent.subProofs.get(0)) ? 1 : 0);
-                    myParent.proofType = otherChild.proofType;
-                    myParent.subProofs = otherChild.subProofs;
-                    myParent.literal = Util
-                            .getSingleLiteral(otherChild.literal);
-                    myParent.hypothesis = otherChild.hypothesis;
-
-                    myParent.reload = true;
-                }
-            }
-
-            result.add(consequent);
-            return result;
-        }
-
-        reload = true;
-        while (reload) {
-            reload = false;
-            for (Z3Proof subProof : subProofs) {
-                if (subProof != null) {
-                    parents.put((TransformedZ3Proof) subProof, this);
-                    result.addAll(((TransformedZ3Proof) subProof)
-                            .removeHypotheses(parents));
-                    if (reload)
-                        break;
+                if (node.subProofs.contains(hypothesis)) {
+                    Z3Proof other = node.subProofs.get(node.subProofs
+                            .indexOf(hypothesis) == 0 ? 1 : 0);
+                    assert (other instanceof TransformedZ3Proof);
+                    TransformedZ3Proof otherChild = (TransformedZ3Proof) other;
+                    node.axiom = otherChild.axiom;
+                    node.literal = otherChild.literal;
+                    node.hypothesis = otherChild.hypothesis;
+                    node.subProofs = otherChild.subProofs;
+                    node.proofType = otherChild.proofType;
                 }
             }
         }
-
         return result;
     }
 
@@ -1634,16 +1552,26 @@ public class TransformedZ3Proof extends Z3Proof {
      *         it contains bad literals.
      */
     public boolean isLocal() {
+        this.resetMarks();
+        boolean result = this.isLocalRecursion();
+        this.resetMarks();
+        return result;
+    }
 
+    private boolean isLocalRecursion() {
+        if (this.marked)
+            return true;
+        this.marked = true;
         if (Util.containsBadLiteral((OrFormula) consequent))
             return false;
 
         for (Z3Proof child : subProofs) {
+            if (child.marked)
+                continue;
             assert (child instanceof TransformedZ3Proof);
             if (!((TransformedZ3Proof) child).isLocal())
                 return false;
         }
-
         return true;
     }
 
@@ -1698,4 +1626,5 @@ public class TransformedZ3Proof extends Z3Proof {
         throw new RuntimeException(
                 "literal not found in both subformulas! this should not happen!!");
     }
+
 }

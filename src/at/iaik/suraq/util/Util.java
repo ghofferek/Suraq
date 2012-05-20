@@ -402,6 +402,7 @@ public class Util {
         if (!Util.isLiteral(literal))
             throw new RuntimeException("given formula should be a literal");
 
+        literal = Util.getSingleLiteral(literal);
         if (literal instanceof NotFormula) {
             return ((NotFormula) literal).getNegatedFormula();
         } else

@@ -301,29 +301,50 @@ public class Z3Proof implements SMTLibObject {
     }
 
     public Set<Z3Proof> getLemmas() {
+        this.resetMarks();
+        Set<Z3Proof> result = this.getLemmasRecursion();
+        this.resetMarks();
+        return result;
+    }
 
+    private Set<Z3Proof> getLemmasRecursion() {
+        this.marked = true;
         Set<Z3Proof> lemmas = new HashSet<Z3Proof>();
         if (proofType.equals(SExpressionConstants.LEMMA)) {
             lemmas.add(this);
         }
         for (Z3Proof z3Proofchild : this.subProofs) {
-            lemmas.addAll(z3Proofchild.getLemmas());
+            if (z3Proofchild.marked)
+                continue;
+            lemmas.addAll(z3Proofchild.getLemmasRecursion());
         }
         return lemmas;
     }
 
     public Set<Z3Proof> getHypotheses() {
+        this.resetMarks();
+        Set<Z3Proof> result = this.getHypothesesRecursion();
+        this.resetMarks();
+        return result;
+    }
 
+    private Set<Z3Proof> getHypothesesRecursion() {
+        this.marked = true;
         Set<Z3Proof> hypotheses = new HashSet<Z3Proof>();
         if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
+            assert (this.subProofs.size() == 0);
             hypotheses.add(this);
         }
         if (this instanceof TransformedZ3Proof) {
-            if (((TransformedZ3Proof) this).isHypothesis())
+            if (((TransformedZ3Proof) this).isHypothesis()) {
+                assert (this.subProofs.size() == 0);
                 hypotheses.add(this);
+            }
         }
         for (Z3Proof z3Proofchild : this.subProofs) {
-            hypotheses.addAll(z3Proofchild.getHypotheses());
+            if (z3Proofchild.marked)
+                continue;
+            hypotheses.addAll(z3Proofchild.getHypothesesRecursion());
         }
         return hypotheses;
     }
@@ -650,8 +671,22 @@ public class Z3Proof implements SMTLibObject {
 
     public void resetMarks() {
         marked = false;
-        for (Z3Proof child : subProofs)
-            child.resetMarks();
+        for (Z3Proof node : this.allNodes())
+            node.marked = false;
+    }
+
+    public Set<Z3Proof> allNodes() {
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        this.allNodes(result);
+        return result;
+    }
+
+    private void allNodes(Set<Z3Proof> set) {
+        set.add(this);
+        for (Z3Proof child : subProofs) {
+            if (!set.contains(child))
+                child.allNodes(set);
+        }
     }
 
     /**
@@ -835,11 +870,23 @@ public class Z3Proof implements SMTLibObject {
      * @return return true if node is valid
      */
     public boolean checkZ3ProofNodeRecursive() {
+        this.resetMarks();
+        boolean result = this.checkZ3ProofNodeRecursiveRecursion();
+        this.resetMarks();
+        return result;
+    }
 
+    private boolean checkZ3ProofNodeRecursiveRecursion() {
+        if (this.marked)
+            return true;
+        this.marked = true;
         if (this.subProofs.size() > 0)
-            for (Z3Proof subProof : this.subProofs)
-                subProof.checkZ3ProofNodeRecursive();
-
+            for (Z3Proof subProof : this.subProofs) {
+                if (subProof.marked)
+                    continue;
+                if (!subProof.checkZ3ProofNodeRecursiveRecursion())
+                    return false;
+            }
         return checkZ3ProofNode();
     }
 
@@ -951,5 +998,69 @@ public class Z3Proof implements SMTLibObject {
         for (Z3Proof child : subProofs)
             result += child.sizeRecursion();
         return 0;
+    }
+
+    /**
+     * Recursively computes the parents in the proof, starting from
+     * <code>this</code> downwards.
+     * 
+     * @return the map from children to parents. Note that in a DAG, a child may
+     *         have several parents.
+     */
+    public Map<Z3Proof, Set<Z3Proof>> computeParents() {
+        this.resetMarks();
+        Map<Z3Proof, Set<Z3Proof>> result = new HashMap<Z3Proof, Set<Z3Proof>>();
+        this.computeParentsRecursion(result);
+        this.resetMarks();
+        return result;
+    }
+
+    /**
+     * 
+     * @param map
+     *            call-by-reference parameter to be updated during recursion
+     */
+    private void computeParentsRecursion(Map<Z3Proof, Set<Z3Proof>> map) {
+        if (this.marked)
+            return;
+        this.marked = true;
+
+        for (Z3Proof child : subProofs) {
+            Set<Z3Proof> set = map.get(child);
+            if (set == null)
+                set = new HashSet<Z3Proof>();
+            assert (set != null);
+            set.add(this);
+            map.put(child, set);
+
+            if (!child.marked)
+                child.computeParentsRecursion(map);
+        }
+        return;
+    }
+
+    public Set<Z3Proof> nodesOnPathTo(Z3Proof target) {
+        Set<Z3Proof> result = null;
+
+        if (this == target)
+            return new HashSet<Z3Proof>();
+
+        for (Z3Proof child : subProofs) {
+            if (result == null) {
+                result = child.nodesOnPathTo(target);
+                if (result != null)
+                    result.add(this);
+            } else {
+                assert (result != null);
+                if (result.contains(child))
+                    continue;
+                Set<Z3Proof> tmp = child.nodesOnPathTo(target);
+                if (tmp != null) {
+                    result.addAll(tmp);
+                    result.add(this);
+                }
+            }
+        }
+        return result;
     }
 }
