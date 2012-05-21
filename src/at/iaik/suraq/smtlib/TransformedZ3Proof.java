@@ -58,6 +58,8 @@ import at.iaik.suraq.util.Util;
  */
 public class TransformedZ3Proof extends Z3Proof {
 
+    public static TransformedZ3Proof debugNode = null;
+
     /**
      * This maps IDs of Z3Proofs to their TransformedZ3Proof counterparts. This
      * is to avoid DAG unwinding during conversion.
@@ -196,10 +198,11 @@ public class TransformedZ3Proof extends Z3Proof {
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
 
-        // TransformedZ3Proof node = TransformedZ3Proof.proofMap.get(307);
+        TransformedZ3Proof.debugNode = TransformedZ3Proof.proofMap.get(307);
 
         if (TransformedZ3Proof.proofMap.containsKey(z3Proof.id))
-            return TransformedZ3Proof.proofMap.get(z3Proof.id);
+            // return TransformedZ3Proof.proofMap.get(z3Proof.id);
+            TransformedZ3Proof.proofMap.remove(z3Proof.id);
 
         // Go through all possible cases of z3 proof rules
 
@@ -400,6 +403,13 @@ public class TransformedZ3Proof extends Z3Proof {
                     transformedHypotheticalProof.consequent);
             result.literal = Util
                     .getSingleLiteral(transformedHypotheticalProof.literal);
+
+            // Remove stored conversion results for all subproofs
+            // They are "tainted" by hypothesis removal.
+            Set<Z3Proof> allSubNodes = z3Proof.allNodes();
+            for (Z3Proof proof : allSubNodes)
+                TransformedZ3Proof.proofMap.remove(proof);
+
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             assert (result.checkZ3ProofNode());
