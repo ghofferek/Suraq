@@ -266,6 +266,12 @@ public class SExpParser extends Parser {
      * Stores the current token in the parse tree.
      */
     private void storeToken() {
+        if (currentToken.charAt(0) == '|') {
+            assert (currentToken.charAt(currentToken.length() - 1) == '|');
+            currentToken = new StringBuffer(currentToken.subSequence(1,
+                    currentToken.length()));
+        }
+
         if (currentExpr != null)
             currentExpr.addChild(new Token(currentToken, currentLineNumber,
                     currentColumnNumber));
