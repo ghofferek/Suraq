@@ -161,6 +161,11 @@ public class SExpParser extends Parser {
                 if (commentState) // ignore rest of line
                     continue;
 
+                if (character == '"')
+                    throw new ParseError(currentLineNumber,
+                            currentColumnNumber, currentLine,
+                            "Found '\"'. String literals currently not supported!");
+
                 if (character == '(' && !quotedToken) { // start of a
                                                         // subexpression
                     if (currentToken != null)
@@ -210,7 +215,7 @@ public class SExpParser extends Parser {
 
                 }
 
-                if (character == '"') {
+                if (character == '|') {
                     if (currentToken == null) { // no current token --> start
                                                 // new quoted token
                         quotedToken = true;
@@ -218,18 +223,15 @@ public class SExpParser extends Parser {
                         currentToken.append(character);
                     } else {
                         if (quotedToken) {
-                            if (currentToken.charAt(currentToken.length() - 1) == '\\')
-                                // an escaped ". Just append it.
-                                currentToken.append(character);
-                            else { // the end of the quoted token. Store it.
-                                currentToken.append(character);
-                                storeToken();
-                                quotedToken = false;
-                            }
-                        } else { // found a " in a non-quoted token. --> Error
+                            // the end of the quoted token. Store it.
+                            currentToken.append(character);
+                            storeToken();
+                            quotedToken = false;
+
+                        } else { // found a | in a non-quoted token. --> Error
                             throw new ParseError(currentLineNumber,
                                     currentColumnNumber, currentLine,
-                                    "Unexpected '\"'.");
+                                    "Unexpected '|'.");
                         }
                     }
                     continue;

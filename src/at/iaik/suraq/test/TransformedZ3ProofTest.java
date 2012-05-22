@@ -397,6 +397,9 @@ public class TransformedZ3ProofTest {
         }
 
         Z3Proof rootProof = proofParser.getRootProof();
+
+        Assert.assertEquals(rootProof.allNodes().size(), rootProof.size());
+
         @SuppressWarnings("unused")
         String proofString = rootProof.prettyPrint();
         Assert.assertTrue(rootProof.checkZ3ProofNodeRecursive());
@@ -418,6 +421,8 @@ public class TransformedZ3ProofTest {
         @SuppressWarnings("unused")
         String test = transformedZ3Proof.prettyPrint();
 
+        Assert.assertEquals(transformedZ3Proof.allNodes().size(),
+                transformedZ3Proof.size());
         // START: ASHUTOSH code
         ResProof resolutionProof = Util
                 .createResolutionProof(transformedZ3Proof);

@@ -23,6 +23,7 @@ import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.resProof.ResProof;
+import at.iaik.suraq.resProof.ResProofTest;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -44,8 +45,6 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.Util;
-
-import at.iaik.suraq.resProof.ResProofTest;
 
 /**
  * 
@@ -153,7 +152,8 @@ public class Suraq implements Runnable {
     public void run() {
         // START: ASHUTOSH code
         ResProofTest pTst = new ResProofTest();
-        if( pTst.takeControl() ) return;
+        if (pTst.takeControl())
+            return;
         // END: ASHUTOSH code
         printWelcome();
 
@@ -340,38 +340,77 @@ public class Suraq implements Runnable {
                 // Main Flow
                 Z3Proof rootProof = proofParser.getRootProof();
                 // assert (rootProof.checkZ3ProofNodeRecursive);
+                System.out.println("Original Z3 Proof");
+                System.out.println("Proof DAG size: " + rootProof.size(false));
+                System.out.println("Proof size after unwinding DAG: "
+                        + rootProof.size(true));
+                System.out.println();
 
                 rootProof.localLemmasToAssertions();
                 // assert (rootProof.checkZ3ProofNodeRecursive());
+                System.out.println("After localLemmasToAssertions()");
+                System.out.println("Proof DAG size: " + rootProof.size(false));
+                System.out.println("Proof size after unwinding DAG: "
+                        + rootProof.size(true));
+                System.out.println();
 
                 rootProof.removeLocalSubProofs();
                 // assert (rootProof.checkZ3ProofNodeRecursive());
+                System.out.println("After removeLocalSubProofs()");
+                System.out.println("Proof DAG size: " + rootProof.size(false));
+                System.out.println("Proof size after unwinding DAG: "
+                        + rootProof.size(true));
+                System.out.println();
 
                 rootProof.dealWithModusPonens();
                 // assert (rootProof.checkZ3ProofNodeRecursive());
-                System.out.println("Num Instances: " + Z3Proof.numInstances());
+                System.out.println("After dealWithModusPonens()");
+                System.out.println("Proof DAG size: " + rootProof.size(false));
+                System.out.println("Proof size after unwinding DAG: "
+                        + rootProof.size(true));
+                System.out.println();
+
+                // System.out.println("Num Instances: " +
+                // Z3Proof.numInstances());
                 TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
                         .convertToTransformedZ3Proof(rootProof);
-                System.out.println("Num Instances: " + Z3Proof.numInstances());
-                try {
-                    File smtfile = new File("proofTemp.txt");
-                    FileWriter fstream = new FileWriter(smtfile);
-                    BufferedWriter smtfilewriter = new BufferedWriter(fstream);
-                    rootProof.resetMarks();
-                    smtfilewriter.write(rootProof.prettyPrint());
-                    smtfilewriter.close();
-                } catch (IOException exc) {
-                    System.err.println("Error while writing to smtfile.");
-                    exc.printStackTrace();
-                    noErrors = false;
-                }
+                System.out.println("After convertToTransformedZ3Proof()");
+                System.out.println("Proof DAG size: "
+                        + transformedZ3Proof.size(false));
+                System.out.println("Proof size after unwinding DAG: "
+                        + transformedZ3Proof.size(true));
+                System.out.println();
+                /*
+                 * System.out.println("Num Instances: " +
+                 * Z3Proof.numInstances()); try { File smtfile = new
+                 * File("proofTemp.txt"); FileWriter fstream = new
+                 * FileWriter(smtfile); BufferedWriter smtfilewriter = new
+                 * BufferedWriter(fstream); rootProof.resetMarks();
+                 * smtfilewriter.write(rootProof.prettyPrint());
+                 * smtfilewriter.close(); } catch (IOException exc) {
+                 * System.err.println("Error while writing to smtfile.");
+                 * exc.printStackTrace(); noErrors = false; }
+                 */
                 // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
 
                 transformedZ3Proof.toLocalProof();
                 // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
+
+                System.out.println("After toLocalProof()");
+                System.out.println("Proof DAG size: "
+                        + transformedZ3Proof.size(false));
+                System.out.println("Proof size after unwinding DAG: "
+                        + transformedZ3Proof.size(true));
+                System.out.println();
                 assert (transformedZ3Proof.isLocal());
 
                 transformedZ3Proof.toResolutionProof();
+                System.out.println("After toResolutionProof()");
+                System.out.println("Proof DAG size: "
+                        + transformedZ3Proof.size(false));
+                System.out.println("Proof size after unwinding DAG: "
+                        + transformedZ3Proof.size(true));
+                System.out.println();
                 assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
 
                 Set<Integer> partitions = rootProof.getPartitionsFromSymbols();
@@ -380,6 +419,12 @@ public class Suraq implements Runnable {
                 // START: ASHUTOSH code
                 ResProof resolutionProof = Util
                         .createResolutionProof(transformedZ3Proof);
+
+                // resolutionProof.dumpProof();
+                resolutionProof.checkProof(false);
+                resolutionProof.rmDoubleLits();
+                resolutionProof.deLocalizeProof();
+                resolutionProof.checkProof(false);
                 resolutionProof.tranformResProofs();
                 // END: ASHUTOSH code
 
@@ -392,6 +437,13 @@ public class Suraq implements Runnable {
                         .createITETrees(logicParser.getControlVariables());
 
                 System.out.println("trees created");
+                System.out.println("Results:");
+                for (PropositionalVariable controlVar : iteTrees.keySet()) {
+                    System.out
+                            .println("------------------------------------------");
+                    System.out.println("Signal: " + controlVar.getVarName());
+                    System.out.println(iteTrees.get(controlVar).toString());
+                }
             }
 
             System.out.println(" done!");
