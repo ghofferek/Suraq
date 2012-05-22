@@ -231,6 +231,8 @@ public class ResProof {
             Iterator<Lit> iter = n.cl.iterator();
             while (iter.hasNext()) {
                 Lit l = iter.next();
+                Assert.assertTrue("an local with uninitialized partition",
+                                  var_part[l.var()] != -1);
                 if (var_part[l.var()] != 0)
                     Assert.assertTrue("a local is in wrong partition!",
                             var_part[l.var()] == n.part);

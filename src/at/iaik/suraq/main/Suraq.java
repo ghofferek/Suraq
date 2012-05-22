@@ -152,11 +152,8 @@ public class Suraq implements Runnable {
     @Override
     public void run() {
         // START: ASHUTOSH code
-        if (false) {
-            ResProofTest pTst = new ResProofTest();
-            pTst.test();
-            return;
-        }
+        ResProofTest pTst = new ResProofTest();
+        if( pTst.takeControl() ) return;
         // END: ASHUTOSH code
         printWelcome();
 

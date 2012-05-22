@@ -22,6 +22,10 @@ public class ResProofTest {
     public void t1() {
         System.out.println("Example 1=>");
         ResProof prf = new ResProof();
+
+        prf.var_part[1] = 0;
+        prf.var_part[2] = 0;
+
         List<Lit> c1 = Arrays.asList(new Lit(1, true), new Lit(2, false));
         List<Lit> c2 = Arrays.asList(new Lit(1, false));
         List<Lit> c3 = Arrays.asList(new Lit(2, true));
@@ -65,7 +69,7 @@ public class ResProofTest {
 
         prf.setRoot(i3);
 
-        localizeProof(prf);
+        prf.localFirstProofs(true,true,false);
 
     }
 
@@ -107,35 +111,37 @@ public class ResProofTest {
 
         prf.setRoot(i5);
 
-        localizeProof(prf);
+        prf.localFirstProofs(true,true,false);
+
     }
 
     public void t4() {
+        System.out.println("Example 4=>(with no printing)");
         ResProof prf = new ResProof();
         prf.loadProof("tmp/test-0.res");
-        prf.checkProof(false);
-        prf.computeVitals();
-        HashSet<ResNode> oldLeaves = new HashSet<ResNode>(prf.leaves);
-        prf.rmDoubleLits();
-        prf.deLocalizeProof();
-        prf.computeVitals();
-        prf.checkProof(false);
-        System.out.println( oldLeaves.size()+" leaves are reduced to "
-                            + prf.leaves.size() + " leaves");
-        System.out.println( "remaining leaves are subset of original leaves? "+
-                            oldLeaves.containsAll(prf.leaves));
-
+        prf.localFirstProofs(true,false,false);
     }    
 
     public void test() {
+        System.out.println("----------------------------------------------");
+        t1();
+        System.out.println("----------------------------------------------");
+        t2();
+        System.out.println("----------------------------------------------");
+        t3(true);
+        System.out.println("----------------------------------------------");
+        t3(false);
+        System.out.println("----------------------------------------------");
         t4();
-        // System.out.println("----------------------------------------------");
-        // t1();
-        // System.out.println("----------------------------------------------");
-        // t2();
-        // System.out.println("----------------------------------------------");
-        // t3(true);
-        // System.out.println("----------------------------------------------");
-        // t3(false);
     }
+    
+    public boolean takeControl() {
+        if(false){
+        //if(true){
+            test();
+            return true;
+        }else{
+            return false;
+        }
+    }    
 }
