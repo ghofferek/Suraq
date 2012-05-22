@@ -152,7 +152,7 @@ public class Suraq implements Runnable {
     @Override
     public void run() {
         // START: ASHUTOSH code
-        if (true) {
+        if (false) {
             ResProofTest pTst = new ResProofTest();
             pTst.test();
             return;
