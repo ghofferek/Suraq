@@ -224,7 +224,6 @@ public class SExpParser extends Parser {
                     } else {
                         if (quotedToken) {
                             // the end of the quoted token. Store it.
-                            currentToken.append(character);
                             storeToken();
                             quotedToken = false;
 
