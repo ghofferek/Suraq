@@ -10,10 +10,12 @@ import java.util.List;
 public class ResProofTest {
 
     private void localizeProof(ResProof prf) {
-        prf.checkProof(true);
+        prf.checkProof(false);
+        prf.rmDoubleLits();
+        prf.checkProof(false);
         prf.deLocalizeProof();
         System.out.println("===================");
-        prf.checkProof(true);
+        prf.checkProof(false);
     }
 
     public void t1() {
@@ -107,14 +109,21 @@ public class ResProofTest {
         localizeProof(prf);
     }
 
+    public void t4() {
+        ResProof prf = new ResProof();
+        prf.loadProof();
+        localizeProof(prf); 
+    }    
+
     public void test() {
-        System.out.println("-------------------------------------------------");
-        t1();
-        System.out.println("-------------------------------------------------");
-        t2();
-        System.out.println("-------------------------------------------------");
-        t3(true);
-        System.out.println("-------------------------------------------------");
-        t3(false);
+        t4();
+        // System.out.println("----------------------------------------------");
+        // t1();
+        // System.out.println("----------------------------------------------");
+        // t2();
+        // System.out.println("----------------------------------------------");
+        // t3(true);
+        // System.out.println("----------------------------------------------");
+        // t3(false);
     }
 }

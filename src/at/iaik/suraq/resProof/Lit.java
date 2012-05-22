@@ -6,6 +6,10 @@ package at.iaik.suraq.resProof;
 public class Lit {
     int l;
 
+    public Lit(int pl) {
+        l=pl;
+    }
+
     public Lit(int i, boolean b) {
         l = (i << 1) | (b ? 1 : 0);
     }

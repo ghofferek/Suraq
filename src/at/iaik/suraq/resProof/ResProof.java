@@ -7,6 +7,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+import java.io.*;
+// import java.io.BufferedWriter;
+// import java.io.File;
+// import java.io.FileNotFoundException;
+// import java.io.FileWriter;
+// import java.io.IOException;
+
 import org.junit.Assert;
 
 public class ResProof {
@@ -65,15 +72,118 @@ public class ResProof {
         return root.left;
     }
 
+
+    /*
+      Dumping/loading the proofs in a file
+     */
+    void recDumpProof(BufferedWriter wr, ResNode n) throws IOException{
+        if (visited[n.id]) return;
+        if (n.isLeaf) {
+            wr.write(String.valueOf(n.id));    wr.write(" ");
+            wr.write(String.valueOf(n.pivot)); wr.write(" ");
+            wr.write(String.valueOf(n.part)); wr.write(" ");
+            Iterator<Lit> iter = n.cl.iterator();
+            while (iter.hasNext()) {
+                Lit l = iter.next();
+                wr.write(String.valueOf(l.l));wr.write(" ");
+            }
+        } else {
+            recDumpProof(wr, n.left);
+            recDumpProof(wr, n.right);
+            wr.write(String.valueOf(n.id));    wr.write(" ");
+            wr.write(String.valueOf(n.pivot)); wr.write(" ");
+            wr.write(String.valueOf(n.left.id)); wr.write(" ");
+            wr.write(String.valueOf(n.right.id)); wr.write(" ");
+        }
+        wr.write("\n");
+        visited[n.id] = true;
+    }
+
+    public void dumpProof(){
+        String file = "tmp/test.res";
+        Arrays.fill(visited, false);    
+        try{
+            //create FileOutputStream object
+            File fl = new File(file);
+            FileWriter fs = new FileWriter(fl);
+            BufferedWriter wr = new BufferedWriter(fs);
+            for(int v=1; var_part[v] != -1;v++ ){
+                wr.write(String.valueOf(v)); wr.write(" ");
+                wr.write(String.valueOf(var_part[v])); wr.write("\n");
+            }
+            wr.write(String.valueOf(0));wr.write("\n");
+            recDumpProof(wr, getRoot());
+            wr.write(String.valueOf(0));wr.write("\n");
+            // int v = 123;
+            // wr.write(String.valueOf(v));
+            wr.close();
+
+        }catch (IOException e){
+            System.out.println("IOException : " + e);
+        }
+
+    }
+    
+    public void loadProof(){
+        String file = "tmp/test.res";
+        try{
+            //create FileOutputStream object
+            File fl = new File(file);
+            FileReader fs = new FileReader(fl);
+            BufferedReader rd = new BufferedReader(fs);
+            
+            String rdLine;
+
+            while ((rdLine = rd.readLine()) != null)   {
+                String[] is = rdLine.split(" ");
+                int v = Integer.parseInt(is[0]);
+                if ( v == 0) break;
+                Assert.assertTrue("var and only parts should be there",
+                                  is.length == 2);
+                var_part[v] = Integer.parseInt(is[1]);
+            }
+            ResNode n =null;
+            while ((rdLine = rd.readLine()) != null){
+                String[] is = rdLine.split(" ");
+                int id = Integer.parseInt(is[0]);
+                if ( id == 0) break;
+                int piv = Integer.parseInt(is[1]);
+                if(piv == 0) {
+                    int part = Integer.parseInt(is[2]);
+                    Clause cl = new Clause();
+                    for(int i=3; i < is.length; i++){
+                        Lit l = new Lit( Integer.parseInt(is[i]) );
+                        cl.addLit(l);
+                    }
+                    n = addLeaf(cl, part);
+                }else{
+                    int lid = Integer.parseInt(is[2]);
+                    int rid = Integer.parseInt(is[3]);
+                    n = addIntNode(null,nodeRef[lid],nodeRef[rid],piv);
+                }
+                nodeRef[id] = n;
+            }
+            setRoot(n);
+            rd.close();
+        }catch (IOException e){
+            System.out.println("IOException : " + e);
+        }
+        
+    }
+
+    /*
+      Checking Proof correctness
+     */
+
     void recCheckProof(ResNode n) {
         if (visited[n.id])
             return;
         if (printWhileChecking)
             System.out.println(n);
-        if(n.id == 9){
-            System.out.println(n.left);
-            System.out.println(n.right);
-        }
+        // if(n.id == 9){
+        //     System.out.println(n.left);
+        //     System.out.println(n.right);
+        // }
         // Todo: Check double lits issue if disabled globally
         if (n.isLeaf) {
             Assert.assertTrue("Pivot at leaf!", n.pivot == 0);
@@ -87,12 +197,11 @@ public class ResProof {
                             var_part[l.var()] == n.part);
             }
         } else {
-            Assert.assertTrue("A parent missing!", n.left != null
-                    && n.right != null);
-            Assert.assertTrue(
-                    "pivot litrals are not present in parents!",
-                    n.left.cl.contains(n.pivot, true)
-                            && n.right.cl.contains(n.pivot, false));
+            Assert.assertTrue( "A parent missing!", 
+                              n.left != null && n.right != null);
+            Assert.assertTrue( "pivot litrals are not present in parents!",
+                              n.left.cl.contains(n.pivot, true)
+                              && n.right.cl.contains(n.pivot, false));
             Clause c = new Clause(n.left.cl, n.right.cl, n.pivot);
             Assert.assertTrue(
                     "node is not the result of resolution of parents",
@@ -104,24 +213,36 @@ public class ResProof {
     }
 
     public void checkProof(boolean doPrint) {
-        if(doPrint){
-            System.out.println("===============Checking Proof============");
+        printWhileChecking = doPrint;
+        if( printWhileChecking ){
+            System.out.println("============== Checking Proof ============");
             System.out.println("Number of active nodes"+"<"+nodeCount);
             System.out.print("var partitions:");
-            for(int v=1; var_part[v] != -1;v++ ){
+            for(int v=1; var_part[v] != -1;v++ )
                 System.out.print(" "+v+":p"+var_part[v]);
-            }
-            System.out.println("");
-            System.out.println("==========================================");
+            System.out.println("\n==========================================");
         }
-        printWhileChecking = doPrint;
         Arrays.fill(visited, false);
-        recCheckProof(getRoot());
-        Assert.assertTrue("Root is not empty clause", root.cl.isEmpty());
-        if(doPrint)
+        ResNode root = getRoot(); 
+        if(root != null){ 
+            recCheckProof(root);
+            Assert.assertTrue("Root is not empty clause", root.cl.isEmpty());
+        }
+        if( printWhileChecking )
             System.out.println("==========================================");
     }
 
+    // public void recCollectLeaves() {
+    // }    
+
+    // public void collectLeaves() {
+    //     Arrays.fill(visited, false);
+    //     ResNode root = getRoot(); 
+    //     if(root != null){ 
+    //         recCheckProof(root);
+    //         Assert.assertTrue("Root is not empty clause", root.cl.isEmpty());
+    //     }
+    // }    
     // Start : remove double literals
 
     void recRmDoubleLits(ResNode n){
@@ -150,35 +271,44 @@ public class ResProof {
         recRmDoubleLits(getRoot());
     }
     
-
+    // boolean p=false;
     // Start : Proof restructuring-----------------------------------------
     void reOrderStep(ResNode n) {
+        // if(n.id==3001) p =true;
+        // if(n.id==6432){
+        //     System.out.println(n);
+        //     System.out.println(n.left);
+        //     // System.out.println(n.left.left);
+        //     // System.out.println(n.left.right);
+        //     System.out.println(n.right);
+        // }
+        // if(p) System.out.println(n);
 
-        // If a node is derived form both parents
-        // that are "local" or "global axiom"
-        // then convert the node into a local node by
-        // setting n.part
-        //
-        // n.part == 0 -> axiom or only derived from axioms
-        // n.part == -1 -> derived from clauses of different parts
-        // n.part > 0 -> derived from a single part or global axioms
-        int lp = n.left.part;
-        int rp = n.right.part;
-        if (lp != -1 && rp != -1 && (lp == rp || lp == 0 || rp == 0)) {
-            int np = 0;
-            if (lp == 0)
-                np = rp;
-            else
-                np = lp;
-            n.part = np;
-            return;
-        }
-        // if pivot is global then return
-        if (var_part[n.pivot] == 0)
-            return;
-
-        // Check and fix if parents pivot is in n
         while (true) {
+            // If a node is derived form both parents
+            // that are "local" or "global axiom"
+            // then convert the node into a local node by
+            // setting n.part
+            //
+            // n.part == 0 -> axiom or only derived from axioms
+            // n.part == -1 -> derived from clauses of different parts
+            // n.part > 0 -> derived from a single part or global axioms
+            int lp = n.left.part;
+            int rp = n.right.part;
+            if (lp != -1 && rp != -1 && (lp == rp || lp == 0 || rp == 0)) {
+                int np = 0;
+                if (lp == 0)
+                    np = rp;
+                else
+                    np = lp;
+                n.part = np;
+                return;
+            }
+            // if pivot is global then return
+            if (var_part[n.pivot] == 0)
+                return;
+
+            // Check and fix if parents pivot is in n
             boolean mv = false, LeftParent = false, LeftGrandParent = false;
             // Note: the following condition only checks the partition.
             // If the parent is derived from a single partition then
@@ -223,8 +353,9 @@ public class ResProof {
         int goLeft = n.left.checkMovable(pl);
         // Check Right
         int goRight = n.right.checkMovable(nl);
+        //System.out.println("Moving a node!"+n);
 
-        Assert.assertTrue("Both unmovable parents is not possible!",
+        Assert.assertTrue(n+":Both unmovable parents is not possible!",
                 goLeft != -1 || goRight != -1);
 
         // L = Res(LL, LR), R = Res(RL, RR), N = Res(L,R)

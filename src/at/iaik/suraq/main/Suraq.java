@@ -45,6 +45,8 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.Util;
 
+import at.iaik.suraq.resProof.ResProofTest;
+
 /**
  * 
  * This is the main class of the Suraq project. Control flow will start here.
@@ -150,11 +152,11 @@ public class Suraq implements Runnable {
     @Override
     public void run() {
         // START: ASHUTOSH code
-        // if (false) {
-        // ResProofTest pTst = new ResProofTest();
-        // pTst.test();
-        // return;
-        // }
+        if (true) {
+            ResProofTest pTst = new ResProofTest();
+            pTst.test();
+            return;
+        }
         // END: ASHUTOSH code
         printWelcome();
 
@@ -381,11 +383,11 @@ public class Suraq implements Runnable {
                 // START: ASHUTOSH code
                 ResProof resolutionProof = Util
                         .createResolutionProof(transformedZ3Proof);
+                resolutionProof.dumpProof();
                 resolutionProof.checkProof(true);
                 resolutionProof.rmDoubleLits();
-                resolutionProof.checkProof(true);
                 resolutionProof.deLocalizeProof();
-                resolutionProof.checkProof(true);
+                resolutionProof.checkProof(false);
                 // END: ASHUTOSH code
 
                 // Transform back into Z3Proof format

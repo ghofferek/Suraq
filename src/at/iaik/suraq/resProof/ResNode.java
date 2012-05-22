@@ -88,16 +88,15 @@ public class ResNode {
         right.addChild(this);
     }
 
-    public void cleanUP(){
+    public void cleanUP(){        
         if( !isLeaf && children.isEmpty() ){
-            ResNode L=left, R=right;
+            left.rmChild(this);
+            left.cleanUP();
             left = null;
+            right.rmChild(this);
+            right.cleanUP();
             right = null;
-            L.rmChild(this);
-            R.rmChild(this);
             cl.clear();
-            L.cleanUP();
-            R.cleanUP();
             // this is ready for garbage collection.
         }
     }
