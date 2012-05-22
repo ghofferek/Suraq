@@ -6,15 +6,16 @@ package at.iaik.suraq.resProof;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.HashSet;
 
 public class ResProofTest {
 
     private void localizeProof(ResProof prf) {
-        prf.checkProof(false);
+        prf.computeVitals();
+        prf.checkProof(true);
         prf.rmDoubleLits();
-        prf.checkProof(false);
         prf.deLocalizeProof();
-        System.out.println("===================");
+        prf.computeVitals();
         prf.checkProof(false);
     }
 
@@ -111,8 +112,19 @@ public class ResProofTest {
 
     public void t4() {
         ResProof prf = new ResProof();
-        prf.loadProof();
-        localizeProof(prf); 
+        prf.loadProof("tmp/test-0.res");
+        prf.checkProof(false);
+        prf.computeVitals();
+        HashSet<ResNode> oldLeaves = new HashSet<ResNode>(prf.leaves);
+        prf.rmDoubleLits();
+        prf.deLocalizeProof();
+        prf.computeVitals();
+        prf.checkProof(false);
+        System.out.println( oldLeaves.size()+" leaves are reduced to "
+                            + prf.leaves.size() + " leaves");
+        System.out.println( "remaining leaves are subset of original leaves? "+
+                            oldLeaves.containsAll(prf.leaves));
+
     }    
 
     public void test() {

@@ -6,6 +6,7 @@ package at.iaik.suraq.resProof;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.HashSet;
 
 import java.io.*;
 // import java.io.BufferedWriter;
@@ -21,16 +22,22 @@ public class ResProof {
     public static final int MAX_PROOF_SIZE = 100000;
     public static final int MAX_LIT_NUM = 10000;
 
+    /* Essential fields */
     public ResNode root = null;
-
     public int nodeCount = 1;
-
-    public ResNode[] nodeRef = new ResNode[MAX_PROOF_SIZE];
     public int[] var_part = new int[MAX_LIT_NUM];
-
     public boolean[] visited = new boolean[MAX_PROOF_SIZE];
 
+    /* Proof vital */
+    public boolean vitalInfoFresh = false;
+    public ResNode[] nodeRef = new ResNode[MAX_PROOF_SIZE];
+    public int numberOfNodes;
+    public HashSet<ResNode> leaves = new HashSet<ResNode>();
+
+    /* config fields*/
     public boolean printWhileChecking = false;
+
+    
 
     public ResProof() {
         root = new ResNode(0, false);
@@ -40,6 +47,7 @@ public class ResProof {
 
     // part for axioms should be 0
     public ResNode addLeaf(Collection<Lit> cl, int part) {
+        assert(!vitalInfoFresh);
         ResNode n = new ResNode(nodeCount, true, cl, null, null, 0, part);
         incNodeCount(n);
         return n;
@@ -51,6 +59,7 @@ public class ResProof {
     // * Node: part for internal node is set to be -1.
     public ResNode addIntNode(Collection<Lit> cl, ResNode left, ResNode right,
             int pivot) {
+        assert(!vitalInfoFresh);
         ResNode n = new ResNode(nodeCount, false, cl, left, right, pivot, -1);
         incNodeCount(n);
         return n;
@@ -64,6 +73,7 @@ public class ResProof {
     }
 
     public void setRoot(ResNode n) {
+        assert(!vitalInfoFresh);
         root.left = n;
         n.addChild(root);
     }
@@ -72,6 +82,39 @@ public class ResProof {
         return root.left;
     }
 
+    /*
+      vital computation
+     */
+    public void disruptVitals() {
+        vitalInfoFresh = false;
+        Arrays.fill(nodeRef, null);
+        numberOfNodes = 0;
+        leaves.clear();
+    }
+
+    public void recComputeVitals(ResNode n) {
+        if (visited[n.id]) return;
+        numberOfNodes++;
+        nodeRef[n.id] = n;
+        if(n.isLeaf){
+            leaves.add(n);
+        }else{
+            recComputeVitals(n.left);
+            recComputeVitals(n.right);
+        }
+        visited[n.id] = true;        
+    }    
+
+    public void computeVitals() {
+        disruptVitals();
+        Arrays.fill(visited, false);
+        ResNode root = getRoot(); 
+        if(root != null){ 
+            recComputeVitals(root);
+        }
+        vitalInfoFresh = true;
+    }    
+    
 
     /*
       Dumping/loading the proofs in a file
@@ -99,8 +142,8 @@ public class ResProof {
         visited[n.id] = true;
     }
 
-    public void dumpProof(){
-        String file = "tmp/test.res";
+    public void dumpProof(String file){
+        //String file = "tmp/test.res";
         Arrays.fill(visited, false);    
         try{
             //create FileOutputStream object
@@ -124,8 +167,8 @@ public class ResProof {
 
     }
     
-    public void loadProof(){
-        String file = "tmp/test.res";
+    public void loadProof(String file){
+        // String file = "tmp/test.res";
         try{
             //create FileOutputStream object
             File fl = new File(file);
@@ -180,10 +223,6 @@ public class ResProof {
             return;
         if (printWhileChecking)
             System.out.println(n);
-        // if(n.id == 9){
-        //     System.out.println(n.left);
-        //     System.out.println(n.right);
-        // }
         // Todo: Check double lits issue if disabled globally
         if (n.isLeaf) {
             Assert.assertTrue("Pivot at leaf!", n.pivot == 0);
@@ -216,7 +255,12 @@ public class ResProof {
         printWhileChecking = doPrint;
         if( printWhileChecking ){
             System.out.println("============== Checking Proof ============");
-            System.out.println("Number of active nodes"+"<"+nodeCount);
+            if(vitalInfoFresh){
+                System.out.println("Number of nodes  = "+numberOfNodes);
+                System.out.println("Number of leaves = "+leaves.size());
+            }else{
+                System.out.println("Number of active nodes"+"<"+nodeCount);
+            }
             System.out.print("var partitions:");
             for(int v=1; var_part[v] != -1;v++ )
                 System.out.print(" "+v+":p"+var_part[v]);
@@ -232,17 +276,6 @@ public class ResProof {
             System.out.println("==========================================");
     }
 
-    // public void recCollectLeaves() {
-    // }    
-
-    // public void collectLeaves() {
-    //     Arrays.fill(visited, false);
-    //     ResNode root = getRoot(); 
-    //     if(root != null){ 
-    //         recCheckProof(root);
-    //         Assert.assertTrue("Root is not empty clause", root.cl.isEmpty());
-    //     }
-    // }    
     // Start : remove double literals
 
     void recRmDoubleLits(ResNode n){
@@ -267,6 +300,7 @@ public class ResProof {
     }
 
     public void rmDoubleLits() {
+        disruptVitals();
         Arrays.fill(visited, false);
         recRmDoubleLits(getRoot());
     }
@@ -439,10 +473,32 @@ public class ResProof {
     }
 
     public void deLocalizeProof() {
+        disruptVitals();
         Arrays.fill(visited, false);
         recDeLocalizeProof(getRoot());
     }
 
+    public void localFirstProofs(boolean verify, boolean print,boolean dump){
+
+        HashSet<ResNode> oldLeaves = null;
+        if(verify){
+            computeVitals();
+            checkProof(print);
+            oldLeaves = new HashSet<ResNode>(leaves);
+        }
+        if(dump) dumpProof("tmp/test.res");
+        rmDoubleLits();
+        deLocalizeProof();
+        if(verify){
+            computeVitals();
+            checkProof(print);
+            assert( oldLeaves.containsAll(leaves) );
+        }
+    }
+    
+    public void tranformResProofs() {
+        localFirstProofs(false,false,false);      
+    }
     // End : Proof restructuring-----------------------------------------
 
 }
