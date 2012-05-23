@@ -136,12 +136,10 @@ public class ResProofTest {
     }
     
     public boolean takeControl() {
-        if(false){
-            //if(true){
-            test();
-            return true;
-        }else{
-            return false;
-        }
+        boolean b =
+            //false; 
+        true;
+        if(b) test();
+        return b;
     }    
 }

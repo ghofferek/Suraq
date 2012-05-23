@@ -109,9 +109,8 @@ public class ResProof {
         disruptVitals();
         Arrays.fill(visited, false);
         ResNode root = getRoot(); 
-        if(root != null){ 
+        if(root != null)
             recComputeVitals(root);
-        }
         vitalInfoFresh = true;
     }    
     
@@ -320,7 +319,8 @@ public class ResProof {
         // }
         // if(p) System.out.println(n);
 
-        while (true) {
+        boolean mv = false;
+        do{
             // If a node is derived form both parents
             // that are "local" or "global axiom"
             // then convert the node into a local node by
@@ -345,7 +345,8 @@ public class ResProof {
                 return;
 
             // Check and fix if parents pivot is in n
-            boolean mv = false, LeftParent = false, LeftGrandParent = false;
+            mv=false;
+            boolean LeftParent = false, LeftGrandParent = false;
             // Note: the following condition only checks the partition.
             // If the parent is derived from a single partition then
             // we will not move in the direction and dont worry about it.
@@ -377,10 +378,8 @@ public class ResProof {
                 n.moveParent(LeftParent, LeftGrandParent);
                 if (!n.refresh())
                     return;
-                continue;
             }
-            break;
-        }
+        }while(mv);
 
         // move up the local resolution
         Lit pl = new Lit(n.pivot, true);
