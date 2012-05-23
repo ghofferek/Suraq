@@ -118,7 +118,7 @@ public class ResProofTest {
     public void t4() {
         System.out.println("Example 4=>(with no printing)");
         ResProof prf = new ResProof();
-        prf.loadProof("tmp/test-0.res");
+        prf.loadProof("rsc/test/t4.resProof");
         prf.localFirstProofs(true,false,false);
     }    
 
@@ -137,7 +137,7 @@ public class ResProofTest {
     
     public boolean takeControl() {
         if(false){
-        //if(true){
+            //if(true){
             test();
             return true;
         }else{
