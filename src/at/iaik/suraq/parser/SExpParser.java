@@ -220,7 +220,6 @@ public class SExpParser extends Parser {
                                                 // new quoted token
                         quotedToken = true;
                         currentToken = new StringBuffer();
-                        currentToken.append(character);
                     } else {
                         if (quotedToken) {
                             // the end of the quoted token. Store it.
