@@ -137,8 +137,8 @@ public class ResProofTest {
     
     public boolean takeControl() {
         boolean b =
-            //false; 
-        true;
+            false; 
+            //true;
         if(b) test();
         return b;
     }    
