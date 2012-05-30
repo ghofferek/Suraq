@@ -89,7 +89,7 @@ public class Z3Proof implements SMTLibObject {
         this.consequent = null;
         this.id = Z3Proof.instanceCounter++;
         if (this.id % 1000 == 0)
-            System.out.println("Created the " + this.id + " proof node.");
+            System.out.println("  Created the " + this.id + " proof node.");
         this.assertPartition = -1;
     }
 
@@ -119,7 +119,7 @@ public class Z3Proof implements SMTLibObject {
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
         if (this.id % 1000 == 0)
-            System.out.println("Created the " + this.id + " proof node.");
+            System.out.println("  Created the " + this.id + " proof node.");
         this.setAssertPartition();
         assert (this.checkZ3ProofNode());
     }
@@ -148,7 +148,7 @@ public class Z3Proof implements SMTLibObject {
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
         if (this.id % 1000 == 0)
-            System.out.println("Created the " + this.id + " proof node.");
+            System.out.println("  Created the " + this.id + " proof node.");
         this.setAssertPartition();
         assert (this.checkZ3ProofNode());
     }

@@ -20,12 +20,26 @@ public class SuraqOptions {
      * Default value for verbose option.
      */
     private static final boolean verboseDefault = false;
-    
-    /**
-     * Default value for z3 option.
-     */
-    private static final boolean z3Default = true;
 
+    /**
+     * Default value for input option.
+     */
+    private static final String inputDefault = "suraq_input.smt2";
+
+    /**
+     * Default value for z3input option.
+     */
+    private static final String z3InputDefault = "suraq_z3_input.smt2";
+
+    /**
+     * Default value for z3proof option.
+     */
+    private static final String z3ProofDefault = "suraq_z3_proof.smt2";
+
+    /**
+     * Default value for output option.
+     */
+    private static final String outputDefault = "suraq_output.smt2";
 
     /**
      * The value of the verbose option.
@@ -33,29 +47,24 @@ public class SuraqOptions {
     private final Boolean verboseValue;
 
     /**
-     * The value of the z3 option.
-     */
-    private final Boolean z3Value;
-    
-    /**
-     * Default value for input option.
-     */
-    private static final String inputDefault = "suraq.smt2";
-
-    /**
      * The value of the input option.
      */
     private final String inputValue;
 
     /**
-     * Default value for smtfile option.
+     * The value of the z3input option.
      */
-    private static final String smtfileDefault = "suraq_qf_uf.smt2";
+    private final String z3InputValue;
 
     /**
-     * The value of the smtfile option.
+     * The value of the z3proof option.
      */
-    private final String smtfileValue;
+    private final String z3ProofValue;
+
+    /**
+     * The value of the output option.
+     */
+    private final String outputValue;
 
     /**
      * The parser that stores the (parsed) command-line options.
@@ -85,10 +94,10 @@ public class SuraqOptions {
             args = new String[0];
 
         Option inputOption = cmdLineParser.addStringOption('i', "input");
-        Option smtfileOption = cmdLineParser.addStringOption('s', "smtfile");
+        Option z3InputOption = cmdLineParser.addStringOption("z3input");
+        Option z3ProofOption = cmdLineParser.addStringOption("z3proof");
+        Option outputOption = cmdLineParser.addStringOption('o', "output");
         Option verboseOption = cmdLineParser.addBooleanOption('v', "verbose");
-        Option z3Option = cmdLineParser.addBooleanOption('z', "z3");
-        
 
         try {
             cmdLineParser.parse(args);
@@ -97,9 +106,10 @@ public class SuraqOptions {
         }
 
         inputValue = (String) cmdLineParser.getOptionValue(inputOption);
+        z3InputValue = (String) cmdLineParser.getOptionValue(z3InputOption);
+        z3ProofValue = (String) cmdLineParser.getOptionValue(z3ProofOption);
+        outputValue = (String) cmdLineParser.getOptionValue(outputOption);
         verboseValue = (Boolean) cmdLineParser.getOptionValue(verboseOption);
-        z3Value = (Boolean) cmdLineParser.getOptionValue(z3Option);
-        smtfileValue = (String) cmdLineParser.getOptionValue(smtfileOption);
 
     }
 
@@ -150,16 +160,6 @@ public class SuraqOptions {
         return verboseValue != null ? verboseValue
                 : SuraqOptions.verboseDefault;
     }
-    
-    /**
-     * Returns the value of the z3 option.
-     * 
-     * @return the value of the z3 option.
-     */
-    public boolean isZ3enabled() {
-        return z3Value != null ? z3Value
-                : SuraqOptions.z3Default;
-    }
 
     /**
      * Returns the value of the input option.
@@ -171,12 +171,32 @@ public class SuraqOptions {
     }
 
     /**
-     * Returns the value of the smtfile option.
+     * Returns the value of the z3input option.
      * 
-     * @return the value of the smtfile option.
+     * @return the value of the z3input option.
      */
-    public String getSmtfile() {
-        return smtfileValue != null ? smtfileValue
-                : SuraqOptions.smtfileDefault;
+    public String getZ3Input() {
+        return z3InputValue != null ? z3InputValue
+                : SuraqOptions.z3InputDefault;
     }
+
+    /**
+     * Returns the value of the z3proof option.
+     * 
+     * @return the value of the z3proof option.
+     */
+    public String getZ3Proof() {
+        return z3ProofValue != null ? z3ProofValue
+                : SuraqOptions.z3ProofDefault;
+    }
+
+    /**
+     * Returns the value of the output option.
+     * 
+     * @return the value of the output option.
+     */
+    public String getOutput() {
+        return outputValue != null ? outputValue : SuraqOptions.outputDefault;
+    }
+
 }

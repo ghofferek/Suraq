@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
@@ -44,6 +43,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -162,6 +162,11 @@ public class Suraq implements Runnable {
         File sourceFile = new File(options.getInput());
         if (options.isVerbose())
             System.out.println("Parsing input file " + sourceFile.toString());
+
+        System.out.println("start input transformations");
+        Timer inputTransformationTimer = new Timer();
+        inputTransformationTimer.start();
+
         SExpParser sExpParser = null;
         try {
             sExpParser = new SExpParser(sourceFile);
@@ -202,258 +207,280 @@ public class Suraq implements Runnable {
         Formula formula = null;
         try {
             formula = doMainWork();
-            File smtfile = new File(options.getSmtfile());
-            FileWriter fstream = new FileWriter(smtfile);
-            BufferedWriter smtfilewriter = new BufferedWriter(fstream);
-            for (SExpression expr : outputExpressions)
-                smtfilewriter.write(expr.toString() + "\n");
-            smtfilewriter.close();
+
         } catch (SuraqException exc) {
             noErrors = false;
             if (exc.getMessage() != null)
                 System.out.println(exc.getMessage());
+        }
+
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+
+        System.out.println("  Simplifying assert-partitions...");
+        List<String> simplifiedAssertPartitions = new ArrayList<String>();
+        for (String assertPartition : assertPartitionStrList) {
+            String smtStr = buildSimplifySMTDescription(declarationStr,
+                    assertPartition);
+            String simpleSmtStr = z3.simplify(smtStr);
+            simplifiedAssertPartitions.add(simpleSmtStr);
+
+        }
+        String z3InputStr = buildProofSMTDescription(declarationStr,
+                simplifiedAssertPartitions);
+
+        inputTransformationTimer.end();
+        System.out.println("finished input transformations in "
+                + inputTransformationTimer + ".\n");
+
+        // write z3Input to file
+        try {
+
+            File z3InputFile = new File(options.getZ3Input());
+            FileWriter fstream = new FileWriter(z3InputFile);
+            fstream.write(z3InputStr);
+            fstream.close();
         } catch (IOException exc) {
-            System.err.println("Error while writing to smtfile.");
+            System.err.println("Error while writing to z3InputFile: "
+                    + options.getZ3Input());
             exc.printStackTrace();
             noErrors = false;
         }
 
-        // check result with z3 solver
-        if (options.isZ3enabled()) {
+        System.out.println("start proof calculation.");
+        Timer proofcalculationTimer = new Timer();
+        proofcalculationTimer.start();
 
-            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+        z3.solve(z3InputStr);
 
-            // simplify assert partitions
-            System.out.println("Simplifying assert-partitions...");
-            List<String> simplifiedAssertPartitions = new ArrayList<String>();
-            for (String assertPartition : assertPartitionStrList) {
-                String smtStr = buildSimplifySMTDescription(declarationStr,
-                        assertPartition);
-                String simpleSmtStr = z3.simplify(smtStr);
-                simplifiedAssertPartitions.add(simpleSmtStr);
-
-            }
-
-            String smtStr = buildProofSMTDescription(declarationStr,
-                    simplifiedAssertPartitions);
-
+        switch (z3.getState()) {
+        case SMTSolver.UNSAT:
+            break;
+        case SMTSolver.SAT:
+            noErrors = false;
+            throw (new RuntimeException("Z3 tells us SAT."));
+        default:
+            noErrors = false;
             System.out
-                    .println("Checking outcome of simplified partitions with z3 solver...");
-
-            z3.solve(smtStr);
-
-            switch (z3.getState()) {
-            case SMTSolver.UNSAT:
-                System.out.println("Z3 OUTCOME ---->  UNSAT");
-                break;
-            case SMTSolver.SAT:
-                noErrors = false;
-                System.out.println("Z3 OUTCOME ---->  SAT");
-                throw (new RuntimeException("Z3 tells us SAT."));
-                // break;
-            default:
-                noErrors = false;
-                System.out
-                        .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
-                throw (new RuntimeException(
-                        "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
-            }
-
-            if (z3.getState() == SMTSolver.UNSAT) {
-
-                String proof = z3.getProof();
-                assert (proof != null);
-
-                // write proof to file
-                String[] path = options.getSmtfile().split(Pattern.quote("/"));
-                String z3filename = path[path.length - 1];
-
-                try {
-                    File outputFile = new File("z3_proof_" + z3filename
-                            + ".out");
-                    FileWriter fw = new FileWriter(outputFile);
-                    fw.write(proof);
-                    fw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                // expression parsing of proof
-                SExpParser sExpProofParser = null;
-                sExpProofParser = new SExpParser(proof);
-
-                try {
-                    sExpProofParser.parse();
-                    assert (sExpProofParser.wasParsingSuccessfull());
-                } catch (ParseError exc) {
-                    handleParseError(exc);
-                    noErrors = false;
-                    return;
-                }
-
-                // build function and variable lists for proof parser
-                Set<PropositionalVariable> propsitionalVars = formula
-                        .getPropositionalVariables();
-                Set<DomainVariable> domainVars = formula.getDomainVariables();
-                Set<ArrayVariable> arrayVars = formula.getArrayVariables();
-                Set<UninterpretedFunction> uninterpretedFunctions = formula
-                        .getUninterpretedFunctions();
-
-                for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
-                        .entrySet()) {
-                    assert (varList.getValue() != null);
-                    assert (varList.getValue().size() > 0);
-
-                    Term first = varList.getValue().get(0);
-
-                    if (first instanceof DomainVariable)
-                        for (Term var : varList.getValue())
-                            domainVars.add((DomainVariable) var);
-
-                    if (first instanceof PropositionalVariable)
-                        for (Term var : varList.getValue())
-                            propsitionalVars.add((PropositionalVariable) var);
-
-                    if (first instanceof ArrayVariable)
-                        for (Term var : varList.getValue())
-                            arrayVars.add((ArrayVariable) var);
-                }
-
-                for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies
-                        .entrySet())
-                    uninterpretedFunctions.addAll(functionList.getValue());
-
-                // parsing proof
-                ProofParser proofParser = new ProofParser(
-                        sExpProofParser.getRootExpr(), domainVars,
-                        propsitionalVars, arrayVars, uninterpretedFunctions);
-
-                try {
-                    proofParser.parse();
-                    assert (proofParser.wasParsingSuccessfull());
-                } catch (ParseError exc) {
-                    handleParseError(exc);
-                    noErrors = false;
-                    return;
-                }
-
-                // Main Flow
-                Z3Proof rootProof = proofParser.getRootProof();
-                // assert (rootProof.checkZ3ProofNodeRecursive);
-                System.out.println("Original Z3 Proof");
-                System.out.println("Proof DAG size: " + rootProof.size(false));
-                System.out.println("Proof size after unwinding DAG: "
-                        + rootProof.size(true));
-                System.out.println();
-
-                rootProof.localLemmasToAssertions();
-                // assert (rootProof.checkZ3ProofNodeRecursive());
-                System.out.println("After localLemmasToAssertions()");
-                System.out.println("Proof DAG size: " + rootProof.size(false));
-                System.out.println("Proof size after unwinding DAG: "
-                        + rootProof.size(true));
-                System.out.println();
-
-                rootProof.removeLocalSubProofs();
-                // assert (rootProof.checkZ3ProofNodeRecursive());
-                System.out.println("After removeLocalSubProofs()");
-                System.out.println("Proof DAG size: " + rootProof.size(false));
-                System.out.println("Proof size after unwinding DAG: "
-                        + rootProof.size(true));
-                System.out.println();
-
-                rootProof.dealWithModusPonens();
-                // assert (rootProof.checkZ3ProofNodeRecursive());
-                System.out.println("After dealWithModusPonens()");
-                System.out.println("Proof DAG size: " + rootProof.size(false));
-                System.out.println("Proof size after unwinding DAG: "
-                        + rootProof.size(true));
-                System.out.println();
-
-                // System.out.println("Num Instances: " +
-                // Z3Proof.numInstances());
-                TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
-                        .convertToTransformedZ3Proof(rootProof);
-                System.out.println("After convertToTransformedZ3Proof()");
-                System.out.println("Proof DAG size: "
-                        + transformedZ3Proof.size(false));
-                System.out.println("Proof size after unwinding DAG: "
-                        + transformedZ3Proof.size(true));
-                System.out.println();
-                /*
-                 * System.out.println("Num Instances: " +
-                 * Z3Proof.numInstances()); try { File smtfile = new
-                 * File("proofTemp.txt"); FileWriter fstream = new
-                 * FileWriter(smtfile); BufferedWriter smtfilewriter = new
-                 * BufferedWriter(fstream); rootProof.resetMarks();
-                 * smtfilewriter.write(rootProof.prettyPrint());
-                 * smtfilewriter.close(); } catch (IOException exc) {
-                 * System.err.println("Error while writing to smtfile.");
-                 * exc.printStackTrace(); noErrors = false; }
-                 */
-                // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
-
-                transformedZ3Proof.toLocalProof();
-                // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
-
-                System.out.println("After toLocalProof()");
-                System.out.println("Proof DAG size: "
-                        + transformedZ3Proof.size(false));
-                System.out.println("Proof size after unwinding DAG: "
-                        + transformedZ3Proof.size(true));
-                System.out.println();
-                assert (transformedZ3Proof.isLocal());
-
-                transformedZ3Proof.toResolutionProof();
-                System.out.println("After toResolutionProof()");
-                System.out.println("Proof DAG size: "
-                        + transformedZ3Proof.size(false));
-                System.out.println("Proof size after unwinding DAG: "
-                        + transformedZ3Proof.size(true));
-                System.out.println();
-                assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
-
-                Set<Integer> partitions = rootProof.getPartitionsFromSymbols();
-                System.out.println("partitions" + partitions);
-
-                // START: ASHUTOSH code
-                ResProof resolutionProof = Util
-                        .createResolutionProof(transformedZ3Proof);
-
-                // resolutionProof.dumpProof();
-                resolutionProof.checkProof(false);
-                resolutionProof.rmDoubleLits();
-                resolutionProof.deLocalizeProof();
-                resolutionProof.checkProof(false);
-                resolutionProof.tranformResProofs();
-                // END: ASHUTOSH code
-
-                // Transform back into Z3Proof format
-                TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
-                        resolutionProof.getRoot(), Util.getLiteralMap());
-
-                System.out.println("After recovering proof:");
-                System.out.println("Proof DAG size: "
-                        + recoveredProof.size(false));
-                System.out.println("Proof size after unwinding DAG: "
-                        + recoveredProof.size(true));
-
-                // create ITE-tree for every control signal
-                Map<PropositionalVariable, PropositionalIte> iteTrees = recoveredProof
-                        .createITETrees(logicParser.getControlVariables());
-
-                System.out.println("trees created");
-                System.out.println("Results:");
-                for (PropositionalVariable controlVar : iteTrees.keySet()) {
-                    System.out
-                            .println("------------------------------------------");
-                    System.out.println("Signal: " + controlVar.getVarName());
-                    System.out.println(iteTrees.get(controlVar).toString());
-                }
-            }
-
-            System.out.println(" done!");
+                    .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
+            throw (new RuntimeException(
+                    "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
         }
+
+        proofcalculationTimer.end();
+        System.out.println("finished proof calculation in "
+                + proofcalculationTimer + ".\n");
+
+        // write z3Proof to file
+        if (z3.getState() == SMTSolver.UNSAT) {
+            try {
+
+                File z3ProofFile = new File(options.getZ3Proof());
+                FileWriter fstream = new FileWriter(z3ProofFile);
+                fstream.write(z3.getProof());
+                fstream.close();
+            } catch (IOException exc) {
+                System.err.println("Error while writing to z3ProofFile: "
+                        + options.getZ3Proof());
+                exc.printStackTrace();
+                noErrors = false;
+            }
+        }
+
+        System.out
+                .println("start proof transformations and interpolation calculations.");
+        Timer interpolationTimer = new Timer();
+        interpolationTimer.start();
+
+        if (z3.getState() == SMTSolver.UNSAT) {
+
+            String proof = z3.getProof();
+            assert (proof != null);
+
+            // expression parsing of proof
+            SExpParser sExpProofParser = null;
+            sExpProofParser = new SExpParser(proof);
+
+            try {
+                sExpProofParser.parse();
+                assert (sExpProofParser.wasParsingSuccessfull());
+            } catch (ParseError exc) {
+                handleParseError(exc);
+                noErrors = false;
+                return;
+            }
+
+            // build function and variable lists for proof parser
+            Set<PropositionalVariable> propsitionalVars = formula
+                    .getPropositionalVariables();
+            Set<DomainVariable> domainVars = formula.getDomainVariables();
+            Set<ArrayVariable> arrayVars = formula.getArrayVariables();
+            Set<UninterpretedFunction> uninterpretedFunctions = formula
+                    .getUninterpretedFunctions();
+
+            for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
+                    .entrySet()) {
+                assert (varList.getValue() != null);
+                assert (varList.getValue().size() > 0);
+
+                Term first = varList.getValue().get(0);
+
+                if (first instanceof DomainVariable)
+                    for (Term var : varList.getValue())
+                        domainVars.add((DomainVariable) var);
+
+                if (first instanceof PropositionalVariable)
+                    for (Term var : varList.getValue())
+                        propsitionalVars.add((PropositionalVariable) var);
+
+                if (first instanceof ArrayVariable)
+                    for (Term var : varList.getValue())
+                        arrayVars.add((ArrayVariable) var);
+            }
+
+            for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies
+                    .entrySet())
+                uninterpretedFunctions.addAll(functionList.getValue());
+
+            // parsing proof
+            ProofParser proofParser = new ProofParser(
+                    sExpProofParser.getRootExpr(), domainVars,
+                    propsitionalVars, arrayVars, uninterpretedFunctions);
+
+            try {
+                proofParser.parse();
+                assert (proofParser.wasParsingSuccessfull());
+            } catch (ParseError exc) {
+                handleParseError(exc);
+                noErrors = false;
+                return;
+            }
+
+            // Main Flow
+            Z3Proof rootProof = proofParser.getRootProof();
+            // assert (rootProof.checkZ3ProofNodeRecursive);
+            System.out.println("  Original Z3 Proof");
+            System.out.println("  Proof DAG size: " + rootProof.size(false));
+            System.out.println("  Proof size after unwinding DAG: "
+                    + rootProof.size(true));
+            System.out.println();
+
+            rootProof.localLemmasToAssertions();
+            // assert (rootProof.checkZ3ProofNodeRecursive());
+            System.out.println("  After localLemmasToAssertions()");
+            System.out.println("  Proof DAG size: " + rootProof.size(false));
+            System.out.println("  Proof size after unwinding DAG: "
+                    + rootProof.size(true));
+            System.out.println();
+
+            rootProof.removeLocalSubProofs();
+            // assert (rootProof.checkZ3ProofNodeRecursive());
+            System.out.println("  After removeLocalSubProofs()");
+            System.out.println("  Proof DAG size: " + rootProof.size(false));
+            System.out.println("  Proof size after unwinding DAG: "
+                    + rootProof.size(true));
+            System.out.println();
+
+            rootProof.dealWithModusPonens();
+            // assert (rootProof.checkZ3ProofNodeRecursive());
+            System.out.println("  After dealWithModusPonens()");
+            System.out.println("  Proof DAG size: " + rootProof.size(false));
+            System.out.println("  Proof size after unwinding DAG: "
+                    + rootProof.size(true));
+            System.out.println();
+
+            // System.out.println("Num Instances: " +
+            // Z3Proof.numInstances());
+            TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
+                    .convertToTransformedZ3Proof(rootProof);
+            System.out.println("  After convertToTransformedZ3Proof()");
+            System.out.println("  Proof DAG size: "
+                    + transformedZ3Proof.size(false));
+            System.out.println("  Proof size after unwinding DAG: "
+                    + transformedZ3Proof.size(true));
+            System.out.println();
+            /*
+             * System.out.println("Num Instances: " + Z3Proof.numInstances());
+             * try { File smtfile = new File("proofTemp.txt"); FileWriter
+             * fstream = new FileWriter(smtfile); BufferedWriter smtfilewriter =
+             * new BufferedWriter(fstream); rootProof.resetMarks();
+             * smtfilewriter.write(rootProof.prettyPrint());
+             * smtfilewriter.close(); } catch (IOException exc) {
+             * System.err.println("Error while writing to smtfile.");
+             * exc.printStackTrace(); noErrors = false; }
+             */
+            // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
+
+            transformedZ3Proof.toLocalProof();
+            // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
+
+            System.out.println("  After toLocalProof()");
+            System.out.println("  Proof DAG size: "
+                    + transformedZ3Proof.size(false));
+            System.out.println("  Proof size after unwinding DAG: "
+                    + transformedZ3Proof.size(true));
+            System.out.println();
+            assert (transformedZ3Proof.isLocal());
+
+            transformedZ3Proof.toResolutionProof();
+            System.out.println("  After toResolutionProof()");
+            System.out.println("  Proof DAG size: "
+                    + transformedZ3Proof.size(false));
+            System.out.println("  Proof size after unwinding DAG: "
+                    + transformedZ3Proof.size(true));
+            System.out.println();
+            assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
+
+            // START: ASHUTOSH code
+            ResProof resolutionProof = Util
+                    .createResolutionProof(transformedZ3Proof);
+
+            // resolutionProof.dumpProof();
+            resolutionProof.checkProof(false);
+            resolutionProof.rmDoubleLits();
+            resolutionProof.deLocalizeProof();
+            resolutionProof.checkProof(false);
+            resolutionProof.tranformResProofs();
+            // END: ASHUTOSH code
+
+            // Transform back into Z3Proof format
+            TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
+                    resolutionProof.getRoot(), Util.getLiteralMap());
+
+            System.out.println("  After recovering proof:");
+            System.out.println("  Proof DAG size: "
+                    + recoveredProof.size(false));
+            System.out.println("  Proof size after unwinding DAG: "
+                    + recoveredProof.size(true));
+
+            // create ITE-tree for every control signal
+            Map<PropositionalVariable, PropositionalIte> iteTrees = recoveredProof
+                    .createITETrees(logicParser.getControlVariables());
+
+            interpolationTimer.end();
+            System.out
+                    .println("finished proof transformations and interpolation calculations in "
+                            + interpolationTimer + ".\n");
+
+            // write output file
+            try {
+
+                File smtfile = new File(options.getOutput());
+                FileWriter fstream = new FileWriter(smtfile);
+                BufferedWriter smtfilewriter = new BufferedWriter(fstream);
+                for (PropositionalVariable controlVar : iteTrees.keySet())
+                    smtfilewriter.write(";" + controlVar.toString() + "\n"
+                            + iteTrees.get(controlVar).toString() + "\n");
+                smtfilewriter.close();
+            } catch (IOException exc) {
+                System.err.println("Error while writing to outputfile:"
+                        + options.getOutput());
+                exc.printStackTrace();
+                noErrors = false;
+            }
+
+        }
+
+        System.out.println(" done!");
 
         // All done :-)
         printEnd(noErrors);
@@ -543,16 +570,16 @@ public class Suraq implements Runnable {
         // Flattening formula, because macros cause problems when
         // replacing arrays with uninterpreted functions
         // (functions cannot be macro parameters)
-        System.out.println("Flattening formula...");
+        System.out.println("  Flattening formula...");
         Formula formula = logicParser.getMainFormula().flatten();
         assert (formula.getFunctionMacros().size() == 0);
         Set<Token> noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
 
         Set<Formula> constraints = new HashSet<Formula>();
-        System.out.println("Making array reads simple...");
+        System.out.println("  Making array reads simple...");
         formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
-        System.out.println("Removing array writes...");
+        System.out.println("  Removing array writes...");
         formula.removeArrayWrites(formula, constraints, noDependenceVars);
         if (constraints.size() > 0) {
             List<Formula> constraintsList = new ArrayList<Formula>();
@@ -561,7 +588,7 @@ public class Suraq implements Runnable {
             formula = new ImpliesFormula(arrayConstraints, formula);
         }
 
-        System.out.println("Removing array equalities...");
+        System.out.println("  Removing array equalities...");
         formula.removeArrayEqualities();
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
@@ -580,7 +607,7 @@ public class Suraq implements Runnable {
         noDependenceVars.add(new Token(lambda.getVarName()));
 
         System.out
-                .println("Converting array properties to finite conjunctions...");
+                .println("  Converting array properties to finite conjunctions...");
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
 
         formula = new ImpliesFormula(lambdaConstraints, formula);
@@ -591,7 +618,7 @@ public class Suraq implements Runnable {
                 currentDependenceArrayVariables
                         .add(new Token(var.getVarName()));
         System.out
-                .println("Converting array reads to uninterpreted function calls...");
+                .println("  Converting array reads to uninterpreted function calls...");
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
         noDependenceVars.removeAll(currentDependenceArrayVariables);
 
@@ -613,7 +640,7 @@ public class Suraq implements Runnable {
         // .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
 
-        System.out.println("Writing declarations...");
+        System.out.println("  Writing declarations...");
 
         int beginDeclarationsIdx = outputExpressions.size();
 
@@ -669,7 +696,7 @@ public class Suraq implements Runnable {
             throw new SuraqException("outputExpressions not initialized!");
 
         for (int count = 0; count < (1 << controlSignals.size()); count++) {
-            System.out.println("Writing assert-partition number " + count);
+            System.out.println("  Writing assert-partition number " + count);
             Formula tempFormula = formula.deepFormulaCopy();
             Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
             for (Token var : noDependenceVars) {

@@ -285,7 +285,7 @@ public class ResProof {
         ResNode root = getRoot();
         if (root != null) {
             recCheckProof(root);
-            Assert.assertTrue("Root is not empty clause", root.cl.isEmpty());
+            // Assert.assertTrue("Root is not empty clause", root.cl.isEmpty());
         }
         if (printWhileChecking)
             System.out.println("==========================================");

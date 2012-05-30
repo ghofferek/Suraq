@@ -86,9 +86,10 @@ public class z3 extends SMTSolver {
         ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
                 smtStr);
 
-        System.out.println("EXIT CODE: " + pResult.getExitCode());
-        System.out.println("ERROR from Z3: " + pResult.getErrorStream());
-
+        if (pResult.getExitCode() != 0) {
+            System.out.println("EXIT CODE: " + pResult.getExitCode());
+            System.out.println("ERROR from Z3: " + pResult.getErrorStream());
+        }
         return pResult.getOutputStream();
     }
 }
