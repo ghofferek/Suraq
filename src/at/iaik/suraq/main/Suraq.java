@@ -40,7 +40,6 @@ import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
-import at.iaik.suraq.smtlib.formula.PropositionalIte;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -216,7 +215,7 @@ public class Suraq implements Runnable {
         return z3InputStr;
     }
 
-    private Map<PropositionalVariable, PropositionalIte> proofTransformationAndInterpolation(
+    private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
             String proof) {
         // expression parsing of proof
         SExpParser sExpProofParser = null;
@@ -280,6 +279,20 @@ public class Suraq implements Runnable {
         // Main Flow
         Z3Proof rootProof = proofParser.getRootProof();
         // assert (rootProof.checkZ3ProofNodeRecursive);
+
+        try {
+            File prooffile = new File("proofTemp.txt");
+            FileWriter fstream = new FileWriter(prooffile);
+            BufferedWriter proofFilewriter = new BufferedWriter(fstream);
+            rootProof.resetMarks();
+            proofFilewriter.write(rootProof.prettyPrint());
+            proofFilewriter.close();
+        } catch (IOException exc) {
+            System.err.println("Error while writing to proof file.");
+            exc.printStackTrace();
+            noErrors = false;
+        }
+
         System.out.println("  Original Z3 Proof");
         System.out.println("  Proof DAG size: " + rootProof.size(false));
         System.out.println("  Proof size after unwinding DAG: "
@@ -374,7 +387,7 @@ public class Suraq implements Runnable {
                 + recoveredProof.size(true));
 
         // create ITE-tree for every control signal
-        Map<PropositionalVariable, PropositionalIte> iteTrees = recoveredProof
+        Map<PropositionalVariable, Formula> iteTrees = recoveredProof
                 .createITETrees(logicParser.getControlVariables());
 
         return iteTrees;
@@ -551,7 +564,7 @@ public class Suraq implements Runnable {
 
         assert (proof != null);
 
-        Map<PropositionalVariable, PropositionalIte> iteTrees = proofTransformationAndInterpolation(proof);
+        Map<PropositionalVariable, Formula> iteTrees = proofTransformationAndInterpolation(proof);
 
         interpolationTimer.end();
         System.out

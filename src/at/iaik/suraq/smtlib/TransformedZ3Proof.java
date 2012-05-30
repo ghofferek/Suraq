@@ -1601,10 +1601,10 @@ public class TransformedZ3Proof extends Z3Proof {
         return true;
     }
 
-    public Map<PropositionalVariable, PropositionalIte> createITETrees(
+    public Map<PropositionalVariable, Formula> createITETrees(
             List<PropositionalVariable> ctrlSignals) {
 
-        Map<PropositionalVariable, PropositionalIte> trees = new HashMap<PropositionalVariable, PropositionalIte>();
+        Map<PropositionalVariable, Formula> trees = new HashMap<PropositionalVariable, Formula>();
 
         // remove local parts of tree
         this.removeLocalPartsBeforeInterpolation();
@@ -1618,7 +1618,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
         for (int signalNum = 0; signalNum < ctrlSignals.size(); signalNum++) {
             PropositionalVariable signal = ctrlSignals.get(signalNum);
-            PropositionalIte tree = (PropositionalIte) createITETree(signalNum);
+            Formula tree = createITETree(signalNum);
             trees.put(signal, tree);
         }
 

@@ -70,6 +70,7 @@ public class Timer {
      * 
      * @return the total as string representation, formatted in seconds.
      */
+    @Override
     public String toString() {
         long totalTime = getTotalTime();
         if (totalTime > 1000)

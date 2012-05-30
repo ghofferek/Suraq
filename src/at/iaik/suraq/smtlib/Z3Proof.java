@@ -675,6 +675,9 @@ public class Z3Proof implements SMTLibObject {
         result.append("----------------------------------------------\n");
         result.append("ID: ");
         result.append(this.id);
+        result.append("  (partition: ");
+        result.append(this.assertPartition);
+        result.append(")");
         result.append("\n");
         result.append("Rule: ");
         result.append(proofType.toString());
