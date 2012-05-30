@@ -38,7 +38,7 @@
           (function_1 input)
         )
         (=
-          output_1
+          output_2
           (function_2 input)
         )
       )
