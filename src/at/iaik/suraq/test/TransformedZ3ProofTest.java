@@ -108,7 +108,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{c} ( asserted ( or c ( not a ) ) ) ( asserted ( or ( not c ) b ) ) ( or b ( not a )  ))";
+        String expectedOutput = "( unit-resolution{c} ( asserted ( or c ( not a ) ) ) ( asserted ( or ( not c ) b ) ) ( or b ( not a )  ))";
 
         Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
                 SExpression.fromString(output).toString());
@@ -142,7 +142,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{( = y b)} ( |unit-resolution|{( = x b)} ( asserted ( or ( = x b ) ) ) ( |unit-resolution|{( = y x)} ( |unit-resolution|{( = a x)} ( asserted ( or ( = a x ) ) ) ( |unit-resolution|{( = y a)} ( asserted ( or ( = y a ) ) ) ( asserted ( or ( not ( = y a ) ) ( not ( = a x ) ) ( = y x ) ) ) ( or ( not ( = a x ) ) ( = y x ) ) ) ( or ( = y x ) ) ) ( asserted ( or ( not ( = y x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x b ) ) ( = y b ) ) ) ( or ( = y b ) ) ) ( asserted ( or ( not ( = y b ) ) ) ) ( or false ))";
+        String expectedOutput = "( unit-resolution{( = y b)} ( unit-resolution{( = x b)} ( asserted ( or ( = x b ) ) ) ( unit-resolution{( = y x)} ( unit-resolution{( = a x)} ( asserted ( or ( = a x ) ) ) ( unit-resolution{( = y a)} ( asserted ( or ( = y a ) ) ) ( asserted ( or ( not ( = y a ) ) ( not ( = a x ) ) ( = y x ) ) ) ( or ( not ( = a x ) ) ( = y x ) ) ) ( or ( = y x ) ) ) ( asserted ( or ( not ( = y x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x b ) ) ( = y b ) ) ) ( or ( = y b ) ) ) ( asserted ( or ( not ( = y b ) ) ) ) ( or false ))";
 
         Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
                 SExpression.fromString(output).toString());
@@ -176,7 +176,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{( = c d)} ( |unit-resolution|{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ))";
+        String expectedOutput = "( unit-resolution{( = c d)} ( unit-resolution{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ))";
 
         Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
                 SExpression.fromString(output).toString());
@@ -217,7 +217,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{( = y b)} ( |unit-resolution|{( = x b)} ( |unit-resolution|{( = c d)} ( |unit-resolution|{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ) ) ( |unit-resolution|{( = y x)} ( |unit-resolution|{( = a x)} ( asserted ( or ( = a x ) ) ) ( |unit-resolution|{( = y a)} ( asserted ( or ( = y a ) ) ) ( asserted ( or ( not ( = y a ) ) ( not ( = a x ) ) ( = y x ) ) ) ( or ( not ( = a x ) ) ( = y x ) ) ) ( or ( = y x ) ) ) ( asserted ( or ( not ( = y x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x b ) ) ( = y b ) ) ) ( or ( = y b ) ) ) ( asserted ( or ( not ( = y b ) ) ) ) ( or false ))";
+        String expectedOutput = "( unit-resolution{( = y b)} ( unit-resolution{( = x b)} ( unit-resolution{( = c d)} ( unit-resolution{( = e f)} ( asserted ( or ( = c d ) ( = e f ) ) ) ( asserted ( or ( not ( = e f ) ) ( = x b ) ) ) ( or ( = c d ) ( = x b ) ) ) ( asserted ( or ( not ( = c d ) ) ) ) ( or ( = x b ) ) ) ( unit-resolution{( = y x)} ( unit-resolution{( = a x)} ( asserted ( or ( = a x ) ) ) ( unit-resolution{( = y a)} ( asserted ( or ( = y a ) ) ) ( asserted ( or ( not ( = y a ) ) ( not ( = a x ) ) ( = y x ) ) ) ( or ( not ( = a x ) ) ( = y x ) ) ) ( or ( = y x ) ) ) ( asserted ( or ( not ( = y x ) ) ( not ( = x b ) ) ( = y b ) ) ) ( or ( not ( = x b ) ) ( = y b ) ) ) ( or ( = y b ) ) ) ( asserted ( or ( not ( = y b ) ) ) ) ( or false ))";
 
         Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
                 SExpression.fromString(output).toString());
@@ -253,7 +253,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{( = ( f b ) y)} ( |unit-resolution|{( = ( f x ) y)} ( |unit-resolution|{( = ( f a ) y)} ( asserted ( or ( = ( f a ) y ) ) ) ( |unit-resolution|{( = ( f a ) ( f x ))} ( |unit-resolution|{( = a x)} ( asserted ( or ( = a x ) ) ) ( asserted ( or ( not ( = a x ) ) ( = ( f a ) ( f x ) ) ) ) ( or ( = ( f a ) ( f x ) ) ) ) ( asserted ( or ( not ( = ( f x ) ( f a ) ) ) ( not ( = ( f a ) y ) ) ( = ( f x ) y ) ) ) ( or ( not ( = ( f a ) y ) ) ( = ( f x ) y ) ) ) ( or ( = ( f x ) y ) ) ) ( |unit-resolution|{( = ( f x ) ( f b ))} ( |unit-resolution|{( = x b)} ( asserted ( or ( = x b ) ) ) ( asserted ( or ( not ( = x b ) ) ( = ( f x ) ( f b ) ) ) ) ( or ( = ( f x ) ( f b ) ) ) ) ( asserted ( or ( not ( = ( f b ) ( f x ) ) ) ( not ( = ( f x ) y ) ) ( = ( f b ) y ) ) ) ( or ( not ( = ( f x ) y ) ) ( = ( f b ) y ) ) ) ( or ( = ( f b ) y ) ) ) ( asserted ( or ( not ( = ( f b ) y ) ) ) ) ( or false ))";
+        String expectedOutput = "( unit-resolution{( = ( f b ) y)} ( unit-resolution{( = ( f x ) y)} ( unit-resolution{( = ( f a ) y)} ( asserted ( or ( = ( f a ) y ) ) ) ( unit-resolution{( = ( f a ) ( f x ))} ( unit-resolution{( = a x)} ( asserted ( or ( = a x ) ) ) ( asserted ( or ( not ( = a x ) ) ( = ( f a ) ( f x ) ) ) ) ( or ( = ( f a ) ( f x ) ) ) ) ( asserted ( or ( not ( = ( f x ) ( f a ) ) ) ( not ( = ( f a ) y ) ) ( = ( f x ) y ) ) ) ( or ( not ( = ( f a ) y ) ) ( = ( f x ) y ) ) ) ( or ( = ( f x ) y ) ) ) ( unit-resolution{( = ( f x ) ( f b ))} ( unit-resolution{( = x b)} ( asserted ( or ( = x b ) ) ) ( asserted ( or ( not ( = x b ) ) ( = ( f x ) ( f b ) ) ) ) ( or ( = ( f x ) ( f b ) ) ) ) ( asserted ( or ( not ( = ( f b ) ( f x ) ) ) ( not ( = ( f x ) y ) ) ( = ( f b ) y ) ) ) ( or ( not ( = ( f x ) y ) ) ( = ( f b ) y ) ) ) ( or ( = ( f b ) y ) ) ) ( asserted ( or ( not ( = ( f b ) y ) ) ) ) ( or false ))";
 
         Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
                 SExpression.fromString(output).toString());
@@ -303,7 +303,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
 
-        String expectedOutput = "( |unit-resolution|{( = v ( f c d ))} ( |unit-resolution|{( = ( f x y ) ( f c d ))} ( |unit-resolution|{( = y d)} ( asserted ( or ( = y d ) ) ) ( |unit-resolution|{( = x c)} ( asserted ( or ( = x c ) ) ) ( asserted ( or ( not ( = x c ) ) ( not ( = y d ) ) ( = ( f x y ) ( f c d ) ) ) ) ( or ( not ( = y d ) ) ( = ( f x y ) ( f c d ) ) ) ) ( or ( = ( f x y ) ( f c d ) ) ) ) ( |unit-resolution|{( = ( f x y ) v)} ( |unit-resolution|{( = u v)} ( asserted ( or ( = u v ) ) ) ( |unit-resolution|{( = u ( f x y ))} ( |unit-resolution|{( = ( f a b ) ( f x y ))} ( |unit-resolution|{( = b y)} ( asserted ( or ( = b y ) ) ) ( |unit-resolution|{( = a x)} ( asserted ( or ( = a x ) ) ) ( asserted ( or ( not ( = a x ) ) ( not ( = b y ) ) ( = ( f a b ) ( f x y ) ) ) ) ( or ( not ( = b y ) ) ( = ( f a b ) ( f x y ) ) ) ) ( or ( = ( f a b ) ( f x y ) ) ) ) ( |unit-resolution|{( = u ( f a b ))} ( asserted ( or ( = u ( f a b ) ) ) ) ( asserted ( or ( not ( = u ( f a b ) ) ) ( not ( = ( f a b ) ( f x y ) ) ) ( = u ( f x y ) ) ) ) ( or ( not ( = ( f a b ) ( f x y ) ) ) ( = u ( f x y ) ) ) ) ( or ( = u ( f x y ) ) ) ) ( asserted ( or ( not ( = ( f x y ) u ) ) ( not ( = u v ) ) ( = ( f x y ) v ) ) ) ( or ( not ( = u v ) ) ( = ( f x y ) v ) ) ) ( or ( = ( f x y ) v ) ) ) ( asserted ( or ( not ( = v ( f x y ) ) ) ( not ( = ( f x y ) ( f c d ) ) ) ( = v ( f c d ) ) ) ) ( or ( not ( = ( f x y ) ( f c d ) ) ) ( = v ( f c d ) ) ) ) ( or ( = v ( f c d ) ) ) ) ( asserted ( or ( not ( = v ( f c d ) ) ) ) ) ( or false ))";
+        String expectedOutput = "( unit-resolution{( = v ( f c d ))} ( unit-resolution{( = ( f x y ) ( f c d ))} ( unit-resolution{( = y d)} ( asserted ( or ( = y d ) ) ) ( unit-resolution{( = x c)} ( asserted ( or ( = x c ) ) ) ( asserted ( or ( not ( = x c ) ) ( not ( = y d ) ) ( = ( f x y ) ( f c d ) ) ) ) ( or ( not ( = y d ) ) ( = ( f x y ) ( f c d ) ) ) ) ( or ( = ( f x y ) ( f c d ) ) ) ) ( unit-resolution{( = ( f x y ) v)} ( unit-resolution{( = u v)} ( asserted ( or ( = u v ) ) ) ( unit-resolution{( = u ( f x y ))} ( unit-resolution{( = ( f a b ) ( f x y ))} ( unit-resolution{( = b y)} ( asserted ( or ( = b y ) ) ) ( unit-resolution{( = a x)} ( asserted ( or ( = a x ) ) ) ( asserted ( or ( not ( = a x ) ) ( not ( = b y ) ) ( = ( f a b ) ( f x y ) ) ) ) ( or ( not ( = b y ) ) ( = ( f a b ) ( f x y ) ) ) ) ( or ( = ( f a b ) ( f x y ) ) ) ) ( unit-resolution{( = u ( f a b ))} ( asserted ( or ( = u ( f a b ) ) ) ) ( asserted ( or ( not ( = u ( f a b ) ) ) ( not ( = ( f a b ) ( f x y ) ) ) ( = u ( f x y ) ) ) ) ( or ( not ( = ( f a b ) ( f x y ) ) ) ( = u ( f x y ) ) ) ) ( or ( = u ( f x y ) ) ) ) ( asserted ( or ( not ( = ( f x y ) u ) ) ( not ( = u v ) ) ( = ( f x y ) v ) ) ) ( or ( not ( = u v ) ) ( = ( f x y ) v ) ) ) ( or ( = ( f x y ) v ) ) ) ( asserted ( or ( not ( = v ( f x y ) ) ) ( not ( = ( f x y ) ( f c d ) ) ) ( = v ( f c d ) ) ) ) ( or ( not ( = ( f x y ) ( f c d ) ) ) ( = v ( f c d ) ) ) ) ( or ( = v ( f c d ) ) ) ) ( asserted ( or ( not ( = v ( f c d ) ) ) ) ) ( or false ))";
 
         Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
                 SExpression.fromString(output).toString());
@@ -341,7 +341,7 @@ public class TransformedZ3ProofTest {
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
                 uninterpretedFunctions, arrayVars);
         System.out.println(output);
-        String expectedOutput = "( |unit-resolution|{a} ( |unit-resolution|{b} ( asserted ( or a b ) ) ( asserted ( or ( not b ) ( not d ) ( not e ) ) ) ( or a ( not d ) ( not e ) ) ) ( |unit-resolution|{b} ( asserted ( or ( not b ) ( not d ) ( not e ) ) ) ( asserted ( or ( not a ) b c ) ) ( or ( not a ) c ( not d ) ( not e ) ) ) ( or c ( not d ) ( not e ) ))";
+        String expectedOutput = "( unit-resolution{a} ( unit-resolution{b} ( asserted ( or a b ) ) ( asserted ( or ( not b ) ( not d ) ( not e ) ) ) ( or a ( not d ) ( not e ) ) ) ( unit-resolution{b} ( asserted ( or ( not b ) ( not d ) ( not e ) ) ) ( asserted ( or ( not a ) b c ) ) ( or ( not a ) c ( not d ) ( not e ) ) ) ( or c ( not d ) ( not e ) ))";
 
         Assert.assertEquals(SExpression.fromString(expectedOutput).toString(),
                 SExpression.fromString(output).toString());

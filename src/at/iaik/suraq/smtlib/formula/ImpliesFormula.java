@@ -14,6 +14,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.Util;
 
 /**
  * A class for formulas of the form (a => b).
@@ -409,7 +410,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                         subFormulas.add(transformedSubFormula);
                     }
                 }
-            } else if (isLiteral(this.leftSide)
+            } else if (Util.isLiteral(this.leftSide)
                     || this.leftSide instanceof NotFormula) {
                 Formula transformedSubFormula = this.leftSide
                         .transformToConsequentsForm(!notFlag, false);
@@ -444,7 +445,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                         subFormulas.add(transformedSubFormula);
                     }
                 }
-            } else if (isLiteral(this.rightSide)
+            } else if (Util.isLiteral(this.rightSide)
                     || this.rightSide instanceof NotFormula) {
                 Formula transformedSubFormula = this.rightSide
                         .transformToConsequentsForm(notFlag, false);
@@ -475,46 +476,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             return true;
         if (formula instanceof NotFormula)
             return true;
-        if (isLiteral(formula))
-            return true;
-        return false;
-    }
-
-    /**
-     * Checks if a given Formula is a literal. A literal is either an atom or a
-     * negation of an atom.
-     * 
-     * @param formula
-     *            formula to check
-     * @return true, iff formula is an literal
-     */
-    public boolean isLiteral(Formula formula) {
-        if (formula instanceof NotFormula) {
-            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
-            return isAtom(negatedFormula);
-        }
-        return isAtom(formula);
-    }
-
-    /**
-     * Checks if a given Formula is an atom. An atom is either a
-     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code>, a
-     * <code>PropositionalConstant</code> or a
-     * <code>UninterpretedPredicateInstance</code>.
-     * 
-     * @param formula
-     *            formula to check
-     * @return true, iff formula is atom
-     * 
-     */
-    public boolean isAtom(Formula formula) {
-        if (formula instanceof EqualityFormula)
-            return true;
-        if (formula instanceof PropositionalVariable)
-            return true;
-        if (formula instanceof PropositionalConstant)
-            return true;
-        if (formula instanceof UninterpretedPredicateInstance)
+        if (Util.isLiteral(formula))
             return true;
         return false;
     }

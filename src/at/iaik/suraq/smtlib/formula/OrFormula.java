@@ -10,6 +10,7 @@ import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * 
@@ -167,46 +168,7 @@ public class OrFormula extends AndOrXorFormula {
             return true;
         if (formula instanceof ImpliesFormula)
             return true;
-        if (isLiteral(formula))
-            return true;
-        return false;
-    }
-
-    /**
-     * Checks if a given Formula is a literal. A literal is either an atom or a
-     * negation of an atom.
-     * 
-     * @param formula
-     *            formula to check
-     * @return true, iff formula is an literal
-     */
-    public boolean isLiteral(Formula formula) {
-        if (formula instanceof NotFormula) {
-            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
-            return isAtom(negatedFormula);
-        }
-        return isAtom(formula);
-    }
-
-    /**
-     * Checks if a given Formula is an atom. An atom is either a
-     * <code>EqualityFormula</code>, a <code>PropositionalVariable</code>, a
-     * <code>PropositionalConstant</code> or a
-     * <code>UninterpretedPredicateInstance</code>.
-     * 
-     * @param formula
-     *            formula to check
-     * @return true, iff formula is atom
-     * 
-     */
-    public boolean isAtom(Formula formula) {
-        if (formula instanceof EqualityFormula)
-            return true;
-        if (formula instanceof PropositionalVariable)
-            return true;
-        if (formula instanceof PropositionalConstant)
-            return true;
-        if (formula instanceof UninterpretedPredicateInstance)
+        if (Util.isLiteral(formula))
             return true;
         return false;
     }
