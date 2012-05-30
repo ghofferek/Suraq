@@ -25,7 +25,6 @@ import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.resProof.ResProof;
-import at.iaik.suraq.resProof.ResProofTest;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -387,9 +386,9 @@ public class Suraq implements Runnable {
     @Override
     public void run() {
         // START: ASHUTOSH code
-        ResProofTest pTst = new ResProofTest();
-        if (pTst.takeControl())
-            return;
+        // ResProofTest pTst = new ResProofTest();
+        // if (pTst.takeControl())
+        // return;
         // END: ASHUTOSH code
         printWelcome();
 
@@ -404,7 +403,7 @@ public class Suraq implements Runnable {
 
         boolean useCachedResults = false;
 
-        if (z3InputFile.exists() && z3ProofFile.exists()) {
+        if (z3InputFile.exists() && z3ProofFile.exists() && options.useCache()) {
             Date inputFileDate = new Date(sourceFile.lastModified());
             Date z3InputFileDate = new Date(z3InputFile.lastModified());
             Date z3ProofFileDate = new Date(z3ProofFile.lastModified());

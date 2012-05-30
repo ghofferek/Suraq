@@ -22,6 +22,11 @@ public class SuraqOptions {
     private static final boolean verboseDefault = false;
 
     /**
+     * Default value for cache option.
+     */
+    private static final boolean cacheDefault = false;
+
+    /**
      * Default value for input option.
      */
     private static final String inputDefault = "suraq_input.smt2";
@@ -45,6 +50,11 @@ public class SuraqOptions {
      * The value of the verbose option.
      */
     private final Boolean verboseValue;
+
+    /**
+     * The value of the cache option.
+     */
+    private final Boolean cacheValue;
 
     /**
      * The value of the input option.
@@ -98,6 +108,7 @@ public class SuraqOptions {
         Option z3ProofOption = cmdLineParser.addStringOption("z3proof");
         Option outputOption = cmdLineParser.addStringOption('o', "output");
         Option verboseOption = cmdLineParser.addBooleanOption('v', "verbose");
+        Option cacheOption = cmdLineParser.addBooleanOption('c', "cache");
 
         try {
             cmdLineParser.parse(args);
@@ -110,6 +121,7 @@ public class SuraqOptions {
         z3ProofValue = (String) cmdLineParser.getOptionValue(z3ProofOption);
         outputValue = (String) cmdLineParser.getOptionValue(outputOption);
         verboseValue = (Boolean) cmdLineParser.getOptionValue(verboseOption);
+        cacheValue = (Boolean) cmdLineParser.getOptionValue(cacheOption);
 
     }
 
@@ -159,6 +171,15 @@ public class SuraqOptions {
     public boolean isVerbose() {
         return verboseValue != null ? verboseValue
                 : SuraqOptions.verboseDefault;
+    }
+
+    /**
+     * Returns the value of the cache option.
+     * 
+     * @return the value of the cache option.
+     */
+    public boolean useCache() {
+        return cacheValue != null ? cacheValue : SuraqOptions.cacheDefault;
     }
 
     /**

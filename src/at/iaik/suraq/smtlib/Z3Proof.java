@@ -63,7 +63,7 @@ public class Z3Proof implements SMTLibObject {
      * Flag that indicates from which assert an asserted node comes. Only valid
      * for nodes of type ASSERTED.
      */
-    private int assertPartition = 0;
+    protected int assertPartition = 0;
 
     /**
      * A unique ID of the node.

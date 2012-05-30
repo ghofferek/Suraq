@@ -83,8 +83,6 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private boolean hypothesis = false;
 
-    private int assertPartition = 0;
-
     /**
      * >>>>>>> .r376 Storage for annotated nodes used during proof conversion.
      */
