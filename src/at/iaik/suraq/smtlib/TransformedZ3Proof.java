@@ -1609,7 +1609,7 @@ public class TransformedZ3Proof extends Z3Proof {
         Map<PropositionalVariable, PropositionalIte> trees = new HashMap<PropositionalVariable, PropositionalIte>();
 
         // remove local parts of tree
-        this.removeLocalParts();
+        this.removeLocalPartsBeforeInterpolation();
 
         System.out.println("After removing local parts:");
         System.out.println("Proof DAG size: " + this.size(false));
@@ -1631,15 +1631,27 @@ public class TransformedZ3Proof extends Z3Proof {
         return this.assertPartition;
     }
 
-    public void removeLocalParts() {
+    public void removeLocalPartsBeforeInterpolation() {
         // FIXME Don't unwind the DAG!
         if (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
-            if (this.assertPartition > 0) {
-                // System.out.println("removing for node");
+
+            assert (this.literal != null);
+
+            Set<Integer> literalPartitions = this.literal
+                    .getPartitionsFromSymbols();
+            assert (literalPartitions.size() == 1 || literalPartitions.size() == 2);
+            literalPartitions.remove(-1);
+            assert (literalPartitions.size() == 0 || literalPartitions.size() == 1);
+
+            if (literalPartitions.size() == 1) {
+                // This is resolution over a local literal.
+                // ==> This node can be converted to ASSERTED
+                // All descendants should only resolve on locals as well.
+                // TODO: Check descendants!
                 this.subProofs.clear();
                 this.proofType = SExpressionConstants.ASSERTED;
                 this.literal = null;
-                this.assertPartition -= 1;
+                this.assertPartition = literalPartitions.iterator().next();
             } else {
                 // call recursive
                 assert (subProofs.size() == 2);
@@ -1647,8 +1659,8 @@ public class TransformedZ3Proof extends Z3Proof {
                 TransformedZ3Proof right = (TransformedZ3Proof) subProofs
                         .get(1);
 
-                left.removeLocalParts();
-                right.removeLocalParts();
+                left.removeLocalPartsBeforeInterpolation();
+                right.removeLocalPartsBeforeInterpolation();
             }
 
         } else if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
