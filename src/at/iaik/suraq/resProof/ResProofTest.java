@@ -6,7 +6,6 @@ package at.iaik.suraq.resProof;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.HashSet;
 
 public class ResProofTest {
 
@@ -56,7 +55,7 @@ public class ResProofTest {
 
         prf.var_part[g1] = 0; // global variable
         prf.var_part[g2] = 0; // global variable
-        prf.var_part[l]  = 2; // partition 2 local variable
+        prf.var_part[l] = 2; // partition 2 local variable
 
         ResNode n1 = prf.addLeaf(c1, 1);
         ResNode n2 = prf.addLeaf(c2, 2);
@@ -69,7 +68,7 @@ public class ResProofTest {
 
         prf.setRoot(i3);
 
-        prf.localFirstProofs(true,true,false);
+        prf.localFirstProofs(true, true, false);
 
     }
 
@@ -111,7 +110,7 @@ public class ResProofTest {
 
         prf.setRoot(i5);
 
-        prf.localFirstProofs(true,true,false);
+        prf.localFirstProofs(true, true, false);
 
     }
 
@@ -119,8 +118,8 @@ public class ResProofTest {
         System.out.println("Example 4=>(with no printing)");
         ResProof prf = new ResProof();
         prf.loadProof("rsc/test/t4.resProof");
-        prf.localFirstProofs(true,false,false);
-    }    
+        prf.localFirstProofs(true, false, false);
+    }
 
     public void test() {
         System.out.println("----------------------------------------------");
@@ -134,12 +133,12 @@ public class ResProofTest {
         System.out.println("----------------------------------------------");
         t4();
     }
-    
+
     public boolean takeControl() {
-        boolean b =
-            false; 
-            //true;
-        if(b) test();
+        boolean b = false;
+        // true;
+        if (b)
+            test();
         return b;
-    }    
+    }
 }

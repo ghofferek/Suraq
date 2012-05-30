@@ -300,7 +300,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
     @Override
     public SExpression toSmtlibV2() {
 
-        final boolean iteFree = true;
+        final boolean iteFree = false;
 
         if (iteFree) {
             List<Formula> disjuncts = new ArrayList<Formula>();

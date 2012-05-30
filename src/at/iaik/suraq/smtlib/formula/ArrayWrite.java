@@ -327,13 +327,9 @@ public class ArrayWrite extends ArrayTerm {
             throw new RuntimeException("Could not apply write axiom.", exc);
         }
 
-        // Check if the arrayTerm contained any noDependenceVars.
-        // This is conservative and might not be complete (i.e., may
-        // result unnecessary unrealizability), but
-        // in practice, array writes should only occur on primitive
-        // array expressions, so this should not be a "real" problem.
-        if (Util.termContainsAny(arrayTerm, noDependenceVars))
-            noDependenceVars.add(new Token(newVar.getVarName()));
+        // Make the new array a noDependenceVar
+        // (store-results are "future" values, on which we should not depend.)
+        noDependenceVars.add(new Token(newVar.getVarName()));
 
         return newVar;
     }

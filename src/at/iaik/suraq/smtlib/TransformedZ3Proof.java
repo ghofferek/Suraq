@@ -168,6 +168,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
     public TransformedZ3Proof(ResNode node, Map<Integer, Formula> literalMap) {
 
+        // FIXME Don't unwind the DAG! Reuse nodes where possible!
+
         if (!node.isLeaf) { // CREATE RESOLUTION NODE
 
             this.proofType = SExpressionConstants.UNIT_RESOLUTION;
@@ -180,7 +182,7 @@ public class TransformedZ3Proof extends Z3Proof {
             this.proofType = SExpressionConstants.ASSERTED;
         }
 
-        // build conseqent from clause
+        // build consequent from clause
         List<Formula> disjuncts = new ArrayList<Formula>();
         for (Lit literal : node.cl) {
             Formula elem = literalMap.get(literal.var());
@@ -193,6 +195,8 @@ public class TransformedZ3Proof extends Z3Proof {
             disjuncts.add(new PropositionalConstant(false));
 
         this.consequent = new OrFormula(disjuncts);
+
+        // TODO Check: Should this be set for leafs only?
         this.assertPartition = node.part;
     }
 
@@ -1607,12 +1611,17 @@ public class TransformedZ3Proof extends Z3Proof {
         // remove local parts of tree
         this.removeLocalParts();
 
+        System.out.println("After removing local parts:");
+        System.out.println("Proof DAG size: " + this.size(false));
+        System.out
+                .println("Proof size after unwinding DAG: " + this.size(true));
+
         // create ITE tree for each signal
-        int signalNum = 0;
-        for (PropositionalVariable signal : ctrlSignals) {
+
+        for (int signalNum = 0; signalNum < ctrlSignals.size(); signalNum++) {
+            PropositionalVariable signal = ctrlSignals.get(signalNum);
             PropositionalIte tree = (PropositionalIte) createITETree(signalNum);
             trees.put(signal, tree);
-            signalNum += 1;
         }
 
         return trees;
@@ -1623,15 +1632,17 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public void removeLocalParts() {
+        // FIXME Don't unwind the DAG!
         if (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
             if (this.assertPartition > 0) {
-                System.out.println("removing for node");
+                // System.out.println("removing for node");
                 this.subProofs.clear();
                 this.proofType = SExpressionConstants.ASSERTED;
                 this.literal = null;
                 this.assertPartition -= 1;
             } else {
                 // call recursive
+                assert (subProofs.size() == 2);
                 TransformedZ3Proof left = (TransformedZ3Proof) subProofs.get(0);
                 TransformedZ3Proof right = (TransformedZ3Proof) subProofs
                         .get(1);
@@ -1664,20 +1675,30 @@ public class TransformedZ3Proof extends Z3Proof {
 
             if (checkPresence(leftConsequent, this.literal)) {
                 if (!checkPresence(rightConsequent, this.literal)) {
-                    return new PropositionalIte(this.literal, leftResult,
-                            rightResult);
+                    // NOTE: Pudlak's "sel" works exactly opposite to "ite".
+                    return new PropositionalIte(this.literal, rightResult,
+                            leftResult);
                 }
             } else if (!checkPresence(leftConsequent, this.literal)) {
                 if (checkPresence(rightConsequent, this.literal)) {
-                    return new PropositionalIte(this.literal, rightResult,
-                            leftResult);
+                    // NOTE: Pudlak's "sel" works exactly opposite to "ite".
+                    return new PropositionalIte(this.literal, leftResult,
+                            rightResult);
                 }
             } else
                 throw new RuntimeException("found invalid unit-resolution.");
         } else if (this.proofType == SExpressionConstants.ASSERTED) {
 
-            BitSet bits = TransformedZ3Proof.bitSetFromLong(new Long(
-                    this.assertPartition));
+            int partition = this.assertPartition;
+            if (partition <= 0) {
+                assert (partition == -1 || partition == 0);
+                // this must be a "global clause", coming from an axiom
+                // arbitrarily assign it to the first partition.
+                partition = 1;
+            }
+
+            assert (partition > 0);
+            BitSet bits = TransformedZ3Proof.bitSetFromLong(partition - 1);
             boolean isSet = bits.get(signalNum);
 
             return new PropositionalConstant(isSet);
@@ -1689,6 +1710,7 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public static BitSet bitSetFromLong(long value) {
+        assert (value >= 0);
         BitSet bits = new BitSet();
         int index = 0;
         while (value != 0L) {
@@ -1715,7 +1737,7 @@ public class TransformedZ3Proof extends Z3Proof {
         }
 
         throw new RuntimeException(
-                "literal not found in both subformulas! this should not happen!!");
+                "neither literal nor negated literal found! this should not happen!!");
     }
 
 }

@@ -24,12 +24,12 @@ public class ResProof {
     /* Essential fields */
     public ResNode root = null;
     public int nodeCount = 1;
-    public int[] var_part = new int[MAX_LIT_NUM];
-    public boolean[] visited = new boolean[MAX_PROOF_SIZE];
+    public int[] var_part = new int[ResProof.MAX_LIT_NUM];
+    public boolean[] visited = new boolean[ResProof.MAX_PROOF_SIZE];
 
     /* Proof vital */
     public boolean vitalInfoFresh = false;
-    public ResNode[] nodeRef = new ResNode[MAX_PROOF_SIZE];
+    public ResNode[] nodeRef = new ResNode[ResProof.MAX_PROOF_SIZE];
     public int numberOfNodes;
     public HashSet<ResNode> leaves = new HashSet<ResNode>();
 
@@ -66,7 +66,7 @@ public class ResProof {
         // nodeRef[nodeCount] = n;
         nodeCount++;
         Assert.assertTrue("Maximum capacity of proof size reached!",
-                nodeCount < MAX_PROOF_SIZE);
+                nodeCount < ResProof.MAX_PROOF_SIZE);
     }
 
     public void setRoot(ResNode n) {
@@ -242,8 +242,9 @@ public class ResProof {
             Iterator<Lit> iter = n.cl.iterator();
             while (iter.hasNext()) {
                 Lit l = iter.next();
-                Assert.assertTrue("an local with uninitialized partition",
+                Assert.assertTrue("a local with uninitialized partition",
                         var_part[l.var()] != -1);
+
                 if (var_part[l.var()] != 0)
                     Assert.assertTrue("a local is in wrong partition!",
                             var_part[l.var()] == n.part);
@@ -252,7 +253,7 @@ public class ResProof {
             Assert.assertTrue("A parent missing!", n.left != null
                     && n.right != null);
             Assert.assertTrue(
-                    "pivot litrals are not present in parents!",
+                    "pivot literals are not present in parents!",
                     n.left.cl.contains(n.pivot, true)
                             && n.right.cl.contains(n.pivot, false));
             Clause c = new Clause(n.left.cl, n.right.cl, n.pivot);

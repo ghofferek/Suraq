@@ -432,6 +432,12 @@ public class Suraq implements Runnable {
                 TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
                         resolutionProof.getRoot(), Util.getLiteralMap());
 
+                System.out.println("After recovering proof:");
+                System.out.println("Proof DAG size: "
+                        + recoveredProof.size(false));
+                System.out.println("Proof size after unwinding DAG: "
+                        + recoveredProof.size(true));
+
                 // create ITE-tree for every control signal
                 Map<PropositionalVariable, PropositionalIte> iteTrees = recoveredProof
                         .createITETrees(logicParser.getControlVariables());

@@ -72,7 +72,7 @@ public abstract class SMTLibParser extends Parser {
     /**
      * The list of control variables found during parsing
      */
-    protected Set<PropositionalVariable> controlVariables = new HashSet<PropositionalVariable>();
+    protected List<PropositionalVariable> controlVariables = new ArrayList<PropositionalVariable>();
 
     /**
      * The list of Boolean variables found during parsing
