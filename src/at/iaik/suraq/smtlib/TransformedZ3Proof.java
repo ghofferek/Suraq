@@ -1671,6 +1671,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
     private Formula createITETree(int signalNum) {
 
+        // FIXME Don't unwind DAG!
+
         if (this.proofType == SExpressionConstants.UNIT_RESOLUTION) {
 
             // call recursive
@@ -1678,6 +1680,12 @@ public class TransformedZ3Proof extends Z3Proof {
                     .createITETree(signalNum);
             Formula rightResult = ((TransformedZ3Proof) subProofs.get(1))
                     .createITETree(signalNum);
+
+            if (leftResult instanceof PropositionalConstant
+                    && rightResult instanceof PropositionalConstant) {
+                if (leftResult.equals(rightResult))
+                    return leftResult;
+            }
 
             // handle result of recursion
             OrFormula leftConsequent = ((OrFormula) subProofs.get(0)
