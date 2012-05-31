@@ -358,15 +358,15 @@ public class DomainIte extends DomainTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new DomainIte(
                 condition.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars),
-                thenBranch.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars),
-                elseBranch.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }
 

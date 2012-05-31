@@ -397,15 +397,14 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
 
         List<DomainTerm> newParameters = new ArrayList<DomainTerm>();
         for (DomainTerm term : parameters)
-            newParameters.add(term
-                    .uninterpretedPredicatesToAuxiliaryVariablesTerm(
-                            topLeveFormula, constraints, noDependenceVars));
+            newParameters.add(term.uninterpretedPredicatesToAuxiliaryVariables(
+                    topLeveFormula, constraints, noDependenceVars));
 
         UninterpretedFunctionInstance result;
         try {

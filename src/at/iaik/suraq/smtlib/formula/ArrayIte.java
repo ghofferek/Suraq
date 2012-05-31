@@ -350,15 +350,15 @@ public class ArrayIte extends ArrayTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public ArrayIte uninterpretedPredicatesToAuxiliaryVariablesTerm(
+    public ArrayIte uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new ArrayIte(
                 condition.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars),
-                thenBranch.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars),
-                elseBranch.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }
 

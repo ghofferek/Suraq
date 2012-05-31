@@ -366,7 +366,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         Set<Formula> localConstraints = new HashSet<Formula>();
@@ -381,7 +381,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
             newParamMap.put(
                     token,
                     paramMap.get(token)
-                            .uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                            .uninterpretedPredicatesToAuxiliaryVariables(
                                     topLeveFormula, constraints,
                                     noDependenceVars));
         try {

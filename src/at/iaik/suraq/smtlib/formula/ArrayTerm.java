@@ -32,7 +32,7 @@ public abstract class ArrayTerm extends Term {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public abstract ArrayTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
+    public abstract ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
 

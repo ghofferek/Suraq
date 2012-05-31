@@ -409,15 +409,15 @@ public class ArrayWrite extends ArrayTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public ArrayTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
+    public ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new ArrayWrite(
-                arrayTerm.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars),
-                indexTerm.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars),
-                valueTerm.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                valueTerm.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }
 

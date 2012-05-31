@@ -30,12 +30,12 @@ public abstract class Term {
             "")).getClass().getSuperclass();
 
     public final static int GLOBAL_PARTITION = -1;
-
-    /**
+    
+	 /**
      * The assert-partitions
      */
-    protected int assertPartition = GLOBAL_PARTITION;
-
+	protected int assertPartition = GLOBAL_PARTITION;
+	
     /**
      * Checks whether all terms in the given list are compatible for
      * (dis)equality operations. If so, the type is returned.
@@ -262,10 +262,10 @@ public abstract class Term {
      * @return a new term with uninterpreted predicates replaced by auxiliary
      *         variables.
      */
-    public abstract Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
+    public abstract Term uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
-
+    
     /**
      * Returns the elements assert-partition.
      * 

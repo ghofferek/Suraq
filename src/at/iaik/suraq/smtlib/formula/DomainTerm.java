@@ -44,7 +44,7 @@ public abstract class DomainTerm extends Term {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public abstract DomainTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
+    public abstract DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
 
