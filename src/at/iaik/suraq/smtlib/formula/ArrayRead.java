@@ -343,14 +343,14 @@ public class ArrayRead extends DomainTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
 
         return new ArrayRead(
-                arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                arrayTerm.uninterpretedPredicatesToAuxiliaryVariablesTerm(
                         topLeveFormula, constraints, noDependenceVars),
-                indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                indexTerm.uninterpretedPredicatesToAuxiliaryVariablesTerm(
                         topLeveFormula, constraints, noDependenceVars));
 
     }

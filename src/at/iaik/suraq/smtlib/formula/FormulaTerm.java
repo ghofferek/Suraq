@@ -233,7 +233,7 @@ public class FormulaTerm extends PropositionalTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
     @Override
@@ -243,6 +243,18 @@ public class FormulaTerm extends PropositionalTerm {
         return new FormulaTerm(
                 formula.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariablesTerm(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+                constraints, noDependenceVars);
     }
 
     /**

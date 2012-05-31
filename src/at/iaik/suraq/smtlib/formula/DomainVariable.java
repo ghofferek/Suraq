@@ -273,7 +273,7 @@ public class DomainVariable extends DomainTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+    public DomainTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new DomainVariable(varName);

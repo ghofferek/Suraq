@@ -264,7 +264,7 @@ public class ArrayVariable extends ArrayTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
+    public ArrayTerm uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new ArrayVariable(varName);

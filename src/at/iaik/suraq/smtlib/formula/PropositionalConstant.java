@@ -277,4 +277,16 @@ public class PropositionalConstant extends PropositionalTerm {
 
         return this;
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariablesTerm(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
+            Formula topLeveFormula, Set<Formula> constraints,
+            Set<Token> noDependenceVars) {
+        return uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+                constraints, noDependenceVars);
+    }
 }

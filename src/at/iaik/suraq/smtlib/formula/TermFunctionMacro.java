@@ -155,7 +155,7 @@ public class TermFunctionMacro extends FunctionMacro {
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
 
-        Term newBody = body.uninterpretedPredicatesToAuxiliaryVariables(
+        Term newBody = body.uninterpretedPredicatesToAuxiliaryVariablesTerm(
                 topLeveFormula, constraints, noDependenceVars);
         try {
             return new TermFunctionMacro(name, parameters, paramMap, newBody);

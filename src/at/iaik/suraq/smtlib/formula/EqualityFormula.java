@@ -448,7 +448,7 @@ public abstract class EqualityFormula implements Formula {
 
         List<Term> newTerms = new ArrayList<Term>();
         for (Term term : terms)
-            newTerms.add(term.uninterpretedPredicatesToAuxiliaryVariables(
+            newTerms.add(term.uninterpretedPredicatesToAuxiliaryVariablesTerm(
                     topLeveFormula, constraints, noDependenceVars));
 
         try {

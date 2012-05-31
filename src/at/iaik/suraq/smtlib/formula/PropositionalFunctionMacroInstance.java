@@ -399,7 +399,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
             newParamMap.put(
                     token,
                     paramMap.get(token)
-                            .uninterpretedPredicatesToAuxiliaryVariables(
+                            .uninterpretedPredicatesToAuxiliaryVariablesTerm(
                                     topLeveFormula, constraints,
                                     noDependenceVars));
         try {
