@@ -371,6 +371,7 @@ public class Suraq implements Runnable {
         // resolutionProof.dumpProof();
         resolutionProof.checkProof(false);
         resolutionProof.rmDoubleLits();
+        resolutionProof.checkProof(false);
         resolutionProof.deLocalizeProof();
         resolutionProof.checkProof(false);
         resolutionProof.tranformResProofs();

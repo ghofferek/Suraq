@@ -203,8 +203,8 @@ public class TransformedZ3Proof extends Z3Proof {
         TransformedZ3Proof.debugNode = TransformedZ3Proof.proofMap.get(307);
 
         if (TransformedZ3Proof.proofMap.containsKey(z3Proof.id))
-            // return TransformedZ3Proof.proofMap.get(z3Proof.id);
-            TransformedZ3Proof.proofMap.remove(z3Proof.id);
+            return TransformedZ3Proof.proofMap.get(z3Proof.id);
+        // TransformedZ3Proof.proofMap.remove(z3Proof.id);
 
         // Go through all possible cases of z3 proof rules
 
@@ -346,9 +346,6 @@ public class TransformedZ3Proof extends Z3Proof {
             return result;
 
         } else if (proofType.equals(SExpressionConstants.LEMMA)) {
-
-            if (z3Proof.id == 548)
-                assert (z3Proof.checkZ3ProofNodeRecursive());
 
             List<Z3Proof> z3SubProofs = z3Proof.getSubProofs();
             if (z3SubProofs.size() != 1)

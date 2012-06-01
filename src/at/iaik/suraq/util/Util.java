@@ -561,7 +561,7 @@ public class Util {
     }
 
     public static final Map<Integer, Formula> getLiteralMap() {
-        return new HashMap<Integer, Formula>(literalMap);
+        return new HashMap<Integer, Formula>(Util.literalMap);
     }
 
     private static final ResNode createResolutionProofRecursive(

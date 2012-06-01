@@ -791,8 +791,8 @@ public class Z3Proof implements SMTLibObject {
      * @return unique operation id.
      */
     public int startDAGOperation() {
-        operationCount++;
-        return operationCount;
+        Z3Proof.operationCount++;
+        return Z3Proof.operationCount;
     }
 
     /**
@@ -804,8 +804,9 @@ public class Z3Proof implements SMTLibObject {
      *            unique id of the operation to end.
      */
     public void endDAGOperation(int operationId) {
+        assert (Z3Proof.operationCount >= operationId);
         this.resetMarks(operationId);
-        operationCount--;
+        Z3Proof.operationCount--;
     }
 
     /**

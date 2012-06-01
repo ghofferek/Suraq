@@ -47,7 +47,11 @@ public class ProcessUtil {
                 line = input.readLine();
             }
 
-            exitCode = p.exitValue();
+            try {
+                exitCode = p.waitFor();
+            } catch (InterruptedException exc) {
+                throw new RuntimeException("InterruptedException...", exc);
+            }
             outputStream = resultBuffer.toString();
 
             resultBuffer = new StringBuffer();
