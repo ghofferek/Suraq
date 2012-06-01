@@ -1140,7 +1140,16 @@ public class TransformedZ3Proof extends Z3Proof {
      * 
      * @return A list of all leafs of this proof.
      */
+
     public List<TransformedZ3Proof> getLeafs() {
+        this.resetMarks();
+        List<TransformedZ3Proof> result = this.getLeafsRecursion();
+        this.resetMarks();
+        return result;
+    }
+
+    public List<TransformedZ3Proof> getLeafsRecursion() {
+        this.marked = true;
         List<TransformedZ3Proof> result = new LinkedList<TransformedZ3Proof>();
         for (Z3Proof child : subProofs) {
             if (!(child instanceof TransformedZ3Proof))
@@ -1150,8 +1159,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
             if (subProof.isLeaf())
                 result.add(subProof);
-            else
-                result.addAll(subProof.getLeafs());
+            else if (!subProof.marked)
+                result.addAll(subProof.getLeafsRecursion());
         }
         return result;
     }

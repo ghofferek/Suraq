@@ -36,6 +36,8 @@ import at.iaik.suraq.util.Util;
  */
 public class Z3Proof implements SMTLibObject {
 
+    private static boolean markLock = false;
+
     protected Set<String> assertedStr = new HashSet<String>();
 
     /**
@@ -254,11 +256,22 @@ public class Z3Proof implements SMTLibObject {
      */
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
+        this.resetMarks();
+        Set<Integer> result = this.getPartitionsFromSymbolsRecursion();
+        this.resetMarks();
+        return result;
+    }
+
+    public Set<Integer> getPartitionsFromSymbolsRecursion() {
+        this.marked = true;
+
         Set<Integer> partitions = consequent.getPartitionsFromSymbols();
 
-        for (Z3Proof proof : subProofs)
-            partitions.addAll(proof.getPartitionsFromSymbols());
-
+        for (Z3Proof proof : subProofs) {
+            if (proof.marked)
+                continue;
+            partitions.addAll(proof.getPartitionsFromSymbolsRecursion());
+        }
         return partitions;
     }
 
@@ -267,7 +280,7 @@ public class Z3Proof implements SMTLibObject {
      */
     @Override
     public int hashCode() {
-        return System.identityHashCode(this);
+        return this.id;
     }
 
     /**
@@ -292,11 +305,24 @@ public class Z3Proof implements SMTLibObject {
      * 
      * @return
      */
+
     public Set<Integer> getPartitionsFromAsserts() {
+        this.resetMarks();
+        Set<Integer> result = this.getPartitionsFromAssertsRecursion();
+        this.resetMarks();
+        return result;
+    }
+
+    public Set<Integer> getPartitionsFromAssertsRecursion() {
+
+        this.marked = true;
 
         Set<Integer> assertPartitions = new HashSet<Integer>();
         for (Z3Proof z3Proofchild : this.subProofs) {
-            assertPartitions.addAll(z3Proofchild.getPartitionsFromAsserts());
+            if (z3Proofchild.marked)
+                continue;
+            assertPartitions.addAll(z3Proofchild
+                    .getPartitionsFromAssertsRecursion());
         }
 
         if (proofType.equals(SExpressionConstants.ASSERTED)) {
@@ -362,16 +388,27 @@ public class Z3Proof implements SMTLibObject {
     }
 
     public void localLemmasToAssertions() {
+        this.resetMarks();
+        this.localLemmasToAssertionsRecursion();
+        this.resetMarks();
+    }
+
+    public void localLemmasToAssertionsRecursion() {
+        this.marked = true;
 
         if (proofType.equals(SExpressionConstants.LEMMA)) {
             assert (subProofs.size() == 1);
+
             Set<Integer> partitionsFromAsserts = subProofs.get(0)
                     .getPartitionsFromAsserts();
             assert (!partitionsFromAsserts.contains(new Integer(-1)));
+
             if (partitionsFromAsserts.size() > 1) {
-                subProofs.get(0).localLemmasToAssertions();
+                if (!(subProofs.get(0).marked))
+                    subProofs.get(0).localLemmasToAssertionsRecursion();
                 return;
             }
+
             Set<Integer> symbolsPartitions = consequent
                     .getPartitionsFromSymbols();
             symbolsPartitions.remove(new Integer(-1));
@@ -389,11 +426,23 @@ public class Z3Proof implements SMTLibObject {
             } else
                 return;
         } else
-            for (Z3Proof child : subProofs)
-                child.localLemmasToAssertions();
+            for (Z3Proof child : subProofs) {
+                if (child.marked)
+                    continue;
+                child.localLemmasToAssertionsRecursion();
+            }
+
     }
 
     public void removeLocalSubProofs() {
+        this.resetMarks();
+        this.removeLocalSubProofsRecursion();
+        this.resetMarks();
+    }
+
+    public void removeLocalSubProofsRecursion() {
+        this.marked = true;
+
         Set<Integer> partitionsFromAsserts = this.getPartitionsFromAsserts();
 
         if (partitionsFromAsserts.size() == 1) {
@@ -411,11 +460,20 @@ public class Z3Proof implements SMTLibObject {
         }
 
         for (Z3Proof child : subProofs) {
-            child.removeLocalSubProofs();
+            if (child.marked)
+                continue;
+            child.removeLocalSubProofsRecursion();
         }
     }
 
     public void dealWithModusPonens() {
+        this.resetMarks();
+        this.dealWithModusPonensRecursion();
+        this.resetMarks();
+    }
+
+    public void dealWithModusPonensRecursion() {
+        this.marked = true;
 
         if (this.proofType.equals(SExpressionConstants.MODUS_PONENS)) {
             assert (subProofs.size() == 2);
@@ -432,7 +490,9 @@ public class Z3Proof implements SMTLibObject {
                 this.subProofs.clear();
                 this.subProofs.add(child1);
                 this.proofType = SExpressionConstants.SYMMETRY;
-                child1.dealWithModusPonens();
+
+                if (!child1.marked)
+                    child1.dealWithModusPonensRecursion();
                 return;
             }
             assert (child1.hasSingleLiteralConsequent());
@@ -514,8 +574,10 @@ public class Z3Proof implements SMTLibObject {
                                 .transformToConsequentsForm();
 
                         // Recursive Calls on children
-                        child1.dealWithModusPonens();
-                        child2.dealWithModusPonens();
+                        if (!child1.marked)
+                            child1.dealWithModusPonensRecursion();
+                        if (!child2.marked)
+                            child2.dealWithModusPonensRecursion();
                         return;
                     }
                     child3 = child2.subProofs.get(1);
@@ -656,14 +718,19 @@ public class Z3Proof implements SMTLibObject {
             }
 
             // Don't forget the recursive calls on the children!
-            child1.dealWithModusPonens();
-            child2.dealWithModusPonens();
-            child3.dealWithModusPonens();
+            if (!child1.marked)
+                child1.dealWithModusPonensRecursion();
+            if (!child2.marked)
+                child2.dealWithModusPonensRecursion();
+            if (!child3.marked)
+                child3.dealWithModusPonensRecursion();
             return;
         }
 
         for (Z3Proof child : subProofs) {
-            child.dealWithModusPonens();
+            if (child.marked)
+                continue;
+            child.dealWithModusPonensRecursion();
         }
     }
 
