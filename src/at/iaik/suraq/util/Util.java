@@ -585,6 +585,11 @@ public class Util {
                 assert (Util.isLiteral(posLiteral));
                 assert (Util.isAtom(posLiteral));
 
+                if (posLiteral.equals(new PropositionalConstant(false))) {
+                    resClausePartitions.add(-1);
+                    continue;
+                }
+
                 Integer resLiteralID = Util.literalsID.get(Util
                         .makeIdString(posLiteral));
 
@@ -622,7 +627,10 @@ public class Util {
                 if (proof.isAxiom())
                     leafPartition = 0; // axioms should go to 0
                 else if (leafPartition < 0)
-                    leafPartition = 1; // arbitrary choice
+                    if (proof.getAssertPartition() > 0)
+                        leafPartition = proof.getAssertPartition();
+                    else
+                        leafPartition = 1; // arbitrary choice
 
                 resLeafNode = Util.resProof.addLeaf(resClause, leafPartition);
 
@@ -663,7 +671,7 @@ public class Util {
 
         } else
             throw new RuntimeException(
-                    "Resolution proof should only consits of asserted and unit-resolution elements");
+                    "Resolution proof should only consist of asserted and unit-resolution elements");
 
     }
 

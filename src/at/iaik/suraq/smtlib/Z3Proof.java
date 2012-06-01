@@ -462,7 +462,7 @@ public class Z3Proof implements SMTLibObject {
             if ((symbolPartitions.equals(partitionsFromAsserts) || symbolPartitions
                     .size() == 0) && this.getHypotheses().size() == 0) {
                 proofType = SExpressionConstants.ASSERTED;
-                this.setAssertPartition();
+                this.assertPartition = partitionsFromAsserts.iterator().next();
                 subProofs = new ArrayList<Z3Proof>();
                 return;
             }

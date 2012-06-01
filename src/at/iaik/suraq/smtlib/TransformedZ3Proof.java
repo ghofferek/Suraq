@@ -228,6 +228,9 @@ public class TransformedZ3Proof extends Z3Proof {
                     SExpressionConstants.ASSERTED,
                     new ArrayList<TransformedZ3Proof>(), z3Proof
                             .getConsequent().transformToConsequentsForm());
+            if (z3Proof.assertPartition > 0)
+                result.assertPartition = z3Proof.assertPartition;
+
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
@@ -1639,6 +1642,10 @@ public class TransformedZ3Proof extends Z3Proof {
         return trees;
     }
 
+    /**
+     * 
+     * @return the <code>assertPartition</code> of this node
+     */
     public int getAssertPartition() {
         return this.assertPartition;
     }
