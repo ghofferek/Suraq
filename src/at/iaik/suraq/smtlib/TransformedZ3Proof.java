@@ -461,24 +461,26 @@ public class TransformedZ3Proof extends Z3Proof {
 
     public void toLocalProof() {
         TransformedZ3Proof.annotatedNodes.clear();
-        this.resetMarks();
-        this.toLocalProofRecursion();
+
+        int operationId = startDAGOperation();
+        this.toLocalProofRecursion(operationId);
+        endDAGOperation(operationId);
+
         TransformedZ3Proof.annotatedNodes.clear();
-        this.resetMarks();
     }
 
     /**
      * Transforms the proof into a local resolution proof (in place).
      */
-    private void toLocalProofRecursion() {
+    private void toLocalProofRecursion(int operationId) {
         // this.computeParents(); // FIXME do we really need this?
-        if (this.marked)
+        if (this.wasVisitedByDAGOperation(operationId))
             return;
-        this.marked = true;
+        visitedByDAGOperation(operationId);
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
-            subProof.toLocalProofRecursion();
+            subProof.toLocalProofRecursion(operationId);
         }
 
         // Recursive calls are completed. Now handle this particular node.
@@ -1142,14 +1144,17 @@ public class TransformedZ3Proof extends Z3Proof {
      */
 
     public List<TransformedZ3Proof> getLeafs() {
-        this.resetMarks();
-        List<TransformedZ3Proof> result = this.getLeafsRecursion();
-        this.resetMarks();
+
+        int operationId = startDAGOperation();
+        List<TransformedZ3Proof> result = this.getLeafsRecursion(operationId);
+        endDAGOperation(operationId);
+
         return result;
     }
 
-    public List<TransformedZ3Proof> getLeafsRecursion() {
-        this.marked = true;
+    public List<TransformedZ3Proof> getLeafsRecursion(int operationId) {
+        visitedByDAGOperation(operationId);
+
         List<TransformedZ3Proof> result = new LinkedList<TransformedZ3Proof>();
         for (Z3Proof child : subProofs) {
             if (!(child instanceof TransformedZ3Proof))
@@ -1159,8 +1164,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
             if (subProof.isLeaf())
                 result.add(subProof);
-            else if (!subProof.marked)
-                result.addAll(subProof.getLeafsRecursion());
+            else if (!subProof.wasVisitedByDAGOperation(operationId))
+                result.addAll(subProof.getLeafsRecursion(operationId));
         }
         return result;
     }
@@ -1587,21 +1592,24 @@ public class TransformedZ3Proof extends Z3Proof {
      *         it contains bad literals.
      */
     public boolean isLocal() {
-        this.resetMarks();
-        boolean result = this.isLocalRecursion();
-        this.resetMarks();
+
+        int operationId = startDAGOperation();
+        boolean result = this.isLocalRecursion(operationId);
+        endDAGOperation(operationId);
+
         return result;
     }
 
-    private boolean isLocalRecursion() {
-        if (this.marked)
+    private boolean isLocalRecursion(int operationId) {
+        if (this.wasVisitedByDAGOperation(operationId))
             return true;
-        this.marked = true;
+        visitedByDAGOperation(operationId);
+
         if (Util.containsBadLiteral((OrFormula) consequent))
             return false;
 
         for (Z3Proof child : subProofs) {
-            if (child.marked)
+            if (child.wasVisitedByDAGOperation(operationId))
                 continue;
             assert (child instanceof TransformedZ3Proof);
             if (!((TransformedZ3Proof) child).isLocal())

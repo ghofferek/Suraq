@@ -284,7 +284,6 @@ public class Suraq implements Runnable {
             File prooffile = new File("proofTemp.txt");
             FileWriter fstream = new FileWriter(prooffile);
             BufferedWriter proofFilewriter = new BufferedWriter(fstream);
-            rootProof.resetMarks();
             proofFilewriter.write(rootProof.prettyPrint());
             proofFilewriter.close();
         } catch (IOException exc) {

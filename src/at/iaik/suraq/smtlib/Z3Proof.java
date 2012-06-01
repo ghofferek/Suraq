@@ -36,7 +36,15 @@ import at.iaik.suraq.util.Util;
  */
 public class Z3Proof implements SMTLibObject {
 
-    private static boolean markLock = false;
+    /**
+     * global counter to keep track of running DAG traversals.
+     */
+    private static int operationCount = 0;
+
+    /**
+     * lists operations which already traversed this node.
+     */
+    protected List<Integer> visitedByOperation = new ArrayList<Integer>();
 
     protected Set<String> assertedStr = new HashSet<String>();
 
@@ -55,11 +63,6 @@ public class Z3Proof implements SMTLibObject {
      * <code>OrFormula</code> or the constant formula <code>false</code>.
      */
     protected Formula consequent;
-
-    /**
-     * A flag used for marking during recursive algorithms
-     */
-    protected boolean marked = false;
 
     /**
      * Flag that indicates from which assert an asserted node comes. Only valid
@@ -256,21 +259,23 @@ public class Z3Proof implements SMTLibObject {
      */
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
-        this.resetMarks();
-        Set<Integer> result = this.getPartitionsFromSymbolsRecursion();
-        this.resetMarks();
+        int operationId = startDAGOperation();
+        Set<Integer> result = this
+                .getPartitionsFromSymbolsRecursion(operationId);
+        endDAGOperation(operationId);
         return result;
     }
 
-    public Set<Integer> getPartitionsFromSymbolsRecursion() {
-        this.marked = true;
+    public Set<Integer> getPartitionsFromSymbolsRecursion(int operationId) {
+        visitedByDAGOperation(operationId);
 
         Set<Integer> partitions = consequent.getPartitionsFromSymbols();
 
         for (Z3Proof proof : subProofs) {
-            if (proof.marked)
+            if (proof.wasVisitedByDAGOperation(operationId))
                 continue;
-            partitions.addAll(proof.getPartitionsFromSymbolsRecursion());
+            partitions.addAll(proof
+                    .getPartitionsFromSymbolsRecursion(operationId));
         }
         return partitions;
     }
@@ -307,22 +312,23 @@ public class Z3Proof implements SMTLibObject {
      */
 
     public Set<Integer> getPartitionsFromAsserts() {
-        this.resetMarks();
-        Set<Integer> result = this.getPartitionsFromAssertsRecursion();
-        this.resetMarks();
+        int operationId = startDAGOperation();
+        Set<Integer> result = this
+                .getPartitionsFromAssertsRecursion(operationId);
+        endDAGOperation(operationId);
         return result;
     }
 
-    public Set<Integer> getPartitionsFromAssertsRecursion() {
+    public Set<Integer> getPartitionsFromAssertsRecursion(int operationId) {
 
-        this.marked = true;
+        visitedByDAGOperation(operationId);
 
         Set<Integer> assertPartitions = new HashSet<Integer>();
         for (Z3Proof z3Proofchild : this.subProofs) {
-            if (z3Proofchild.marked)
+            if (z3Proofchild.wasVisitedByDAGOperation(operationId))
                 continue;
             assertPartitions.addAll(z3Proofchild
-                    .getPartitionsFromAssertsRecursion());
+                    .getPartitionsFromAssertsRecursion(operationId));
         }
 
         if (proofType.equals(SExpressionConstants.ASSERTED)) {
@@ -339,35 +345,37 @@ public class Z3Proof implements SMTLibObject {
     }
 
     public Set<Z3Proof> getLemmas() {
-        this.resetMarks();
-        Set<Z3Proof> result = this.getLemmasRecursion();
-        this.resetMarks();
+        int operationId = startDAGOperation();
+        Set<Z3Proof> result = this.getLemmasRecursion(operationId);
+        endDAGOperation(operationId);
         return result;
     }
 
-    private Set<Z3Proof> getLemmasRecursion() {
-        this.marked = true;
+    private Set<Z3Proof> getLemmasRecursion(int operationId) {
+        visitedByDAGOperation(operationId);
+
         Set<Z3Proof> lemmas = new HashSet<Z3Proof>();
         if (proofType.equals(SExpressionConstants.LEMMA)) {
             lemmas.add(this);
         }
         for (Z3Proof z3Proofchild : this.subProofs) {
-            if (z3Proofchild.marked)
+            if (z3Proofchild.wasVisitedByDAGOperation(operationId))
                 continue;
-            lemmas.addAll(z3Proofchild.getLemmasRecursion());
+            lemmas.addAll(z3Proofchild.getLemmasRecursion(operationId));
         }
         return lemmas;
     }
 
     public Set<Z3Proof> getHypotheses() {
-        this.resetMarks();
-        Set<Z3Proof> result = this.getHypothesesRecursion();
-        this.resetMarks();
+        int operationId = startDAGOperation();
+        Set<Z3Proof> result = this.getHypothesesRecursion(operationId);
+        endDAGOperation(operationId);
         return result;
     }
 
-    private Set<Z3Proof> getHypothesesRecursion() {
-        this.marked = true;
+    private Set<Z3Proof> getHypothesesRecursion(int operationId) {
+        visitedByDAGOperation(operationId);
+
         Set<Z3Proof> hypotheses = new HashSet<Z3Proof>();
         if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
             assert (this.subProofs.size() == 0);
@@ -380,21 +388,21 @@ public class Z3Proof implements SMTLibObject {
             }
         }
         for (Z3Proof z3Proofchild : this.subProofs) {
-            if (z3Proofchild.marked)
+            if (z3Proofchild.wasVisitedByDAGOperation(operationId))
                 continue;
-            hypotheses.addAll(z3Proofchild.getHypothesesRecursion());
+            hypotheses.addAll(z3Proofchild.getHypothesesRecursion(operationId));
         }
         return hypotheses;
     }
 
     public void localLemmasToAssertions() {
-        this.resetMarks();
-        this.localLemmasToAssertionsRecursion();
-        this.resetMarks();
+        int operationId = startDAGOperation();
+        this.localLemmasToAssertionsRecursion(operationId);
+        endDAGOperation(operationId);
     }
 
-    public void localLemmasToAssertionsRecursion() {
-        this.marked = true;
+    public void localLemmasToAssertionsRecursion(int operationId) {
+        visitedByDAGOperation(operationId);
 
         if (proofType.equals(SExpressionConstants.LEMMA)) {
             assert (subProofs.size() == 1);
@@ -404,8 +412,9 @@ public class Z3Proof implements SMTLibObject {
             assert (!partitionsFromAsserts.contains(new Integer(-1)));
 
             if (partitionsFromAsserts.size() > 1) {
-                if (!(subProofs.get(0).marked))
-                    subProofs.get(0).localLemmasToAssertionsRecursion();
+                if (!(subProofs.get(0).wasVisitedByDAGOperation(operationId)))
+                    subProofs.get(0).localLemmasToAssertionsRecursion(
+                            operationId);
                 return;
             }
 
@@ -427,21 +436,21 @@ public class Z3Proof implements SMTLibObject {
                 return;
         } else
             for (Z3Proof child : subProofs) {
-                if (child.marked)
+                if (child.wasVisitedByDAGOperation(operationId))
                     continue;
-                child.localLemmasToAssertionsRecursion();
+                child.localLemmasToAssertionsRecursion(operationId);
             }
 
     }
 
     public void removeLocalSubProofs() {
-        this.resetMarks();
-        this.removeLocalSubProofsRecursion();
-        this.resetMarks();
+        int operationId = startDAGOperation();
+        this.removeLocalSubProofsRecursion(operationId);
+        endDAGOperation(operationId);
     }
 
-    public void removeLocalSubProofsRecursion() {
-        this.marked = true;
+    public void removeLocalSubProofsRecursion(int operationId) {
+        visitedByDAGOperation(operationId);
 
         Set<Integer> partitionsFromAsserts = this.getPartitionsFromAsserts();
 
@@ -460,20 +469,20 @@ public class Z3Proof implements SMTLibObject {
         }
 
         for (Z3Proof child : subProofs) {
-            if (child.marked)
+            if (child.wasVisitedByDAGOperation(operationId))
                 continue;
-            child.removeLocalSubProofsRecursion();
+            child.removeLocalSubProofsRecursion(operationId);
         }
     }
 
     public void dealWithModusPonens() {
-        this.resetMarks();
-        this.dealWithModusPonensRecursion();
-        this.resetMarks();
+        int operationId = startDAGOperation();
+        this.dealWithModusPonensRecursion(operationId);
+        endDAGOperation(operationId);
     }
 
-    public void dealWithModusPonensRecursion() {
-        this.marked = true;
+    public void dealWithModusPonensRecursion(int operationId) {
+        visitedByDAGOperation(operationId);
 
         if (this.proofType.equals(SExpressionConstants.MODUS_PONENS)) {
             assert (subProofs.size() == 2);
@@ -491,8 +500,8 @@ public class Z3Proof implements SMTLibObject {
                 this.subProofs.add(child1);
                 this.proofType = SExpressionConstants.SYMMETRY;
 
-                if (!child1.marked)
-                    child1.dealWithModusPonensRecursion();
+                if (!child1.wasVisitedByDAGOperation(operationId))
+                    child1.dealWithModusPonensRecursion(operationId);
                 return;
             }
             assert (child1.hasSingleLiteralConsequent());
@@ -574,10 +583,10 @@ public class Z3Proof implements SMTLibObject {
                                 .transformToConsequentsForm();
 
                         // Recursive Calls on children
-                        if (!child1.marked)
-                            child1.dealWithModusPonensRecursion();
-                        if (!child2.marked)
-                            child2.dealWithModusPonensRecursion();
+                        if (!child1.wasVisitedByDAGOperation(operationId))
+                            child1.dealWithModusPonensRecursion(operationId);
+                        if (!child2.wasVisitedByDAGOperation(operationId))
+                            child2.dealWithModusPonensRecursion(operationId);
                         return;
                     }
                     child3 = child2.subProofs.get(1);
@@ -718,26 +727,32 @@ public class Z3Proof implements SMTLibObject {
             }
 
             // Don't forget the recursive calls on the children!
-            if (!child1.marked)
-                child1.dealWithModusPonensRecursion();
-            if (!child2.marked)
-                child2.dealWithModusPonensRecursion();
-            if (!child3.marked)
-                child3.dealWithModusPonensRecursion();
+            if (!child1.wasVisitedByDAGOperation(operationId))
+                child1.dealWithModusPonensRecursion(operationId);
+            if (!child2.wasVisitedByDAGOperation(operationId))
+                child2.dealWithModusPonensRecursion(operationId);
+            if (!child3.wasVisitedByDAGOperation(operationId))
+                child3.dealWithModusPonensRecursion(operationId);
             return;
         }
 
         for (Z3Proof child : subProofs) {
-            if (child.marked)
+            if (child.wasVisitedByDAGOperation(operationId))
                 continue;
-            child.dealWithModusPonensRecursion();
+            child.dealWithModusPonensRecursion(operationId);
         }
     }
 
     public String prettyPrint() {
-        if (this.marked)
-            return "";
-        marked = true;
+        int operationId = startDAGOperation();
+        String result = this.prettyPrintRecursive(operationId);
+        endDAGOperation(operationId);
+        return result;
+    }
+
+    public String prettyPrintRecursive(int operationId) {
+        visitedByDAGOperation(operationId);
+
         StringBuffer result = new StringBuffer();
         result.append("----------------------------------------------\n");
         result.append("ID: ");
@@ -761,15 +776,77 @@ public class Z3Proof implements SMTLibObject {
         result.append(consequent.toString().replaceAll("\\s{2,}", " ")
                 .replace("\n", ""));
         result.append("\n");
-        for (Z3Proof child : subProofs)
-            result.append(child.prettyPrint());
+        for (Z3Proof child : subProofs) {
+            if (child.wasVisitedByDAGOperation(operationId))
+                continue;
+            result.append(child.prettyPrintRecursive(operationId));
+        }
         return result.toString();
     }
 
-    public void resetMarks() {
-        marked = false;
+    /**
+     * start a new DAG operation. increments global operation counter and
+     * provides a unique operation id.
+     * 
+     * @return unique operation id.
+     */
+    public int startDAGOperation() {
+        operationCount++;
+        return operationCount;
+    }
+
+    /**
+     * ends a DAG operation. decrements the global operation counter and removes
+     * all <code>visitedByOperation</code> list entries for this operation in
+     * all nodes.
+     * 
+     * @param operationId
+     *            unique id of the operation to end.
+     */
+    public void endDAGOperation(int operationId) {
+        this.resetMarks(operationId);
+        operationCount--;
+    }
+
+    /**
+     * marks a node as visited by this operation.
+     * 
+     * @param operationId
+     *            unique id of the operation.
+     */
+    protected void visitedByDAGOperation(int operationId) {
+        // check for consistency.
+        if (this.visitedByOperation.contains(operationId))
+            throw new RuntimeException("revisited node#" + this.id
+                    + " with operation#" + operationId
+                    + ". this should not happen!");
+
+        this.visitedByOperation.add(operationId);
+    }
+
+    /**
+     * checks if this node was already visited by this operation.
+     * 
+     * @param operationId
+     *            unique id of the operation.
+     * @return true if was visited.
+     */
+    protected boolean wasVisitedByDAGOperation(int operationId) {
+        return this.visitedByOperation.contains(operationId);
+    }
+
+    /**
+     * removes the marks for the specified operation from this and all
+     * sub-nodes.
+     * 
+     * @param operationId
+     *            unique id of the operation.
+     */
+    private void resetMarks(int operationId) {
+        this.visitedByOperation.remove((Integer) operationId);
+
         for (Z3Proof node : this.allNodes())
-            node.marked = false;
+            node.visitedByOperation.remove((Integer) operationId);
     }
 
     public Set<Z3Proof> allNodes() {
@@ -1022,21 +1099,23 @@ public class Z3Proof implements SMTLibObject {
     public boolean checkZ3ProofNodeRecursive() {
         if (true)
             return true;
-        this.resetMarks();
-        boolean result = this.checkZ3ProofNodeRecursiveRecursion();
-        this.resetMarks();
+
+        int operationId = startDAGOperation();
+        boolean result = this.checkZ3ProofNodeRecursiveRecursion(operationId);
+        endDAGOperation(operationId);
+
         return result;
     }
 
-    private boolean checkZ3ProofNodeRecursiveRecursion() {
-        if (this.marked)
+    private boolean checkZ3ProofNodeRecursiveRecursion(int operationId) {
+        if (this.wasVisitedByDAGOperation(operationId))
             return true;
-        this.marked = true;
+        visitedByDAGOperation(operationId);
         if (this.subProofs.size() > 0)
             for (Z3Proof subProof : this.subProofs) {
-                if (subProof.marked)
+                if (subProof.wasVisitedByDAGOperation(operationId))
                     continue;
-                if (!subProof.checkZ3ProofNodeRecursiveRecursion())
+                if (!subProof.checkZ3ProofNodeRecursiveRecursion(operationId))
                     return false;
             }
         return checkZ3ProofNode();
@@ -1135,20 +1214,22 @@ public class Z3Proof implements SMTLibObject {
                 result += child.size();
             return result;
         } else {
-            this.resetMarks();
-            result = this.sizeRecursion();
-            this.resetMarks();
+
+            int operationId = startDAGOperation();
+            result = this.sizeRecursion(operationId);
+            endDAGOperation(operationId);
+
             return result;
         }
     }
 
-    private int sizeRecursion() {
+    private int sizeRecursion(int operationId) {
         int result = 1;
-        if (this.marked)
+        if (this.wasVisitedByDAGOperation(operationId))
             return 0;
-        marked = true;
+        visitedByDAGOperation(operationId);
         for (Z3Proof child : subProofs)
-            result += child.sizeRecursion();
+            result += child.sizeRecursion(operationId);
         return result;
     }
 
@@ -1160,10 +1241,10 @@ public class Z3Proof implements SMTLibObject {
      *         have several parents.
      */
     public Map<Z3Proof, Set<Z3Proof>> computeParents() {
-        this.resetMarks();
+        int operationId = startDAGOperation();
         Map<Z3Proof, Set<Z3Proof>> result = new HashMap<Z3Proof, Set<Z3Proof>>();
-        this.computeParentsRecursion(result);
-        this.resetMarks();
+        this.computeParentsRecursion(operationId, result);
+        endDAGOperation(operationId);
         return result;
     }
 
@@ -1172,10 +1253,11 @@ public class Z3Proof implements SMTLibObject {
      * @param map
      *            call-by-reference parameter to be updated during recursion
      */
-    private void computeParentsRecursion(Map<Z3Proof, Set<Z3Proof>> map) {
-        if (this.marked)
+    private void computeParentsRecursion(int operationId,
+            Map<Z3Proof, Set<Z3Proof>> map) {
+        if (this.wasVisitedByDAGOperation(operationId))
             return;
-        this.marked = true;
+        visitedByDAGOperation(operationId);
 
         for (Z3Proof child : subProofs) {
             Set<Z3Proof> set = map.get(child);
@@ -1185,8 +1267,8 @@ public class Z3Proof implements SMTLibObject {
             set.add(this);
             map.put(child, set);
 
-            if (!child.marked)
-                child.computeParentsRecursion(map);
+            if (!child.wasVisitedByDAGOperation(operationId))
+                child.computeParentsRecursion(operationId, map);
         }
         return;
     }
