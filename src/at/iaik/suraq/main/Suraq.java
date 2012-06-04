@@ -385,7 +385,7 @@ public class Suraq implements Runnable {
 
         File z3InputFile = new File(options.getZ3Input());
         File z3ProofFile = new File(options.getZ3Proof());
-        File saveCacheFile = new File("savecache.db");
+        File saveCacheFile = new File(options.getCacheFile());
 
         boolean useCachedResults = false;
 

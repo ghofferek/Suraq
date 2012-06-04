@@ -34,17 +34,22 @@ public class SuraqOptions {
     /**
      * Default value for z3input option.
      */
-    private static final String z3InputDefault = "suraq_z3_input.smt2";
+    private static String z3InputDefault = "suraq_z3_input.smt2";
 
     /**
      * Default value for z3proof option.
      */
-    private static final String z3ProofDefault = "suraq_z3_proof.smt2";
+    private static String z3ProofDefault = "suraq_z3_proof.smt2";
 
     /**
      * Default value for output option.
      */
-    private static final String outputDefault = "suraq_output.smt2";
+    private static String outputDefault = "suraq_output.smt2";
+
+    /**
+     * The prefix of the cache file name.
+     */
+    private static String cacheFile = "savecache.db";
 
     /**
      * The value of the verbose option.
@@ -122,6 +127,13 @@ public class SuraqOptions {
         outputValue = (String) cmdLineParser.getOptionValue(outputOption);
         verboseValue = (Boolean) cmdLineParser.getOptionValue(verboseOption);
         cacheValue = (Boolean) cmdLineParser.getOptionValue(cacheOption);
+
+        int end = inputValue.lastIndexOf(".");
+
+        z3InputDefault = inputValue.substring(0, end) + '_' + z3InputDefault;
+        z3ProofDefault = inputValue.substring(0, end) + '_' + z3ProofDefault;
+        outputDefault = inputValue.substring(0, end) + '_' + outputDefault;
+        cacheFile = inputValue.substring(0, end) + '_' + cacheFile;
 
     }
 
@@ -209,6 +221,15 @@ public class SuraqOptions {
     public String getZ3Proof() {
         return z3ProofValue != null ? z3ProofValue
                 : SuraqOptions.z3ProofDefault;
+    }
+
+    /**
+     * Returns the filename of the cache file.
+     * 
+     * @return the filename of the cache file.
+     */
+    public String getCacheFile() {
+        return cacheFile;
     }
 
     /**
