@@ -127,8 +127,11 @@ public class Z3Proof implements SMTLibObject {
             this.subProofs.add(subProof2);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
-        if (this.id % 1000 == 0)
-            System.out.println("  Created the " + this.id + " proof node.");
+        if (this.id % 1000 == 0) {
+            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
+            String output = myFormatter.format(this.id);
+            System.out.println("INFO: Created the " + output + " proof node.");
+        }
         this.setAssertPartition();
         assert (this.checkZ3ProofNode());
     }
@@ -156,8 +159,11 @@ public class Z3Proof implements SMTLibObject {
         this.subProofs.addAll(subProofs);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
-        if (this.id % 1000 == 0)
-            System.out.println("  Created the " + this.id + " proof node.");
+        if (this.id % 1000 == 0) {
+            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
+            String output = myFormatter.format(this.id);
+            System.out.println("INFO: Created the " + output + " proof node.");
+        }
         this.setAssertPartition();
         assert (this.checkZ3ProofNode());
     }
@@ -507,6 +513,17 @@ public class Z3Proof implements SMTLibObject {
                 this.assertPartition = partition;
             }
         }
+
+        // DEBUG
+        int mapSize = partitionMap.keySet().size();
+        if (mapSize % 100 == 0) {
+            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
+            String output = myFormatter.format(mapSize);
+            System.out.println("  DEBUG-INFO: Already " + output
+                    + " nodes in partitionMap.");
+        }
+        // END DEBUG
+
     }
 
     public void dealWithModusPonens() {
