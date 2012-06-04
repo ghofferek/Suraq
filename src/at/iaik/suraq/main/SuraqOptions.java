@@ -22,6 +22,11 @@ public class SuraqOptions {
     private static final boolean verboseDefault = false;
 
     /**
+     * Default value for checkResult option.
+     */
+    private static final boolean checkResultDefault = false;
+
+    /**
      * Default value for cache option.
      */
     private static final boolean cacheDefault = false;
@@ -32,7 +37,7 @@ public class SuraqOptions {
     private static final String inputDefault = "suraq_input.smt2";
 
     /**
-     * Default value for z3input option.
+     * Default prefix value for z3input option.
      */
     private static String z3InputDefault = "suraq_z3_input.smt2";
 
@@ -47,7 +52,7 @@ public class SuraqOptions {
     private static String outputDefault = "suraq_output.smt2";
 
     /**
-     * The prefix of the cache file name.
+     * The cache file name.
      */
     private static String cacheFile = "savecache.db";
 
@@ -55,6 +60,11 @@ public class SuraqOptions {
      * The value of the verbose option.
      */
     private final Boolean verboseValue;
+
+    /**
+     * The value of the checkResult option.
+     */
+    private final Boolean checkResultValue;
 
     /**
      * The value of the cache option.
@@ -113,6 +123,8 @@ public class SuraqOptions {
         Option z3ProofOption = cmdLineParser.addStringOption("z3proof");
         Option outputOption = cmdLineParser.addStringOption('o', "output");
         Option verboseOption = cmdLineParser.addBooleanOption('v', "verbose");
+        Option checkResultOption = cmdLineParser
+                .addBooleanOption("check_result");
         Option cacheOption = cmdLineParser.addBooleanOption('c', "cache");
 
         try {
@@ -126,6 +138,8 @@ public class SuraqOptions {
         z3ProofValue = (String) cmdLineParser.getOptionValue(z3ProofOption);
         outputValue = (String) cmdLineParser.getOptionValue(outputOption);
         verboseValue = (Boolean) cmdLineParser.getOptionValue(verboseOption);
+        checkResultValue = (Boolean) cmdLineParser
+                .getOptionValue(checkResultOption);
         cacheValue = (Boolean) cmdLineParser.getOptionValue(cacheOption);
 
         int end = inputValue.lastIndexOf(".");
@@ -183,6 +197,16 @@ public class SuraqOptions {
     public boolean isVerbose() {
         return verboseValue != null ? verboseValue
                 : SuraqOptions.verboseDefault;
+    }
+
+    /**
+     * Returns the value of the checkResult option.
+     * 
+     * @return the value of the checkResult option.
+     */
+    public boolean isCheckResult() {
+        return checkResultValue != null ? checkResultValue
+                : SuraqOptions.checkResultDefault;
     }
 
     /**
