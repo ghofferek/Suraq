@@ -465,7 +465,8 @@ public class Z3Proof implements SMTLibObject {
     public void removeLocalSubProofsRecursion(int operationId,
             Map<Z3Proof, Set<Integer>> partitionMap,
             Map<Z3Proof, Set<Z3Proof>> hypothesesMap) {
-        visitedByDAGOperation(operationId);
+        assert (!this.wasVisitedByDAGOperation(operationId));
+        this.visitedByDAGOperation(operationId);
         assert (partitionMap != null);
         assert (hypothesesMap != null);
 
