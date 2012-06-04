@@ -456,26 +456,25 @@ public class Z3Proof implements SMTLibObject {
     public void removeLocalSubProofs() {
         int operationId = startDAGOperation();
         Map<Z3Proof, Set<Integer>> partitionMap = new HashMap<Z3Proof, Set<Integer>>();
-        Map<Z3Proof, Set<Z3Proof>> hypothesesMap = new HashMap<Z3Proof, Set<Z3Proof>>();
+        Map<Z3Proof, Boolean> existHypothesesMap = new HashMap<Z3Proof, Boolean>();
         this.removeLocalSubProofsRecursion(operationId, partitionMap,
-                hypothesesMap);
+                existHypothesesMap);
         endDAGOperation(operationId);
     }
 
     public void removeLocalSubProofsRecursion(int operationId,
             Map<Z3Proof, Set<Integer>> partitionMap,
-            Map<Z3Proof, Set<Z3Proof>> hypothesesMap) {
+            Map<Z3Proof, Boolean> existHypothesesMap) {
         assert (!this.wasVisitedByDAGOperation(operationId));
         this.visitedByDAGOperation(operationId);
         assert (partitionMap != null);
-        assert (hypothesesMap != null);
+        assert (existHypothesesMap != null);
 
         Set<Integer> partitions = new HashSet<Integer>();
-        Set<Z3Proof> hypotheses = new HashSet<Z3Proof>();
+        boolean existHypotheses = false;
 
         if (this.proofType.equals(SExpressionConstants.HYPOTHESIS)) {
-            hypotheses.add(this);
-            hypothesesMap.put(this, hypotheses);
+            existHypotheses = true;
             partitions.addAll(this.consequent.getPartitionsFromSymbols());
         } else if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
             assert (this.assertPartition > 0);
@@ -486,25 +485,25 @@ public class Z3Proof implements SMTLibObject {
         for (Z3Proof child : this.subProofs) {
             if (!child.wasVisitedByDAGOperation(operationId))
                 child.removeLocalSubProofsRecursion(operationId, partitionMap,
-                        hypothesesMap);
+                        existHypothesesMap);
 
             assert (partitionMap.containsKey(child));
             Set<Integer> childPartitions = partitionMap.get(child);
             assert (childPartitions != null);
             partitions.addAll(childPartitions);
 
-            assert (hypothesesMap.containsKey(child));
-            Set<Z3Proof> childHypotheses = hypothesesMap.get(child);
-            assert (childHypotheses != null);
-            hypotheses.addAll(childHypotheses);
+            assert (existHypothesesMap.containsKey(child));
+            Boolean existChildHypotheses = existHypothesesMap.get(child);
+            assert (existChildHypotheses != null);
+            existHypotheses |= existChildHypotheses;
         }
 
         partitionMap.put(this, new HashSet<Integer>(partitions));
-        hypothesesMap.put(this, hypotheses);
+        existHypothesesMap.put(this, existHypotheses);
         partitions.remove(-1);
 
         if (this.proofType.equals(SExpressionConstants.LEMMA)
-                || hypotheses.size() == 0) {
+                || !existHypotheses) {
             if (partitions.size() <= 1) {
                 int partition = partitions.size() == 0 ? 1 : partitions
                         .iterator().next(); // arbitrary choice 1 for

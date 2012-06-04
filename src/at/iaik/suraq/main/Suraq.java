@@ -702,6 +702,9 @@ public class Suraq implements Runnable {
 
             switch (z3.getState()) {
             case SMTSolver.UNSAT:
+                System.out
+                        .println("SUCCESSFULLY MODEL-CHECKED RESULTS WITH Z3! :-)");
+                System.out.println();
                 break;
             case SMTSolver.SAT:
                 noErrors = false;
