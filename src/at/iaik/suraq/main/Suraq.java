@@ -4,7 +4,6 @@
 package at.iaik.suraq.main;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -693,20 +692,36 @@ public class Suraq implements Runnable {
                 .println("finished proof transformations and interpolation calculations in "
                         + interpolationTimer + ".\n");
 
+        String outputStr = CreateOutputString(sourceFile, iteTrees).toString();
+
+        if (options.isCheckResult()) {
+            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+            z3.solve(outputStr);
+
+            switch (z3.getState()) {
+            case SMTSolver.UNSAT:
+                break;
+            case SMTSolver.SAT:
+                noErrors = false;
+                throw (new RuntimeException(
+                        "Z3 tells us SAT. Implementation of control signal is not correct"));
+            default:
+                noErrors = false;
+                System.out
+                        .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
+                throw (new RuntimeException(
+                        "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+            }
+        }
+
         // write output file
         try {
-
-            File smtfile = new File(options.getOutput());
-            System.out.println("Writing result to " + smtfile);
-            FileWriter fstream = new FileWriter(smtfile);
-            BufferedWriter smtfilewriter = new BufferedWriter(fstream);
-            for (PropositionalVariable controlVar : iteTrees.keySet())
-                smtfilewriter.write(";" + controlVar.toString() + "\n"
-                        + iteTrees.get(controlVar).toString() + "\n");
-            smtfilewriter.close();
+            FileWriter fstream = new FileWriter(options.getOutput());
+            fstream.write(outputStr);
+            fstream.close();
         } catch (IOException exc) {
-            System.err.println("Error while writing to outputfile:"
-                    + options.getOutput());
+            System.err.println("Error while writing to z3ProofFile: "
+                    + options.getZ3Proof());
             exc.printStackTrace();
             noErrors = false;
         }
@@ -716,6 +731,99 @@ public class Suraq implements Runnable {
         // All done :-)
         printEnd(noErrors);
         return;
+    }
+
+    /**
+     * Forms the string which represents the final result of suraq. The
+     * interpolation result for each control signal is inserted in the original
+     * input file, and forms the result.
+     * 
+     * @param interpolationFormulas
+     *            Map which contains the interpolation for each control signal
+     * @return the string from the union of the input file and
+     *         control-signal-interpolations.
+     * 
+     */
+    private SExpression CreateOutputString(File sourceFile,
+            Map<PropositionalVariable, Formula> inpterpolations) {
+
+        SExpParser sExpParser = null;
+        try {
+            sExpParser = new SExpParser(sourceFile);
+        } catch (FileNotFoundException exc) {
+            System.err.println("ERROR: File " + sourceFile.getPath()
+                    + " not found!");
+            noErrors = false;
+            return null;
+        } catch (IOException exc) {
+            System.err.println("ERROR: Could not read from file "
+                    + sourceFile.getPath());
+            noErrors = false;
+            return null;
+        }
+
+        try {
+            sExpParser.parse();
+            assert (sExpParser.wasParsingSuccessfull());
+        } catch (ParseError exc) {
+            handleParseError(exc);
+            noErrors = false;
+            return null;
+        }
+
+        SExpression rootExp = sExpParser.getRootExpr();
+        ArrayList<SExpression> children = new ArrayList<SExpression>(
+                rootExp.getChildren());
+
+        rootExp.replaceChild(SExpressionConstants.SET_LOGIC_QF_UF, 0);
+        rootExp.addChild(SExpressionConstants.DECLARE_SORT_VALUE, 1);
+
+        int i = 1;
+        for (SExpression child : children) {
+
+            if (child.toString().contains("declare-fun")) {
+
+                String newChild = child.toString().replace("Control", "Bool")
+                        .replace(":no_dependence", " ");
+                newChild = newChild.replace("\n\n", "\n");
+
+                rootExp.replaceChild(SExpression.fromString(newChild), i);
+            }
+
+            // negate assert formulas
+            if (child.toString().contains("assert")) {
+
+                assert (child.getChildren().size() == 2);
+
+                SExpression assertFormula = child.getChildren().get(1);
+
+                SExpression negatedAssertFormula = new SExpression(
+                        SExpressionConstants.NOT, assertFormula);
+
+                SExpression negatedAssert = new SExpression(
+                        SExpressionConstants.ASSERT, negatedAssertFormula);
+
+                rootExp.replaceChild(negatedAssert, i);
+            }
+            i++;
+        }
+
+        // add new assert formulas for each control signal
+        for (Map.Entry<PropositionalVariable, Formula> entry : inpterpolations
+                .entrySet()) {
+            PropositionalVariable controlSignal = entry.getKey();
+            Formula controlFormula = entry.getValue();
+
+            SExpression controlAssert = SExpression.makeControlAssert(
+                    controlSignal, controlFormula);
+
+            rootExp.addChild(controlAssert);
+
+        }
+
+        rootExp.addChild(SExpressionConstants.CHECK_SAT);
+
+        return rootExp;
     }
 
     /**

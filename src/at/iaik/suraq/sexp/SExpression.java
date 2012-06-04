@@ -9,6 +9,8 @@ import java.util.List;
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 
 /**
  * This class represents s-expressions. It consists of a list of subexpressions.
@@ -393,6 +395,29 @@ public class SExpression {
     }
 
     /**
+     * Creates an SExpression for an assert statement for a control signal. Is
+     * used to check if formula is a valid implementation for a control signal.
+     * 
+     * @param controlSignal
+     *            the control signal for which a assert statement is generated
+     * @param controlFormula
+     *            the formula that implements the signal
+     * @return an <code>SExpression</code> for the assert statement
+     */
+    public static SExpression makeControlAssert(
+            PropositionalVariable controlSignal, Formula controlFormula) {
+
+        SExpression eqFormulaExp = new SExpression(SExpressionConstants.EQUAL,
+                fromString(controlSignal.toString()),
+                fromString(controlFormula.toString()));
+
+        SExpression result = new SExpression(SExpressionConstants.ASSERT,
+                eqFormulaExp);
+
+        return result;
+    }
+
+    /**
      * Checks an expression to be a valid proof type.
      * 
      * @param expr
@@ -437,4 +462,5 @@ public class SExpression {
             return true;
         return false;
     }
+
 }
