@@ -692,7 +692,9 @@ public class Suraq implements Runnable {
                 .println("finished proof transformations and interpolation calculations in "
                         + interpolationTimer + ".\n");
 
-        String outputStr = CreateOutputString(sourceFile, iteTrees).toString();
+        String outputStr = CreateOutputString(sourceFile, iteTrees);
+
+        System.out.println(outputStr);
 
         if (options.isCheckResult()) {
             SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
@@ -744,7 +746,7 @@ public class Suraq implements Runnable {
      *         control-signal-interpolations.
      * 
      */
-    private SExpression CreateOutputString(File sourceFile,
+    private String CreateOutputString(File sourceFile,
             Map<PropositionalVariable, Formula> inpterpolations) {
 
         SExpParser sExpParser = null;
@@ -823,7 +825,12 @@ public class Suraq implements Runnable {
 
         rootExp.addChild(SExpressionConstants.CHECK_SAT);
 
-        return rootExp;
+        String rootExpStr = rootExp.toString();
+
+        int beginIndex = rootExpStr.indexOf('(');
+        int endIndex = rootExpStr.lastIndexOf(')');
+
+        return (String) rootExpStr.subSequence(beginIndex + 1, endIndex);
     }
 
     /**
