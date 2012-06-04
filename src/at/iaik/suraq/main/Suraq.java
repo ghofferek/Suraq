@@ -168,6 +168,8 @@ public class Suraq implements Runnable {
             return null;
         }
 
+        Timer sExpParseTimer = new Timer();
+        sExpParseTimer.start();
         try {
             sExpParser.parse();
             assert (sExpParser.wasParsingSuccessfull());
@@ -175,17 +177,25 @@ public class Suraq implements Runnable {
             handleParseError(exc);
             noErrors = false;
             return null;
+        } finally {
+            sExpParseTimer.end();
+            System.out.println("S-Expression parsing took " + sExpParseTimer);
         }
 
         logicParser = new LogicParser(sExpParser.getRootExpr());
 
+        Timer logicParseTimer = new Timer();
         try {
+            logicParseTimer.start();
             logicParser.parse();
             assert (logicParser.wasParsingSuccessfull());
         } catch (ParseError exc) {
             handleParseError(exc);
             noErrors = false;
             return null;
+        } finally {
+            logicParseTimer.end();
+            System.out.println("Logic parsing took " + logicParseTimer);
         }
         // Parsing complete
         if (options.isVerbose())
@@ -222,13 +232,21 @@ public class Suraq implements Runnable {
         SExpParser sExpProofParser = null;
         sExpProofParser = new SExpParser(proof);
 
+        Timer timer = new Timer();
+
         try {
+            System.out.println("  Parsing proof to S-Expressions...");
+            timer.start();
             sExpProofParser.parse();
             assert (sExpProofParser.wasParsingSuccessfull());
         } catch (ParseError exc) {
             handleParseError(exc);
             noErrors = false;
             return null;
+        } finally {
+            timer.end();
+            System.out.println("    Done. (" + timer + ")");
+            timer.reset();
         }
 
         // parsing proof
@@ -240,12 +258,18 @@ public class Suraq implements Runnable {
                 intermediateVars.getUninterpretedFunctions());
 
         try {
+            System.out.println("  Parsing proof to SMTLIB objects...");
+            timer.start();
             proofParser.parse();
             assert (proofParser.wasParsingSuccessfull());
         } catch (ParseError exc) {
             handleParseError(exc);
             noErrors = false;
             return null;
+        } finally {
+            timer.end();
+            System.out.println("    Done. (" + timer + ")");
+            timer.reset();
         }
 
         // Main Flow
@@ -264,45 +288,100 @@ public class Suraq implements Runnable {
         // noErrors = false;
         // }
 
-        System.out.println("  Original Z3 Proof");
-        System.out.println("  Proof DAG size: " + rootProof.size(false));
-        System.out.println("  Proof size after unwinding DAG: "
+        timer.start();
+        System.out.println("    Proof DAG size: " + rootProof.size(false));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof size after unwinding DAG: "
                 + rootProof.size(true));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
         System.out.println();
 
+        System.out.println("  Local lemmas to assertions...");
+        timer.start();
         rootProof.localLemmasToAssertions();
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
         // assert (rootProof.checkZ3ProofNodeRecursive());
-        System.out.println("  After localLemmasToAssertions()");
-        System.out.println("  Proof DAG size: " + rootProof.size(false));
-        System.out.println("  Proof size after unwinding DAG: "
+        timer.start();
+        System.out.println("    Proof DAG size: " + rootProof.size(false));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof size after unwinding DAG: "
                 + rootProof.size(true));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
         System.out.println();
 
+        System.out.println("  Remove local sub-proofs...");
+        timer.start();
         rootProof.removeLocalSubProofs();
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
         // assert (rootProof.checkZ3ProofNodeRecursive());
-        System.out.println("  After removeLocalSubProofs()");
-        System.out.println("  Proof DAG size: " + rootProof.size(false));
-        System.out.println("  Proof size after unwinding DAG: "
+        timer.start();
+        System.out.println("    Proof DAG size: " + rootProof.size(false));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof size after unwinding DAG: "
                 + rootProof.size(true));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
         System.out.println();
 
+        System.out.println("  Deal with Modus Ponens...");
+        timer.start();
         rootProof.dealWithModusPonens();
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
         // assert (rootProof.checkZ3ProofNodeRecursive());
-        System.out.println("  After dealWithModusPonens()");
-        System.out.println("  Proof DAG size: " + rootProof.size(false));
-        System.out.println("  Proof size after unwinding DAG: "
+        timer.start();
+        System.out.println("    Proof DAG size: " + rootProof.size(false));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof size after unwinding DAG: "
                 + rootProof.size(true));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
         System.out.println();
 
         // System.out.println("Num Instances: " +
         // Z3Proof.numInstances());
+        System.out.println("  Conversion to transformed z3 proof...");
+        timer.start();
         TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
                 .convertToTransformedZ3Proof(rootProof);
-        System.out.println("  After convertToTransformedZ3Proof()");
-        System.out.println("  Proof DAG size: "
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof DAG size: "
                 + transformedZ3Proof.size(false));
-        System.out.println("  Proof size after unwinding DAG: "
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof size after unwinding DAG: "
                 + transformedZ3Proof.size(true));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
         System.out.println();
         /*
          * System.out.println("Num Instances: " + Z3Proof.numInstances()); try {
@@ -316,30 +395,60 @@ public class Suraq implements Runnable {
          */
         // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
 
+        System.out.println("  To local proof...");
+        timer.start();
         transformedZ3Proof.toLocalProof();
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
         // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
-
-        System.out.println("  After toLocalProof()");
-        System.out.println("  Proof DAG size: "
-                + transformedZ3Proof.size(false));
-        System.out.println("  Proof size after unwinding DAG: "
-                + transformedZ3Proof.size(true));
-        System.out.println();
         assert (transformedZ3Proof.isLocal());
 
-        transformedZ3Proof.toResolutionProof();
-        System.out.println("  After toResolutionProof()");
-        System.out.println("  Proof DAG size: "
+        timer.start();
+        System.out.println("    Proof DAG size: "
                 + transformedZ3Proof.size(false));
-        System.out.println("  Proof size after unwinding DAG: "
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof size after unwinding DAG: "
                 + transformedZ3Proof.size(true));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
         System.out.println();
-        assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
+
+        System.out.println("  To resolution proof...");
+        timer.start();
+        transformedZ3Proof.toResolutionProof();
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof DAG size: "
+                + transformedZ3Proof.size(false));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof size after unwinding DAG: "
+                + transformedZ3Proof.size(true));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        System.out.println();
 
         // START: ASHUTOSH code
+        System.out.println("  To resolution proof format...");
+        timer.start();
         ResProof resolutionProof = Util
                 .createResolutionProof(transformedZ3Proof);
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
 
+        System.out.println("  Check and transform resolution proof...");
+        timer.start();
         // resolutionProof.dumpProof();
         resolutionProof.checkProof(false);
         resolutionProof.rmDoubleLits();
@@ -347,20 +456,41 @@ public class Suraq implements Runnable {
         resolutionProof.deLocalizeProof();
         resolutionProof.checkProof(false);
         resolutionProof.tranformResProofs();
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
         // END: ASHUTOSH code
 
         // Transform back into Z3Proof format
+        System.out.println("  Recover resolution proof...");
+        timer.start();
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
                 resolutionProof.getRoot(), Util.getLiteralMap());
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
 
-        System.out.println("  After recovering proof:");
-        System.out.println("  Proof DAG size: " + recoveredProof.size(false));
-        System.out.println("  Proof size after unwinding DAG: "
+        timer.start();
+        System.out.println("    Proof DAG size: " + recoveredProof.size(false));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        timer.start();
+        System.out.println("    Proof size after unwinding DAG: "
                 + recoveredProof.size(true));
+        timer.end();
+        System.out.println("      Size computed in " + timer);
+        timer.reset();
+        System.out.println();
 
         // create ITE-tree for every control signal
+        System.out.println("  Compute interpolants...");
+        timer.start();
         Map<PropositionalVariable, Formula> iteTrees = recoveredProof
                 .createITETrees(intermediateVars.getControlVars());
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
 
         return iteTrees;
     }
@@ -661,19 +791,30 @@ public class Suraq implements Runnable {
      */
     private Formula doMainWork() throws SuraqException {
 
+        Timer timer = new Timer();
+
         // Flattening formula, because macros cause problems when
         // replacing arrays with uninterpreted functions
         // (functions cannot be macro parameters)
         System.out.println("  Flattening formula...");
+        timer.start();
         Formula formula = logicParser.getMainFormula().flatten();
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
         assert (formula.getFunctionMacros().size() == 0);
         Set<Token> noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
 
         Set<Formula> constraints = new HashSet<Formula>();
         System.out.println("  Making array reads simple...");
+        timer.reset();
+        timer.start();
         formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
         System.out.println("  Removing array writes...");
+        timer.reset();
+        timer.start();
         formula.removeArrayWrites(formula, constraints, noDependenceVars);
         if (constraints.size() > 0) {
             List<Formula> constraintsList = new ArrayList<Formula>();
@@ -681,9 +822,15 @@ public class Suraq implements Runnable {
             AndFormula arrayConstraints = new AndFormula(constraintsList);
             formula = new ImpliesFormula(arrayConstraints, formula);
         }
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
 
         System.out.println("  Removing array equalities...");
+        timer.reset();
+        timer.start();
         formula.removeArrayEqualities();
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
 
@@ -702,7 +849,11 @@ public class Suraq implements Runnable {
 
         System.out
                 .println("  Converting array properties to finite conjunctions...");
+        timer.reset();
+        timer.start();
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
 
         formula = new ImpliesFormula(lambdaConstraints, formula);
 
@@ -713,8 +864,12 @@ public class Suraq implements Runnable {
                         .add(new Token(var.getVarName()));
         System.out
                 .println("  Converting array reads to uninterpreted function calls...");
+        timer.reset();
+        timer.start();
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
         noDependenceVars.removeAll(currentDependenceArrayVariables);
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
 
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
@@ -738,8 +893,12 @@ public class Suraq implements Runnable {
 
         int beginDeclarationsIdx = outputExpressions.size();
 
+        timer.reset();
+        timer.start();
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
 
         // get declarations and functions
         ListIterator<SExpression> beginDeclarations = outputExpressions

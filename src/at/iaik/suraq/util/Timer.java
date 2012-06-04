@@ -31,11 +31,19 @@ public class Timer {
     }
 
     /**
-     * Stops the measure
+     * Stops the timing
      * 
      */
     public void end() {
         this.endTime = System.currentTimeMillis();
+    }
+
+    /**
+     * Resets the timer.
+     */
+    public void reset() {
+        startTime = 0;
+        endTime = 0;
     }
 
     /**
