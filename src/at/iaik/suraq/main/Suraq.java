@@ -301,25 +301,31 @@ public class Suraq implements Runnable {
         timer.reset();
         System.out.println();
 
-        System.out.println("  Local lemmas to assertions...");
         timer.start();
-        rootProof.localLemmasToAssertions();
+        int all_nodes_size = rootProof.allNodes().size();
         timer.end();
-        System.out.println("    Done. (" + timer + ")");
-        timer.reset();
-        // assert (rootProof.checkZ3ProofNodeRecursive());
-        timer.start();
-        System.out.println("    Proof DAG size: " + rootProof.size(false));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        timer.start();
-        System.out.println("    Proof size after unwinding DAG: "
-                + rootProof.size(true));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        System.out.println();
+        System.out.println("  All nodes size: " + all_nodes_size);
+        System.out.println("  (computed in " + timer + ")");
+
+        // System.out.println("  Local lemmas to assertions...");
+        // timer.start();
+        // rootProof.localLemmasToAssertions();
+        // timer.end();
+        // System.out.println("    Done. (" + timer + ")");
+        // timer.reset();
+        // // assert (rootProof.checkZ3ProofNodeRecursive());
+        // timer.start();
+        // System.out.println("    Proof DAG size: " + rootProof.size(false));
+        // timer.end();
+        // System.out.println("      Size computed in " + timer);
+        // timer.reset();
+        // timer.start();
+        // System.out.println("    Proof size after unwinding DAG: "
+        // + rootProof.size(true));
+        // timer.end();
+        // System.out.println("      Size computed in " + timer);
+        // timer.reset();
+        // System.out.println();
 
         System.out.println("  Remove local sub-proofs...");
         timer.start();
@@ -691,6 +697,7 @@ public class Suraq implements Runnable {
         try {
 
             File smtfile = new File(options.getOutput());
+            System.out.println("Writing result to " + smtfile);
             FileWriter fstream = new FileWriter(smtfile);
             BufferedWriter smtfilewriter = new BufferedWriter(fstream);
             for (PropositionalVariable controlVar : iteTrees.keySet())

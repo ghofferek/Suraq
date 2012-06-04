@@ -449,33 +449,63 @@ public class Z3Proof implements SMTLibObject {
 
     public void removeLocalSubProofs() {
         int operationId = startDAGOperation();
-        this.removeLocalSubProofsRecursion(operationId);
+        Map<Z3Proof, Set<Integer>> partitionMap = new HashMap<Z3Proof, Set<Integer>>();
+        Map<Z3Proof, Set<Z3Proof>> hypothesesMap = new HashMap<Z3Proof, Set<Z3Proof>>();
+        this.removeLocalSubProofsRecursion(operationId, partitionMap,
+                hypothesesMap);
         endDAGOperation(operationId);
     }
 
-    public void removeLocalSubProofsRecursion(int operationId) {
+    public void removeLocalSubProofsRecursion(int operationId,
+            Map<Z3Proof, Set<Integer>> partitionMap,
+            Map<Z3Proof, Set<Z3Proof>> hypothesesMap) {
         visitedByDAGOperation(operationId);
+        assert (partitionMap != null);
+        assert (hypothesesMap != null);
 
-        Set<Integer> partitionsFromAsserts = this.getPartitionsFromAsserts();
+        Set<Integer> partitions = new HashSet<Integer>();
+        Set<Z3Proof> hypotheses = new HashSet<Z3Proof>();
 
-        if (partitionsFromAsserts.size() == 1) {
-            assert (!partitionsFromAsserts.contains((new Integer(-1))));
-            Set<Integer> symbolPartitions = this.getPartitionsFromSymbols();
-            assert (symbolPartitions.size() > 0);
-            symbolPartitions.remove(-1);
-            if ((symbolPartitions.equals(partitionsFromAsserts) || symbolPartitions
-                    .size() == 0) && this.getHypotheses().size() == 0) {
-                proofType = SExpressionConstants.ASSERTED;
-                this.assertPartition = partitionsFromAsserts.iterator().next();
-                subProofs = new ArrayList<Z3Proof>();
-                return;
-            }
+        if (this.proofType.equals(SExpressionConstants.HYPOTHESIS)) {
+            hypotheses.add(this);
+            hypothesesMap.put(this, hypotheses);
+            partitions.addAll(this.consequent.getPartitionsFromSymbols());
+        } else if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
+            assert (this.assertPartition > 0);
+            partitions.add(this.assertPartition);
+
         }
 
-        for (Z3Proof child : subProofs) {
-            if (child.wasVisitedByDAGOperation(operationId))
-                continue;
-            child.removeLocalSubProofsRecursion(operationId);
+        for (Z3Proof child : this.subProofs) {
+            if (!child.wasVisitedByDAGOperation(operationId))
+                child.removeLocalSubProofsRecursion(operationId, partitionMap,
+                        hypothesesMap);
+
+            assert (partitionMap.containsKey(child));
+            Set<Integer> childPartitions = partitionMap.get(child);
+            assert (childPartitions != null);
+            partitions.addAll(childPartitions);
+
+            assert (hypothesesMap.containsKey(child));
+            Set<Z3Proof> childHypotheses = hypothesesMap.get(child);
+            assert (childHypotheses != null);
+            hypotheses.addAll(childHypotheses);
+        }
+
+        partitionMap.put(this, new HashSet<Integer>(partitions));
+        hypothesesMap.put(this, hypotheses);
+        partitions.remove(-1);
+
+        if (this.proofType.equals(SExpressionConstants.LEMMA)
+                || hypotheses.size() == 0) {
+            if (partitions.size() <= 1) {
+                int partition = partitions.size() == 0 ? 1 : partitions
+                        .iterator().next(); // arbitrary choice 1 for
+                                            // "global facts"
+                this.subProofs = new ArrayList<Z3Proof>(0);
+                this.proofType = SExpressionConstants.ASSERTED;
+                this.assertPartition = partition;
+            }
         }
     }
 
