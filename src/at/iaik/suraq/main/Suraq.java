@@ -252,17 +252,17 @@ public class Suraq implements Runnable {
         Z3Proof rootProof = proofParser.getRootProof();
         // assert (rootProof.checkZ3ProofNodeRecursive);
 
-        try {
-            File prooffile = new File("proofTemp.txt");
-            FileWriter fstream = new FileWriter(prooffile);
-            BufferedWriter proofFilewriter = new BufferedWriter(fstream);
-            proofFilewriter.write(rootProof.prettyPrint());
-            proofFilewriter.close();
-        } catch (IOException exc) {
-            System.err.println("Error while writing to proof file.");
-            exc.printStackTrace();
-            noErrors = false;
-        }
+        // try {
+        // File prooffile = new File("proofTemp.txt");
+        // FileWriter fstream = new FileWriter(prooffile);
+        // BufferedWriter proofFilewriter = new BufferedWriter(fstream);
+        // proofFilewriter.write(rootProof.prettyPrint());
+        // proofFilewriter.close();
+        // } catch (IOException exc) {
+        // System.err.println("Error while writing to proof file.");
+        // exc.printStackTrace();
+        // noErrors = false;
+        // }
 
         System.out.println("  Original Z3 Proof");
         System.out.println("  Proof DAG size: " + rootProof.size(false));
