@@ -745,43 +745,42 @@ public class Z3Proof implements SMTLibObject {
 
     public String prettyPrint() {
         int operationId = startDAGOperation();
-        String result = this.prettyPrintRecursive(operationId);
+        StringBuffer buffer = new StringBuffer();
+        this.prettyPrintRecursive(operationId, buffer);
         endDAGOperation(operationId);
-        return result;
+        return buffer.toString();
     }
 
-    public String prettyPrintRecursive(int operationId) {
+    public void prettyPrintRecursive(int operationId, StringBuffer buffer) {
         visitedByDAGOperation(operationId);
 
-        StringBuffer result = new StringBuffer();
-        result.append("----------------------------------------------\n");
-        result.append("ID: ");
-        result.append(this.id);
-        result.append("  (partition: ");
-        result.append(this.assertPartition);
-        result.append(")");
-        result.append("\n");
-        result.append("Rule: ");
-        result.append(proofType.toString());
-        result.append("\n");
-        result.append("Antecedents:\n");
+        buffer.append("----------------------------------------------\n");
+        buffer.append("ID: ");
+        buffer.append(this.id);
+        buffer.append("  (partition: ");
+        buffer.append(this.assertPartition);
+        buffer.append(")");
+        buffer.append("\n");
+        buffer.append("Rule: ");
+        buffer.append(proofType.toString());
+        buffer.append("\n");
+        buffer.append("Antecedents:\n");
         for (Z3Proof child : subProofs) {
-            result.append(child.id);
-            result.append(": ");
-            result.append(child.consequent.toString()
+            buffer.append(child.id);
+            buffer.append(": ");
+            buffer.append(child.consequent.toString()
                     .replaceAll("\\s{2,}", " ").replace("\n", ""));
-            result.append("\n");
+            buffer.append("\n");
         }
-        result.append("Proofs: ");
-        result.append(consequent.toString().replaceAll("\\s{2,}", " ")
+        buffer.append("Proofs: ");
+        buffer.append(consequent.toString().replaceAll("\\s{2,}", " ")
                 .replace("\n", ""));
-        result.append("\n");
+        buffer.append("\n");
         for (Z3Proof child : subProofs) {
             if (child.wasVisitedByDAGOperation(operationId))
                 continue;
-            result.append(child.prettyPrintRecursive(operationId));
+            child.prettyPrintRecursive(operationId, buffer);
         }
-        return result.toString();
     }
 
     /**
