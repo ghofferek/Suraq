@@ -17,6 +17,10 @@ import at.iaik.suraq.sexp.Token;
 public class FormulaTerm extends PropositionalTerm {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -7262583554346618516L;
+    /**
      * The formula that represents this term.
      */
     private Formula formula;

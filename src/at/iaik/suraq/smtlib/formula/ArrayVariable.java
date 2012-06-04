@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +19,11 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class ArrayVariable extends ArrayTerm {
+public class ArrayVariable extends ArrayTerm implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 4046182524846284758L;
     /**
      * The name of the variable.
      */

@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -17,7 +18,12 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class UninterpretedFunction {
+public class UninterpretedFunction implements Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5520322987626682279L;
 
     /**
      * The assert-partitions

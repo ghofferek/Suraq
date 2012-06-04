@@ -21,6 +21,11 @@ import at.iaik.suraq.sexp.Token;
 public class ArrayIte extends ArrayTerm {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 4245403417842028322L;
+
+    /**
      * The condition.
      */
     private final Formula condition;

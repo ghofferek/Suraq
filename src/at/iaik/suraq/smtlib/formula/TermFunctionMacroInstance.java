@@ -22,6 +22,11 @@ import at.iaik.suraq.sexp.Token;
  */
 public class TermFunctionMacroInstance extends DomainTerm {
     /**
+     * 
+     */
+    private static final long serialVersionUID = -2357506879919697251L;
+
+    /**
      * The macro of which this is an instance.
      */
     private final TermFunctionMacro macro;

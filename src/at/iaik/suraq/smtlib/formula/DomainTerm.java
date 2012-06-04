@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -18,7 +19,12 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class DomainTerm extends Term {
+public abstract class DomainTerm extends Term implements Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -328749262145943504L;
 
     /**
      * Checks whether this term consists of evars (with respect to the given

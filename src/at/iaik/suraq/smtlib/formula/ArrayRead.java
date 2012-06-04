@@ -24,6 +24,11 @@ import at.iaik.suraq.util.Util;
 public class ArrayRead extends DomainTerm {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -2549087326175334824L;
+
+    /**
      * The array variable that is read.
      */
     private ArrayTerm arrayTerm;

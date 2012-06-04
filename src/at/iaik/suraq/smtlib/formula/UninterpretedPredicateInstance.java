@@ -24,6 +24,11 @@ import at.iaik.suraq.util.Util;
 public class UninterpretedPredicateInstance extends PropositionalTerm {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 7300557099748461681L;
+
+    /**
      * The function of which this is an instance.
      */
     private UninterpretedFunction function;

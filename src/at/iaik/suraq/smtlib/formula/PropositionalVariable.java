@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,8 +21,13 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class PropositionalVariable extends PropositionalTerm {
+public class PropositionalVariable extends PropositionalTerm implements
+        Serializable {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 3473923317666080631L;
     /**
      * The name of the variable.
      */

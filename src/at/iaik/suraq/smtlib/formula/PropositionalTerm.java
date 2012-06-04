@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
@@ -17,7 +18,13 @@ import at.iaik.suraq.smtlib.SMTLibObject;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class PropositionalTerm extends Term implements Formula {
+public abstract class PropositionalTerm extends Term implements Formula,
+        Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -8802037619823735053L;
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getType()

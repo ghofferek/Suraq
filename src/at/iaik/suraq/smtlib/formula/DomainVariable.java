@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,7 +20,13 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class DomainVariable extends DomainTerm {
+public class DomainVariable extends DomainTerm implements Serializable {
+
+    /**
+     * unique serial number
+     */
+    private static final long serialVersionUID = -2173510375009985016L;
+
     /**
      * The name of the variable.
      */

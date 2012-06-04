@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.sexp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +14,12 @@ import at.iaik.suraq.exceptions.NotATokenListException;
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  */
-public class Token extends SExpression {
+public class Token extends SExpression implements Serializable {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1428132654399245852L;
     /**
      * The string representation of the token.
      */

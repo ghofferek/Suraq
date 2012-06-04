@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +21,12 @@ import at.iaik.suraq.sexp.Token;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class Term {
+public abstract class Term implements Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -5654824580231056142L;
 
     public static final Class<?> domainTermClass = (new DomainVariable(""))
             .getClass().getSuperclass();
@@ -30,12 +36,12 @@ public abstract class Term {
             "")).getClass().getSuperclass();
 
     public final static int GLOBAL_PARTITION = -1;
-    
-	 /**
+
+    /**
      * The assert-partitions
      */
-	protected int assertPartition = GLOBAL_PARTITION;
-	
+    protected int assertPartition = GLOBAL_PARTITION;
+
     /**
      * Checks whether all terms in the given list are compatible for
      * (dis)equality operations. If so, the type is returned.
@@ -265,7 +271,7 @@ public abstract class Term {
     public abstract Term uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars);
-    
+
     /**
      * Returns the elements assert-partition.
      * 

@@ -26,6 +26,11 @@ import at.iaik.suraq.sexp.Token;
 public class UninterpretedFunctionInstance extends DomainTerm {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -2770188384661175641L;
+
+    /**
      * The function of which this is an instance.
      */
     private UninterpretedFunction function;

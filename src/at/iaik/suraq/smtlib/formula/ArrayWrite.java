@@ -24,6 +24,11 @@ import at.iaik.suraq.util.Util;
 public class ArrayWrite extends ArrayTerm {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -2087596963751666011L;
+
+    /**
      * The array to which this expression writes.
      */
     private final ArrayTerm arrayTerm;

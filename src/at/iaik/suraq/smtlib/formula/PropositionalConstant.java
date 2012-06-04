@@ -23,6 +23,10 @@ import at.iaik.suraq.sexp.Token;
  */
 public class PropositionalConstant extends PropositionalTerm {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 48734596062800807L;
     private boolean constant;
 
     /**

@@ -44,6 +44,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.SaveCache;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 
@@ -216,7 +217,7 @@ public class Suraq implements Runnable {
     }
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
-            String proof) {
+            String proof, SaveCache intermediateVars) {
         // expression parsing of proof
         SExpParser sExpProofParser = null;
         sExpProofParser = new SExpParser(proof);
@@ -230,42 +231,13 @@ public class Suraq implements Runnable {
             return null;
         }
 
-        // build function and variable lists for proof parser
-        Set<PropositionalVariable> propsitionalVars = mainFormula
-                .getPropositionalVariables();
-        Set<DomainVariable> domainVars = mainFormula.getDomainVariables();
-        Set<ArrayVariable> arrayVars = mainFormula.getArrayVariables();
-        Set<UninterpretedFunction> uninterpretedFunctions = mainFormula
-                .getUninterpretedFunctions();
-
-        for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
-                .entrySet()) {
-            assert (varList.getValue() != null);
-            assert (varList.getValue().size() > 0);
-
-            Term first = varList.getValue().get(0);
-
-            if (first instanceof DomainVariable)
-                for (Term var : varList.getValue())
-                    domainVars.add((DomainVariable) var);
-
-            if (first instanceof PropositionalVariable)
-                for (Term var : varList.getValue())
-                    propsitionalVars.add((PropositionalVariable) var);
-
-            if (first instanceof ArrayVariable)
-                for (Term var : varList.getValue())
-                    arrayVars.add((ArrayVariable) var);
-        }
-
-        for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies
-                .entrySet())
-            uninterpretedFunctions.addAll(functionList.getValue());
-
         // parsing proof
         ProofParser proofParser = new ProofParser(
-                sExpProofParser.getRootExpr(), domainVars, propsitionalVars,
-                arrayVars, uninterpretedFunctions);
+                sExpProofParser.getRootExpr(),
+                intermediateVars.getDomainVars(),
+                intermediateVars.getPropsitionalVars(),
+                intermediateVars.getArrayVars(),
+                intermediateVars.getUninterpretedFunctions());
 
         try {
             proofParser.parse();
@@ -388,7 +360,7 @@ public class Suraq implements Runnable {
 
         // create ITE-tree for every control signal
         Map<PropositionalVariable, Formula> iteTrees = recoveredProof
-                .createITETrees(logicParser.getControlVariables());
+                .createITETrees(intermediateVars.getControlVars());
 
         return iteTrees;
     }
@@ -413,10 +385,12 @@ public class Suraq implements Runnable {
 
         File z3InputFile = new File(options.getZ3Input());
         File z3ProofFile = new File(options.getZ3Proof());
+        File saveCacheFile = new File("savecache.db");
 
         boolean useCachedResults = false;
 
-        if (z3InputFile.exists() && z3ProofFile.exists() && options.useCache()) {
+        if (z3InputFile.exists() && z3ProofFile.exists() && options.useCache()
+                && saveCacheFile.exists()) {
             Date inputFileDate = new Date(sourceFile.lastModified());
             Date z3InputFileDate = new Date(z3InputFile.lastModified());
             Date z3ProofFileDate = new Date(z3ProofFile.lastModified());
@@ -425,13 +399,15 @@ public class Suraq implements Runnable {
                     && (z3InputFileDate.getTime() <= z3ProofFileDate.getTime())) {
 
                 useCachedResults = true;
-                System.out.println("INFO: using cached intermediate results.");
+                System.out
+                        .println("INFO: using cached intermediate results.\n");
             }
         }
 
         String proof = null;
-        if (true) {
-            // if (!useCachedResults) {
+        SaveCache intermediateVars = null;
+
+        if (!useCachedResults) {
             System.out.println("start input transformations");
             Timer inputTransformationTimer = new Timer();
             inputTransformationTimer.start();
@@ -496,6 +472,50 @@ public class Suraq implements Runnable {
                     noErrors = false;
                 }
             }
+
+            // build function and variable lists for proof parser
+            Set<PropositionalVariable> propsitionalVars = mainFormula
+                    .getPropositionalVariables();
+            Set<DomainVariable> domainVars = mainFormula.getDomainVariables();
+            Set<ArrayVariable> arrayVars = mainFormula.getArrayVariables();
+            Set<UninterpretedFunction> uninterpretedFunctions = mainFormula
+                    .getUninterpretedFunctions();
+
+            for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
+                    .entrySet()) {
+                assert (varList.getValue() != null);
+                assert (varList.getValue().size() > 0);
+
+                Term first = varList.getValue().get(0);
+
+                if (first instanceof DomainVariable)
+                    for (Term var : varList.getValue())
+                        domainVars.add((DomainVariable) var);
+
+                if (first instanceof PropositionalVariable)
+                    for (Term var : varList.getValue())
+                        propsitionalVars.add((PropositionalVariable) var);
+
+                if (first instanceof ArrayVariable)
+                    for (Term var : varList.getValue())
+                        arrayVars.add((ArrayVariable) var);
+            }
+
+            for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies
+                    .entrySet())
+                uninterpretedFunctions.addAll(functionList.getValue());
+
+            // write intermediate variables to file, if caching is enabled
+            String filename;
+            if (options.useCache())
+                filename = saveCacheFile.getPath();
+            else
+                filename = null;
+
+            intermediateVars = new SaveCache(propsitionalVars, domainVars,
+                    arrayVars, uninterpretedFunctions,
+                    logicParser.getControlVariables(), filename);
+
         } else { // use cached files
             try {
 
@@ -512,45 +532,10 @@ public class Suraq implements Runnable {
                 }
                 bufferedReader.close();
                 reader.close();
-
                 proof = stringBuilder.toString();
 
-                // parse z3input file
-                SExpParser sExpParser = null;
-                try {
-                    sExpParser = new SExpParser(z3InputFile);
-                } catch (FileNotFoundException exc) {
-                    System.err.println("ERROR: File " + z3InputFile.getPath()
-                            + " not found!");
-                    noErrors = false;
-                    return;
-                } catch (IOException exc) {
-                    System.err.println("ERROR: Could not read from file "
-                            + z3InputFile.getPath());
-                    noErrors = false;
-                    return;
-                }
-
-                try {
-                    sExpParser.parse();
-                    assert (sExpParser.wasParsingSuccessfull());
-                } catch (ParseError exc) {
-                    handleParseError(exc);
-                    noErrors = false;
-                    return;
-                }
-
-                logicParser = new LogicParser(sExpParser.getRootExpr());
-
-                try {
-                    logicParser.parse();
-                    assert (logicParser.wasParsingSuccessfull());
-                } catch (ParseError exc) {
-                    handleParseError(exc);
-                    noErrors = false;
-                    return;
-                }
-                this.mainFormula = logicParser.getMainFormula();
+                intermediateVars = SaveCache
+                        .loadSaveCacheFromFile(saveCacheFile.getPath());
 
             } catch (IOException exc) {
                 System.out.println("ERROR: Could not read cached proof!");
@@ -564,7 +549,8 @@ public class Suraq implements Runnable {
 
         assert (proof != null);
 
-        Map<PropositionalVariable, Formula> iteTrees = proofTransformationAndInterpolation(proof);
+        Map<PropositionalVariable, Formula> iteTrees = proofTransformationAndInterpolation(
+                proof, intermediateVars);
 
         interpolationTimer.end();
         System.out

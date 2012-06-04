@@ -22,6 +22,11 @@ import at.iaik.suraq.sexp.Token;
 public class DomainIte extends DomainTerm {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -5183742886536916272L;
+
+    /**
      * The condition.
      */
     private final Formula condition;
