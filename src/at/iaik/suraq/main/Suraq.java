@@ -709,6 +709,7 @@ public class Suraq implements Runnable {
                 noErrors = false;
                 System.out
                         .println("ERROR: Z3 tells us SAT. Implementation of control signal is not correct");
+                break;
             default:
                 noErrors = false;
                 System.out

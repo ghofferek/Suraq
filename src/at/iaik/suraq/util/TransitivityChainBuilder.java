@@ -3,7 +3,6 @@
  */
 package at.iaik.suraq.util;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import at.iaik.suraq.smtlib.Z3Proof;
@@ -22,11 +21,6 @@ import at.iaik.suraq.util.graph.Graph;
 public class TransitivityChainBuilder {
 
     /**
-     * The target proof
-     */
-    private final Z3Proof target;
-
-    /**
      * The first term of the target equality.
      */
     private final Term targetStartTerm;
@@ -42,11 +36,6 @@ public class TransitivityChainBuilder {
     private final Graph<Term, Z3Proof> graph = new Graph<Term, Z3Proof>(true);
 
     /**
-     * The chain of proofs that is being created.
-     */
-    private final List<Z3Proof> chain = new ArrayList<Z3Proof>();
-
-    /**
      * 
      * Constructs a new <code>TransitivityChainBuilder</code>.
      * 
@@ -54,8 +43,6 @@ public class TransitivityChainBuilder {
      *            the target to prove.
      */
     public TransitivityChainBuilder(Z3Proof target) {
-
-        this.target = target;
 
         assert (target.getConsequent() instanceof EqualityFormula);
         EqualityFormula eq = (EqualityFormula) target.getConsequent();
