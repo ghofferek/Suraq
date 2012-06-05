@@ -47,8 +47,8 @@ public class TransitivityChainBuilder {
 
         assert (Util.isLiteral(target.getConsequent()));
         Formula targetLiteral = Util.getSingleLiteral(target.getConsequent());
-        if (!(targetLiteral instanceof EqualityFormula))
-            assert (false);
+        targetLiteral = Util.makeLiteralPositive(targetLiteral);
+        assert (targetLiteral instanceof EqualityFormula);
         EqualityFormula eq = (EqualityFormula) targetLiteral;
         assert (eq.getTerms().size() == 2);
         targetStartTerm = eq.getTerms().get(0);
@@ -63,12 +63,21 @@ public class TransitivityChainBuilder {
      * @param node
      */
     public void addProofNode(Z3Proof node) {
-        if (!(node.getConsequent() instanceof EqualityFormula))
+        assert (Util.isLiteral(node.getConsequent()));
+        Formula literal = Util.getSingleLiteral(node.getConsequent());
+        literal = Util.makeLiteralPositive(literal);
+        if (!(literal instanceof EqualityFormula)) {
+            System.out
+                    .println("INFO: Ignoring a node added to a chain builder.");
             return;
+        }
 
         EqualityFormula newEq = (EqualityFormula) node.getConsequent();
-        if (newEq.getTerms().size() != 2)
+        if (newEq.getTerms().size() != 2) {
+            System.out
+                    .println("INFO: Ignoring a node added to a chain builder.");
             return;
+        }
 
         Term term1 = newEq.getTerms().get(0);
         Term term2 = newEq.getTerms().get(1);

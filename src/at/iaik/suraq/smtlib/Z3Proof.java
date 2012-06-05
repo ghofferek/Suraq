@@ -568,6 +568,8 @@ public class Z3Proof implements SMTLibObject {
             }
 
             List<Z3Proof> proofList = chainBuilder.getChain();
+            if (proofList == null)
+                assert (false);
             Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
             this.subProofs = transProof.subProofs;
             this.proofType = transProof.proofType;
@@ -744,6 +746,7 @@ public class Z3Proof implements SMTLibObject {
      */
     public static Z3Proof createTransitivityProof(
             List<? extends Z3Proof> subProofs) {
+        assert (subProofs != null);
         subProofs = new ArrayList<Z3Proof>(subProofs);
         assert (subProofs.size() == 2 || subProofs.size() == 3);
         assert (Util.makeLiteralPositive(Util.getSingleLiteral((subProofs
