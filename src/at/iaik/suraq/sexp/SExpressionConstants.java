@@ -41,6 +41,9 @@ public class SExpressionConstants {
     public static final SExpression SET_LOGIC_QF_UF = SExpression
             .fromString("(set-logic QF_UF)");
 
+    public static final SExpression SET_LOGIC_QF_AUFLIA = SExpression
+            .fromString("(set-logic QF_AUFLIA)");
+
     public static final SExpression SET_OPTION_PRODUCE_INTERPOLANT = SExpression
             .fromString("(set-option :produce-interpolants true)");
 

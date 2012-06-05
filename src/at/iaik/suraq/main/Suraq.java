@@ -694,8 +694,6 @@ public class Suraq implements Runnable {
 
         String outputStr = CreateOutputString(sourceFile, iteTrees);
 
-        System.out.println(outputStr);
-
         if (options.isCheckResult()) {
             SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
             z3.solve(outputStr);
@@ -708,14 +706,12 @@ public class Suraq implements Runnable {
                 break;
             case SMTSolver.SAT:
                 noErrors = false;
-                throw (new RuntimeException(
-                        "Z3 tells us SAT. Implementation of control signal is not correct"));
+                System.out
+                        .println("ERROR: Z3 tells us SAT. Implementation of control signal is not correct");
             default:
                 noErrors = false;
                 System.out
                         .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
-                throw (new RuntimeException(
-                        "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
             }
         }
 
@@ -780,7 +776,7 @@ public class Suraq implements Runnable {
         ArrayList<SExpression> children = new ArrayList<SExpression>(
                 rootExp.getChildren());
 
-        rootExp.replaceChild(SExpressionConstants.SET_LOGIC_QF_UF, 0);
+        rootExp.replaceChild(SExpressionConstants.SET_LOGIC_QF_AUFLIA, 0);
         rootExp.addChild(SExpressionConstants.DECLARE_SORT_VALUE, 1);
 
         int i = 1;
