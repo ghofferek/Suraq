@@ -319,6 +319,36 @@ public class Util {
      */
     public static boolean checkForFlippedDisequality(Formula formula1,
             Formula formula2) {
+        return Util.checkForFlippedEquality(formula1, formula2, false);
+    }
+
+    /**
+     * @param formula1
+     * @param formula2
+     * @return <code>true</code> iff the two formulas are of the form a!=b and
+     *         b!=a or a==b and b==a.
+     */
+    public static boolean checkForFlippedEqualityOrDisequality(
+            Formula formula1, Formula formula2) {
+        if (Util.checkForFlippedEquality(formula1, formula2, true))
+            return true;
+        if (Util.checkForFlippedEquality(formula1, formula2, false))
+            return true;
+        return false;
+    }
+
+    /**
+     * @param formula1
+     * @param formula2
+     * @param equal
+     *            if <code>true</code>, check for positive equalities, else for
+     *            disequalities.
+     * @return <code>true</code> iff the two formulas are of the form a R b and
+     *         b R a, where R is either <code>==</code> (if <code>equal</code>
+     *         is true, or <code>!=</code> otherwise.
+     */
+    public static boolean checkForFlippedEquality(Formula formula1,
+            Formula formula2, boolean equal) {
         if (!Util.isLiteral(formula1))
             return false;
         if (!Util.isLiteral(formula2))
@@ -332,9 +362,9 @@ public class Util {
         if (!(Util.makeLiteralPositive(literal2) instanceof EqualityFormula))
             return false;
 
-        if (!Util.isNegativeLiteral(literal1))
+        if (!Util.isNegativeLiteral(literal1) ^ equal)
             return false;
-        if (!Util.isNegativeLiteral(literal2))
+        if (!Util.isNegativeLiteral(literal2) ^ equal)
             return false;
 
         literal1 = Util.makeLiteralPositive(literal1);

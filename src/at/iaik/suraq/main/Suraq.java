@@ -1283,21 +1283,26 @@ public class Suraq implements Runnable {
      * @param proof
      */
     private void printProofSize(Z3Proof proof) {
-        Timer dagTimer = new Timer();
-        dagTimer.start();
-        int dagSize = proof.size(false);
-        dagTimer.end();
-        Timer treeTimer = new Timer();
-        treeTimer.start();
-        int treeSize = proof.size(true);
-        treeTimer.end();
-        DecimalFormat myFormatter = new DecimalFormat("###,###,###");
-        String dagSizeString = myFormatter.format(dagSize);
-        String treeSizeString = myFormatter.format(treeSize);
-        System.out.println("    Proof (DAG)  size: " + dagSizeString
-                + " (computed in " + dagTimer + ")");
-        System.out.println("    Proof (tree) size: " + treeSizeString
-                + " (computed in " + treeTimer + ")");
-        System.out.println();
+
+        SuraqOptions options = SuraqOptions.getInstance();
+
+        if (options.isVerbose()) {
+            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
+            Timer dagTimer = new Timer();
+            dagTimer.start();
+            int dagSize = proof.size(false);
+            dagTimer.end();
+            String dagSizeString = myFormatter.format(dagSize);
+            System.out.println("    Proof (DAG)  size: " + dagSizeString
+                    + " (computed in " + dagTimer + ")");
+            Timer treeTimer = new Timer();
+            treeTimer.start();
+            int treeSize = proof.size(true);
+            treeTimer.end();
+            String treeSizeString = myFormatter.format(treeSize);
+            System.out.println("    Proof (tree) size: " + treeSizeString
+                    + " (computed in " + treeTimer + ")");
+            System.out.println();
+        }
     }
 }

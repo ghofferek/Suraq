@@ -48,7 +48,8 @@ public class TransitivityChainBuilder {
         assert (Util.isLiteral(target.getConsequent()));
         Formula targetLiteral = Util.getSingleLiteral(target.getConsequent());
         targetLiteral = Util.makeLiteralPositive(targetLiteral);
-        assert (targetLiteral instanceof EqualityFormula);
+        if (!(targetLiteral instanceof EqualityFormula))
+            assert (false);
         EqualityFormula eq = (EqualityFormula) targetLiteral;
         assert (eq.getTerms().size() == 2);
         targetStartTerm = eq.getTerms().get(0);
@@ -72,7 +73,7 @@ public class TransitivityChainBuilder {
             return;
         }
 
-        EqualityFormula newEq = (EqualityFormula) node.getConsequent();
+        EqualityFormula newEq = (EqualityFormula) literal;
         if (newEq.getTerms().size() != 2) {
             System.out
                     .println("INFO: Ignoring a node added to a chain builder.");

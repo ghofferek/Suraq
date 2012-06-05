@@ -538,7 +538,7 @@ public class Z3Proof implements SMTLibObject {
             assert (subProofs.size() == 2);
             assert (this.hasSingleLiteralConsequent());
             Z3Proof child1 = subProofs.get(0);
-            if (Util.checkForFlippedDisequality(this.consequent,
+            if (Util.checkForFlippedEqualityOrDisequality(this.consequent,
                     child1.consequent)) {
                 // TransformedZ3Proof premise = new
                 // TransformedZ3Proof(SExpressionConstants.ASSERTED, new
@@ -559,7 +559,8 @@ public class Z3Proof implements SMTLibObject {
             Set<Z3Proof> children = new HashSet<Z3Proof>();
             for (Z3Proof child : subProofs)
                 Util.getModusPonensNonIffChilds(child, children);
-            assert (children.size() > 1);
+            if (children.size() <= 1)
+                assert (false);
             for (Z3Proof child : children) {
                 // Recursive call for child
                 if (!child.wasVisitedByDAGOperation(operationId))
