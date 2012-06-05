@@ -17,18 +17,17 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
-import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
-import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.TransitivityChainBuilder;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -515,13 +514,13 @@ public class Z3Proof implements SMTLibObject {
         }
 
         // DEBUG
-        int mapSize = partitionMap.keySet().size();
-        if (mapSize % 100 == 0) {
-            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
-            String output = myFormatter.format(mapSize);
-            System.out.println("  DEBUG-INFO: Already " + output
-                    + " nodes in partitionMap.");
-        }
+        // int mapSize = partitionMap.keySet().size();
+        // if (mapSize % 100 == 0) {
+        // DecimalFormat myFormatter = new DecimalFormat("###,###,###");
+        // String output = myFormatter.format(mapSize);
+        // System.out.println("  DEBUG-INFO: Already " + output
+        // + " nodes in partitionMap.");
+        // }
         // END DEBUG
 
     }
@@ -555,205 +554,21 @@ public class Z3Proof implements SMTLibObject {
                     child1.dealWithModusPonensRecursion(operationId);
                 return;
             }
-            assert (child1.hasSingleLiteralConsequent());
-            Formula literal1 = Util.getSingleLiteral(child1.consequent);
 
-            Z3Proof child2 = subProofs.get(1);
-            Z3Proof child3 = null;
-            assert (child2.consequent instanceof PropositionalEq);
-            while (true) {
-                assert (child2.subProofs.size() > 0);
-                if (child2.subProofs.get(0).consequent instanceof PropositionalEq)
-                    child2 = child2.subProofs.get(0);
-                else {
-                    assert (child2.subProofs.size() <= 2);
-                    if (child2.subProofs.size() == 1) {
-                        child2 = child2.subProofs.get(0);
-                        EqualityFormula consequentEq = (EqualityFormula) Util
-                                .makeLiteralPositive(consequentLiteral);
-                        Term startTerm = consequentEq.getTerms().get(0);
-                        Term endTerm = consequentEq.getTerms().get(1);
-                        Formula literal2 = Util
-                                .getSingleLiteral(child2.consequent);
-                        EqualityFormula eq1 = (EqualityFormula) Util
-                                .makeLiteralPositive(literal1);
-                        EqualityFormula eq2 = (EqualityFormula) Util
-                                .makeLiteralPositive(literal2);
-
-                        List<Z3Proof> proofList = new ArrayList<Z3Proof>();
-
-                        if (eq1.getTerms().contains(startTerm)) {
-                            if (eq1.getTerms().get(0).equals(startTerm)) {
-                                proofList.add(child1);
-                                assert (eq2.getTerms().contains(endTerm));
-                                if (eq2.getTerms().get(1).equals(endTerm))
-                                    proofList.add(child2);
-                                else
-                                    proofList.add(Z3Proof
-                                            .createSymmetryProof(child2));
-                            } else {
-                                proofList.add(Z3Proof
-                                        .createSymmetryProof(child1));
-                                assert (eq2.getTerms().contains(endTerm));
-                                if (eq2.getTerms().get(1).equals(endTerm))
-                                    proofList.add(child2);
-                                else
-                                    proofList.add(Z3Proof
-                                            .createSymmetryProof(child2));
-                            }
-                        } else {
-                            assert (eq2.getTerms().contains(startTerm));
-                            if (eq2.getTerms().get(0).equals(startTerm)) {
-                                proofList.add(child2);
-                                assert (eq1.getTerms().contains(endTerm));
-                                if (eq1.getTerms().get(1).equals(endTerm))
-                                    proofList.add(child1);
-                                else
-                                    proofList.add(Z3Proof
-                                            .createSymmetryProof(child1));
-                            } else {
-                                proofList.add(Z3Proof
-                                        .createSymmetryProof(child2));
-                                assert (eq1.getTerms().contains(endTerm));
-                                if (eq1.getTerms().get(1).equals(endTerm))
-                                    proofList.add(child1);
-                                else
-                                    proofList.add(Z3Proof
-                                            .createSymmetryProof(child1));
-                            }
-                        }
-
-                        Z3Proof transProof = Z3Proof
-                                .createTransitivityProof(proofList);
-                        this.subProofs = transProof.subProofs;
-                        this.proofType = transProof.proofType;
-                        assert (this.consequent.transformToConsequentsForm()
-                                .equals(transProof.consequent
-                                        .transformToConsequentsForm()));
-                        this.consequent = transProof.consequent
-                                .transformToConsequentsForm();
-
-                        // Recursive Calls on children
-                        if (!child1.wasVisitedByDAGOperation(operationId))
-                            child1.dealWithModusPonensRecursion(operationId);
-                        if (!child2.wasVisitedByDAGOperation(operationId))
-                            child2.dealWithModusPonensRecursion(operationId);
-                        return;
-                    }
-                    child3 = child2.subProofs.get(1);
-                    child2 = child2.subProofs.get(0);
-                    assert (child2.hasSingleLiteralConsequent());
-                    assert (child3.hasSingleLiteralConsequent());
-                    break;
-                }
-            }
-            assert (child2 != null);
-            assert (child3 != null);
-            Formula literal2 = Util.getSingleLiteral(child2.consequent);
-            Formula literal3 = Util.getSingleLiteral(child3.consequent);
-
-            assert (Util.makeLiteralPositive(consequentLiteral) instanceof DomainEq);
-            assert (Util.makeLiteralPositive(literal1) instanceof DomainEq);
-            assert (Util.makeLiteralPositive(literal2) instanceof DomainEq);
-            assert (Util.makeLiteralPositive(literal3) instanceof DomainEq);
-
-            EqualityFormula eq1 = (EqualityFormula) Util
-                    .makeLiteralPositive(literal1);
-            EqualityFormula eq2 = (EqualityFormula) Util
-                    .makeLiteralPositive(literal2);
-            EqualityFormula eq3 = (EqualityFormula) Util
-                    .makeLiteralPositive(literal3);
-            EqualityFormula consequentEq = (EqualityFormula) Util
-                    .makeLiteralPositive(consequentLiteral);
-
-            List<Z3Proof> proofList = new ArrayList<Z3Proof>();
-
-            assert (consequentEq.getTerms().size() == 2);
-            assert (eq1.getTerms().size() == 2);
-            assert (eq2.getTerms().size() == 2);
-            assert (eq3.getTerms().size() == 2);
-
-            Term startTerm = consequentEq.getTerms().get(0);
-            Term endTerm = consequentEq.getTerms().get(1);
-            Term middleTerm = null;
-
-            Set<EqualityFormula> containsStartTerm = new HashSet<EqualityFormula>();
-            Set<EqualityFormula> containsEndTerm = new HashSet<EqualityFormula>();
-
-            EqualityFormula[] equalities = { eq1, eq2, eq3 };
-            Map<EqualityFormula, Z3Proof> map = new HashMap<EqualityFormula, Z3Proof>();
-            map.put(eq1, child1);
-            map.put(eq2, child2);
-            map.put(eq3, child3);
-
-            for (EqualityFormula eq : equalities)
-                if (eq.getTerms().contains(startTerm))
-                    containsStartTerm.add(eq);
-
-            for (EqualityFormula eq : equalities)
-                if (eq.getTerms().contains(endTerm))
-                    containsEndTerm.add(eq);
-
-            Set<EqualityFormula> toRemove = new HashSet<EqualityFormula>();
-            for (EqualityFormula eq : containsStartTerm) {
-                if (Util.isReflexivity(eq)) {
-                    proofList.add(map.get(eq));
-                    toRemove.add(eq);
-                }
-            }
-            containsStartTerm.removeAll(toRemove);
-            assert (containsStartTerm.size() == 1);
-            if (containsStartTerm.iterator().next().getTerms().get(0)
-                    .equals(startTerm)) {
-                proofList.add(map.get(containsStartTerm.iterator().next()));
-                middleTerm = containsStartTerm.iterator().next().getTerms()
-                        .get(1);
-            } else {
-                assert (containsStartTerm.iterator().next().getTerms().get(1)
-                        .equals(startTerm));
-                proofList.add(Z3Proof.createSymmetryProof(map
-                        .get(containsStartTerm.iterator().next())));
-                middleTerm = containsStartTerm.iterator().next().getTerms()
-                        .get(0);
+            TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
+                    this);
+            Set<Z3Proof> children = new HashSet<Z3Proof>();
+            for (Z3Proof child : subProofs)
+                Util.getModusPonensNonIffChilds(child, children);
+            assert (children.size() > 1);
+            for (Z3Proof child : children) {
+                // Recursive call for child
+                if (!child.wasVisitedByDAGOperation(operationId))
+                    child.dealWithModusPonensRecursion(operationId);
+                chainBuilder.addProofNode(child);
             }
 
-            toRemove.clear();
-            for (EqualityFormula eq : containsEndTerm) {
-                if (!Util.isReflexivity(eq)) {
-                    if (eq.getTerms().get(1).equals(endTerm))
-                        proofList.add(map.get(eq));
-                    else
-                        proofList.add(Z3Proof.createSymmetryProof(map.get(eq)));
-                    toRemove.add(eq);
-                }
-            }
-            containsEndTerm.removeAll(toRemove);
-            assert (toRemove.size() <= 1);
-            for (EqualityFormula eq : containsEndTerm) {
-                assert (Util.isReflexivity(eq));
-                proofList.add(map.get(eq));
-            }
-
-            if (proofList.size() != 3) {
-                assert (proofList.size() == 2);
-                EqualityFormula notUsedYet = null;
-                if (!proofList.contains(child1))
-                    notUsedYet = eq1;
-                else if (!proofList.contains(child2))
-                    notUsedYet = eq2;
-                else
-                    notUsedYet = eq3;
-                assert (middleTerm != null);
-
-                Z3Proof middleProof = map.get(notUsedYet);
-                if (!notUsedYet.getTerms().get(0).equals(middleTerm))
-                    middleProof = Z3Proof.createSymmetryProof(middleProof);
-
-                Z3Proof lastElement = proofList.get(proofList.size() - 1);
-                proofList.set(1, middleProof);
-                proofList.add(lastElement);
-            }
-
+            List<Z3Proof> proofList = chainBuilder.getChain();
             Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
             this.subProofs = transProof.subProofs;
             this.proofType = transProof.proofType;
@@ -777,16 +592,246 @@ public class Z3Proof implements SMTLibObject {
                 subProofs.add(rest);
             }
 
-            // Don't forget the recursive calls on the children!
-            if (!child1.wasVisitedByDAGOperation(operationId))
-                child1.dealWithModusPonensRecursion(operationId);
-            if (!child2.wasVisitedByDAGOperation(operationId))
-                child2.dealWithModusPonensRecursion(operationId);
-            if (!child3.wasVisitedByDAGOperation(operationId))
-                child3.dealWithModusPonensRecursion(operationId);
-            return;
+            // --------------------- OLD ----------------------
+            // assert (child1.hasSingleLiteralConsequent());
+            // Formula literal1 = Util.getSingleLiteral(child1.consequent);
+            //
+            // Z3Proof child2 = subProofs.get(1);
+            // Z3Proof child3 = null;
+            // assert (child2.consequent instanceof PropositionalEq);
+            // while (true) {
+            // assert (child2.subProofs.size() > 0);
+            // if (child2.subProofs.get(0).consequent instanceof
+            // PropositionalEq)
+            // child2 = child2.subProofs.get(0);
+            // else {
+            // assert (child2.subProofs.size() <= 2);
+            // if (child2.subProofs.size() == 1) {
+            // child2 = child2.subProofs.get(0);
+            // EqualityFormula consequentEq = (EqualityFormula) Util
+            // .makeLiteralPositive(consequentLiteral);
+            // Term startTerm = consequentEq.getTerms().get(0);
+            // Term endTerm = consequentEq.getTerms().get(1);
+            // Formula literal2 = Util
+            // .getSingleLiteral(child2.consequent);
+            // EqualityFormula eq1 = (EqualityFormula) Util
+            // .makeLiteralPositive(literal1);
+            // EqualityFormula eq2 = (EqualityFormula) Util
+            // .makeLiteralPositive(literal2);
+            //
+            // List<Z3Proof> proofList = new ArrayList<Z3Proof>();
+            //
+            // if (eq1.getTerms().contains(startTerm)) {
+            // if (eq1.getTerms().get(0).equals(startTerm)) {
+            // proofList.add(child1);
+            // assert (eq2.getTerms().contains(endTerm));
+            // if (eq2.getTerms().get(1).equals(endTerm))
+            // proofList.add(child2);
+            // else
+            // proofList.add(Z3Proof
+            // .createSymmetryProof(child2));
+            // } else {
+            // proofList.add(Z3Proof
+            // .createSymmetryProof(child1));
+            // assert (eq2.getTerms().contains(endTerm));
+            // if (eq2.getTerms().get(1).equals(endTerm))
+            // proofList.add(child2);
+            // else
+            // proofList.add(Z3Proof
+            // .createSymmetryProof(child2));
+            // }
+            // } else {
+            // assert (eq2.getTerms().contains(startTerm));
+            // if (eq2.getTerms().get(0).equals(startTerm)) {
+            // proofList.add(child2);
+            // if (!eq1.getTerms().contains(endTerm))
+            // assert (false);
+            // if (eq1.getTerms().get(1).equals(endTerm))
+            // proofList.add(child1);
+            // else
+            // proofList.add(Z3Proof
+            // .createSymmetryProof(child1));
+            // } else {
+            // proofList.add(Z3Proof
+            // .createSymmetryProof(child2));
+            // assert (eq1.getTerms().contains(endTerm));
+            // if (eq1.getTerms().get(1).equals(endTerm))
+            // proofList.add(child1);
+            // else
+            // proofList.add(Z3Proof
+            // .createSymmetryProof(child1));
+            // }
+            // }
+            //
+            // Z3Proof transProof = Z3Proof
+            // .createTransitivityProof(proofList);
+            // this.subProofs = transProof.subProofs;
+            // this.proofType = transProof.proofType;
+            // assert (this.consequent.transformToConsequentsForm()
+            // .equals(transProof.consequent
+            // .transformToConsequentsForm()));
+            // this.consequent = transProof.consequent
+            // .transformToConsequentsForm();
+            //
+            // // Recursive Calls on children
+            // if (!child1.wasVisitedByDAGOperation(operationId))
+            // child1.dealWithModusPonensRecursion(operationId);
+            // if (!child2.wasVisitedByDAGOperation(operationId))
+            // child2.dealWithModusPonensRecursion(operationId);
+            // return;
+            // }
+            // child3 = child2.subProofs.get(1);
+            // child2 = child2.subProofs.get(0);
+            // assert (child2.hasSingleLiteralConsequent());
+            // assert (child3.hasSingleLiteralConsequent());
+            // break;
+            // }
+            // }
+            // assert (child2 != null);
+            // assert (child3 != null);
+            // Formula literal2 = Util.getSingleLiteral(child2.consequent);
+            // Formula literal3 = Util.getSingleLiteral(child3.consequent);
+            //
+            // assert (Util.makeLiteralPositive(consequentLiteral) instanceof
+            // DomainEq);
+            // assert (Util.makeLiteralPositive(literal1) instanceof DomainEq);
+            // assert (Util.makeLiteralPositive(literal2) instanceof DomainEq);
+            // assert (Util.makeLiteralPositive(literal3) instanceof DomainEq);
+            //
+            // EqualityFormula eq1 = (EqualityFormula) Util
+            // .makeLiteralPositive(literal1);
+            // EqualityFormula eq2 = (EqualityFormula) Util
+            // .makeLiteralPositive(literal2);
+            // EqualityFormula eq3 = (EqualityFormula) Util
+            // .makeLiteralPositive(literal3);
+            // EqualityFormula consequentEq = (EqualityFormula) Util
+            // .makeLiteralPositive(consequentLiteral);
+            //
+            // List<Z3Proof> proofList = new ArrayList<Z3Proof>();
+            //
+            // assert (consequentEq.getTerms().size() == 2);
+            // assert (eq1.getTerms().size() == 2);
+            // assert (eq2.getTerms().size() == 2);
+            // assert (eq3.getTerms().size() == 2);
+            //
+            // Term startTerm = consequentEq.getTerms().get(0);
+            // Term endTerm = consequentEq.getTerms().get(1);
+            // Term middleTerm = null;
+            //
+            // Set<EqualityFormula> containsStartTerm = new
+            // HashSet<EqualityFormula>();
+            // Set<EqualityFormula> containsEndTerm = new
+            // HashSet<EqualityFormula>();
+            //
+            // EqualityFormula[] equalities = { eq1, eq2, eq3 };
+            // Map<EqualityFormula, Z3Proof> map = new HashMap<EqualityFormula,
+            // Z3Proof>();
+            // map.put(eq1, child1);
+            // map.put(eq2, child2);
+            // map.put(eq3, child3);
+            //
+            // for (EqualityFormula eq : equalities)
+            // if (eq.getTerms().contains(startTerm))
+            // containsStartTerm.add(eq);
+            //
+            // for (EqualityFormula eq : equalities)
+            // if (eq.getTerms().contains(endTerm))
+            // containsEndTerm.add(eq);
+            //
+            // Set<EqualityFormula> toRemove = new HashSet<EqualityFormula>();
+            // for (EqualityFormula eq : containsStartTerm) {
+            // if (Util.isReflexivity(eq)) {
+            // proofList.add(map.get(eq));
+            // toRemove.add(eq);
+            // }
+            // }
+            // containsStartTerm.removeAll(toRemove);
+            // assert (containsStartTerm.size() == 1);
+            // if (containsStartTerm.iterator().next().getTerms().get(0)
+            // .equals(startTerm)) {
+            // proofList.add(map.get(containsStartTerm.iterator().next()));
+            // middleTerm = containsStartTerm.iterator().next().getTerms()
+            // .get(1);
+            // } else {
+            // assert (containsStartTerm.iterator().next().getTerms().get(1)
+            // .equals(startTerm));
+            // proofList.add(Z3Proof.createSymmetryProof(map
+            // .get(containsStartTerm.iterator().next())));
+            // middleTerm = containsStartTerm.iterator().next().getTerms()
+            // .get(0);
+            // }
+            //
+            // toRemove.clear();
+            // for (EqualityFormula eq : containsEndTerm) {
+            // if (!Util.isReflexivity(eq)) {
+            // if (eq.getTerms().get(1).equals(endTerm))
+            // proofList.add(map.get(eq));
+            // else
+            // proofList.add(Z3Proof.createSymmetryProof(map.get(eq)));
+            // toRemove.add(eq);
+            // }
+            // }
+            // containsEndTerm.removeAll(toRemove);
+            // assert (toRemove.size() <= 1);
+            // for (EqualityFormula eq : containsEndTerm) {
+            // assert (Util.isReflexivity(eq));
+            // proofList.add(map.get(eq));
+            // }
+            //
+            // if (proofList.size() != 3) {
+            // assert (proofList.size() == 2);
+            // EqualityFormula notUsedYet = null;
+            // if (!proofList.contains(child1))
+            // notUsedYet = eq1;
+            // else if (!proofList.contains(child2))
+            // notUsedYet = eq2;
+            // else
+            // notUsedYet = eq3;
+            // assert (middleTerm != null);
+            //
+            // Z3Proof middleProof = map.get(notUsedYet);
+            // if (!notUsedYet.getTerms().get(0).equals(middleTerm))
+            // middleProof = Z3Proof.createSymmetryProof(middleProof);
+            //
+            // Z3Proof lastElement = proofList.get(proofList.size() - 1);
+            // proofList.set(1, middleProof);
+            // proofList.add(lastElement);
+            // }
+            //
+            // Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
+            // this.subProofs = transProof.subProofs;
+            // this.proofType = transProof.proofType;
+            // assert (this.consequent.transformToConsequentsForm()
+            // .equals(transProof.consequent.transformToConsequentsForm()));
+            // this.consequent = transProof.consequent
+            // .transformToConsequentsForm();
+            //
+            // // If we have three subproofs, we need to split them,
+            // // because conversion to local proof cannot deal with
+            // // three subproofs.
+            // assert (subProofs.size() <= 3);
+            // if (subProofs.size() == 3) {
+            // assert (this.proofType == SExpressionConstants.TRANSITIVITY);
+            // Z3Proof intermediate = Z3Proof
+            // .createTransitivityProof(new ArrayList<Z3Proof>(
+            // subProofs.subList(0, 2)));
+            // Z3Proof rest = subProofs.get(2);
+            // subProofs.clear();
+            // subProofs.add(intermediate);
+            // subProofs.add(rest);
+            // }
+            //
+            // // Don't forget the recursive calls on the children!
+            // if (!child1.wasVisitedByDAGOperation(operationId))
+            // child1.dealWithModusPonensRecursion(operationId);
+            // if (!child2.wasVisitedByDAGOperation(operationId))
+            // child2.dealWithModusPonensRecursion(operationId);
+            // if (!child3.wasVisitedByDAGOperation(operationId))
+            // child3.dealWithModusPonensRecursion(operationId);
+            // return;
         }
 
+        // Not a MODUS PONENS node...
         for (Z3Proof child : subProofs) {
             if (child.wasVisitedByDAGOperation(operationId))
                 continue;
@@ -938,6 +983,7 @@ public class Z3Proof implements SMTLibObject {
      */
     public static Z3Proof createTransitivityProof(
             List<? extends Z3Proof> subProofs) {
+        subProofs = new ArrayList<Z3Proof>(subProofs);
         assert (subProofs.size() == 2 || subProofs.size() == 3);
         assert (Util.makeLiteralPositive(Util.getSingleLiteral((subProofs
                 .get(0).consequent.transformToConsequentsForm()))) instanceof EqualityFormula);

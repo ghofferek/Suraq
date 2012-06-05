@@ -534,8 +534,9 @@ public class Suraq implements Runnable {
                     && (z3InputFileDate.getTime() <= z3ProofFileDate.getTime())) {
 
                 useCachedResults = true;
-                System.out
-                        .println("INFO: using cached intermediate results.\n");
+                System.out.println("INFO: using cached intermediate results.");
+                System.out.println("      " + z3ProofFile);
+
             }
         }
 

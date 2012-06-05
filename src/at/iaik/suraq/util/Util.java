@@ -30,6 +30,7 @@ import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -777,4 +778,17 @@ public class Util {
         return false;
 
     }
+
+    public static void getModusPonensNonIffChilds(Z3Proof node,
+            Set<Z3Proof> result) {
+        assert (result != null);
+        assert (node != null);
+        if (node.getConsequent() instanceof PropositionalEq) {
+            for (Z3Proof child : node.getSubProofs())
+                Util.getModusPonensNonIffChilds(child, result);
+        } else {
+            result.add(node);
+        }
+    }
+
 }
