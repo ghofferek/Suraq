@@ -7,6 +7,7 @@ import java.util.List;
 
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
+import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.util.graph.Graph;
 
@@ -44,8 +45,11 @@ public class TransitivityChainBuilder {
      */
     public TransitivityChainBuilder(Z3Proof target) {
 
-        assert (target.getConsequent() instanceof EqualityFormula);
-        EqualityFormula eq = (EqualityFormula) target.getConsequent();
+        assert (Util.isLiteral(target.getConsequent()));
+        Formula targetLiteral = Util.getSingleLiteral(target.getConsequent());
+        if (!(targetLiteral instanceof EqualityFormula))
+            assert (false);
+        EqualityFormula eq = (EqualityFormula) targetLiteral;
         assert (eq.getTerms().size() == 2);
         targetStartTerm = eq.getTerms().get(0);
         targetEndTerm = eq.getTerms().get(1);

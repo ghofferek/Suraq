@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -287,24 +288,13 @@ public class Suraq implements Runnable {
         // noErrors = false;
         // }
 
-        timer.start();
-        System.out.println("    Proof DAG size: " + rootProof.size(false));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        timer.start();
-        System.out.println("    Proof size after unwinding DAG: "
-                + rootProof.size(true));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        System.out.println();
+        printProofSize(rootProof);
 
-        timer.start();
-        int all_nodes_size = rootProof.allNodes().size();
-        timer.end();
-        System.out.println("  All nodes size: " + all_nodes_size);
-        System.out.println("  (computed in " + timer + ")");
+        // timer.start();
+        // int all_nodes_size = rootProof.allNodes().size();
+        // timer.end();
+        // System.out.println("  All nodes size: " + all_nodes_size);
+        // System.out.println("  (computed in " + timer + ")");
 
         // System.out.println("  Local lemmas to assertions...");
         // timer.start();
@@ -333,18 +323,7 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         // assert (rootProof.checkZ3ProofNodeRecursive());
-        timer.start();
-        System.out.println("    Proof DAG size: " + rootProof.size(false));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        timer.start();
-        System.out.println("    Proof size after unwinding DAG: "
-                + rootProof.size(true));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        System.out.println();
+        printProofSize(rootProof);
 
         System.out.println("  Deal with Modus Ponens...");
         timer.start();
@@ -353,18 +332,7 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         // assert (rootProof.checkZ3ProofNodeRecursive());
-        timer.start();
-        System.out.println("    Proof DAG size: " + rootProof.size(false));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        timer.start();
-        System.out.println("    Proof size after unwinding DAG: "
-                + rootProof.size(true));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        System.out.println();
+        printProofSize(rootProof);
 
         // System.out.println("Num Instances: " +
         // Z3Proof.numInstances());
@@ -375,19 +343,7 @@ public class Suraq implements Runnable {
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
-        timer.start();
-        System.out.println("    Proof DAG size: "
-                + transformedZ3Proof.size(false));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        timer.start();
-        System.out.println("    Proof size after unwinding DAG: "
-                + transformedZ3Proof.size(true));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        System.out.println();
+        printProofSize(transformedZ3Proof);
         /*
          * System.out.println("Num Instances: " + Z3Proof.numInstances()); try {
          * File smtfile = new File("proofTemp.txt"); FileWriter fstream = new
@@ -408,20 +364,7 @@ public class Suraq implements Runnable {
         timer.reset();
         // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
         assert (transformedZ3Proof.isLocal());
-
-        timer.start();
-        System.out.println("    Proof DAG size: "
-                + transformedZ3Proof.size(false));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        timer.start();
-        System.out.println("    Proof size after unwinding DAG: "
-                + transformedZ3Proof.size(true));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        System.out.println();
+        printProofSize(transformedZ3Proof);
 
         System.out.println("  To resolution proof...");
         timer.start();
@@ -429,19 +372,7 @@ public class Suraq implements Runnable {
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
-        timer.start();
-        System.out.println("    Proof DAG size: "
-                + transformedZ3Proof.size(false));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        timer.start();
-        System.out.println("    Proof size after unwinding DAG: "
-                + transformedZ3Proof.size(true));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        System.out.println();
+        printProofSize(transformedZ3Proof);
 
         // START: ASHUTOSH code
         System.out.println("  To resolution proof format...");
@@ -474,19 +405,7 @@ public class Suraq implements Runnable {
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
-
-        timer.start();
-        System.out.println("    Proof DAG size: " + recoveredProof.size(false));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        timer.start();
-        System.out.println("    Proof size after unwinding DAG: "
-                + recoveredProof.size(true));
-        timer.end();
-        System.out.println("      Size computed in " + timer);
-        timer.reset();
-        System.out.println();
+        printProofSize(recoveredProof);
 
         // create ITE-tree for every control signal
         System.out.println("  Compute interpolants...");
@@ -696,6 +615,9 @@ public class Suraq implements Runnable {
         String outputStr = CreateOutputString(sourceFile, iteTrees);
 
         if (options.isCheckResult()) {
+            System.out.println("Starting to check results with z3...");
+            Timer checkTimer = new Timer();
+            checkTimer.start();
             SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
             z3.solve(outputStr);
 
@@ -715,6 +637,9 @@ public class Suraq implements Runnable {
                 System.out
                         .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
             }
+            checkTimer.end();
+            System.out.println("Check finished in " + checkTimer);
+
         }
 
         // write output file
@@ -1350,5 +1275,29 @@ public class Suraq implements Runnable {
                 .println("Context: "
                         + (exc.getContext() != "" ? exc.getContext()
                                 : "not available"));
+    }
+
+    /**
+     * Prints size information of the given proof.
+     * 
+     * @param proof
+     */
+    private void printProofSize(Z3Proof proof) {
+        Timer dagTimer = new Timer();
+        dagTimer.start();
+        int dagSize = proof.size(false);
+        dagTimer.end();
+        Timer treeTimer = new Timer();
+        treeTimer.start();
+        int treeSize = proof.size(true);
+        treeTimer.end();
+        DecimalFormat myFormatter = new DecimalFormat("###,###,###");
+        String dagSizeString = myFormatter.format(dagSize);
+        String treeSizeString = myFormatter.format(treeSize);
+        System.out.println("    Proof (DAG)  size: " + dagSizeString
+                + " (computed in " + dagTimer + ")");
+        System.out.println("    Proof (tree) size: " + treeSizeString
+                + " (computed in " + treeTimer + ")");
+        System.out.println();
     }
 }

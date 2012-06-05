@@ -4,6 +4,8 @@
 
 package at.iaik.suraq.util;
 
+import java.text.DecimalFormat;
+
 /**
  * Utility class for measuring execution times
  * 
@@ -81,9 +83,12 @@ public class Timer {
     @Override
     public String toString() {
         long totalTime = getTotalTime();
-        if (totalTime > 1000)
-            return new Double(new Double(totalTime) / 1000.0) + "s";
-        else
+        if (totalTime > 1000) {
+            DecimalFormat myFormatter = new DecimalFormat("###,###,###.###");
+            String output = myFormatter.format(totalTime / 1000.0);
+            return output + "s";
+        } else {
             return totalTime + "ms";
+        }
     }
 }
