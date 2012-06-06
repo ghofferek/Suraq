@@ -821,4 +821,41 @@ public class Util {
         }
     }
 
+    public static void getModusPonensIffLeaves(Z3Proof node, Set<Z3Proof> result) {
+        assert (result != null);
+        assert (node != null);
+        if (node.getConsequent() instanceof PropositionalEq) {
+            for (Z3Proof child : node.getSubProofs())
+                Util.getModusPonensNonIffChilds(child, result);
+
+            if (node.getProofType().equals(SExpressionConstants.ASSERTED))
+                result.add(node);
+        }
+    }
+
+    public static void getModusPonensIffChildsComingFromDomainEq(Z3Proof node,
+            Set<Z3Proof> result) {
+        assert (result != null);
+        assert (node != null);
+        if (node.getConsequent() instanceof PropositionalEq) {
+            if (node.getProofType().equals(SExpressionConstants.ASSERTED))
+                return;
+            if (node.getSubProofs().size() == 1) {
+                assert (node.getProofType()
+                        .equals(SExpressionConstants.MONOTONICITY));
+                Z3Proof child = node.getSubProofs().get(0);
+                Formula childConsequent = child.getConsequent();
+                assert (Util.isLiteral(childConsequent));
+                childConsequent = Util.getSingleLiteral(childConsequent);
+                assert (Util.isAtom(childConsequent));
+                assert (childConsequent instanceof DomainEq);
+                result.add(node);
+            }
+            for (Z3Proof child : node.getSubProofs())
+                Util.getModusPonensNonIffChilds(child, result);
+        } else {
+            assert (false); // Unexpected exit path from modus ponens rule
+        }
+    }
+
 }
