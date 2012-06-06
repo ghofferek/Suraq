@@ -1025,6 +1025,7 @@ public class Z3Proof implements SMTLibObject {
                                 + "z3 tells us SAT, node is NOT valid.");
                 System.out.println("Bad Node: " + this.id);
                 result = false;
+                break;
             default:
                 System.out
                         .println("Z3 tells us UNKOWN STATE. CHECK ERROR STREAM.");
