@@ -27,6 +27,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.TransitivityChainBuilder;
 import at.iaik.suraq.util.Util;
 
@@ -981,6 +982,90 @@ public class Z3Proof implements SMTLibObject {
                     return false;
             }
         return checkZ3ProofNode();
+    }
+
+    /**
+     * Checks if proof is valid. Takes all asserted nodes (leafs) of the proof,
+     * and checks, whether all leafs together imply the consequence of the node.
+     * 
+     * @return true if <code>Z3Proof</code> is valid
+     */
+
+    public boolean checkProofLeafsToConsequent() {
+        Timer timer = new Timer();
+        System.out.println("  Check proofs leafs to consequent...");
+        timer.start();
+        Set<Z3Proof> leafes = this.allLeafes();
+
+        // conjunction of all leafes and not the consequent -> UNSAT
+        // L1 ^ L2 ^ L3 ^ ~C -> UNSAT
+
+        boolean result = true;
+        if (leafes.size() > 0) {
+            List<Formula> conjuncts = new ArrayList<Formula>();
+            for (Z3Proof leaf : leafes) {
+                conjuncts.add(leaf.consequent);
+            }
+            conjuncts.add(new NotFormula(this.consequent));
+            Formula formulaToCheck = new AndFormula(conjuncts);
+
+            String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
+            String formulaSmtStr = buildSMTDescription(declarationStr,
+                    formulaToCheck.toString());
+
+            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+            z3.solve(formulaSmtStr);
+
+            switch (z3.getState()) {
+            case SMTSolver.UNSAT:
+                break;
+            case SMTSolver.SAT:
+                System.out
+                        .println("Error while testing vality of Z3-node with Z3-solver: \n"
+                                + "z3 tells us SAT, node is NOT valid.");
+                System.out.println("Bad Node: " + this.id);
+                result = false;
+            default:
+                System.out
+                        .println("Z3 tells us UNKOWN STATE. CHECK ERROR STREAM.");
+                result = false;
+            }
+        }
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+
+        return result;
+    }
+
+    /**
+     * Returns all asserted nodes (leafes) of the <code>Z3Proof</code>.
+     * 
+     * @return all leafes of a <code>Z3Proof</code>
+     */
+    public Set<Z3Proof> allLeafes() {
+
+        int operationId = startDAGOperation();
+        Set<Z3Proof> leafes = new HashSet<Z3Proof>();
+        this.allLeafesRecursion(leafes, operationId);
+        endDAGOperation(operationId);
+
+        return leafes;
+    }
+
+    private void allLeafesRecursion(Set<Z3Proof> set, int operationId) {
+        if (this.wasVisitedByDAGOperation(operationId))
+            return;
+        visitedByDAGOperation(operationId);
+
+        if (this.subProofs.size() > 0)
+            for (Z3Proof subProof : this.subProofs) {
+                subProof.allLeafesRecursion(set, operationId);
+            }
+        else {
+            // assert (this.proofType.equals(SExpressionConstants.ASSERTED));
+            set.add(this);
+        }
     }
 
     /**
