@@ -3,11 +3,18 @@
  */
 package at.iaik.suraq.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.smtlib.Z3Proof;
+import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalEq;
+import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.util.graph.Graph;
 
@@ -56,6 +63,11 @@ public class TransitivityChainBuilder {
         targetEndTerm = eq.getTerms().get(1);
     }
 
+    public TransitivityChainBuilder(Term startTerm, Term endTerm) {
+        this.targetStartTerm = startTerm;
+        this.targetEndTerm = endTerm;
+    }
+
     /**
      * Adds a new node that may be used to build the transitivity chain. If the
      * consequent of the node is not of type <code>EqualityFormula</code> (with
@@ -96,5 +108,75 @@ public class TransitivityChainBuilder {
      */
     public List<Z3Proof> getChain() {
         return graph.findPath(targetStartTerm, targetEndTerm);
+    }
+
+    /**
+     * Converts the transitivity chain into a resolution chain. This is used for
+     * modus ponens nodes with uninterpreted predicates.
+     * 
+     * @param predicatePolarity
+     *            the polarity of the predicate in the first child of the modus
+     *            ponens node.
+     * @return a proof with for a clause with two literals. The first is the
+     *         inverse of the first modus ponens child. The second is the
+     *         consequent of the modus ponens node.
+     */
+    public Z3Proof convertToResolutionChain(boolean predicatePolarity) {
+
+        List<Z3Proof> chain = graph.findPath(targetStartTerm, targetEndTerm);
+        Z3Proof intermediate = null;
+
+        for (Z3Proof current : chain) {
+            assert (Util.getSingleLiteral(current.getConsequent()) instanceof PropositionalEq);
+            PropositionalEq propEq = (PropositionalEq) Util
+                    .getSingleLiteral(current.getConsequent());
+            PropositionalTerm term1 = (PropositionalTerm) propEq.getTerms()
+                    .get(0);
+            PropositionalTerm term2 = (PropositionalTerm) propEq.getTerms()
+                    .get(1);
+
+            List<Formula> disjuncts = new ArrayList<Formula>(3);
+            disjuncts.add(predicatePolarity ? new NotFormula(term1) : term1);
+            disjuncts.add(predicatePolarity ? term2 : new NotFormula(term2));
+
+            if (current.getProofType().equals(SExpressionConstants.ASSERTED)) {
+                current = new Z3Proof(SExpressionConstants.ASSERTED,
+                        new ArrayList<Z3Proof>(0), new OrFormula(disjuncts),
+                        current.getAssertPartitionOfThisNode(), false);
+                assert (current.checkZ3ProofNode()); // DEBUG
+            } else {
+                assert (current.getSubProofs().size() == 1);
+                assert (Util.getSingleLiteral(current.getSubProofs().get(0)
+                        .getConsequent()) instanceof DomainEq);
+                disjuncts.add(new NotFormula(current.getSubProofs().get(0)
+                        .getConsequent()));
+                Z3Proof axiom = new Z3Proof(SExpressionConstants.ASSERTED,
+                        new ArrayList<Z3Proof>(0), new OrFormula(disjuncts),
+                        current.getAssertPartitionOfThisNode(), true);
+                List<Z3Proof> subProofs = new ArrayList<Z3Proof>(2);
+                subProofs.add(current.getSubProofs().get(0));
+                subProofs.add(axiom);
+                current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
+                        subProofs, new OrFormula(disjuncts.subList(0, 2)));
+                assert (current.checkZ3ProofNode()); // DEBUG
+            }
+            if (intermediate == null)
+                intermediate = current;
+            else {
+                List<Z3Proof> subProofs = new ArrayList<Z3Proof>(2);
+                subProofs.add(intermediate);
+                subProofs.add(current);
+                List<Formula> intermediateDisjuncts = new ArrayList<Formula>(2);
+                intermediateDisjuncts.add(((OrFormula) intermediate
+                        .getConsequent()).getDisjuncts().get(0));
+                intermediateDisjuncts.add(((OrFormula) current.getConsequent())
+                        .getDisjuncts().get(1));
+                intermediate = new Z3Proof(
+                        SExpressionConstants.UNIT_RESOLUTION, subProofs,
+                        new OrFormula(intermediateDisjuncts));
+                assert (intermediate.checkZ3ProofNode()); // DEBUG
+            }
+        }
+        return intermediate;
     }
 }

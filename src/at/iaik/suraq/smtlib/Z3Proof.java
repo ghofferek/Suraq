@@ -17,6 +17,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
+import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -26,6 +27,7 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.TransitivityChainBuilder;
@@ -133,7 +135,7 @@ public class Z3Proof implements SMTLibObject {
             System.out.println("INFO: Created the " + output + " proof node.");
         }
         this.setAssertPartition();
-        assert (this.checkZ3ProofNode());
+        // assert (this.checkZ3ProofNode());
     }
 
     /**
@@ -149,7 +151,28 @@ public class Z3Proof implements SMTLibObject {
      */
     public Z3Proof(Token proofType, List<? extends Z3Proof> subProofs,
             Formula consequent) {
+        this(proofType, subProofs, consequent, 0, false);
+        this.setAssertPartition();
+    }
 
+    /**
+     * 
+     * Constructs a new <code>Z3Proof</code>.
+     * 
+     * @param proofType
+     *            the type of the proof
+     * @param subProofs
+     *            the list of all subproofs
+     * @param consequent
+     *            the formula which has to be proved
+     * @param partition
+     *            the partition for this node.
+     * @param axiom
+     *            <code>true</code> if this is an axiom.
+     */
+    public Z3Proof(Token proofType, List<? extends Z3Proof> subProofs,
+            Formula consequent, int partition, boolean axiom) {
+        this.axiom = axiom;
         if (proofType == null)
             throw new RuntimeException("null prooftype not allowed!");
 
@@ -164,8 +187,8 @@ public class Z3Proof implements SMTLibObject {
             String output = myFormatter.format(this.id);
             System.out.println("INFO: Created the " + output + " proof node.");
         }
-        this.setAssertPartition();
-        assert (this.checkZ3ProofNode());
+        assertPartition = partition;
+        // assert (this.checkZ3ProofNode());
     }
 
     private void setAssertPartition() {
@@ -554,46 +577,103 @@ public class Z3Proof implements SMTLibObject {
                     child1.dealWithModusPonensRecursion(operationId);
                 return;
             }
+            if (Util.makeLiteralPositive(Util.getSingleLiteral(this.consequent)) instanceof DomainEq) {
+                TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
+                        this);
+                Set<Z3Proof> children = new HashSet<Z3Proof>();
+                for (Z3Proof child : subProofs)
+                    Util.getModusPonensNonIffChilds(child, children);
+                if (children.size() <= 1)
+                    assert (false);
+                for (Z3Proof child : children) {
+                    // Recursive call for child
+                    if (!child.wasVisitedByDAGOperation(operationId))
+                        child.dealWithModusPonensRecursion(operationId);
+                    chainBuilder.addProofNode(child);
+                }
 
-            TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
-                    this);
-            Set<Z3Proof> children = new HashSet<Z3Proof>();
-            for (Z3Proof child : subProofs)
-                Util.getModusPonensNonIffChilds(child, children);
-            if (children.size() <= 1)
-                assert (false);
-            for (Z3Proof child : children) {
-                // Recursive call for child
-                if (!child.wasVisitedByDAGOperation(operationId))
-                    child.dealWithModusPonensRecursion(operationId);
-                chainBuilder.addProofNode(child);
-            }
+                List<Z3Proof> proofList = chainBuilder.getChain();
+                if (proofList == null)
+                    assert (false);
+                Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
+                this.subProofs = transProof.subProofs;
+                this.proofType = transProof.proofType;
+                assert (this.consequent.transformToConsequentsForm()
+                        .equals(transProof.consequent
+                                .transformToConsequentsForm()));
+                this.consequent = transProof.consequent
+                        .transformToConsequentsForm();
 
-            List<Z3Proof> proofList = chainBuilder.getChain();
-            if (proofList == null)
-                assert (false);
-            Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
-            this.subProofs = transProof.subProofs;
-            this.proofType = transProof.proofType;
-            assert (this.consequent.transformToConsequentsForm()
-                    .equals(transProof.consequent.transformToConsequentsForm()));
-            this.consequent = transProof.consequent
-                    .transformToConsequentsForm();
+                // If we have three subproofs, we need to split them,
+                // because conversion to local proof cannot deal with
+                // three subproofs.
+                assert (subProofs.size() <= 3);
+                if (subProofs.size() == 3) {
+                    assert (this.proofType == SExpressionConstants.TRANSITIVITY);
+                    Z3Proof intermediate = Z3Proof
+                            .createTransitivityProof(new ArrayList<Z3Proof>(
+                                    subProofs.subList(0, 2)));
+                    Z3Proof rest = subProofs.get(2);
+                    subProofs.clear();
+                    subProofs.add(intermediate);
+                    subProofs.add(rest);
+                }
+            } else if (Util.makeLiteralPositive(Util
+                    .getSingleLiteral(this.consequent)) instanceof UninterpretedPredicateInstance) {
 
-            // If we have three subproofs, we need to split them,
-            // because conversion to local proof cannot deal with
-            // three subproofs.
-            assert (subProofs.size() <= 3);
-            if (subProofs.size() == 3) {
-                assert (this.proofType == SExpressionConstants.TRANSITIVITY);
-                Z3Proof intermediate = Z3Proof
-                        .createTransitivityProof(new ArrayList<Z3Proof>(
-                                subProofs.subList(0, 2)));
-                Z3Proof rest = subProofs.get(2);
+                assert (Util.makeLiteralPositive(Util
+                        .getSingleLiteral(subProofs.get(0).getConsequent())) instanceof UninterpretedPredicateInstance);
+
+                boolean predicatePolarity = Util.isAtom(Util
+                        .getSingleLiteral(subProofs.get(0).getConsequent()));
+
+                assert (predicatePolarity || Util.isNegativeLiteral(Util
+                        .getSingleLiteral(subProofs.get(0).getConsequent())));
+
+                // Collect relevant children
+                Set<Z3Proof> leafs = new HashSet<Z3Proof>();
+                Set<Z3Proof> iffsComingFromDomainEq = new HashSet<Z3Proof>();
+                for (Z3Proof child : subProofs) {
+                    Util.getModusPonensIffLeafs(child, leafs);
+                    Util.getModusPonensIffChildsComingFromDomainEq(child,
+                            iffsComingFromDomainEq);
+                }
+                Set<Z3Proof> relevantChilds = new HashSet<Z3Proof>();
+                relevantChilds.addAll(leafs);
+                relevantChilds.addAll(iffsComingFromDomainEq);
+
+                // Build transitivity chain for the propositional equalities
+                Term startTerm = (UninterpretedPredicateInstance) Util
+                        .makeLiteralPositive(Util.getSingleLiteral(subProofs
+                                .get(0).getConsequent()));
+                Term endTerm = (UninterpretedPredicateInstance) Util
+                        .makeLiteralPositive(Util
+                                .getSingleLiteral(this.consequent));
+                TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
+                        startTerm, endTerm);
+                for (Z3Proof child : relevantChilds) {
+                    chainBuilder.addProofNode(child);
+                }
+
+                Z3Proof resolutionChild = chainBuilder
+                        .convertToResolutionChain(predicatePolarity);
                 subProofs.clear();
-                subProofs.add(intermediate);
-                subProofs.add(rest);
+                subProofs.add(child1);
+                subProofs.add(resolutionChild);
+                proofType = SExpressionConstants.UNIT_RESOLUTION;
+                assert (this.checkZ3ProofNode()); // DEBUG
+
+                // Recursive calls
+                if (!child1.wasVisitedByDAGOperation(operationId))
+                    child1.dealWithModusPonensRecursion(operationId);
+                if (!resolutionChild.wasVisitedByDAGOperation(operationId))
+                    resolutionChild.dealWithModusPonensRecursion(operationId);
+
+            } else {
+                throw new RuntimeException(
+                        "Modus Ponens node with unexpected structure!");
             }
+
         } else {
             // Not a MODUS PONENS node...
             for (Z3Proof child : subProofs) {
@@ -914,9 +994,6 @@ public class Z3Proof implements SMTLibObject {
      */
     public boolean checkZ3ProofNode() {
 
-        if (true)
-            return true;
-
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
 
         if (this.subProofs.size() > 0) {
@@ -960,8 +1037,6 @@ public class Z3Proof implements SMTLibObject {
      * @return return true if node is valid
      */
     public boolean checkZ3ProofNodeRecursive() {
-        if (true)
-            return true;
 
         int operationId = startDAGOperation();
         boolean result = this.checkZ3ProofNodeRecursiveRecursion(operationId);
@@ -1252,5 +1327,12 @@ public class Z3Proof implements SMTLibObject {
     @Override
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
+    }
+
+    /**
+     * @return the <code>assertPartition</code>
+     */
+    public int getAssertPartitionOfThisNode() {
+        return assertPartition;
     }
 }

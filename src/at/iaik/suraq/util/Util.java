@@ -821,7 +821,7 @@ public class Util {
         }
     }
 
-    public static void getModusPonensIffLeaves(Z3Proof node, Set<Z3Proof> result) {
+    public static void getModusPonensIffLeafs(Z3Proof node, Set<Z3Proof> result) {
         assert (result != null);
         assert (node != null);
         if (node.getConsequent() instanceof PropositionalEq) {

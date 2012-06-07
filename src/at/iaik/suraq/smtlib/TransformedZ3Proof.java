@@ -104,9 +104,9 @@ public class TransformedZ3Proof extends Z3Proof {
 
         super(proofType, subProofs, consequent.transformToConsequentsForm()
                 .deepFormulaCopy());
-        if (this.id == 548)
-            this.checkZ3ProofNodeRecursive();
-        assert (this.checkZ3ProofNode());
+        // if (this.id == 548)
+        // this.checkZ3ProofNodeRecursive();
+        // assert (this.checkZ3ProofNode());
     }
 
     /**
@@ -131,9 +131,9 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.literal = literal == null ? null : Util.getSingleLiteral(literal
                 .deepFormulaCopy());
-        if (this.id == 548)
-            this.checkZ3ProofNodeRecursive();
-        assert (this.checkZ3ProofNode());
+        // if (this.id == 548)
+        // this.checkZ3ProofNodeRecursive();
+        // assert (this.checkZ3ProofNode());
     }
 
     /**
@@ -159,9 +159,9 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.literal = literal == null ? null : Util.getSingleLiteral(literal
                 .deepFormulaCopy());
-        if (this.id == 548 || subProof1.id == 548 || subProof2.id == 548)
-            this.checkZ3ProofNodeRecursive();
-        assert (this.checkZ3ProofNode());
+        // if (this.id == 548 || subProof1.id == 548 || subProof2.id == 548)
+        // this.checkZ3ProofNodeRecursive();
+        // assert (this.checkZ3ProofNode());
     }
 
     public TransformedZ3Proof(ResNode node, Map<Integer, Formula> literalMap) {
@@ -390,9 +390,11 @@ public class TransformedZ3Proof extends Z3Proof {
                                 + transformedHypotheticalProof.consequent
                                         .toString());
 
-            assert (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
+            // assert
+            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
             transformedHypotheticalProof.removeHypotheses();
-            assert (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
+            // assert
+            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
 
             List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
             for (Z3Proof proof : transformedHypotheticalProof.subProofs) {
@@ -414,7 +416,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
-            assert (result.checkZ3ProofNode());
+            // assert (result.checkZ3ProofNode());
             return result;
 
         } else if (proofType.equals(SExpressionConstants.TRANSITIVITY)) {
@@ -1029,7 +1031,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getConsequent());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
-        assert (newProofNode.checkZ3ProofNode());
+        // assert (newProofNode.checkZ3ProofNode());
         TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
                 firstAnnotatedNode.getLeftPartition(), firstAnnotatedNode
                         .getRightPartition(), this, firstAnnotatedNode
