@@ -157,26 +157,66 @@ public class TransitivityChainBuilder {
             disjuncts.add(predicatePolarity ^ reversePolarity ? term2
                     : new NotFormula(term2));
 
+            if (current.getProofType().equals(SExpressionConstants.SYMMETRY)) {
+                assert (current.getSubProofs().size() == 1);
+                current = current.getSubProofs().get(0);
+            }
+
             if (current.getProofType().equals(SExpressionConstants.ASSERTED)) {
                 current = new Z3Proof(SExpressionConstants.ASSERTED,
                         new ArrayList<Z3Proof>(0), new OrFormula(disjuncts),
                         current.getAssertPartitionOfThisNode(), false);
                 assert (current.checkZ3ProofNode()); // DEBUG
             } else {
-                assert (current.getSubProofs().size() == 1);
-                assert (Util.getSingleLiteral(current.getSubProofs().get(0)
-                        .getConsequent()) instanceof DomainEq);
-                disjuncts.add(new NotFormula(current.getSubProofs().get(0)
-                        .getConsequent()));
-                Z3Proof axiom = new Z3Proof(SExpressionConstants.ASSERTED,
-                        new ArrayList<Z3Proof>(0), new OrFormula(disjuncts),
-                        current.getAssertPartitionOfThisNode(), true);
-                List<Z3Proof> subProofs = new ArrayList<Z3Proof>(2);
-                subProofs.add(current.getSubProofs().get(0));
-                subProofs.add(axiom);
-                current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
-                        subProofs, new OrFormula(disjuncts.subList(0, 2)));
-                assert (current.checkZ3ProofNode()); // DEBUG
+                assert (current.getSubProofs().size() == 1 || current
+                        .getSubProofs().size() == 2);
+
+                if (current.getSubProofs().size() == 1) {
+
+                    if (!(Util.getSingleLiteral(current.getSubProofs().get(0)
+                            .getConsequent()) instanceof DomainEq))
+                        assert (false);
+                    disjuncts.add(new NotFormula(current.getSubProofs().get(0)
+                            .getConsequent()));
+                    Z3Proof axiom = new Z3Proof(SExpressionConstants.ASSERTED,
+                            new ArrayList<Z3Proof>(0),
+                            new OrFormula(disjuncts),
+                            current.getAssertPartitionOfThisNode(), true);
+                    List<Z3Proof> subProofs = new ArrayList<Z3Proof>(2);
+                    subProofs.add(current.getSubProofs().get(0));
+                    subProofs.add(axiom);
+                    current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
+                            subProofs, new OrFormula(disjuncts.subList(0, 2)));
+                    assert (current.checkZ3ProofNode()); // DEBUG
+
+                } else {
+                    assert (current.getSubProofs().size() == 2);
+                    assert (Util.getSingleLiteral(current.getSubProofs().get(0)
+                            .getConsequent()) instanceof DomainEq);
+                    assert (Util.getSingleLiteral(current.getSubProofs().get(1)
+                            .getConsequent()) instanceof DomainEq);
+                    disjuncts.add(new NotFormula(current.getSubProofs().get(1)
+                            .getConsequent()));
+                    disjuncts.add(new NotFormula(current.getSubProofs().get(0)
+                            .getConsequent()));
+                    Z3Proof axiom = new Z3Proof(SExpressionConstants.ASSERTED,
+                            new ArrayList<Z3Proof>(0),
+                            new OrFormula(disjuncts),
+                            current.getAssertPartitionOfThisNode(), true);
+                    List<Z3Proof> currentSubProofs = current.getSubProofs();
+                    List<Z3Proof> subProofs = new ArrayList<Z3Proof>(2);
+                    subProofs.add(currentSubProofs.get(0));
+                    subProofs.add(axiom);
+                    current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
+                            subProofs, new OrFormula(disjuncts.subList(0, 3)));
+                    assert (current.checkZ3ProofNode()); // DEBUG
+                    subProofs = new ArrayList<Z3Proof>(2);
+                    subProofs.add(currentSubProofs.get(1));
+                    subProofs.add(current);
+                    current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
+                            subProofs, new OrFormula(disjuncts.subList(0, 2)));
+                    assert (current.checkZ3ProofNode()); // DEBUG
+                }
             }
             if (intermediate == null)
                 intermediate = current;

@@ -566,6 +566,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
     public void dealWithModusPonensRecursion(int operationId) {
         visitedByDAGOperation(operationId);
 
+        if (this.id == 163551)
+            assert (this.id > 0);
+
         if (this.proofType.equals(SExpressionConstants.MODUS_PONENS)) {
             assert (subProofs.size() == 2);
             assert (this.hasSingleLiteralConsequent());
@@ -585,14 +588,16 @@ public class Z3Proof implements SMTLibObject, Serializable {
                     child1.dealWithModusPonensRecursion(operationId);
                 return;
             }
+
+            boolean chainOverEqualityAsPredicate = false;
+
             if (Util.makeLiteralPositive(Util.getSingleLiteral(this.consequent)) instanceof DomainEq) {
                 TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
                         this);
                 Set<Z3Proof> children = new HashSet<Z3Proof>();
                 for (Z3Proof child : subProofs)
                     Util.getModusPonensNonIffChilds(child, children);
-                if (children.size() <= 1)
-                    assert (false);
+
                 for (Z3Proof child : children) {
                     // Recursive call for child
                     if (!child.wasVisitedByDAGOperation(operationId))
@@ -601,36 +606,50 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 }
 
                 List<Z3Proof> proofList = chainBuilder.getChain();
-                if (proofList == null)
-                    assert (false);
-                Z3Proof transProof = Z3Proof.createTransitivityProof(proofList);
-                this.subProofs = transProof.subProofs;
-                this.proofType = transProof.proofType;
-                assert (this.consequent.transformToConsequentsForm()
-                        .equals(transProof.consequent
-                                .transformToConsequentsForm()));
-                this.consequent = transProof.consequent
-                        .transformToConsequentsForm();
+                if (proofList != null) {
 
-                // If we have three subproofs, we need to split them,
-                // because conversion to local proof cannot deal with
-                // three subproofs.
-                assert (subProofs.size() <= 3);
-                if (subProofs.size() == 3) {
-                    assert (this.proofType == SExpressionConstants.TRANSITIVITY);
-                    Z3Proof intermediate = Z3Proof
-                            .createTransitivityProof(new ArrayList<Z3Proof>(
-                                    subProofs.subList(0, 2)));
-                    Z3Proof rest = subProofs.get(2);
-                    subProofs.clear();
-                    subProofs.add(intermediate);
-                    subProofs.add(rest);
+                    Z3Proof transProof = Z3Proof
+                            .createTransitivityProof(proofList);
+                    this.subProofs = transProof.subProofs;
+                    this.proofType = transProof.proofType;
+                    assert (this.consequent.transformToConsequentsForm()
+                            .equals(transProof.consequent
+                                    .transformToConsequentsForm()));
+                    this.consequent = transProof.consequent
+                            .transformToConsequentsForm();
+
+                    // If we have three subproofs, we need to split them,
+                    // because conversion to local proof cannot deal with
+                    // three subproofs.
+                    assert (subProofs.size() <= 3);
+                    if (subProofs.size() == 3) {
+                        assert (this.proofType == SExpressionConstants.TRANSITIVITY);
+                        Z3Proof intermediate = Z3Proof
+                                .createTransitivityProof(new ArrayList<Z3Proof>(
+                                        subProofs.subList(0, 2)));
+                        Z3Proof rest = subProofs.get(2);
+                        subProofs.clear();
+                        subProofs.add(intermediate);
+                        subProofs.add(rest);
+                    }
+                } else {
+                    // Could not create a "normal" transitivity chain
+                    // Try viewing equality as a predicate instead, and
+                    // construct a chain to convert to resolution.
+                    chainOverEqualityAsPredicate = true;
+
                 }
-            } else if (Util.makeLiteralPositive(Util
-                    .getSingleLiteral(this.consequent)) instanceof UninterpretedPredicateInstance) {
+            }
+
+            if (Util.makeLiteralPositive(Util.getSingleLiteral(this.consequent)) instanceof UninterpretedPredicateInstance
+                    || chainOverEqualityAsPredicate) {
 
                 assert (Util.makeLiteralPositive(Util
-                        .getSingleLiteral(subProofs.get(0).getConsequent())) instanceof UninterpretedPredicateInstance);
+                        .getSingleLiteral(subProofs.get(0).getConsequent())) instanceof UninterpretedPredicateInstance || chainOverEqualityAsPredicate);
+
+                assert (!chainOverEqualityAsPredicate || Util
+                        .makeLiteralPositive(Util.getSingleLiteral(subProofs
+                                .get(0).getConsequent())) instanceof EqualityFormula);
 
                 boolean predicatePolarity = Util.isAtom(Util
                         .getSingleLiteral(subProofs.get(0).getConsequent()));
@@ -667,6 +686,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
                 Z3Proof resolutionChild = chainBuilder
                         .convertToResolutionChain(predicatePolarity);
+                assert (resolutionChild != null);
                 subProofs.clear();
                 subProofs.add(child1);
                 subProofs.add(resolutionChild);
@@ -679,7 +699,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 if (!resolutionChild.wasVisitedByDAGOperation(operationId))
                     resolutionChild.dealWithModusPonensRecursion(operationId);
 
-            } else {
+            }
+
+            if (this.proofType.equals(SExpressionConstants.MODUS_PONENS)) {
+                // Still a modus ponens node
                 throw new RuntimeException(
                         "Modus Ponens node with unexpected structure!");
             }
@@ -839,8 +862,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
     public static Z3Proof createTransitivityProof(
             List<? extends Z3Proof> subProofs) {
         assert (subProofs != null);
+        assert (!subProofs.isEmpty());
         subProofs = new ArrayList<Z3Proof>(subProofs);
-        assert (subProofs.size() == 2 || subProofs.size() == 3);
+        if (subProofs.size() == 1) {
+            return subProofs.get(0);
+        }
         assert (Util.makeLiteralPositive(Util.getSingleLiteral((subProofs
                 .get(0).consequent.transformToConsequentsForm()))) instanceof EqualityFormula);
         assert (Util
@@ -852,7 +878,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 : true);
 
         final int initialSize = subProofs.size();
-        assert (initialSize == 2 || initialSize == 3);
+
         Set<Z3Proof> toRemove = new HashSet<Z3Proof>();
         for (Z3Proof subProof : subProofs) {
             if (Util.isReflexivity(subProof.consequent))
@@ -883,6 +909,20 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 result.axiom = true;
                 return result;
             }
+        }
+
+        if (subProofs.size() > 3) {
+            Z3Proof intermediate = Z3Proof
+                    .createTransitivityProof(new ArrayList<Z3Proof>(subProofs
+                            .subList(0, 2)));
+            for (int count = 2; count < subProofs.size(); count++) {
+                List<Z3Proof> currentSubProofs = new ArrayList<Z3Proof>(2);
+                currentSubProofs.add(intermediate);
+                currentSubProofs.add(subProofs.get(count));
+                intermediate = Z3Proof
+                        .createTransitivityProof(currentSubProofs);
+            }
+            return intermediate;
         }
 
         EqualityFormula firstFormula = (EqualityFormula) Util
@@ -1347,10 +1387,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public static void setInstanceCounter(int value) {
-        instanceCounter = value;
+        Z3Proof.instanceCounter = value;
     }
 
     public static int getInstanceCounter() {
-        return instanceCounter;
+        return Z3Proof.instanceCounter;
     }
 }

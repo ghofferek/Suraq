@@ -856,9 +856,32 @@ public class Util {
                 if (!(childConsequent instanceof DomainEq))
                     assert (false);
                 result.add(node);
+                return;
+            }
+            if (node.getSubProofs().size() == 2
+                    && node.getProofType().equals(
+                            SExpressionConstants.MONOTONICITY)) {
+                assert (node.getProofType()
+                        .equals(SExpressionConstants.MONOTONICITY));
+                Z3Proof child1 = node.getSubProofs().get(0);
+                Z3Proof child2 = node.getSubProofs().get(1);
+                Formula childConsequent1 = child1.getConsequent();
+                assert (Util.isLiteral(childConsequent1));
+                childConsequent1 = Util.getSingleLiteral(childConsequent1);
+                assert (Util.isAtom(childConsequent1));
+                if (!(childConsequent1 instanceof DomainEq))
+                    assert (false);
+                Formula childConsequent2 = child2.getConsequent();
+                assert (Util.isLiteral(childConsequent2));
+                childConsequent1 = Util.getSingleLiteral(childConsequent2);
+                assert (Util.isAtom(childConsequent2));
+                if (!(childConsequent2 instanceof DomainEq))
+                    assert (false);
+                result.add(node);
+                return;
             }
             for (Z3Proof child : node.getSubProofs())
-                Util.getModusPonensNonIffChilds(child, result);
+                Util.getModusPonensIffChildsComingFromDomainEq(child, result);
         } else {
             assert (false); // Unexpected exit path from modus ponens rule
         }
