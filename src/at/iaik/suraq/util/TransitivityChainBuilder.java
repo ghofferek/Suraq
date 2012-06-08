@@ -11,6 +11,7 @@ import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalEq;
@@ -123,7 +124,22 @@ public class TransitivityChainBuilder {
      */
     public Z3Proof convertToResolutionChain(boolean predicatePolarity) {
 
+        assert (targetStartTerm instanceof FormulaTerm);
+        assert (targetEndTerm instanceof FormulaTerm);
+
+        boolean reversePolarity = false;
         List<Z3Proof> chain = graph.findPath(targetStartTerm, targetEndTerm);
+        if (chain == null) {
+            reversePolarity = true;
+            FormulaTerm reverseStartTerm = new FormulaTerm(new NotFormula(
+                    ((FormulaTerm) targetStartTerm).getFormula()));
+            FormulaTerm reverseEndTerm = new FormulaTerm(new NotFormula(
+                    ((FormulaTerm) targetEndTerm).getFormula()));
+            chain = graph.findPath(reverseStartTerm, reverseEndTerm);
+            if (chain == null)
+                assert (false);
+        }
+
         Z3Proof intermediate = null;
 
         for (Z3Proof current : chain) {
@@ -136,8 +152,10 @@ public class TransitivityChainBuilder {
                     .get(1);
 
             List<Formula> disjuncts = new ArrayList<Formula>(3);
-            disjuncts.add(predicatePolarity ? new NotFormula(term1) : term1);
-            disjuncts.add(predicatePolarity ? term2 : new NotFormula(term2));
+            disjuncts.add(predicatePolarity ^ reversePolarity ? new NotFormula(
+                    term1) : term1);
+            disjuncts.add(predicatePolarity ^ reversePolarity ? term2
+                    : new NotFormula(term2));
 
             if (current.getProofType().equals(SExpressionConstants.ASSERTED)) {
                 current = new Z3Proof(SExpressionConstants.ASSERTED,

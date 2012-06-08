@@ -826,7 +826,7 @@ public class Util {
         assert (node != null);
         if (node.getConsequent() instanceof PropositionalEq) {
             for (Z3Proof child : node.getSubProofs())
-                Util.getModusPonensNonIffChilds(child, result);
+                Util.getModusPonensIffLeafs(child, result);
 
             if (node.getProofType().equals(SExpressionConstants.ASSERTED))
                 result.add(node);
@@ -841,6 +841,11 @@ public class Util {
             if (node.getProofType().equals(SExpressionConstants.ASSERTED))
                 return;
             if (node.getSubProofs().size() == 1) {
+                if (node.getSubProofs().get(0).getConsequent() instanceof PropositionalEq) {
+                    Util.getModusPonensIffChildsComingFromDomainEq(node
+                            .getSubProofs().get(0), result);
+                    return;
+                }
                 assert (node.getProofType()
                         .equals(SExpressionConstants.MONOTONICITY));
                 Z3Proof child = node.getSubProofs().get(0);
@@ -848,7 +853,8 @@ public class Util {
                 assert (Util.isLiteral(childConsequent));
                 childConsequent = Util.getSingleLiteral(childConsequent);
                 assert (Util.isAtom(childConsequent));
-                assert (childConsequent instanceof DomainEq);
+                if (!(childConsequent instanceof DomainEq))
+                    assert (false);
                 result.add(node);
             }
             for (Z3Proof child : node.getSubProofs())

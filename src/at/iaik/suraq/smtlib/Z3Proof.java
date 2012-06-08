@@ -22,9 +22,11 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -639,8 +641,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 // Collect relevant children
                 Set<Z3Proof> leafs = new HashSet<Z3Proof>();
                 Set<Z3Proof> iffsComingFromDomainEq = new HashSet<Z3Proof>();
+                assert (subProofs.size() == 2);
                 for (Z3Proof child : subProofs) {
                     Util.getModusPonensIffLeafs(child, leafs);
+                    if (!(Util.makeLiteralPositive(Util
+                            .getSingleLiteral(child.consequent)) instanceof PropositionalEq))
+                        continue;
                     Util.getModusPonensIffChildsComingFromDomainEq(child,
                             iffsComingFromDomainEq);
                 }
@@ -649,12 +655,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 relevantChilds.addAll(iffsComingFromDomainEq);
 
                 // Build transitivity chain for the propositional equalities
-                Term startTerm = (UninterpretedPredicateInstance) Util
-                        .makeLiteralPositive(Util.getSingleLiteral(subProofs
-                                .get(0).getConsequent()));
-                Term endTerm = (UninterpretedPredicateInstance) Util
-                        .makeLiteralPositive(Util
-                                .getSingleLiteral(this.consequent));
+                Term startTerm = new FormulaTerm(Util.makeLiteralPositive(Util
+                        .getSingleLiteral(subProofs.get(0).getConsequent())));
+                Term endTerm = new FormulaTerm(Util.makeLiteralPositive(Util
+                        .getSingleLiteral(this.consequent)));
                 TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
                         startTerm, endTerm);
                 for (Z3Proof child : relevantChilds) {

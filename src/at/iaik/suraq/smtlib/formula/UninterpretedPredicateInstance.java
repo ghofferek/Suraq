@@ -86,6 +86,29 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     }
 
     /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof UninterpretedPredicateInstance))
+            return false;
+        UninterpretedPredicateInstance other = (UninterpretedPredicateInstance) obj;
+        if (!other.parameters.equals(parameters))
+            return false;
+        if (!other.function.equals(function))
+            return false;
+        return true;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return function.hashCode() ^ parameters.hashCode();
+    }
+
+    /**
      * Returns the function of which this is an instance
      * 
      * @return the <code>function</code>

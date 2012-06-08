@@ -58,6 +58,27 @@ public class TermFunctionMacro extends FunctionMacro {
     }
 
     /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof TermFunctionMacro))
+            return false;
+        TermFunctionMacro other = (TermFunctionMacro) obj;
+        return other.name.equals(name) && other.parameters.equals(parameters)
+                && other.paramMap.equals(paramMap) && other.body.equals(body);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return name.hashCode() ^ parameters.hashCode() ^ paramMap.hashCode()
+                ^ body.hashCode();
+    }
+
+    /**
      * Returns the function body of this macro.
      * 
      * @return the <code>body</code>

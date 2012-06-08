@@ -277,4 +277,23 @@ public class FormulaTerm extends PropositionalTerm {
         return this.formula.transformToConsequentsForm(notFlag, firstLevel);
     }
 
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return formula.hashCode();
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof FormulaTerm))
+            return false;
+
+        return formula.equals(((FormulaTerm) obj).formula);
+    }
+
 }

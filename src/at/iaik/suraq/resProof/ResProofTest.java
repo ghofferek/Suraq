@@ -9,6 +9,7 @@ import java.util.List;
 
 public class ResProofTest {
 
+    @SuppressWarnings("unused")
     private void localizeProof(ResProof prf) {
         prf.computeVitals();
         prf.checkProof(true);

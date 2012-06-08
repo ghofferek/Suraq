@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Set;
 
@@ -98,12 +99,16 @@ public class SaveCache implements Serializable {
      * @return the loaded <code>SaveCache</code>
      */
     public static SaveCache loadSaveCacheFromFile(String filename) {
-        SaveCache intermediateVars = readFromFile(filename);
+        SaveCache intermediateVars = SaveCache.readFromFile(filename);
 
         // if serial cache, restore STATIC Z3Proof Instance counter
         if (intermediateVars.getInstanceCounter() != null) {
+            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
+            String counter = myFormatter.format(intermediateVars
+                    .getInstanceCounter());
             System.out
-                    .println("INFO: RESTORING STATIC Z3PROOF INSTANCE COUNTER!");
+                    .println("INFO: RESTORING STATIC Z3PROOF INSTANCE COUNTER! ("
+                            + counter + ")");
             Z3Proof.setInstanceCounter(intermediateVars.getInstanceCounter());
         }
         System.out.println();

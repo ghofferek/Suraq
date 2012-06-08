@@ -414,6 +414,7 @@ public class Suraq implements Runnable {
                 useCachedResults = true;
                 System.out
                         .println("INFO: using FILE cached intermediate results.");
+                System.out.println(z3ProofFile.toString());
             }
         }
 
@@ -431,6 +432,7 @@ public class Suraq implements Runnable {
                 useCachedResults = true;
                 System.out
                         .println("INFO: using SERIAL cached intermediate results.");
+                System.out.println(saveCacheSerial.toString());
             }
         }
 
@@ -564,6 +566,10 @@ public class Suraq implements Runnable {
 
                 if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
                     // read proof from file
+
+                    Timer loadTimer = new Timer();
+                    loadTimer.start();
+
                     FileReader reader = new FileReader(z3ProofFile);
                     BufferedReader bufferedReader = new BufferedReader(reader);
                     StringBuilder stringBuilder = new StringBuilder();
@@ -587,14 +593,19 @@ public class Suraq implements Runnable {
                             intermediateVars.getDomainVars(),
                             intermediateVars.getArrayVars(),
                             intermediateVars.getUninterpretedFunctions());
-
+                    loadTimer.end();
+                    System.out.println("Cached proof loaded and parsed in: "
+                            + loadTimer);
                     assert (rootProof != null);
 
                 } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
-
+                    Timer loadTimer = new Timer();
+                    loadTimer.start();
                     intermediateVars = SaveCache
                             .loadSaveCacheFromFile(saveCacheSerial.getPath());
-
+                    loadTimer.end();
+                    System.out.println("Serialized cache loaded in: "
+                            + loadTimer);
                     rootProof = intermediateVars.getProof();
 
                     assert (rootProof != null);
