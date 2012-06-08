@@ -23,6 +23,11 @@ import at.iaik.suraq.smtlib.SMTLibObject;
 public class PropositionalFunctionMacroInstance implements Formula {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 5604001861879637266L;
+
+    /**
      * The macro of which this is an instance.
      */
     private final PropositionalFunctionMacro macro;

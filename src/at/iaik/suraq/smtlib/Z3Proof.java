@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +38,12 @@ import at.iaik.suraq.util.Util;
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
  * 
  */
-public class Z3Proof implements SMTLibObject {
+public class Z3Proof implements SMTLibObject, Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7871807524124015582L;
 
     /**
      * global counter to keep track of running DAG traversals.
@@ -1334,5 +1340,13 @@ public class Z3Proof implements SMTLibObject {
      */
     public int getAssertPartitionOfThisNode() {
         return assertPartition;
+    }
+
+    public static void setInstanceCounter(int value) {
+        instanceCounter = value;
+    }
+
+    public static int getInstanceCounter() {
+        return instanceCounter;
     }
 }

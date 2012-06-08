@@ -23,6 +23,11 @@ public class ArrayEq extends EqualityFormula {
 
     /**
      * 
+     */
+    private static final long serialVersionUID = 6969625051610060136L;
+
+    /**
+     * 
      * Constructs a new <code>ArrayEq</code>.
      * 
      * @param terms

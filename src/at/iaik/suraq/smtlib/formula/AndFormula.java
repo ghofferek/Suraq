@@ -23,6 +23,11 @@ public class AndFormula extends AndOrXorFormula {
 
     /**
      * 
+     */
+    private static final long serialVersionUID = 870670778366136999L;
+
+    /**
+     * 
      * Constructs a new <code>AndFormula</code>, consisting of the conjunction
      * of the given formulas.
      * 

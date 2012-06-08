@@ -23,6 +23,11 @@ public class OrFormula extends AndOrXorFormula {
 
     /**
      * 
+     */
+    private static final long serialVersionUID = -1803216846463035758L;
+
+    /**
+     * 
      * Constructs a new <code>OrFormula</code>, consisting of the disjunction of
      * the given formulas.
      * 

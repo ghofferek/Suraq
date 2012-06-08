@@ -26,6 +26,10 @@ import at.iaik.suraq.util.Util;
 public class NotFormula extends BooleanCombinationFormula {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -99679765405836941L;
+    /**
      * The negated internal formula.
      */
     private Formula formula;

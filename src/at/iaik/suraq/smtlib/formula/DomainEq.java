@@ -22,6 +22,11 @@ public class DomainEq extends EqualityFormula {
 
     /**
      * 
+     */
+    private static final long serialVersionUID = -8408624046605834100L;
+
+    /**
+     * 
      * Constructs a new <code>TermEq</code>.
      * 
      * @param terms
@@ -86,6 +91,6 @@ public class DomainEq extends EqualityFormula {
                 term.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
         }
-    }  
-    
+    }
+
 }

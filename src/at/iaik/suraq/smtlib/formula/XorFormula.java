@@ -21,6 +21,11 @@ public class XorFormula extends AndOrXorFormula {
 
     /**
      * 
+     */
+    private static final long serialVersionUID = -5363336255954084725L;
+
+    /**
+     * 
      * Constructs a new <code>XorFormula</code>, consisting of the xor of the
      * given formulas.
      * 

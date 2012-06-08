@@ -16,6 +16,11 @@ import java.util.List;
 public class PropositionalEq extends EqualityFormula {
     /**
      * 
+     */
+    private static final long serialVersionUID = 3110446371682510102L;
+
+    /**
+     * 
      * Constructs a new <code>PropositionalEq</code>.
      * 
      * @param terms
@@ -40,5 +45,5 @@ public class PropositionalEq extends EqualityFormula {
             terms.add((PropositionalTerm) term.deepTermCopy());
         }
         return new PropositionalEq(terms, equal);
-    }    
+    }
 }

@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
@@ -34,6 +35,8 @@ public class SaveCache implements Serializable {
     private final Set<ArrayVariable> arrayVars;
     private final Set<UninterpretedFunction> uninterpretedFunctions;
     private final List<PropositionalVariable> controlVars;
+    private final Z3Proof proof;
+    private final Integer instanceCounter;
 
     /**
      * 
@@ -61,6 +64,26 @@ public class SaveCache implements Serializable {
         this.arrayVars = arrayVars;
         this.uninterpretedFunctions = uninterpretedFunctions;
         this.controlVars = controlVars;
+        this.proof = null;
+        this.instanceCounter = null;
+
+        if (filename != null)
+            this.saveToFile(filename);
+    }
+
+    public SaveCache(Set<PropositionalVariable> propsitionalVars,
+            Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
+            Set<UninterpretedFunction> uninterpretedFunctions,
+            List<PropositionalVariable> controlVars, Z3Proof proof,
+            String filename) {
+
+        this.propsitionalVars = propsitionalVars;
+        this.domainVars = domainVars;
+        this.arrayVars = arrayVars;
+        this.uninterpretedFunctions = uninterpretedFunctions;
+        this.controlVars = controlVars;
+        this.proof = proof;
+        this.instanceCounter = Z3Proof.getInstanceCounter();
 
         if (filename != null)
             this.saveToFile(filename);
@@ -75,7 +98,17 @@ public class SaveCache implements Serializable {
      * @return the loaded <code>SaveCache</code>
      */
     public static SaveCache loadSaveCacheFromFile(String filename) {
-        return readFromFile(filename);
+        SaveCache intermediateVars = readFromFile(filename);
+
+        // if serial cache, restore STATIC Z3Proof Instance counter
+        if (intermediateVars.getInstanceCounter() != null) {
+            System.out
+                    .println("INFO: RESTORING STATIC Z3PROOF INSTANCE COUNTER!");
+            Z3Proof.setInstanceCounter(intermediateVars.getInstanceCounter());
+        }
+        System.out.println();
+
+        return intermediateVars;
     }
 
     /**
@@ -135,5 +168,13 @@ public class SaveCache implements Serializable {
 
     public List<PropositionalVariable> getControlVars() {
         return controlVars;
+    }
+
+    public Z3Proof getProof() {
+        return this.proof;
+    }
+
+    public Integer getInstanceCounter() {
+        return this.instanceCounter;
     }
 }

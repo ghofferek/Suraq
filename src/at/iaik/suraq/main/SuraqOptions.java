@@ -17,6 +17,13 @@ import at.iaik.suraq.exceptions.SuraqException;
 public class SuraqOptions {
 
     /**
+     * Constants for cache types
+     */
+    public static final int CACHE_NONE = 0;
+    public static final int CACHE_FILE = 1;
+    public static final int CACHE_SERIAL = 2;
+
+    /**
      * Default value for verbose option.
      */
     private static final boolean verboseDefault = false;
@@ -29,7 +36,7 @@ public class SuraqOptions {
     /**
      * Default value for cache option.
      */
-    private static final boolean cacheDefault = false;
+    private static final int cacheDefault = 0;
 
     /**
      * Default value for input option.
@@ -57,6 +64,11 @@ public class SuraqOptions {
     private static String cacheFile = "savecache.db";
 
     /**
+     * The cache serial file name.
+     */
+    private static String cacheFileSerial = "savecache.serial.db";
+
+    /**
      * The value of the verbose option.
      */
     private final Boolean verboseValue;
@@ -69,7 +81,7 @@ public class SuraqOptions {
     /**
      * The value of the cache option.
      */
-    private final Boolean cacheValue;
+    private final Integer cacheValue;
 
     /**
      * The value of the input option.
@@ -125,7 +137,7 @@ public class SuraqOptions {
         Option verboseOption = cmdLineParser.addBooleanOption('v', "verbose");
         Option checkResultOption = cmdLineParser
                 .addBooleanOption("check_result");
-        Option cacheOption = cmdLineParser.addBooleanOption('c', "cache");
+        Option cacheOption = cmdLineParser.addIntegerOption('c', "cache");
 
         try {
             cmdLineParser.parse(args);
@@ -140,7 +152,7 @@ public class SuraqOptions {
         verboseValue = (Boolean) cmdLineParser.getOptionValue(verboseOption);
         checkResultValue = (Boolean) cmdLineParser
                 .getOptionValue(checkResultOption);
-        cacheValue = (Boolean) cmdLineParser.getOptionValue(cacheOption);
+        cacheValue = (Integer) cmdLineParser.getOptionValue(cacheOption);
 
         int end = inputValue.lastIndexOf(".");
 
@@ -148,7 +160,7 @@ public class SuraqOptions {
         z3ProofDefault = inputValue.substring(0, end) + '_' + z3ProofDefault;
         outputDefault = inputValue.substring(0, end) + '_' + outputDefault;
         cacheFile = inputValue.substring(0, end) + '_' + cacheFile;
-
+        cacheFileSerial = inputValue.substring(0, end) + '_' + cacheFileSerial;
     }
 
     /**
@@ -214,7 +226,7 @@ public class SuraqOptions {
      * 
      * @return the value of the cache option.
      */
-    public boolean useCache() {
+    public int getCacheType() {
         return cacheValue != null ? cacheValue : SuraqOptions.cacheDefault;
     }
 
@@ -254,6 +266,15 @@ public class SuraqOptions {
      */
     public String getCacheFile() {
         return cacheFile;
+    }
+
+    /**
+     * Returns the filename of the serial cache file.
+     * 
+     * @return the filename of the serial cache file.
+     */
+    public String getCacheFileSerial() {
+        return cacheFileSerial;
     }
 
     /**

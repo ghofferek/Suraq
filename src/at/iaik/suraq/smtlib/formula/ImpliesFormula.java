@@ -25,6 +25,11 @@ import at.iaik.suraq.util.Util;
 public class ImpliesFormula extends BooleanCombinationFormula {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -701197449376211245L;
+
+    /**
      * The left side of the implication.
      */
     private Formula leftSide;

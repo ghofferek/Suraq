@@ -24,6 +24,11 @@ import at.iaik.suraq.smtlib.SMTLibObject;
  */
 public abstract class EqualityFormula implements Formula {
     /**
+     * 
+     */
+    private static final long serialVersionUID = -6614135139526500209L;
+
+    /**
      * The terms to be compared.
      */
     protected final List<Term> terms;

@@ -58,6 +58,11 @@ import at.iaik.suraq.util.Util;
  */
 public class TransformedZ3Proof extends Z3Proof {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3623762531459362582L;
+
     public static TransformedZ3Proof debugNode = null;
 
     /**

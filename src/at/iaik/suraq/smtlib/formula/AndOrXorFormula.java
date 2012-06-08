@@ -25,6 +25,10 @@ import at.iaik.suraq.smtlib.SMTLibObject;
  */
 public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     /**
+     * 
+     */
+    private static final long serialVersionUID = 3515032983832421411L;
+    /**
      * The list of sub-formulas.
      */
     protected final List<Formula> formulas;

@@ -31,6 +31,11 @@ import at.iaik.suraq.util.Util;
 public class ArrayProperty implements Formula {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -1979830923087843951L;
+
+    /**
      * The collection of universally quantified variables.
      */
     private final List<DomainVariable> uVars;

@@ -15,6 +15,11 @@ public abstract class BooleanCombinationFormula implements Formula {
     // just for type safety. No actual methods on this level.
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 4161264962277332754L;
+
+    /**
      * Returns a collection of subformulas of this
      * <code>BoolenCombinationFormula</code>.
      * 

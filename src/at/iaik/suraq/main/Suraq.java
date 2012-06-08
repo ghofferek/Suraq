@@ -227,53 +227,9 @@ public class Suraq implements Runnable {
     }
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
-            String proof, SaveCache intermediateVars) {
-        // expression parsing of proof
-        SExpParser sExpProofParser = null;
-        sExpProofParser = new SExpParser(proof);
+            Z3Proof rootProof, SaveCache intermediateVars) {
 
         Timer timer = new Timer();
-
-        try {
-            System.out.println("  Parsing proof to S-Expressions...");
-            timer.start();
-            sExpProofParser.parse();
-            assert (sExpProofParser.wasParsingSuccessfull());
-        } catch (ParseError exc) {
-            handleParseError(exc);
-            noErrors = false;
-            return null;
-        } finally {
-            timer.end();
-            System.out.println("    Done. (" + timer + ")");
-            timer.reset();
-        }
-
-        // parsing proof
-        ProofParser proofParser = new ProofParser(
-                sExpProofParser.getRootExpr(),
-                intermediateVars.getDomainVars(),
-                intermediateVars.getPropsitionalVars(),
-                intermediateVars.getArrayVars(),
-                intermediateVars.getUninterpretedFunctions());
-
-        try {
-            System.out.println("  Parsing proof to SMTLIB objects...");
-            timer.start();
-            proofParser.parse();
-            assert (proofParser.wasParsingSuccessfull());
-        } catch (ParseError exc) {
-            handleParseError(exc);
-            noErrors = false;
-            return null;
-        } finally {
-            timer.end();
-            System.out.println("    Done. (" + timer + ")");
-            timer.reset();
-        }
-
-        // Main Flow
-        Z3Proof rootProof = proofParser.getRootProof();
         // assert (rootProof.checkZ3ProofNodeRecursive);
 
         // try {
@@ -440,11 +396,14 @@ public class Suraq implements Runnable {
         File z3InputFile = new File(options.getZ3Input());
         File z3ProofFile = new File(options.getZ3Proof());
         File saveCacheFile = new File(options.getCacheFile());
+        File saveCacheSerial = new File(options.getCacheFileSerial());
 
         boolean useCachedResults = false;
 
-        if (z3InputFile.exists() && z3ProofFile.exists() && options.useCache()
+        if (z3InputFile.exists() && z3ProofFile.exists()
+                && options.getCacheType() == SuraqOptions.CACHE_FILE
                 && saveCacheFile.exists()) {
+
             Date inputFileDate = new Date(sourceFile.lastModified());
             Date z3InputFileDate = new Date(z3InputFile.lastModified());
             Date z3ProofFileDate = new Date(z3ProofFile.lastModified());
@@ -453,13 +412,30 @@ public class Suraq implements Runnable {
                     && (z3InputFileDate.getTime() <= z3ProofFileDate.getTime())) {
 
                 useCachedResults = true;
-                System.out.println("INFO: using cached intermediate results.");
-                System.out.println("      " + z3ProofFile);
+                System.out
+                        .println("INFO: using FILE cached intermediate results.");
+            }
+        }
 
+        if (z3InputFile.exists()
+                && options.getCacheType() == SuraqOptions.CACHE_SERIAL
+                && saveCacheSerial.exists()) {
+
+            Date inputFileDate = new Date(sourceFile.lastModified());
+            Date z3InputFileDate = new Date(z3InputFile.lastModified());
+            Date cacheFileDate = new Date(saveCacheSerial.lastModified());
+
+            if ((inputFileDate.getTime() <= z3InputFileDate.getTime())
+                    && (z3InputFileDate.getTime() <= cacheFileDate.getTime())) {
+
+                useCachedResults = true;
+                System.out
+                        .println("INFO: using SERIAL cached intermediate results.");
             }
         }
 
         String proof = null;
+        Z3Proof rootProof = null;
         SaveCache intermediateVars = null;
 
         if (!useCachedResults) {
@@ -560,37 +536,72 @@ public class Suraq implements Runnable {
                     .entrySet())
                 uninterpretedFunctions.addAll(functionList.getValue());
 
+            rootProof = parseProof(proof, propsitionalVars, domainVars,
+                    arrayVars, uninterpretedFunctions);
+
+            assert (rootProof != null);
+
             // write intermediate variables to file, if caching is enabled
             String filename;
-            if (options.useCache())
+            if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
                 filename = saveCacheFile.getPath();
-            else
-                filename = null;
-
-            intermediateVars = new SaveCache(propsitionalVars, domainVars,
-                    arrayVars, uninterpretedFunctions,
-                    logicParser.getControlVariables(), filename);
+                intermediateVars = new SaveCache(propsitionalVars, domainVars,
+                        arrayVars, uninterpretedFunctions,
+                        logicParser.getControlVariables(), null, filename);
+            } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
+                filename = saveCacheSerial.getPath();
+                intermediateVars = new SaveCache(propsitionalVars, domainVars,
+                        arrayVars, uninterpretedFunctions,
+                        logicParser.getControlVariables(), rootProof, filename);
+            } else {
+                intermediateVars = new SaveCache(propsitionalVars, domainVars,
+                        arrayVars, uninterpretedFunctions,
+                        logicParser.getControlVariables(), null, null);
+            }
 
         } else { // use cached files
             try {
 
-                // read proof from file
-                FileReader reader = new FileReader(z3ProofFile);
-                BufferedReader bufferedReader = new BufferedReader(reader);
-                StringBuilder stringBuilder = new StringBuilder();
-                String currentLine = bufferedReader.readLine();
-                String ls = System.getProperty("line.separator");
-                while (currentLine != null) {
-                    stringBuilder.append(currentLine);
-                    stringBuilder.append(ls);
-                    currentLine = bufferedReader.readLine();
-                }
-                bufferedReader.close();
-                reader.close();
-                proof = stringBuilder.toString();
+                if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
+                    // read proof from file
+                    FileReader reader = new FileReader(z3ProofFile);
+                    BufferedReader bufferedReader = new BufferedReader(reader);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String currentLine = bufferedReader.readLine();
+                    String ls = System.getProperty("line.separator");
+                    while (currentLine != null) {
+                        stringBuilder.append(currentLine);
+                        stringBuilder.append(ls);
+                        currentLine = bufferedReader.readLine();
+                    }
+                    bufferedReader.close();
+                    reader.close();
 
-                intermediateVars = SaveCache
-                        .loadSaveCacheFromFile(saveCacheFile.getPath());
+                    proof = stringBuilder.toString();
+
+                    intermediateVars = SaveCache
+                            .loadSaveCacheFromFile(saveCacheFile.getPath());
+
+                    rootProof = parseProof(proof,
+                            intermediateVars.getPropsitionalVars(),
+                            intermediateVars.getDomainVars(),
+                            intermediateVars.getArrayVars(),
+                            intermediateVars.getUninterpretedFunctions());
+
+                    assert (rootProof != null);
+
+                } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
+
+                    intermediateVars = SaveCache
+                            .loadSaveCacheFromFile(saveCacheSerial.getPath());
+
+                    rootProof = intermediateVars.getProof();
+
+                    assert (rootProof != null);
+
+                } else
+                    throw new RuntimeException(
+                            "loading from cache, but cache not enabled!!");
 
             } catch (IOException exc) {
                 System.out.println("ERROR: Could not read cached proof!");
@@ -602,10 +613,8 @@ public class Suraq implements Runnable {
         Timer interpolationTimer = new Timer();
         interpolationTimer.start();
 
-        assert (proof != null);
-
         Map<PropositionalVariable, Formula> iteTrees = proofTransformationAndInterpolation(
-                proof, intermediateVars);
+                rootProof, intermediateVars);
 
         interpolationTimer.end();
         System.out
@@ -1255,6 +1264,68 @@ public class Suraq implements Runnable {
         System.out
                 .println("################################################################################");
         System.out.println("");
+    }
+
+    /**
+     * Parses a Z3 proof string.
+     * 
+     * @param proofStr
+     *            the string to parse.
+     * @param propsitionalVars
+     *            list of propositional variables.
+     * @param domainVars
+     *            list of domain variables.
+     * @param arrayVars
+     *            list of array variables.
+     * @param uninterpretedFunctions
+     *            list of uninterpreted functions.
+     * @return the Z3Proof Object
+     * 
+     */
+    private Z3Proof parseProof(String proofStr,
+            Set<PropositionalVariable> propsitionalVars,
+            Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
+            Set<UninterpretedFunction> uninterpretedFunctions) {
+        // expression parsing of proof
+        SExpParser sExpProofParser = null;
+        sExpProofParser = new SExpParser(proofStr);
+
+        Timer timer = new Timer();
+
+        try {
+            System.out.println("  Parsing proof to S-Expressions...");
+            timer.start();
+            sExpProofParser.parse();
+            assert (sExpProofParser.wasParsingSuccessfull());
+        } catch (ParseError exc) {
+            handleParseError(exc);
+            noErrors = false;
+        } finally {
+            timer.end();
+            System.out.println("    Done. (" + timer + ")");
+            timer.reset();
+        }
+
+        // parsing proof
+        ProofParser proofParser = new ProofParser(
+                sExpProofParser.getRootExpr(), domainVars, propsitionalVars,
+                arrayVars, uninterpretedFunctions);
+
+        try {
+            System.out.println("  Parsing proof to SMTLIB objects...");
+            timer.start();
+            proofParser.parse();
+            assert (proofParser.wasParsingSuccessfull());
+        } catch (ParseError exc) {
+            handleParseError(exc);
+            noErrors = false;
+        } finally {
+            timer.end();
+            System.out.println("    Done. (" + timer + ")");
+            timer.reset();
+        }
+
+        return proofParser.getRootProof();
     }
 
     /**

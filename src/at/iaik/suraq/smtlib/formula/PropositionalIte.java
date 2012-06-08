@@ -24,6 +24,11 @@ import at.iaik.suraq.smtlib.SMTLibObject;
 public class PropositionalIte extends BooleanCombinationFormula {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 8478152587648491278L;
+
+    /**
      * The formula that represents the condition.
      */
     private Formula condition;

@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,7 +18,7 @@ import at.iaik.suraq.smtlib.SMTLibObject;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public interface Formula extends SMTLibObject {
+public interface Formula extends SMTLibObject, Serializable {
 
     /**
      * Returns a deep copy of the formula.
