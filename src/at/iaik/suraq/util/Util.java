@@ -873,7 +873,7 @@ public class Util {
                     assert (false);
                 Formula childConsequent2 = child2.getConsequent();
                 assert (Util.isLiteral(childConsequent2));
-                childConsequent1 = Util.getSingleLiteral(childConsequent2);
+                childConsequent2 = Util.getSingleLiteral(childConsequent2);
                 assert (Util.isAtom(childConsequent2));
                 if (!(childConsequent2 instanceof DomainEq))
                     assert (false);
