@@ -166,7 +166,7 @@ public class TransitivityChainBuilder {
                 current = new Z3Proof(SExpressionConstants.ASSERTED,
                         new ArrayList<Z3Proof>(0), new OrFormula(disjuncts),
                         current.getAssertPartitionOfThisNode(), false);
-                assert (current.checkZ3ProofNode()); // DEBUG
+                // assert (current.checkZ3ProofNode()); // DEBUG
             } else {
                 assert (current.getSubProofs().size() == 1 || current
                         .getSubProofs().size() == 2);
@@ -187,7 +187,7 @@ public class TransitivityChainBuilder {
                     subProofs.add(axiom);
                     current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
                             subProofs, new OrFormula(disjuncts.subList(0, 2)));
-                    assert (current.checkZ3ProofNode()); // DEBUG
+                    // assert (current.checkZ3ProofNode()); // DEBUG
 
                 } else {
                     assert (current.getSubProofs().size() == 2);
@@ -209,13 +209,13 @@ public class TransitivityChainBuilder {
                     subProofs.add(axiom);
                     current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
                             subProofs, new OrFormula(disjuncts.subList(0, 3)));
-                    assert (current.checkZ3ProofNode()); // DEBUG
+                    // assert (current.checkZ3ProofNode()); // DEBUG
                     subProofs = new ArrayList<Z3Proof>(2);
                     subProofs.add(currentSubProofs.get(1));
                     subProofs.add(current);
                     current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
                             subProofs, new OrFormula(disjuncts.subList(0, 2)));
-                    assert (current.checkZ3ProofNode()); // DEBUG
+                    // assert (current.checkZ3ProofNode()); // DEBUG
                 }
             }
             if (intermediate == null)
@@ -232,7 +232,7 @@ public class TransitivityChainBuilder {
                 intermediate = new Z3Proof(
                         SExpressionConstants.UNIT_RESOLUTION, subProofs,
                         new OrFormula(intermediateDisjuncts));
-                assert (intermediate.checkZ3ProofNode()); // DEBUG
+                // assert (intermediate.checkZ3ProofNode()); // DEBUG
             }
         }
         return intermediate;

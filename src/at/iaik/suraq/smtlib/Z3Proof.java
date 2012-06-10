@@ -109,7 +109,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             String output = myFormatter.format(this.id);
             System.out.println("INFO: Created the " + output + " proof node.");
         }
-        this.assertPartition = -1;
+        // this.assertPartition = -1;
     }
 
     /**
@@ -196,6 +196,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             System.out.println("INFO: Created the " + output + " proof node.");
         }
         assertPartition = partition;
+        assert (assertPartition > 0);
         // assert (this.checkZ3ProofNode());
     }
 
@@ -354,31 +355,29 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     public Set<Integer> getPartitionsFromAsserts() {
         int operationId = startDAGOperation();
-        Set<Integer> result = this
-                .getPartitionsFromAssertsRecursion(operationId);
+        Set<Integer> result = new HashSet<Integer>();
+        this.getPartitionsFromAssertsRecursion(operationId, result);
         endDAGOperation(operationId);
         return result;
     }
 
-    public Set<Integer> getPartitionsFromAssertsRecursion(int operationId) {
+    public void getPartitionsFromAssertsRecursion(int operationId,
+            Set<Integer> result) {
 
         visitedByDAGOperation(operationId);
+        assert (result != null);
 
-        Set<Integer> assertPartitions = new HashSet<Integer>();
         for (Z3Proof z3Proofchild : this.subProofs) {
             if (z3Proofchild.wasVisitedByDAGOperation(operationId))
                 continue;
-            assertPartitions.addAll(z3Proofchild
-                    .getPartitionsFromAssertsRecursion(operationId));
+            z3Proofchild.getPartitionsFromAssertsRecursion(operationId, result);
         }
 
         if (proofType.equals(SExpressionConstants.ASSERTED)) {
             if (assertPartition <= 0)
                 assert (false);
-            assertPartitions.add(new Integer(assertPartition));
+            result.add(new Integer(assertPartition));
         }
-
-        return assertPartitions;
     }
 
     public int getID() {
@@ -691,7 +690,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 subProofs.add(child1);
                 subProofs.add(resolutionChild);
                 proofType = SExpressionConstants.UNIT_RESOLUTION;
-                assert (this.checkZ3ProofNode()); // DEBUG
+                // assert (this.checkZ3ProofNode()); // DEBUG
 
                 // Recursive calls
                 if (!child1.wasVisitedByDAGOperation(operationId))
@@ -1383,6 +1382,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @return the <code>assertPartition</code>
      */
     public int getAssertPartitionOfThisNode() {
+        assert (assertPartition > 0);
         return assertPartition;
     }
 
