@@ -174,7 +174,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @param consequent
      *            the formula which has to be proved
      * @param partition
-     *            the partition for this node.
+     *            the partition for this node. (Only used if
+     *            <code>proofType</code> equals <code>ASSERTED</code>.)
      * @param axiom
      *            <code>true</code> if this is an axiom.
      */
@@ -195,8 +196,23 @@ public class Z3Proof implements SMTLibObject, Serializable {
             String output = myFormatter.format(this.id);
             System.out.println("INFO: Created the " + output + " proof node.");
         }
-        assertPartition = partition;
-        assert (assertPartition > 0);
+        if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
+            if (partition > 0)
+                assertPartition = partition;
+            else {
+                Set<Integer> symbolPartitions = consequent
+                        .getPartitionsFromSymbols();
+                symbolPartitions.remove(-1);
+                if (symbolPartitions.isEmpty())
+                    assertPartition = 1; // arbitrary choice
+                else {
+                    if (symbolPartitions.size() != 1)
+                        assert (false);
+                    assertPartition = symbolPartitions.iterator().next();
+                }
+            }
+            assert (assertPartition > 0);
+        }
         // assert (this.checkZ3ProofNode());
     }
 
@@ -1382,7 +1398,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @return the <code>assertPartition</code>
      */
     public int getAssertPartitionOfThisNode() {
-        assert (assertPartition > 0);
+        assert (assertPartition > 0 || !this.proofType
+                .equals(SExpressionConstants.ASSERTED));
         return assertPartition;
     }
 
