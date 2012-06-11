@@ -409,8 +409,6 @@ public class TransformedZ3ProofTest {
         Assert.assertTrue(rootProof.checkZ3ProofNodeRecursive());
         rootProof.removeLocalSubProofs();
         Assert.assertTrue(rootProof.checkZ3ProofNodeRecursive());
-        rootProof.dealWithModusPonens();
-        Assert.assertTrue(rootProof.checkZ3ProofNodeRecursive());
         TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
                 .convertToTransformedZ3Proof(rootProof);
         Assert.assertTrue(transformedZ3Proof.checkZ3ProofNodeRecursive());

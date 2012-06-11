@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
@@ -76,7 +77,7 @@ public class TransitivityChainBuilder {
      * 
      * @param node
      */
-    public void addProofNode(Z3Proof node) {
+    public void addProofNode(TransformedZ3Proof node) {
         assert (Util.isLiteral(node.getConsequent()));
         Formula literal = Util.getSingleLiteral(node.getConsequent());
         literal = Util.makeLiteralPositive(literal);

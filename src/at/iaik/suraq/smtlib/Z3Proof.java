@@ -18,22 +18,17 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
-import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
-import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
-import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
-import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.Timer;
-import at.iaik.suraq.util.TransitivityChainBuilder;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -576,168 +571,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
         // }
         // END DEBUG
 
-    }
-
-    @Deprecated
-    public void dealWithModusPonens() {
-        int operationId = startDAGOperation();
-        this.dealWithModusPonensRecursion(operationId);
-        endDAGOperation(operationId);
-    }
-
-    @Deprecated
-    private void dealWithModusPonensRecursion(int operationId) {
-        visitedByDAGOperation(operationId);
-
-        if (this.id == 163551)
-            assert (this.id > 0);
-
-        if (this.proofType.equals(SExpressionConstants.MODUS_PONENS)) {
-            assert (subProofs.size() == 2);
-            assert (this.hasSingleLiteralConsequent());
-            Z3Proof child1 = subProofs.get(0);
-            if (Util.checkForFlippedEqualityOrDisequality(this.consequent,
-                    child1.consequent)) {
-                // TransformedZ3Proof premise = new
-                // TransformedZ3Proof(SExpressionConstants.ASSERTED, new
-                // ArrayList<TransformedZ3Proof>(), child1.consequent);
-                // TransformedZ3Proof symmProof =
-                // TransformedZ3Proof.createSymmetrieProof(premise);
-                this.subProofs.clear();
-                this.subProofs.add(child1);
-                this.proofType = SExpressionConstants.SYMMETRY;
-
-                if (!child1.wasVisitedByDAGOperation(operationId))
-                    child1.dealWithModusPonensRecursion(operationId);
-                return;
-            }
-
-            boolean chainOverEqualityAsPredicate = false;
-
-            if (Util.makeLiteralPositive(Util.getSingleLiteral(this.consequent)) instanceof DomainEq) {
-                TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
-                        this);
-                Set<Z3Proof> children = new HashSet<Z3Proof>();
-                for (Z3Proof child : subProofs)
-                    Util.getModusPonensNonIffChilds(child, children);
-
-                for (Z3Proof child : children) {
-                    // Recursive call for child
-                    if (!child.wasVisitedByDAGOperation(operationId))
-                        child.dealWithModusPonensRecursion(operationId);
-                    chainBuilder.addProofNode(child);
-                }
-
-                List<Z3Proof> proofList = chainBuilder.getChain();
-                if (proofList != null) {
-
-                    Z3Proof transProof = Z3Proof
-                            .createTransitivityProof(proofList);
-                    this.subProofs = transProof.subProofs;
-                    this.proofType = transProof.proofType;
-                    assert (this.consequent.transformToConsequentsForm()
-                            .equals(transProof.consequent
-                                    .transformToConsequentsForm()));
-                    this.consequent = transProof.consequent
-                            .transformToConsequentsForm();
-
-                    // If we have three subproofs, we need to split them,
-                    // because conversion to local proof cannot deal with
-                    // three subproofs.
-                    assert (subProofs.size() <= 3);
-                    if (subProofs.size() == 3) {
-                        assert (this.proofType == SExpressionConstants.TRANSITIVITY);
-                        Z3Proof intermediate = Z3Proof
-                                .createTransitivityProof(new ArrayList<Z3Proof>(
-                                        subProofs.subList(0, 2)));
-                        Z3Proof rest = subProofs.get(2);
-                        subProofs.clear();
-                        subProofs.add(intermediate);
-                        subProofs.add(rest);
-                    }
-                } else {
-                    // Could not create a "normal" transitivity chain
-                    // Try viewing equality as a predicate instead, and
-                    // construct a chain to convert to resolution.
-                    chainOverEqualityAsPredicate = true;
-
-                }
-            }
-
-            if (Util.makeLiteralPositive(Util.getSingleLiteral(this.consequent)) instanceof UninterpretedPredicateInstance
-                    || chainOverEqualityAsPredicate) {
-
-                assert (Util.makeLiteralPositive(Util
-                        .getSingleLiteral(subProofs.get(0).getConsequent())) instanceof UninterpretedPredicateInstance || chainOverEqualityAsPredicate);
-
-                assert (!chainOverEqualityAsPredicate || Util
-                        .makeLiteralPositive(Util.getSingleLiteral(subProofs
-                                .get(0).getConsequent())) instanceof EqualityFormula);
-
-                boolean predicatePolarity = Util.isAtom(Util
-                        .getSingleLiteral(subProofs.get(0).getConsequent()));
-
-                assert (predicatePolarity || Util.isNegativeLiteral(Util
-                        .getSingleLiteral(subProofs.get(0).getConsequent())));
-
-                // Collect relevant children
-                Set<Z3Proof> leafs = new HashSet<Z3Proof>();
-                Set<Z3Proof> iffsComingFromDomainEq = new HashSet<Z3Proof>();
-                assert (subProofs.size() == 2);
-                for (Z3Proof child : subProofs) {
-                    Util.getModusPonensIffLeafs(child, leafs);
-                    if (!(Util.makeLiteralPositive(Util
-                            .getSingleLiteral(child.consequent)) instanceof PropositionalEq))
-                        continue;
-                    Util.getModusPonensIffChildsComingFromDomainEq(child,
-                            iffsComingFromDomainEq);
-                }
-                Set<Z3Proof> relevantChilds = new HashSet<Z3Proof>();
-                relevantChilds.addAll(leafs);
-                relevantChilds.addAll(iffsComingFromDomainEq);
-
-                // Build transitivity chain for the propositional equalities
-                Term startTerm = new FormulaTerm(Util.makeLiteralPositive(Util
-                        .getSingleLiteral(subProofs.get(0).getConsequent())));
-                Term endTerm = new FormulaTerm(Util.makeLiteralPositive(Util
-                        .getSingleLiteral(this.consequent)));
-                TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
-                        startTerm, endTerm);
-                for (Z3Proof child : relevantChilds) {
-                    chainBuilder.addProofNode(child);
-                }
-
-                Z3Proof resolutionChild = chainBuilder
-                        .convertToResolutionChain(predicatePolarity);
-                assert (resolutionChild != null);
-                subProofs.clear();
-                subProofs.add(child1);
-                subProofs.add(resolutionChild);
-                proofType = SExpressionConstants.UNIT_RESOLUTION;
-                // assert (this.checkZ3ProofNode()); // DEBUG
-
-                // Recursive calls
-                if (!child1.wasVisitedByDAGOperation(operationId))
-                    child1.dealWithModusPonensRecursion(operationId);
-                if (!resolutionChild.wasVisitedByDAGOperation(operationId))
-                    resolutionChild.dealWithModusPonensRecursion(operationId);
-
-            }
-
-            if (this.proofType.equals(SExpressionConstants.MODUS_PONENS)) {
-                // Still a modus ponens node
-                throw new RuntimeException(
-                        "Modus Ponens node with unexpected structure!");
-            }
-
-        } else {
-            // Not a MODUS PONENS node...
-            for (Z3Proof child : subProofs) {
-                if (child.wasVisitedByDAGOperation(operationId))
-                    continue;
-                child.dealWithModusPonensRecursion(operationId);
-            }
-        }
     }
 
     public String prettyPrint() {

@@ -281,15 +281,6 @@ public class Suraq implements Runnable {
         // assert (rootProof.checkZ3ProofNodeRecursive());
         printProofSize(rootProof);
 
-        System.out.println("  Deal with Modus Ponens...");
-        timer.start();
-        rootProof.dealWithModusPonens();
-        timer.end();
-        System.out.println("    Done. (" + timer + ")");
-        timer.reset();
-        // assert (rootProof.checkZ3ProofNodeRecursive());
-        printProofSize(rootProof);
-
         // System.out.println("Num Instances: " +
         // Z3Proof.numInstances());
         System.out.println("  Conversion to transformed z3 proof...");

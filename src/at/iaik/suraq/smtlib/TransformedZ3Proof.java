@@ -3,9 +3,11 @@
  */
 package at.iaik.suraq.smtlib;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,15 +31,18 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalIte;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.util.TransitivityChainBuilder;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -90,9 +95,9 @@ public class TransformedZ3Proof extends Z3Proof {
     private boolean hypothesis = false;
 
     /**
-     * >>>>>>> .r376 Storage for annotated nodes used during proof conversion.
+     * Storage for annotated nodes used during proof conversion.
      */
-    private static AnnotatedProofNodes annotatedNodes = new AnnotatedProofNodes();
+    private static Deque<AnnotatedProofNodes> annotatedNodesStack = new ArrayDeque<AnnotatedProofNodes>();
 
     /**
      * Creates a new <code>TransformedZ3Proof</code>.
@@ -110,6 +115,12 @@ public class TransformedZ3Proof extends Z3Proof {
 
         super(proofType, subProofs, consequent.transformToConsequentsForm()
                 .deepFormulaCopy());
+
+        assert (proofType.equals(SExpressionConstants.ASSERTED)
+                || proofType.equals(SExpressionConstants.TRANSITIVITY)
+                || proofType.equals(SExpressionConstants.SYMMETRY)
+                || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
+                .equals(SExpressionConstants.UNIT_RESOLUTION));
         // if (this.id == 548)
         // this.checkZ3ProofNodeRecursive();
         // assert (this.checkZ3ProofNode());
@@ -137,6 +148,11 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.literal = literal == null ? null : Util.getSingleLiteral(literal
                 .deepFormulaCopy());
+        assert (proofType.equals(SExpressionConstants.ASSERTED)
+                || proofType.equals(SExpressionConstants.TRANSITIVITY)
+                || proofType.equals(SExpressionConstants.SYMMETRY)
+                || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
+                .equals(SExpressionConstants.UNIT_RESOLUTION));
         // if (this.id == 548)
         // this.checkZ3ProofNodeRecursive();
         // assert (this.checkZ3ProofNode());
@@ -165,6 +181,11 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.literal = literal == null ? null : Util.getSingleLiteral(literal
                 .deepFormulaCopy());
+        assert (proofType.equals(SExpressionConstants.ASSERTED)
+                || proofType.equals(SExpressionConstants.TRANSITIVITY)
+                || proofType.equals(SExpressionConstants.SYMMETRY)
+                || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
+                .equals(SExpressionConstants.UNIT_RESOLUTION));
         // if (this.id == 548 || subProof1.id == 548 || subProof2.id == 548)
         // this.checkZ3ProofNodeRecursive();
         // assert (this.checkZ3ProofNode());
@@ -202,11 +223,17 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // TODO Check: Should this be set for leafs only?
         this.assertPartition = node.part;
+
+        assert (proofType.equals(SExpressionConstants.ASSERTED)
+                || proofType.equals(SExpressionConstants.TRANSITIVITY)
+                || proofType.equals(SExpressionConstants.SYMMETRY)
+                || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
+                .equals(SExpressionConstants.UNIT_RESOLUTION));
     }
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
 
-        TransformedZ3Proof.debugNode = TransformedZ3Proof.proofMap.get(307);
+        // TransformedZ3Proof.debugNode = TransformedZ3Proof.proofMap.get(307);
 
         if (TransformedZ3Proof.proofMap.containsKey(z3Proof.id))
             return TransformedZ3Proof.proofMap.get(z3Proof.id);
@@ -243,9 +270,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
         } else if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
             // Treat this as a leave.
-            if (!(z3Proof.subProofs.size() == 0))
-                throw new RuntimeException(
-                        "Asserted Node should not have children");
+            assert (z3Proof.subProofs.isEmpty());
 
             TransformedZ3Proof result = new TransformedZ3Proof(
                     SExpressionConstants.ASSERTED,
@@ -260,9 +285,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 || proofType.equals(SExpressionConstants.REFLEXIVITY)) {
             // Treat this as a leave.
             // It should be a propositional tautology.
-            if (!(z3Proof.subProofs.size() == 0))
-                throw new RuntimeException(
-                        "Asserted Node should not have children");
+            assert (z3Proof.subProofs.isEmpty());
 
             TransformedZ3Proof result = new TransformedZ3Proof(
                     SExpressionConstants.ASSERTED,
@@ -275,13 +298,13 @@ public class TransformedZ3Proof extends Z3Proof {
 
         } else if (proofType.equals(SExpressionConstants.MODUS_PONENS)) {
 
-            // Given a proof for p and a proof for (implies p q), produces a
-            // proof for q. The second antecedents may also be a proof for (iff
-            // p q).
-
-            // should already have been removed
-            assert (false);
-            return null;
+            // Recursive conversion calls will be done inside
+            // handleModusPonens(Z3Proof).
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
+            TransformedZ3Proof result = TransformedZ3Proof
+                    .convertModusPonens(z3Proof);
+            TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            return result;
 
         } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
 
@@ -364,13 +387,7 @@ public class TransformedZ3Proof extends Z3Proof {
             Z3Proof hypotheticalProof = z3SubProofs.get(0);
 
             // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
-            hypotheticalProof.localLemmasToAssertions();
-
-            // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
             hypotheticalProof.removeLocalSubProofs();
-
-            // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
-            hypotheticalProof.dealWithModusPonens();
 
             // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
             TransformedZ3Proof transformedHypotheticalProof = TransformedZ3Proof
@@ -468,20 +485,20 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public void toLocalProof() {
-        TransformedZ3Proof.annotatedNodes.clear();
+        TransformedZ3Proof.annotatedNodesStack
+                .addFirst(new AnnotatedProofNodes());
 
         int operationId = startDAGOperation();
         this.toLocalProofRecursion(operationId);
         endDAGOperation(operationId);
 
-        TransformedZ3Proof.annotatedNodes.clear();
+        TransformedZ3Proof.annotatedNodesStack.removeFirst();
     }
 
     /**
      * Transforms the proof into a local resolution proof (in place).
      */
     private void toLocalProofRecursion(int operationId) {
-        // this.computeParents(); // FIXME do we really need this?
         if (this.wasVisitedByDAGOperation(operationId))
             return;
         visitedByDAGOperation(operationId);
@@ -499,8 +516,8 @@ public class TransformedZ3Proof extends Z3Proof {
             Z3Proof subproof = subProofs.get(0);
             Formula premiseLiteral = ((OrFormula) (subproof.consequent))
                     .getDisjuncts().iterator().next();
-            AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
-                    .getNodeWithConsequent(premiseLiteral);
+            AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodesStack
+                    .peekFirst().getNodeWithConsequent(premiseLiteral);
             if (annotatedNode == null)
                 throw new RuntimeException(
                         "No annotated proof node found when there should be one.");
@@ -513,13 +530,15 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (this.subProofs.size() == 1);
                 Z3Proof premise = this.subProofs.get(0);
                 assert (premise.hasSingleLiteralConsequent());
-                TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                        annotatedNode.getPartition(), annotatedNode
-                                .getPartition(), this, null, null, null));
+                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                        new AnnotatedProofNode(annotatedNode.getPartition(),
+                                annotatedNode.getPartition(), this, null, null,
+                                null));
             } else {
                 assert (numPremises == 3);
-                TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                        annotatedNode.getRightPartition(), annotatedNode
+                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                        new AnnotatedProofNode(annotatedNode
+                                .getRightPartition(), annotatedNode
                                 .getLeftPartition(), this, TransformedZ3Proof
                                 .createSymmetryProof(annotatedNode
                                         .getPremise3()), TransformedZ3Proof
@@ -569,7 +588,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
             AnnotatedProofNode annotatedNode = new AnnotatedProofNode(
                     partition, partition, this, null, null, null);
-            TransformedZ3Proof.annotatedNodes.add(annotatedNode);
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                    annotatedNode);
 
             if (this.proofType.equals(SExpressionConstants.ASSERTED))
                 // for UNIT-RESOLUTION we still need to update the subProofs
@@ -600,9 +620,10 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (Util.checkResolutionNodeForBadLiterals(this));
 
                 if (Util.isLiteral(subProofs.get(0).consequent)) {
-                    AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodes
-                            .getNodeWithConsequent(Util
-                                    .getSingleLiteral(subProofs.get(0).consequent));
+                    AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodesStack
+                            .peekFirst()
+                            .getNodeWithConsequent(
+                                    Util.getSingleLiteral(subProofs.get(0).consequent));
                     if (annotatedNode != null) {
                         Z3Proof update = annotatedNode.getConsequent();
                         if (annotatedNode.numPremises() == 3) {
@@ -620,9 +641,10 @@ public class TransformedZ3Proof extends Z3Proof {
                 }
 
                 if (Util.isLiteral(subProofs.get(1).consequent)) {
-                    AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodes
-                            .getNodeWithConsequent(Util
-                                    .getSingleLiteral(subProofs.get(1).consequent));
+                    AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodesStack
+                            .peekFirst()
+                            .getNodeWithConsequent(
+                                    Util.getSingleLiteral(subProofs.get(1).consequent));
                     if (annotatedNode2 != null) {
                         Z3Proof update = annotatedNode2.getConsequent();
                         if (annotatedNode2.numPremises() == 3) {
@@ -683,14 +705,15 @@ public class TransformedZ3Proof extends Z3Proof {
 
         if (leftPartition == rightPartition) {
             // this is a local node
-            TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                    leftPartition, rightPartition, this));
+            TransformedZ3Proof.annotatedNodesStack.peekFirst()
+                    .add(new AnnotatedProofNode(leftPartition, rightPartition,
+                            this));
 
             for (int count = 0; count < subProofs.size(); count++) {
                 assert (subProofs.get(count) instanceof TransformedZ3Proof);
                 Z3Proof subProof = subProofs.get(count);
-                AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
-                        .getNodeWithConsequent(subProof.consequent);
+                AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
+                        .peekFirst().getNodeWithConsequent(subProof.consequent);
                 if (currentAnnotatedNode.numPremises() == 3) {
                     List<TransformedZ3Proof> proofs = new ArrayList<TransformedZ3Proof>(
                             3);
@@ -700,8 +723,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     Z3Proof newProof = TransformedZ3Proof
                             .createTransitivityProofForTransformedZ3Proofs(proofs);
                     subProofs.set(count, newProof);
-                    TransformedZ3Proof.annotatedNodes
-                            .add(new AnnotatedProofNode(leftPartition,
+                    TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                            new AnnotatedProofNode(leftPartition,
                                     leftPartition, this));
                 }
             }
@@ -712,8 +735,8 @@ public class TransformedZ3Proof extends Z3Proof {
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
             Z3Proof subProof = child;
-            AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
-                    .getNodeWithConsequent(subProof.consequent);
+            AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
+                    .peekFirst().getNodeWithConsequent(subProof.consequent);
             assert (currentAnnotatedNode != null);
             currentAnnotatedNodes.add(currentAnnotatedNode);
         }
@@ -723,8 +746,9 @@ public class TransformedZ3Proof extends Z3Proof {
         List<TransformedZ3Proof[]> proofs = new ArrayList<TransformedZ3Proof[]>();
 
         for (int count = 0; count < subProofs.size(); count++) {
-            AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodes
-                    .getNodeWithConsequent(subProofs.get(count).consequent);
+            AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
+                    .peekFirst().getNodeWithConsequent(
+                            subProofs.get(count).consequent);
             DomainTerm[] oldTerms = Util.getDomainTerms(currentAnnotatedNode);
             DomainTerm currentLeftTerm = computeCurrentLeftTermForMonotonicity(
                     leftPartition, currentAnnotatedNode);
@@ -783,8 +807,9 @@ public class TransformedZ3Proof extends Z3Proof {
                 proofs3, function);
 
         // put things together, add new annotated node
-        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                leftPartition, rightPartition, this, proof1, proof2, proof3));
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(leftPartition, rightPartition, this,
+                        proof1, proof2, proof3));
     }
 
     /**
@@ -927,6 +952,174 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     /**
+     * Converts a modus ponens node into something usable. Also, converts the
+     * necessary children into local (transformed) proofs.
+     * 
+     * @param z3Proof
+     *            a modus ponens node
+     * @return the conversion result
+     */
+    private static TransformedZ3Proof convertModusPonens(Z3Proof z3Proof) {
+
+        assert (z3Proof.proofType.equals(SExpressionConstants.MODUS_PONENS));
+        assert (z3Proof.getSubProofs().size() == 2);
+        assert (z3Proof.hasSingleLiteralConsequent());
+        Z3Proof child1 = z3Proof.getSubProofs().get(0);
+
+        // Simple case of flipped equality or disequality
+        if (Util.checkForFlippedEqualityOrDisequality(z3Proof.consequent,
+                child1.consequent)) {
+            TransformedZ3Proof transformedChild1 = TransformedZ3Proof
+                    .convertToTransformedZ3Proof(child1);
+            List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>(
+                    1);
+            subProofs.add(transformedChild1);
+            TransformedZ3Proof result = new TransformedZ3Proof(
+                    SExpressionConstants.SYMMETRY, subProofs,
+                    z3Proof.consequent);
+
+            return result;
+        }
+
+        boolean chainOverEqualityAsPredicate = false;
+
+        // Case of a transitivity chain
+        if (Util.makeLiteralPositive(Util.getSingleLiteral(z3Proof.consequent)) instanceof DomainEq) {
+            TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
+                    z3Proof);
+            Set<Z3Proof> children = new HashSet<Z3Proof>();
+            for (Z3Proof child : z3Proof.subProofs)
+                Util.getModusPonensNonIffChilds(child, children);
+
+            Set<TransformedZ3Proof> transformedChildren = new HashSet<TransformedZ3Proof>();
+            for (Z3Proof child : children) {
+                // Recursive call for child
+                TransformedZ3Proof transformedChild = TransformedZ3Proof
+                        .convertToTransformedZ3Proof(child);
+                transformedChildren.add(transformedChild);
+                chainBuilder.addProofNode(transformedChild);
+            }
+
+            List<TransformedZ3Proof> proofList = chainBuilder.getChain();
+            if (proofList != null) {
+
+                TransformedZ3Proof transProof = TransformedZ3Proof
+                        .createTransitivityProofForTransformedZ3Proofs(proofList);
+
+                assert (z3Proof.consequent.transformToConsequentsForm()
+                        .equals(transProof.consequent
+                                .transformToConsequentsForm()));
+
+                // If we have three subproofs, we need to split them,
+                // because conversion to local proof cannot deal with
+                // three subproofs.
+                // NOTE: This should (meanwhile) have been implemented in
+                // createTransititivityProof directly!
+                // Thus, the code following this assert is commented out.
+                assert (transProof.subProofs.size() <= 2);
+                // if (subProofs.size() == 3) {
+                // assert (this.proofType == SExpressionConstants.TRANSITIVITY);
+                // Z3Proof intermediate = Z3Proof
+                // .createTransitivityProof(new ArrayList<Z3Proof>(
+                // subProofs.subList(0, 2)));
+                // Z3Proof rest = subProofs.get(2);
+                // subProofs.clear();
+                // subProofs.add(intermediate);
+                // subProofs.add(rest);
+                // }
+            } else {
+                // Could not create a "normal" transitivity chain
+                // Try viewing equality as a predicate instead, and
+                // construct a chain to convert to resolution.
+                chainOverEqualityAsPredicate = true;
+
+            }
+        }
+
+        if (Util.makeLiteralPositive(Util.getSingleLiteral(z3Proof.consequent)) instanceof UninterpretedPredicateInstance
+                || chainOverEqualityAsPredicate) {
+
+            assert (Util
+                    .makeLiteralPositive(Util
+                            .getSingleLiteral(z3Proof.subProofs.get(0)
+                                    .getConsequent())) instanceof UninterpretedPredicateInstance || chainOverEqualityAsPredicate);
+
+            assert (!chainOverEqualityAsPredicate || Util
+                    .makeLiteralPositive(Util
+                            .getSingleLiteral(z3Proof.subProofs.get(0)
+                                    .getConsequent())) instanceof EqualityFormula);
+
+            boolean predicatePolarity = Util
+                    .isAtom(Util.getSingleLiteral(z3Proof.subProofs.get(0)
+                            .getConsequent()));
+
+            assert (predicatePolarity || Util
+                    .isNegativeLiteral(Util.getSingleLiteral(z3Proof.subProofs
+                            .get(0).getConsequent())));
+
+            // Collect relevant children
+            Set<Z3Proof> leafs = new HashSet<Z3Proof>();
+            Set<Z3Proof> iffsComingFromDomainEq = new HashSet<Z3Proof>();
+            assert (z3Proof.subProofs.size() == 2);
+            for (Z3Proof child : z3Proof.subProofs) {
+                Util.getModusPonensIffLeafs(child, leafs);
+                if (!(Util.makeLiteralPositive(Util
+                        .getSingleLiteral(child.consequent)) instanceof PropositionalEq))
+                    continue;
+                Util.getModusPonensIffChildsComingFromDomainEq(child,
+                        iffsComingFromDomainEq);
+            }
+
+            Set<TransformedZ3Proof> relevantChildren = new HashSet<TransformedZ3Proof>();
+            for (Z3Proof child : leafs) {
+                TransformedZ3Proof transformedChild = TransformedZ3Proof
+                        .convertToTransformedZ3Proof(child);
+                relevantChildren.add(transformedChild);
+            }
+            for (Z3Proof child : iffsComingFromDomainEq) {
+                TransformedZ3Proof transformedChild = TransformedZ3Proof
+                        .convertToTransformedZ3Proof(child);
+                relevantChildren.add(transformedChild);
+            }
+
+            // Build transitivity chain for the propositional equalities
+            Term startTerm = new FormulaTerm(
+                    Util.makeLiteralPositive(Util
+                            .getSingleLiteral(z3Proof.subProofs.get(0)
+                                    .getConsequent())));
+            Term endTerm = new FormulaTerm(Util.makeLiteralPositive(Util
+                    .getSingleLiteral(z3Proof.consequent)));
+            TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
+                    startTerm, endTerm);
+            for (TransformedZ3Proof child : relevantChildren) {
+                chainBuilder.addProofNode(child);
+            }
+
+            TransformedZ3Proof resolutionChild = chainBuilder
+                    .convertToResolutionChain(predicatePolarity);
+            assert (resolutionChild != null);
+            List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>(
+                    2);
+            subProofs.add(TransformedZ3Proof
+                    .convertToTransformedZ3Proof(child1));
+            subProofs.add(resolutionChild);
+
+            TransformedZ3Proof result = new TransformedZ3Proof(
+                    SExpressionConstants.UNIT_RESOLUTION, subProofs,
+                    z3Proof.consequent);
+
+            // assert (this.checkZ3ProofNode()); // DEBUG
+            return result;
+        }
+
+        // If we reach here, this modus ponens node as an unforeseen structure
+        // that we cannot handle.
+        throw new RuntimeException("Unable to handle modus ponens node "
+                + z3Proof.id);
+
+    }
+
+    /**
      * Deals with transforming a transitivity node to a local proof.
      */
     private void handleTransitivity() {
@@ -937,12 +1130,12 @@ public class TransformedZ3Proof extends Z3Proof {
         // THE FOLLOWING ASSERT!
         assert (subProofs.size() == 2);
 
-        AnnotatedProofNode firstAnnotatedNode = TransformedZ3Proof.annotatedNodes
-                .getNodeWithConsequent(subProofs.get(0).consequent);
+        AnnotatedProofNode firstAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
+                .peekFirst().getNodeWithConsequent(subProofs.get(0).consequent);
         assert (firstAnnotatedNode != null);
 
-        AnnotatedProofNode secondAnnotatedNode = TransformedZ3Proof.annotatedNodes
-                .getNodeWithConsequent(subProofs.get(1).consequent);
+        AnnotatedProofNode secondAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
+                .peekFirst().getNodeWithConsequent(subProofs.get(1).consequent);
         assert (secondAnnotatedNode != null);
 
         if (firstAnnotatedNode.numPremises() == 0
@@ -982,8 +1175,8 @@ public class TransformedZ3Proof extends Z3Proof {
      *            the partition to which the new annotated node should be added
      */
     private void handleTransitivityCase1(int partition) {
-        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(partition,
-                partition, this));
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(partition, partition, this));
     }
 
     /**
@@ -1013,10 +1206,11 @@ public class TransformedZ3Proof extends Z3Proof {
 
         TransformedZ3Proof reflexivity = TransformedZ3Proof
                 .createReflexivityProof(term);
-        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                leftPartition, rightPartition, this,
-                (TransformedZ3Proof) this.subProofs.get(0), reflexivity,
-                (TransformedZ3Proof) this.subProofs.get(1)));
+        TransformedZ3Proof.annotatedNodesStack
+                .peekFirst()
+                .add(new AnnotatedProofNode(leftPartition, rightPartition,
+                        this, (TransformedZ3Proof) this.subProofs.get(0),
+                        reflexivity, (TransformedZ3Proof) this.subProofs.get(1)));
     }
 
     /**
@@ -1038,11 +1232,11 @@ public class TransformedZ3Proof extends Z3Proof {
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
         // assert (newProofNode.checkZ3ProofNode());
-        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                firstAnnotatedNode.getLeftPartition(), firstAnnotatedNode
-                        .getRightPartition(), this, firstAnnotatedNode
-                        .getPremise1(), firstAnnotatedNode.getPremise2(),
-                newProofNode));
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(firstAnnotatedNode.getLeftPartition(),
+                        firstAnnotatedNode.getRightPartition(), this,
+                        firstAnnotatedNode.getPremise1(), firstAnnotatedNode
+                                .getPremise2(), newProofNode));
     }
 
     /**
@@ -1061,11 +1255,11 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getPremise1());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
-        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                firstAnnotatedNode.getPartition(), secondAnnotatedNode
-                        .getRightPartition(), this, newProofNode,
-                secondAnnotatedNode.getPremise2(), secondAnnotatedNode
-                        .getPremise3()));
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(firstAnnotatedNode.getPartition(),
+                        secondAnnotatedNode.getRightPartition(), this,
+                        newProofNode, secondAnnotatedNode.getPremise2(),
+                        secondAnnotatedNode.getPremise3()));
 
     }
 
@@ -1086,11 +1280,11 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(firstAnnotatedNode.getPremise3());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
-        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                firstAnnotatedNode.getLeftPartition(), secondAnnotatedNode
-                        .getPartition(), this,
-                firstAnnotatedNode.getPremise1(), newProofNode,
-                secondAnnotatedNode.getConsequent()));
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(firstAnnotatedNode.getLeftPartition(),
+                        secondAnnotatedNode.getPartition(), this,
+                        firstAnnotatedNode.getPremise1(), newProofNode,
+                        secondAnnotatedNode.getConsequent()));
 
     }
 
@@ -1111,11 +1305,11 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getPremise2());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
-        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                firstAnnotatedNode.getPartition(), secondAnnotatedNode
-                        .getRightPartition(), this, firstAnnotatedNode
-                        .getConsequent(), newProofNode, secondAnnotatedNode
-                        .getPremise3()));
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(firstAnnotatedNode.getPartition(),
+                        secondAnnotatedNode.getRightPartition(), this,
+                        firstAnnotatedNode.getConsequent(), newProofNode,
+                        secondAnnotatedNode.getPremise3()));
     }
 
     /**
@@ -1139,11 +1333,11 @@ public class TransformedZ3Proof extends Z3Proof {
         TransformedZ3Proof newProofNode2 = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs2);
 
-        TransformedZ3Proof.annotatedNodes.add(new AnnotatedProofNode(
-                firstAnnotatedNode.getLeftPartition(), secondAnnotatedNode
-                        .getRightPartition(), this, firstAnnotatedNode
-                        .getPremise1(), newProofNode2, secondAnnotatedNode
-                        .getPremise3()));
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(firstAnnotatedNode.getLeftPartition(),
+                        secondAnnotatedNode.getRightPartition(), this,
+                        firstAnnotatedNode.getPremise1(), newProofNode2,
+                        secondAnnotatedNode.getPremise3()));
     }
 
     /**

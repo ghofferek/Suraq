@@ -82,8 +82,9 @@ public class DomainEq extends EqualityFormula {
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         for (DomainTerm term : getDomainTerms()) {
             if (term instanceof ArrayRead) {
-                while (terms.remove(term))
-                    ;
+                while (terms.remove(term)) {
+                    // this block is intentionally empty
+                }
                 terms.add(((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars));
 
