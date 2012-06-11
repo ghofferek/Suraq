@@ -6,6 +6,8 @@ package at.iaik.suraq.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import at.iaik.suraq.proof.AnnotatedProofNode;
+import at.iaik.suraq.proof.AnnotatedProofNodes;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
@@ -108,8 +110,16 @@ public class TransitivityChainBuilder {
      *         <code>null</code> if no path has been found in the graph.
      * 
      */
-    public List<Z3Proof> getChain() {
-        return graph.findPath(targetStartTerm, targetEndTerm);
+    public List<TransformedZ3Proof> getChain() {
+        List<Z3Proof> chain = graph.findPath(targetStartTerm, targetEndTerm);
+        List<TransformedZ3Proof> transformedChain = new ArrayList<TransformedZ3Proof>(
+                chain.size());
+        for (Z3Proof proof : chain) {
+            TransformedZ3Proof transformedProof = TransformedZ3Proof
+                    .convertToTransformedZ3Proof(proof);
+            transformedChain.add(transformedProof);
+        }
+        return transformedChain;
     }
 
     /**
@@ -123,27 +133,49 @@ public class TransitivityChainBuilder {
      *         inverse of the first modus ponens child. The second is the
      *         consequent of the modus ponens node.
      */
-    public Z3Proof convertToResolutionChain(boolean predicatePolarity) {
+    public TransformedZ3Proof convertToResolutionChain(boolean predicatePolarity) {
 
         assert (targetStartTerm instanceof FormulaTerm);
         assert (targetEndTerm instanceof FormulaTerm);
 
         boolean reversePolarity = false;
-        List<Z3Proof> chain = graph.findPath(targetStartTerm, targetEndTerm);
-        if (chain == null) {
+        List<Z3Proof> tmpChain = graph.findPath(targetStartTerm, targetEndTerm);
+
+        if (tmpChain == null) {
             reversePolarity = true;
             FormulaTerm reverseStartTerm = new FormulaTerm(new NotFormula(
                     ((FormulaTerm) targetStartTerm).getFormula()));
             FormulaTerm reverseEndTerm = new FormulaTerm(new NotFormula(
                     ((FormulaTerm) targetEndTerm).getFormula()));
-            chain = graph.findPath(reverseStartTerm, reverseEndTerm);
-            if (chain == null)
+            tmpChain = graph.findPath(reverseStartTerm, reverseEndTerm);
+            if (tmpChain == null)
                 assert (false);
         }
 
-        Z3Proof intermediate = null;
+        List<TransformedZ3Proof> chain = new ArrayList<TransformedZ3Proof>(
+                tmpChain.size());
+        for (Z3Proof proof : tmpChain) {
+            TransformedZ3Proof transformedProof = TransformedZ3Proof
+                    .convertToTransformedZ3Proof(proof);
+            assert (Util.isLiteral(transformedProof.getConsequent()));
+            if (Util.isBadLiteral(Util.getSingleLiteral(transformedProof
+                    .getConsequent()))) {
+                AnnotatedProofNodes annotatedNodes = transformedProof
+                        .toLocalProof();
+                AnnotatedProofNode annotatedNode = annotatedNodes
+                        .getNodeWithConsequent(transformedProof.getConsequent());
+                assert (annotatedNode != null);
+                assert (annotatedNode.numPremises() == 3);
+                chain.add(annotatedNode.getPremise1());
+                chain.add(annotatedNode.getPremise2());
+                chain.add(annotatedNode.getPremise3());
+            } else
+                chain.add(transformedProof);
+        }
 
-        for (Z3Proof current : chain) {
+        TransformedZ3Proof intermediate = null;
+
+        for (TransformedZ3Proof current : chain) {
             assert (Util.getSingleLiteral(current.getConsequent()) instanceof PropositionalEq);
             PropositionalEq propEq = (PropositionalEq) Util
                     .getSingleLiteral(current.getConsequent());
@@ -160,12 +192,14 @@ public class TransitivityChainBuilder {
 
             if (current.getProofType().equals(SExpressionConstants.SYMMETRY)) {
                 assert (current.getSubProofs().size() == 1);
-                current = current.getSubProofs().get(0);
+                assert (current.getSubProofs().get(0) instanceof TransformedZ3Proof);
+                current = (TransformedZ3Proof) current.getSubProofs().get(0);
             }
 
             if (current.getProofType().equals(SExpressionConstants.ASSERTED)) {
-                current = new Z3Proof(SExpressionConstants.ASSERTED,
-                        new ArrayList<Z3Proof>(0), new OrFormula(disjuncts),
+                current = new TransformedZ3Proof(SExpressionConstants.ASSERTED,
+                        new ArrayList<TransformedZ3Proof>(0), new OrFormula(
+                                disjuncts),
                         current.getAssertPartitionOfThisNode(), false);
                 // assert (current.checkZ3ProofNode()); // DEBUG
             } else {
@@ -179,15 +213,20 @@ public class TransitivityChainBuilder {
                         assert (false);
                     disjuncts.add(new NotFormula(current.getSubProofs().get(0)
                             .getConsequent()));
-                    Z3Proof axiom = new Z3Proof(SExpressionConstants.ASSERTED,
-                            new ArrayList<Z3Proof>(0),
+                    TransformedZ3Proof axiom = new TransformedZ3Proof(
+                            SExpressionConstants.ASSERTED,
+                            new ArrayList<TransformedZ3Proof>(0),
                             new OrFormula(disjuncts),
                             current.getAssertPartitionOfThisNode(), true);
-                    List<Z3Proof> subProofs = new ArrayList<Z3Proof>(2);
-                    subProofs.add(current.getSubProofs().get(0));
+                    List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>(
+                            2);
+                    assert (current.getSubProofs().get(0) instanceof TransformedZ3Proof);
+                    subProofs.add((TransformedZ3Proof) current.getSubProofs()
+                            .get(0));
                     subProofs.add(axiom);
-                    current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
-                            subProofs, new OrFormula(disjuncts.subList(0, 2)));
+                    current = new TransformedZ3Proof(
+                            SExpressionConstants.UNIT_RESOLUTION, subProofs,
+                            new OrFormula(disjuncts.subList(0, 2)));
                     // assert (current.checkZ3ProofNode()); // DEBUG
 
                 } else {
@@ -200,29 +239,38 @@ public class TransitivityChainBuilder {
                             .getConsequent()));
                     disjuncts.add(new NotFormula(current.getSubProofs().get(0)
                             .getConsequent()));
-                    Z3Proof axiom = new Z3Proof(SExpressionConstants.ASSERTED,
-                            new ArrayList<Z3Proof>(0),
+                    TransformedZ3Proof axiom = new TransformedZ3Proof(
+                            SExpressionConstants.ASSERTED,
+                            new ArrayList<TransformedZ3Proof>(0),
                             new OrFormula(disjuncts),
                             current.getAssertPartitionOfThisNode(), true);
-                    List<Z3Proof> currentSubProofs = current.getSubProofs();
-                    List<Z3Proof> subProofs = new ArrayList<Z3Proof>(2);
+                    List<TransformedZ3Proof> currentSubProofs = new ArrayList<TransformedZ3Proof>();
+                    for (Z3Proof proof : current.getSubProofs()) {
+                        assert (proof instanceof TransformedZ3Proof);
+                        currentSubProofs.add((TransformedZ3Proof) proof);
+                    }
+                    List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>(
+                            2);
                     subProofs.add(currentSubProofs.get(0));
                     subProofs.add(axiom);
-                    current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
-                            subProofs, new OrFormula(disjuncts.subList(0, 3)));
+                    current = new TransformedZ3Proof(
+                            SExpressionConstants.UNIT_RESOLUTION, subProofs,
+                            new OrFormula(disjuncts.subList(0, 3)));
                     // assert (current.checkZ3ProofNode()); // DEBUG
-                    subProofs = new ArrayList<Z3Proof>(2);
+                    subProofs = new ArrayList<TransformedZ3Proof>(2);
                     subProofs.add(currentSubProofs.get(1));
                     subProofs.add(current);
-                    current = new Z3Proof(SExpressionConstants.UNIT_RESOLUTION,
-                            subProofs, new OrFormula(disjuncts.subList(0, 2)));
+                    current = new TransformedZ3Proof(
+                            SExpressionConstants.UNIT_RESOLUTION, subProofs,
+                            new OrFormula(disjuncts.subList(0, 2)));
                     // assert (current.checkZ3ProofNode()); // DEBUG
                 }
             }
             if (intermediate == null)
                 intermediate = current;
             else {
-                List<Z3Proof> subProofs = new ArrayList<Z3Proof>(2);
+                List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>(
+                        2);
                 subProofs.add(intermediate);
                 subProofs.add(current);
                 List<Formula> intermediateDisjuncts = new ArrayList<Formula>(2);
@@ -230,7 +278,7 @@ public class TransitivityChainBuilder {
                         .getConsequent()).getDisjuncts().get(0));
                 intermediateDisjuncts.add(((OrFormula) current.getConsequent())
                         .getDisjuncts().get(1));
-                intermediate = new Z3Proof(
+                intermediate = new TransformedZ3Proof(
                         SExpressionConstants.UNIT_RESOLUTION, subProofs,
                         new OrFormula(intermediateDisjuncts));
                 // assert (intermediate.checkZ3ProofNode()); // DEBUG

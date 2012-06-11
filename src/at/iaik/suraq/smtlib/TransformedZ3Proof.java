@@ -158,6 +158,18 @@ public class TransformedZ3Proof extends Z3Proof {
         // assert (this.checkZ3ProofNode());
     }
 
+    public TransformedZ3Proof(Token proofType,
+            List<TransformedZ3Proof> subProofs, Formula consequent,
+            int assertPartition, boolean axiom) {
+        super(proofType, subProofs, consequent.transformToConsequentsForm()
+                .deepFormulaCopy(), assertPartition, axiom);
+        assert (proofType.equals(SExpressionConstants.ASSERTED)
+                || proofType.equals(SExpressionConstants.TRANSITIVITY)
+                || proofType.equals(SExpressionConstants.SYMMETRY)
+                || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
+                .equals(SExpressionConstants.UNIT_RESOLUTION));
+    }
+
     /**
      * Creates a new <code>TransformedZ3Proof</code>.
      * 
@@ -484,7 +496,7 @@ public class TransformedZ3Proof extends Z3Proof {
         }
     }
 
-    public void toLocalProof() {
+    public AnnotatedProofNodes toLocalProof() {
         TransformedZ3Proof.annotatedNodesStack
                 .addFirst(new AnnotatedProofNodes());
 
@@ -492,7 +504,7 @@ public class TransformedZ3Proof extends Z3Proof {
         this.toLocalProofRecursion(operationId);
         endDAGOperation(operationId);
 
-        TransformedZ3Proof.annotatedNodesStack.removeFirst();
+        return TransformedZ3Proof.annotatedNodesStack.removeFirst();
     }
 
     /**
