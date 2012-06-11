@@ -265,9 +265,10 @@ public class TransformedZ3Proof extends Z3Proof {
             // for things that have been asserted, and not on things are are
             // proven separately.
 
-            if (!(z3Proof.subProofs.size() == 0))
-                throw new RuntimeException(
-                        "Asserted Node should not have children");
+            assert (z3Proof.subProofs.size() == 0);
+
+            if (z3Proof instanceof TransformedZ3Proof)
+                return (TransformedZ3Proof) z3Proof;
 
             TransformedZ3Proof result = new TransformedZ3Proof(
                     SExpressionConstants.ASSERTED,
@@ -315,6 +316,8 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof result = TransformedZ3Proof
                     .convertModusPonens(z3Proof);
+            assert (result.getConsequent().equals(z3Proof.getConsequent()
+                    .transformToConsequentsForm()));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
 
@@ -399,7 +402,8 @@ public class TransformedZ3Proof extends Z3Proof {
             Z3Proof hypotheticalProof = z3SubProofs.get(0);
 
             // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
-            hypotheticalProof.removeLocalSubProofs();
+            // hypotheticalProof.removeLocalSubProofs(); // redundant with call
+            // in main (on main proof)?
 
             // assert (hypotheticalProof.checkZ3ProofNodeRecursive());
             TransformedZ3Proof transformedHypotheticalProof = TransformedZ3Proof
@@ -443,6 +447,8 @@ public class TransformedZ3Proof extends Z3Proof {
             result.literal = Util
                     .getSingleLiteral(transformedHypotheticalProof.literal);
 
+            assert (result.consequent.equals(z3Proof.consequent
+                    .transformToConsequentsForm()));
             // Remove stored conversion results for all subproofs
             // They are "tainted" by hypothesis removal.
             Set<Z3Proof> allSubNodes = z3Proof.allNodes();
@@ -990,6 +996,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     SExpressionConstants.SYMMETRY, subProofs,
                     z3Proof.consequent);
 
+            assert (z3Proof.getHypotheses().size() == result.getHypotheses()
+                    .size()); // DEBUG
             return result;
         }
 
@@ -1039,6 +1047,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 // subProofs.add(intermediate);
                 // subProofs.add(rest);
                 // }
+                return transProof;
             } else {
                 // Could not create a "normal" transitivity chain
                 // Try viewing equality as a predicate instead, and
@@ -1120,7 +1129,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     SExpressionConstants.UNIT_RESOLUTION, subProofs,
                     z3Proof.consequent);
 
-            // assert (this.checkZ3ProofNode()); // DEBUG
+            assert (result.checkZ3ProofNode()); // DEBUG
             return result;
         }
 

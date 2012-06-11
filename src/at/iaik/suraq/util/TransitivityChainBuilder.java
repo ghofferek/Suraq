@@ -117,6 +117,9 @@ public class TransitivityChainBuilder {
         for (Z3Proof proof : chain) {
             TransformedZ3Proof transformedProof = TransformedZ3Proof
                     .convertToTransformedZ3Proof(proof);
+            assert (proof.getConsequent().transformToConsequentsForm()
+                    .equals(transformedProof.getConsequent()
+                            .transformToConsequentsForm()));
             transformedChain.add(transformedProof);
         }
         return transformedChain;
@@ -201,7 +204,7 @@ public class TransitivityChainBuilder {
                         new ArrayList<TransformedZ3Proof>(0), new OrFormula(
                                 disjuncts),
                         current.getAssertPartitionOfThisNode(), false);
-                // assert (current.checkZ3ProofNode()); // DEBUG
+                assert (current.checkZ3ProofNode()); // DEBUG
             } else {
                 assert (current.getSubProofs().size() == 1 || current
                         .getSubProofs().size() == 2);
@@ -227,7 +230,7 @@ public class TransitivityChainBuilder {
                     current = new TransformedZ3Proof(
                             SExpressionConstants.UNIT_RESOLUTION, subProofs,
                             new OrFormula(disjuncts.subList(0, 2)));
-                    // assert (current.checkZ3ProofNode()); // DEBUG
+                    assert (current.checkZ3ProofNode()); // DEBUG
 
                 } else {
                     assert (current.getSubProofs().size() == 2);
@@ -256,14 +259,14 @@ public class TransitivityChainBuilder {
                     current = new TransformedZ3Proof(
                             SExpressionConstants.UNIT_RESOLUTION, subProofs,
                             new OrFormula(disjuncts.subList(0, 3)));
-                    // assert (current.checkZ3ProofNode()); // DEBUG
+                    assert (current.checkZ3ProofNode()); // DEBUG
                     subProofs = new ArrayList<TransformedZ3Proof>(2);
                     subProofs.add(currentSubProofs.get(1));
                     subProofs.add(current);
                     current = new TransformedZ3Proof(
                             SExpressionConstants.UNIT_RESOLUTION, subProofs,
                             new OrFormula(disjuncts.subList(0, 2)));
-                    // assert (current.checkZ3ProofNode()); // DEBUG
+                    assert (current.checkZ3ProofNode()); // DEBUG
                 }
             }
             if (intermediate == null)
@@ -281,7 +284,7 @@ public class TransitivityChainBuilder {
                 intermediate = new TransformedZ3Proof(
                         SExpressionConstants.UNIT_RESOLUTION, subProofs,
                         new OrFormula(intermediateDisjuncts));
-                // assert (intermediate.checkZ3ProofNode()); // DEBUG
+                assert (intermediate.checkZ3ProofNode()); // DEBUG
             }
         }
         return intermediate;
