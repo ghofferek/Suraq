@@ -364,6 +364,7 @@ public class TransformedZ3ProofTest {
      *            set of <code>ArrayVariable</code> contained in the proof
      */
 
+    @SuppressWarnings("deprecation")
     private String parseAndTransform(String proof,
             Set<DomainVariable> domainVars,
             Set<PropositionalVariable> propsitionalVars,

@@ -104,6 +104,7 @@ public class LocalLemmasToAssertionsTest {
      * @return parsed and transformed proof
      */
 
+    @SuppressWarnings("deprecation")
     private String parseAndRemoveLocalLemmas(String proof,
             Set<DomainVariable> domainVars,
             Set<PropositionalVariable> propsitionalVars,

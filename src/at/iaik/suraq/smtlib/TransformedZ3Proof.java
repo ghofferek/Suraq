@@ -63,6 +63,7 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private static final long serialVersionUID = -3623762531459362582L;
 
+    @Deprecated
     public static TransformedZ3Proof debugNode = null;
 
     /**
@@ -1159,7 +1160,7 @@ public class TransformedZ3Proof extends Z3Proof {
         return result;
     }
 
-    public List<TransformedZ3Proof> getLeafsRecursion(int operationId) {
+    private List<TransformedZ3Proof> getLeafsRecursion(int operationId) {
         visitedByDAGOperation(operationId);
 
         List<TransformedZ3Proof> result = new LinkedList<TransformedZ3Proof>();
@@ -1175,15 +1176,6 @@ public class TransformedZ3Proof extends Z3Proof {
                 result.addAll(subProof.getLeafsRecursion(operationId));
         }
         return result;
-    }
-
-    /**
-     * 
-     * @return <code>true</code> iff this proof object is a leaf.
-     *         <code>false</code> otherwise.
-     */
-    public boolean isLeaf() {
-        return subProofs.isEmpty();
     }
 
     /**
@@ -1647,14 +1639,6 @@ public class TransformedZ3Proof extends Z3Proof {
         }
 
         return trees;
-    }
-
-    /**
-     * 
-     * @return the <code>assertPartition</code> of this node
-     */
-    public int getAssertPartition() {
-        return this.assertPartition;
     }
 
     public void removeLocalPartsBeforeInterpolation() {

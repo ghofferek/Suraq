@@ -658,8 +658,8 @@ public class Util {
                 if (proof.isAxiom())
                     leafPartition = 0; // axioms should go to 0
                 else if (leafPartition < 0)
-                    if (proof.getAssertPartition() > 0)
-                        leafPartition = proof.getAssertPartition();
+                    if (proof.getAssertPartitionOfThisNode() > 0)
+                        leafPartition = proof.getAssertPartitionOfThisNode();
                     else
                         leafPartition = 1; // arbitrary choice
 

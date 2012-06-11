@@ -57,6 +57,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     protected List<Integer> visitedByOperation = new ArrayList<Integer>();
 
+    @Deprecated
     protected Set<String> assertedStr = new HashSet<String>();
 
     /**
@@ -324,7 +325,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return result;
     }
 
-    public Set<Integer> getPartitionsFromSymbolsRecursion(int operationId) {
+    private Set<Integer> getPartitionsFromSymbolsRecursion(int operationId) {
         visitedByDAGOperation(operationId);
 
         Set<Integer> partitions = consequent.getPartitionsFromSymbols();
@@ -377,7 +378,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return result;
     }
 
-    public void getPartitionsFromAssertsRecursion(int operationId,
+    private void getPartitionsFromAssertsRecursion(int operationId,
             Set<Integer> result) {
 
         visitedByDAGOperation(operationId);
@@ -451,13 +452,15 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return hypotheses;
     }
 
+    @Deprecated
     public void localLemmasToAssertions() {
         int operationId = startDAGOperation();
         this.localLemmasToAssertionsRecursion(operationId);
         endDAGOperation(operationId);
     }
 
-    public void localLemmasToAssertionsRecursion(int operationId) {
+    @Deprecated
+    private void localLemmasToAssertionsRecursion(int operationId) {
         visitedByDAGOperation(operationId);
 
         if (proofType.equals(SExpressionConstants.LEMMA)) {
@@ -499,6 +502,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     }
 
+    /**
+     * Removes local subproofs (including lemmas, if they are local).
+     */
     public void removeLocalSubProofs() {
         int operationId = startDAGOperation();
         Map<Z3Proof, Set<Integer>> partitionMap = new HashMap<Z3Proof, Set<Integer>>();
@@ -508,7 +514,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         endDAGOperation(operationId);
     }
 
-    public void removeLocalSubProofsRecursion(int operationId,
+    private void removeLocalSubProofsRecursion(int operationId,
             Map<Z3Proof, Set<Integer>> partitionMap,
             Map<Z3Proof, Boolean> existHypothesesMap) {
         assert (!this.wasVisitedByDAGOperation(operationId));
@@ -572,13 +578,15 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     }
 
+    @Deprecated
     public void dealWithModusPonens() {
         int operationId = startDAGOperation();
         this.dealWithModusPonensRecursion(operationId);
         endDAGOperation(operationId);
     }
 
-    public void dealWithModusPonensRecursion(int operationId) {
+    @Deprecated
+    private void dealWithModusPonensRecursion(int operationId) {
         visitedByDAGOperation(operationId);
 
         if (this.id == 163551)
@@ -740,7 +748,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return buffer.toString();
     }
 
-    public void prettyPrintRecursive(int operationId, StringBuffer buffer) {
+    private void prettyPrintRecursive(int operationId, StringBuffer buffer) {
         visitedByDAGOperation(operationId);
 
         buffer.append("----------------------------------------------\n");
@@ -838,6 +846,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
             node.visitedByOperation.remove((Integer) operationId);
     }
 
+    /**
+     * 
+     * @return the set of all nodes in this DAG.
+     */
     public Set<Z3Proof> allNodes() {
         Set<Z3Proof> result = new HashSet<Z3Proof>();
         this.allNodes(result);
@@ -1328,6 +1340,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @return the map from children to parents. Note that in a DAG, a child may
      *         have several parents.
      */
+    @Deprecated
     public Map<Z3Proof, Set<Z3Proof>> computeParents() {
         int operationId = startDAGOperation();
         Map<Z3Proof, Set<Z3Proof>> result = new HashMap<Z3Proof, Set<Z3Proof>>();
@@ -1341,6 +1354,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @param map
      *            call-by-reference parameter to be updated during recursion
      */
+    @Deprecated
     private void computeParentsRecursion(int operationId,
             Map<Z3Proof, Set<Z3Proof>> map) {
         if (this.wasVisitedByDAGOperation(operationId))
@@ -1403,11 +1417,31 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return assertPartition;
     }
 
+    /**
+     * Necessary for restore after load from cache. Do not tamper with the
+     * instance counter otherwise!
+     * 
+     * @param value
+     *            the new value for the instance counter
+     */
     public static void setInstanceCounter(int value) {
         Z3Proof.instanceCounter = value;
     }
 
+    /**
+     * 
+     * @return the current value of the instance counter
+     */
     public static int getInstanceCounter() {
         return Z3Proof.instanceCounter;
+    }
+
+    /**
+     * 
+     * @return <code>true</code> iff this proof object is a leaf.
+     *         <code>false</code> otherwise.
+     */
+    public boolean isLeaf() {
+        return subProofs.isEmpty();
     }
 }
