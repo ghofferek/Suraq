@@ -23,7 +23,6 @@ import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.proof.AnnotatedProofNodes;
 import at.iaik.suraq.resProof.Lit;
 import at.iaik.suraq.resProof.ResNode;
-import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -75,7 +74,7 @@ public class TransformedZ3Proof extends Z3Proof {
      * This maps IDs of Z3Proofs to their TransformedZ3Proof counterparts. This
      * is to avoid DAG unwinding during conversion.
      */
-    private static Map<Integer, TransformedZ3Proof> proofMap = new HashMap<Integer, TransformedZ3Proof>();
+    public static Map<Integer, TransformedZ3Proof> proofMap = new HashMap<Integer, TransformedZ3Proof>();
 
     /**
      * The "literal" on which resolution is applied. This could e.g. be an
@@ -1745,6 +1744,7 @@ public class TransformedZ3Proof extends Z3Proof {
             this.proofType = z3SubProof.proofType;
             this.hypothesis = z3SubProof.hypothesis;
             this.axiom = z3SubProof.axiom;
+            this.assertPartition = z3SubProof.assertPartition;
             return;
 
         } else if (proofType.equals(SExpressionConstants.ASSERTED)) {
@@ -1755,12 +1755,6 @@ public class TransformedZ3Proof extends Z3Proof {
                     + proofType.toString()
                     + " while trying to rewrite z3 proof.");
         }
-    }
-
-    public static final ResProof createResolutionProof(
-            Z3Proof transformedZ3Proof) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     /**
