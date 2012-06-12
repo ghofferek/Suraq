@@ -970,29 +970,99 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     /**
-     * Checks if proof is valid. Takes all asserted nodes (leafs) of the proof,
-     * and checks, whether all leafs together imply the consequence of the node.
+     * Checks if proof is valid. Takes all asserted nodes (leafs) from a
+     * partition, and checks if the original formula of this partition implies
+     * these leafs. Does this for all partitions.
+     * 
+     * @param originalFormulas
+     *            asserted formula for each partition
      * 
      * @return true if <code>Z3Proof</code> is valid
      */
-
-    public boolean checkProofLeafsToConsequent() {
+    public boolean checkLeafsAgainstOriginalFormula(
+            Map<Integer, Formula> originalFormulas) {
         Timer timer = new Timer();
         System.out.println("  Check proofs leafs to consequent...");
         timer.start();
-        Set<Z3Proof> leafes = this.allLeafes();
-
-        // conjunction of all leafes and not the consequent -> UNSAT
-        // L1 ^ L2 ^ L3 ^ ~C -> UNSAT
 
         boolean result = true;
-        if (leafes.size() > 0) {
-            List<Formula> conjuncts = new ArrayList<Formula>();
-            for (Z3Proof leaf : leafes) {
-                conjuncts.add(leaf.consequent);
+        Set<Z3Proof> leafes = this.allLeafs();
+        assert (leafes.size() > 0);
+
+        HashMap<Integer, ArrayList<Z3Proof>> partitionLeafMap = new HashMap<Integer, ArrayList<Z3Proof>>();
+        List<Formula> globalLeafs = new ArrayList<Formula>();
+        List<Formula> axiomsDisjuncts = new ArrayList<Formula>();
+        for (Z3Proof leaf : leafes) {
+
+            if (!leaf.proofType.equals(SExpressionConstants.HYPOTHESIS)) {
+
+                assert (leaf.assertPartition != 0);
+
+                ArrayList<Z3Proof> leafList = partitionLeafMap
+                        .get(leaf.assertPartition);
+                if (leafList == null) {
+                    leafList = new ArrayList<Z3Proof>();
+                    partitionLeafMap.put(leaf.assertPartition, leafList);
+                }
+                leafList.add(leaf);
+
+                if (leaf.assertPartition == -1)
+                    globalLeafs.add(new NotFormula(leaf.consequent));
+                if (leaf.axiom)
+                    axiomsDisjuncts.add(new NotFormula(leaf.consequent));
             }
-            conjuncts.add(new NotFormula(this.consequent));
-            Formula formulaToCheck = new AndFormula(conjuncts);
+        }
+
+        // check each partition: phi_n /\ (~L1 \/ ~L2 \/ ... ) = UNSAT
+        for (Map.Entry<Integer, ArrayList<Z3Proof>> entry : partitionLeafMap
+                .entrySet()) {
+
+            int partition = entry.getKey();
+            if (partition != -1) {// not global
+
+                List<Formula> disjuncts = new ArrayList<Formula>();
+                for (Z3Proof leaf : entry.getValue())
+                    disjuncts.add(new NotFormula(leaf.consequent));
+
+                if (globalLeafs != null)
+                    disjuncts.addAll(globalLeafs);
+
+                Formula leafFormula = new OrFormula(disjuncts);
+
+                List<Formula> conjuncts = new ArrayList<Formula>();
+                conjuncts.add(originalFormulas.get(partition));
+                conjuncts.add(leafFormula);
+                Formula formulaToCheck = new AndFormula(conjuncts);
+
+                String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
+                String formulaSmtStr = buildSMTDescription(declarationStr,
+                        formulaToCheck.toString());
+
+                SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                        "lib/z3/bin/z3");
+                z3.solve(formulaSmtStr);
+
+                switch (z3.getState()) {
+                case SMTSolver.UNSAT:
+                    break;
+                case SMTSolver.SAT:
+                    System.out
+                            .println("Error while testing vality of Z3-proof with Z3-solver: \n"
+                                    + "z3 tells us SAT, proof is NOT valid.");
+                    System.out.println("Bad Node: " + this.id);
+                    result = false;
+                    break;
+                default:
+                    System.out
+                            .println("Z3 tells us UNKOWN STATE. CHECK ERROR STREAM.");
+                    result = false;
+                }
+            }
+        }
+
+        // check axioms: (~A1 \/ ~A2 \/ ... ) = UNSAT
+        if (axiomsDisjuncts.size() > 0) {
+            Formula formulaToCheck = new OrFormula(axiomsDisjuncts);
 
             String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
             String formulaSmtStr = buildSMTDescription(declarationStr,
@@ -1006,8 +1076,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 break;
             case SMTSolver.SAT:
                 System.out
-                        .println("Error while testing vality of Z3-node with Z3-solver: \n"
-                                + "z3 tells us SAT, node is NOT valid.");
+                        .println("Error while checking axioms with z3-solver Z3-solver: \n"
+                                + "z3 tells us SAT. axioms are not valid");
                 System.out.println("Bad Node: " + this.id);
                 result = false;
                 break;
@@ -1025,28 +1095,82 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     /**
-     * Returns all asserted nodes (leafes) of the <code>Z3Proof</code>.
+     * Checks if proof is valid. Takes all asserted nodes (leafs) of the proof,
+     * and checks, whether all leafs together imply the consequence of the node.
      * 
-     * @return all leafes of a <code>Z3Proof</code>
+     * @return true if <code>Z3Proof</code> is valid
      */
-    public Set<Z3Proof> allLeafes() {
+
+    public boolean checkProofLeafsToConsequent() {
+        Timer timer = new Timer();
+        System.out.println("  Check proofs leafs to consequent...");
+        timer.start();
+        Set<Z3Proof> leafs = this.allLeafs();
+
+        // conjunction of all leafs and not the consequent -> UNSAT
+        // L1 ^ L2 ^ L3 ^ ~C -> UNSAT
+
+        boolean result = true;
+        assert (leafs.size() > 0);
+        List<Formula> conjuncts = new ArrayList<Formula>();
+        for (Z3Proof leaf : leafs) {
+            conjuncts.add(leaf.consequent);
+        }
+        conjuncts.add(new NotFormula(this.consequent));
+        Formula formulaToCheck = new AndFormula(conjuncts);
+
+        String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
+        String formulaSmtStr = buildSMTDescription(declarationStr,
+                formulaToCheck.toString());
+
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+        z3.solve(formulaSmtStr);
+
+        switch (z3.getState()) {
+        case SMTSolver.UNSAT:
+            break;
+        case SMTSolver.SAT:
+            System.out
+                    .println("Error while testing vality of Z3-node with Z3-solver: \n"
+                            + "z3 tells us SAT, node is NOT valid.");
+            System.out.println("Bad Node: " + this.id);
+            result = false;
+            break;
+        default:
+            System.out.println("Z3 tells us UNKOWN STATE. CHECK ERROR STREAM.");
+            result = false;
+        }
+
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+
+        return result;
+    }
+
+    /**
+     * Returns all asserted nodes (leafs) of the <code>Z3Proof</code>.
+     * 
+     * @return all leafs of a <code>Z3Proof</code>
+     */
+    public Set<Z3Proof> allLeafs() {
 
         int operationId = startDAGOperation();
         Set<Z3Proof> leafes = new HashSet<Z3Proof>();
-        this.allLeafesRecursion(leafes, operationId);
+        this.allLeafsRecursion(leafes, operationId);
         endDAGOperation(operationId);
 
         return leafes;
     }
 
-    private void allLeafesRecursion(Set<Z3Proof> set, int operationId) {
+    private void allLeafsRecursion(Set<Z3Proof> set, int operationId) {
         if (this.wasVisitedByDAGOperation(operationId))
             return;
         visitedByDAGOperation(operationId);
 
         if (this.subProofs.size() > 0)
             for (Z3Proof subProof : this.subProofs) {
-                subProof.allLeafesRecursion(set, operationId);
+                subProof.allLeafsRecursion(set, operationId);
             }
         else {
             // assert (this.proofType.equals(SExpressionConstants.ASSERTED));

@@ -102,9 +102,15 @@ public class Suraq implements Runnable {
     /**
      * stores the assert partitions of the smt description
      */
+    // TODO: REMOVE, use assertPartitionFormulas
     private List<String> assertPartitionStrList = new ArrayList<String>();
 
     private Formula mainFormula = null;
+
+    /**
+     * stores the assert partition formula for each assert partition
+     */
+    private Map<Integer, Formula> assertPartitionFormulas = new HashMap<Integer, Formula>();
 
     /**
      * Constructs a new <code>Suraq</code>.
@@ -275,6 +281,7 @@ public class Suraq implements Runnable {
         System.out.println("  Remove local sub-proofs...");
         timer.start();
         rootProof.removeLocalSubProofs();
+
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
@@ -291,6 +298,7 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         printProofSize(transformedZ3Proof);
+
         /*
          * System.out.println("Num Instances: " + Z3Proof.numInstances()); try {
          * File smtfile = new File("proofTemp.txt"); FileWriter fstream = new
@@ -312,7 +320,10 @@ public class Suraq implements Runnable {
         // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
         assert (transformedZ3Proof.isLocal());
         printProofSize(transformedZ3Proof);
-
+        // System.out
+        // .println("----Check:"
+        // + transformedZ3Proof
+        // .checkLeafsAgainstOriginalFormula(this.assertPartitionFormulas));
         System.out.println("  To resolution proof...");
         timer.start();
         transformedZ3Proof.toResolutionProof();
@@ -320,6 +331,10 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         printProofSize(transformedZ3Proof);
+        // System.out
+        // .println("----Check:"
+        // + transformedZ3Proof
+        // .checkLeafsAgainstOriginalFormula(this.assertPartitionFormulas));
 
         // START: ASHUTOSH code
         System.out.println("  To resolution proof format...");
@@ -353,6 +368,10 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         printProofSize(recoveredProof);
+        // System.out
+        // .println("----Check:"
+        // + recoveredProof
+        // .checkLeafsAgainstOriginalFormula(this.assertPartitionFormulas));
 
         // create ITE-tree for every control signal
         System.out.println("  Compute interpolants...");
@@ -540,16 +559,19 @@ public class Suraq implements Runnable {
                 filename = saveCacheFile.getPath();
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
-                        logicParser.getControlVariables(), null, filename);
+                        logicParser.getControlVariables(), mainFormula,
+                        assertPartitionFormulas, null, filename);
             } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
                 filename = saveCacheSerial.getPath();
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
-                        logicParser.getControlVariables(), rootProof, filename);
+                        logicParser.getControlVariables(), mainFormula,
+                        assertPartitionFormulas, rootProof, filename);
             } else {
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
-                        logicParser.getControlVariables(), null, null);
+                        logicParser.getControlVariables(), mainFormula,
+                        assertPartitionFormulas, null, null);
             }
 
         } else { // use cached files
@@ -579,6 +601,10 @@ public class Suraq implements Runnable {
                     intermediateVars = SaveCache
                             .loadSaveCacheFromFile(saveCacheFile.getPath());
 
+                    mainFormula = intermediateVars.getMainFormula();
+                    assertPartitionFormulas = intermediateVars
+                            .getAssertPartitionFormulas();
+
                     rootProof = parseProof(proof,
                             intermediateVars.getPropsitionalVars(),
                             intermediateVars.getDomainVars(),
@@ -594,6 +620,11 @@ public class Suraq implements Runnable {
                     loadTimer.start();
                     intermediateVars = SaveCache
                             .loadSaveCacheFromFile(saveCacheSerial.getPath());
+
+                    mainFormula = intermediateVars.getMainFormula();
+                    assertPartitionFormulas = intermediateVars
+                            .getAssertPartitionFormulas();
+
                     loadTimer.end();
                     System.out.println("Serialized cache loaded in: "
                             + loadTimer);
@@ -1039,6 +1070,7 @@ public class Suraq implements Runnable {
 
             tempFormula = tempFormula.substituteFormula(variableSubstitutions);
             tempFormula = new NotFormula(tempFormula);
+            this.assertPartitionFormulas.put(count + 1, tempFormula);
             SExpression assertPartitionExpression = new SExpression();
             assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
             // .addChild(SExpressionConstants.ASSERT_PARTITION);

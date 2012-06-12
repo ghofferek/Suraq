@@ -303,6 +303,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     SExpressionConstants.ASSERTED,
                     new ArrayList<TransformedZ3Proof>(), z3Proof
                             .getConsequent().transformToConsequentsForm());
+            if (z3Proof.assertPartition > 0)
+                result.assertPartition = z3Proof.assertPartition;
             result.axiom = true;
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);

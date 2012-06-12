@@ -10,11 +10,13 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 
@@ -38,44 +40,14 @@ public class SaveCache implements Serializable {
     private final List<PropositionalVariable> controlVars;
     private final Z3Proof proof;
     private final Integer instanceCounter;
-
-    /**
-     * 
-     * Constructs a new <code>SaveCache</code>.
-     * 
-     * @param propsitionalVars
-     *            the propsitional variables to store
-     * @param domainVars
-     *            the domain variables to store
-     * @param arrayVars
-     *            the array variables to store
-     * @param uninterpretedFunctions
-     *            the uninterpreted functions to store
-     * @param controlVars
-     *            the control variables to store
-     * @param filename
-     *            file to save variables to
-     */
-    public SaveCache(Set<PropositionalVariable> propsitionalVars,
-            Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
-            Set<UninterpretedFunction> uninterpretedFunctions,
-            List<PropositionalVariable> controlVars, String filename) {
-        this.propsitionalVars = propsitionalVars;
-        this.domainVars = domainVars;
-        this.arrayVars = arrayVars;
-        this.uninterpretedFunctions = uninterpretedFunctions;
-        this.controlVars = controlVars;
-        this.proof = null;
-        this.instanceCounter = null;
-
-        if (filename != null)
-            this.saveToFile(filename);
-    }
+    private final Formula mainFormula;
+    private final Map<Integer, Formula> assertPartitionFormulas;
 
     public SaveCache(Set<PropositionalVariable> propsitionalVars,
             Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
             Set<UninterpretedFunction> uninterpretedFunctions,
-            List<PropositionalVariable> controlVars, Z3Proof proof,
+            List<PropositionalVariable> controlVars, Formula mainFormula,
+            Map<Integer, Formula> assertPartitionFormulas, Z3Proof proof,
             String filename) {
 
         this.propsitionalVars = propsitionalVars;
@@ -85,6 +57,8 @@ public class SaveCache implements Serializable {
         this.controlVars = controlVars;
         this.proof = proof;
         this.instanceCounter = Z3Proof.getInstanceCounter();
+        this.mainFormula = mainFormula;
+        this.assertPartitionFormulas = assertPartitionFormulas;
 
         if (filename != null)
             this.saveToFile(filename);
@@ -181,5 +155,13 @@ public class SaveCache implements Serializable {
 
     public Integer getInstanceCounter() {
         return this.instanceCounter;
+    }
+
+    public Formula getMainFormula() {
+        return this.mainFormula;
+    }
+
+    public Map<Integer, Formula> getAssertPartitionFormulas() {
+        return this.assertPartitionFormulas;
     }
 }
