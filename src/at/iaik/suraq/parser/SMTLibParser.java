@@ -44,7 +44,6 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.TermFunctionMacro;
 import at.iaik.suraq.smtlib.formula.TermFunctionMacroInstance;
-import at.iaik.suraq.smtlib.formula.TseitsinVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
@@ -60,6 +59,8 @@ public abstract class SMTLibParser extends Parser {
     protected final Map<Token, Formula> formulas = new HashMap<Token, Formula>();
 
     protected final Map<Token, Term> terms = new HashMap<Token, Term>();
+
+    protected final Set<PropositionalVariable> tseitinVariables = new HashSet<PropositionalVariable>();
 
     private static final int GLOBAL_PARTITION = -1;
 
@@ -79,11 +80,6 @@ public abstract class SMTLibParser extends Parser {
      * The list of Boolean variables found during parsing
      */
     protected Set<PropositionalVariable> boolVariables = new HashSet<PropositionalVariable>();
-
-    /**
-     * The list of (Boolean) Tseitsin variables found during parsing
-     */
-    protected Set<TseitsinVariable> tseitsinVariables = new HashSet<TseitsinVariable>();
 
     /**
      * The list of domain variables found during parsing
@@ -178,6 +174,13 @@ public abstract class SMTLibParser extends Parser {
         if (isPropositionalVariable(expression)) {
             int partition = getPartitionBoolVariable(expression);
             return new PropositionalVariable((Token) expression, partition);
+        }
+
+        if (isTseitinVariable(expression)) {
+            PropositionalVariable var = new PropositionalVariable(
+                    (Token) expression);
+            tseitinVariables.add(var);
+            return var;
         }
 
         Token operator = isBooleanCombination(expression);
@@ -937,6 +940,32 @@ public abstract class SMTLibParser extends Parser {
     }
 
     /**
+     * Checks if the given expression is a tseitin variable.
+     * 
+     * @param expression
+     *            the expression to check
+     * @return <code>true</code> if the given expression is a tseitin variable,
+     *         <code>false</code> otherwise.
+     */
+    protected boolean isTseitinVariable(SExpression expression) {
+
+        if (!(expression instanceof Token))
+            return false;
+
+        Token token = (Token) expression;
+        PropositionalVariable variable = new PropositionalVariable(token);
+
+        if (expression.toString().contains("!")) {
+            if (boolVariables.contains(variable)
+                    || controlVariables.contains(variable))
+                assert (false);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Checks if the given expression is a propositional constant.
      * 
      * @param expression
@@ -1082,15 +1111,6 @@ public abstract class SMTLibParser extends Parser {
      */
     public List<PropositionalVariable> getBoolVariables() {
         return new ArrayList<PropositionalVariable>(boolVariables);
-    }
-
-    /**
-     * Returns a copy of the list of Tseitsin variables.
-     * 
-     * @return a copy of the <code>tseistinVariables</code>
-     */
-    public List<TseitsinVariable> getTseitsinVariables() {
-        return new ArrayList<TseitsinVariable>(tseitsinVariables);
     }
 
     /**

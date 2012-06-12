@@ -24,6 +24,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
+import at.iaik.suraq.parser.TseitinParser;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -99,13 +100,34 @@ public class Suraq implements Runnable {
      */
     private String declarationStr = "";
 
+    private Map<PropositionalVariable, Formula> tseitinEncoding;
+
     /**
      * stores the assert partitions of the smt description
      */
     // TODO: REMOVE, use assertPartitionFormulas
-    private List<String> assertPartitionStrList = new ArrayList<String>();
-
+    @Deprecated
+    private List<SExpression> assertPartitionList = new ArrayList<SExpression>();
+    /**
+     * stores the main formula
+     */
     private Formula mainFormula = null;
+    /**
+     * stores all present propositional variables
+     */
+    private Set<PropositionalVariable> propsitionalVars;
+    /**
+     * stores all present domain variables
+     */
+    private Set<DomainVariable> domainVars;
+    /**
+     * stores all present array variables
+     */
+    private Set<ArrayVariable> arrayVars;
+    /**
+     * stores all present uninterpreted functions
+     */
+    private Set<UninterpretedFunction> uninterpretedFunctions;
 
     /**
      * stores the assert partition formula for each assert partition
@@ -215,19 +237,51 @@ public class Suraq implements Runnable {
                 System.out.println(exc.getMessage());
         }
 
-        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+        // build function and variable lists for parser
+        propsitionalVars = mainFormula.getPropositionalVariables();
+        domainVars = mainFormula.getDomainVariables();
+        arrayVars = mainFormula.getArrayVariables();
+        uninterpretedFunctions = mainFormula.getUninterpretedFunctions();
 
-        System.out.println("  Simplifying assert-partitions...");
-        List<String> simplifiedAssertPartitions = new ArrayList<String>();
-        for (String assertPartition : assertPartitionStrList) {
-            String smtStr = buildSimplifySMTDescription(declarationStr,
-                    assertPartition);
+        for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
+                .entrySet()) {
+            assert (varList.getValue() != null);
+            assert (varList.getValue().size() > 0);
+
+            Term first = varList.getValue().get(0);
+
+            if (first instanceof DomainVariable)
+                for (Term var : varList.getValue())
+                    domainVars.add((DomainVariable) var);
+
+            if (first instanceof PropositionalVariable)
+                for (Term var : varList.getValue())
+                    propsitionalVars.add((PropositionalVariable) var);
+
+            if (first instanceof ArrayVariable)
+                for (Term var : varList.getValue())
+                    arrayVars.add((ArrayVariable) var);
+        }
+
+        for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies
+                .entrySet())
+            uninterpretedFunctions.addAll(functionList.getValue());
+
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                SuraqOptions.getZ3_4Path());
+
+        System.out
+                .println("  Simplifying assert-partitions and tseitin-cnf encoding...");
+        List<String> tseitinAssertPartitions = new ArrayList<String>();
+        for (SExpression assertPartition : assertPartitionList) {
+            String smtStr = buildTseitinSMTDescription(declarationStr,
+                    assertPartition.toString());
             String simpleSmtStr = z3.simplify(smtStr);
-            simplifiedAssertPartitions.add(simpleSmtStr);
+            tseitinAssertPartitions.add(simpleSmtStr);
 
         }
-        String z3InputStr = buildProofSMTDescription(declarationStr,
-                simplifiedAssertPartitions);
+        String z3InputStr = buildSMTDescriptionFromTseitinPartitions(
+                declarationStr, tseitinAssertPartitions);
 
         return z3InputStr;
     }
@@ -477,7 +531,8 @@ public class Suraq implements Runnable {
             Timer proofcalculationTimer = new Timer();
             proofcalculationTimer.start();
 
-            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                    SuraqOptions.getZ3Path());
             z3.solve(z3InputStr);
 
             switch (z3.getState()) {
@@ -516,38 +571,6 @@ public class Suraq implements Runnable {
                 }
             }
 
-            // build function and variable lists for proof parser
-            Set<PropositionalVariable> propsitionalVars = mainFormula
-                    .getPropositionalVariables();
-            Set<DomainVariable> domainVars = mainFormula.getDomainVariables();
-            Set<ArrayVariable> arrayVars = mainFormula.getArrayVariables();
-            Set<UninterpretedFunction> uninterpretedFunctions = mainFormula
-                    .getUninterpretedFunctions();
-
-            for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
-                    .entrySet()) {
-                assert (varList.getValue() != null);
-                assert (varList.getValue().size() > 0);
-
-                Term first = varList.getValue().get(0);
-
-                if (first instanceof DomainVariable)
-                    for (Term var : varList.getValue())
-                        domainVars.add((DomainVariable) var);
-
-                if (first instanceof PropositionalVariable)
-                    for (Term var : varList.getValue())
-                        propsitionalVars.add((PropositionalVariable) var);
-
-                if (first instanceof ArrayVariable)
-                    for (Term var : varList.getValue())
-                        arrayVars.add((ArrayVariable) var);
-            }
-
-            for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies
-                    .entrySet())
-                uninterpretedFunctions.addAll(functionList.getValue());
-
             rootProof = parseProof(proof, propsitionalVars, domainVars,
                     arrayVars, uninterpretedFunctions);
 
@@ -560,18 +583,26 @@ public class Suraq implements Runnable {
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, null, filename);
+                        assertPartitionFormulas, null, null, filename);// TODO:
+                                                                       // Add
+                                                                       // Tseitin
+                                                                       // Variables
             } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
                 filename = saveCacheSerial.getPath();
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, rootProof, filename);
+                        assertPartitionFormulas, null, rootProof, filename);// TODO:
+                                                                            // Add
+                                                                            // Tseitin
+                                                                            // Variables
             } else {
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, null, null);
+                        assertPartitionFormulas, null, null, null); // TODO: Add
+                                                                    // Tseitin
+                                                                    // Variables
             }
 
         } else { // use cached files
@@ -802,6 +833,86 @@ public class Suraq implements Runnable {
     }
 
     /**
+     * Parses <code>tseitinStr</code> into a formula.
+     * 
+     * @param tseitinStr
+     *            output string of the z3 after applying tseitin encoding
+     * @return return parsed formula
+     * 
+     */
+    private Formula parseTseitinStr(String tseitinStr) {
+
+        SExpParser sExpParser = new SExpParser(tseitinStr);
+        try {
+            sExpParser.parse();
+            assert (sExpParser.wasParsingSuccessfull());
+        } catch (ParseError exc) {
+            handleParseError(exc);
+            return null;
+        }
+
+        SExpression rootExp = sExpParser.getRootExpr();
+
+        TseitinParser tseitinParser = new TseitinParser(rootExp, domainVars,
+                propsitionalVars, arrayVars, uninterpretedFunctions);
+        try {
+            tseitinParser.parse();
+            assert (tseitinParser.wasParsingSuccessfull());
+        } catch (ParseError exc) {
+            handleParseError(exc);
+            return null;
+        }
+        tseitinEncoding = tseitinParser.getTseitinEncoding();
+
+        return tseitinParser.getRootFormula();
+    }
+
+    /**
+     * Creates an SMT Description from the tseitin assert partitions. Adds
+     * entries in the <code>tseitinEncoding</code> map, for each tseitin
+     * variable the corresponding formula.
+     * 
+     * @param declarationStr
+     *            declarations of the SMT Description
+     * @param tseitinAssertPartitions
+     *            tseitin assert partitions
+     * @return SMT description to proof
+     * 
+     */
+    private String buildSMTDescriptionFromTseitinPartitions(
+            String declarationStr, List<String> tseitinAssertPartitions) {
+
+        String smtStr = "";
+
+        smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+        smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
+        smtStr += SExpressionConstants.PROOF_MODE_2.toString();
+        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+                .toString();
+        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
+                .toString();
+        smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+
+        // TODO: Add Tseitin variables
+        smtStr += declarationStr;
+
+        for (String partition : tseitinAssertPartitions) {
+
+            Formula partitionFormula = parseTseitinStr(partition);
+            Z3Proof tseitinAssertPartition = new Z3Proof(
+                    SExpressionConstants.ASSERT, new ArrayList<Z3Proof>(),
+                    partitionFormula);
+            smtStr += tseitinAssertPartition.toString();
+        }
+
+        smtStr += SExpressionConstants.CHECK_SAT.toString();
+        smtStr += SExpressionConstants.GET_PROOF.toString();
+        smtStr += SExpressionConstants.EXIT.toString();
+
+        return smtStr;
+    }
+
+    /**
      * Creates an SMT Description from the simplified assert partitions.
      * 
      * @param declarationStr
@@ -865,6 +976,39 @@ public class Suraq implements Runnable {
         smtStr += declarationStr;
 
         smtStr += assertPartition;
+
+        smtStr += SExpressionConstants.EXIT.toString();
+
+        return smtStr;
+    }
+
+    /**
+     * Creates an SMT description for an tseitin-cnf operation
+     * 
+     * @param declarationStr
+     *            declarations of the SMT description
+     * @param assertPartition
+     *            partition to be transformed by tseitin-encoding
+     * @return SMT description of tseitin-encoding operation
+     * 
+     */
+    private String buildTseitinSMTDescription(String declarationStr,
+            String assertPartition) {
+        String smtStr = "";
+
+        smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+        smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
+        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+                .toString();
+        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
+                .toString();
+        smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+
+        smtStr += declarationStr;
+
+        smtStr += assertPartition;
+
+        smtStr += SExpressionConstants.APPLY_TSEITIN.toString();
 
         smtStr += SExpressionConstants.EXIT.toString();
 
@@ -1006,8 +1150,8 @@ public class Suraq implements Runnable {
                 .listIterator(beginAssertPartitionIdx);
         while (beginAssert.hasNext()) {
             SExpression expr = beginAssert.next().deepCopy();
-            expr.replaceChild(new Token("simplify"), 0);
-            assertPartitionStrList.add(expr.toString());
+            // expr.replaceChild(new Token("simplify"), 0);
+            assertPartitionList.add(expr);
         }
 
         outputExpressions.add(SExpressionConstants.CHECK_SAT);

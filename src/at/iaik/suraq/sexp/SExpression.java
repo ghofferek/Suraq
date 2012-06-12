@@ -220,6 +220,16 @@ public class SExpression {
     }
 
     /**
+     * Removes the child with the specified index.
+     * 
+     * @param index
+     *            index of the element to remove.
+     */
+    public void removeChild(int index) {
+        children.remove(index);
+    }
+
+    /**
      * Returns the list of children. This is the live list, not a copy.
      * 
      * @return the list of children (not a copy).

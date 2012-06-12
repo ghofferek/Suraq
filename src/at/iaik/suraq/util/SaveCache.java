@@ -42,12 +42,14 @@ public class SaveCache implements Serializable {
     private final Integer instanceCounter;
     private final Formula mainFormula;
     private final Map<Integer, Formula> assertPartitionFormulas;
+    private final Map<PropositionalVariable, Formula> tseitinEncoding;
 
     public SaveCache(Set<PropositionalVariable> propsitionalVars,
             Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
             Set<UninterpretedFunction> uninterpretedFunctions,
             List<PropositionalVariable> controlVars, Formula mainFormula,
-            Map<Integer, Formula> assertPartitionFormulas, Z3Proof proof,
+            Map<Integer, Formula> assertPartitionFormulas,
+            Map<PropositionalVariable, Formula> tseitinEncoding, Z3Proof proof,
             String filename) {
 
         this.propsitionalVars = propsitionalVars;
@@ -59,6 +61,7 @@ public class SaveCache implements Serializable {
         this.instanceCounter = Z3Proof.getInstanceCounter();
         this.mainFormula = mainFormula;
         this.assertPartitionFormulas = assertPartitionFormulas;
+        this.tseitinEncoding = tseitinEncoding;
 
         if (filename != null)
             this.saveToFile(filename);
@@ -163,5 +166,9 @@ public class SaveCache implements Serializable {
 
     public Map<Integer, Formula> getAssertPartitionFormulas() {
         return this.assertPartitionFormulas;
+    }
+
+    public Map<PropositionalVariable, Formula> getTseitinEncoding() {
+        return this.tseitinEncoding;
     }
 }
