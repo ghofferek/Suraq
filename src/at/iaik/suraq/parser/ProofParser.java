@@ -17,9 +17,7 @@ import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
-import at.iaik.suraq.smtlib.formula.TseitsinVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
-import at.iaik.suraq.util.Util;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -217,8 +215,8 @@ public class ProofParser extends SMTLibParser {
                         "no assignment of formula to another reference of formula");
 
             Formula entry = parseFormulaBody(entryExpr);
-            if (!Util.isLiteral(entry))
-                entry = new TseitsinVariable(key, entry);
+            // if (!Util.isLiteral(entry))
+            // entry = new TseitsinVariable(key, entry);
             this.formulas.put(pureKey, entry);
         } else if (typeCharKey == SMTLibParser.REF_TERM) {
             if (typeCharEntry == SMTLibParser.REF_TERM)
