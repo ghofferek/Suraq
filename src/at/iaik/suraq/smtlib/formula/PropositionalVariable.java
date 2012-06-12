@@ -31,7 +31,7 @@ public class PropositionalVariable extends PropositionalTerm implements
     /**
      * The name of the variable.
      */
-    private final String varName;
+    protected final String varName;
 
     /**
      * 

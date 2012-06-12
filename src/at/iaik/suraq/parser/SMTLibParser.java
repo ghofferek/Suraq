@@ -44,6 +44,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.TermFunctionMacro;
 import at.iaik.suraq.smtlib.formula.TermFunctionMacroInstance;
+import at.iaik.suraq.smtlib.formula.TseitsinVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
@@ -78,6 +79,11 @@ public abstract class SMTLibParser extends Parser {
      * The list of Boolean variables found during parsing
      */
     protected Set<PropositionalVariable> boolVariables = new HashSet<PropositionalVariable>();
+
+    /**
+     * The list of (Boolean) Tseitsin variables found during parsing
+     */
+    protected Set<TseitsinVariable> tseitsinVariables = new HashSet<TseitsinVariable>();
 
     /**
      * The list of domain variables found during parsing
@@ -1076,6 +1082,15 @@ public abstract class SMTLibParser extends Parser {
      */
     public List<PropositionalVariable> getBoolVariables() {
         return new ArrayList<PropositionalVariable>(boolVariables);
+    }
+
+    /**
+     * Returns a copy of the list of Tseitsin variables.
+     * 
+     * @return a copy of the <code>tseistinVariables</code>
+     */
+    public List<TseitsinVariable> getTseitsinVariables() {
+        return new ArrayList<TseitsinVariable>(tseitsinVariables);
     }
 
     /**

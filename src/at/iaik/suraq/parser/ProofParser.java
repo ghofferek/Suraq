@@ -17,7 +17,9 @@ import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.TseitsinVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.util.Util;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -215,6 +217,8 @@ public class ProofParser extends SMTLibParser {
                         "no assignment of formula to another reference of formula");
 
             Formula entry = parseFormulaBody(entryExpr);
+            if (!Util.isLiteral(entry))
+                entry = new TseitsinVariable(key, entry);
             this.formulas.put(pureKey, entry);
         } else if (typeCharKey == SMTLibParser.REF_TERM) {
             if (typeCharEntry == SMTLibParser.REF_TERM)
@@ -315,15 +319,11 @@ public class ProofParser extends SMTLibParser {
     }
 
     /**
-     * Handles an let expression. I.e., if <code>mainFormula</code> is still
-     * <code>null</code>, it will be initialized to the result of parsing this
-     * assert statement's body. If <code>mainFormula</code> already is non-
-     * <code>null</code>, a conjunction of its current value an the parsed body
-     * will be made.
+     * Handles an let expression.
      * 
      * @param expression
-     *            the assert expression to parse.
-     * @return the formula resulting from parsing.
+     *            the let expression to parse.
+     * @return the proof resulting from parsing.
      */
     private Z3Proof parseLet(SExpression expression) throws ParseError {
 
