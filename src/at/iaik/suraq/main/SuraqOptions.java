@@ -114,6 +114,16 @@ public class SuraqOptions {
     private static SuraqOptions instance;
 
     /**
+     * The path to z3.2 solver.
+     */
+    private static final String z3Path = "lib/z3/bin/z3";
+
+    /**
+     * The path to z3.4 solver.
+     */
+    private static final String z3_4Path = "lib/z3-4.0/bin/z3";
+
+    /**
      * 
      * Constructs the singleton <code>SuraqOptions</code> instance.
      * 
@@ -284,6 +294,24 @@ public class SuraqOptions {
      */
     public String getOutput() {
         return outputValue != null ? outputValue : SuraqOptions.outputDefault;
+    }
+
+    /**
+     * Returns the path of the Z3.2 solver.
+     * 
+     * @return the path of the Z3.2 solver.
+     */
+    public static String getZ3Path() {
+        return z3Path;
+    }
+
+    /**
+     * Returns the path of the Z3.4 solver.
+     * 
+     * @return the path of the Z3.4 solver.
+     */
+    public static String getZ3_4Path() {
+        return z3_4Path;
     }
 
 }
