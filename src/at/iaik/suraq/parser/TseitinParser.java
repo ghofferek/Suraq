@@ -3,6 +3,9 @@
  */
 package at.iaik.suraq.parser;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -188,6 +191,22 @@ public class TseitinParser extends SMTLibParser {
         boolean start = false;
         PropositionalVariable currTseitinVar = null;
         ArrayList<Formula> currTseitinConjuncts = new ArrayList<Formula>();
+
+        try {
+            FileWriter fstream = new FileWriter("clauses.smt2");
+            BufferedWriter buffer = new BufferedWriter(fstream);
+            for (Formula clause : clauses) {
+                buffer.write(clause.toString().replaceAll("\\s{2,}", " ")
+                        .replace("\n", ""));
+                buffer.newLine();
+            }
+            buffer.flush();
+            buffer.close();
+            fstream.close();
+        } catch (IOException exc) {
+            System.err.println("Error while writing to file clauses.smt2. ");
+            exc.printStackTrace();
+        }
 
         for (Formula clause : clauses) {
             // if clause has this form: (or d k!0), than it is part of formula
