@@ -9,7 +9,6 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.sexp.SExpression;
-import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -262,29 +261,20 @@ public class ProofParser extends SMTLibParser {
     }
 
     /**
-     * Checks whether the given expression is an let instance.
+     * Checks whether the given expression is an let instance, with a key that
+     * starts either with $, @, or ?.
      * 
      * @param expression
      *            the expression to check.
      * @return <code>true</code> if the given expression is an let expression,
      *         <code>false</code> otherwise.
      */
+    @Override
+    protected boolean isLet(SExpression expression) {
 
-    private boolean isLet(SExpression expression) {
-
-        if (expression instanceof Token)
-            return false;
-        if (expression.getChildren().size() != 3)
-            return false;
-        if (!(expression.getChildren().get(0) instanceof Token)) // let
-            return false;
-        assert (expression.getChildren().get(0) instanceof Token);
-        if (!(expression.getChildren().get(0).equals(SExpressionConstants.LET)))
+        if (!super.isLet(expression))
             return false;
 
-        if (!(expression.getChildren().get(1).getChildren().get(0)
-                .getChildren().get(0) instanceof Token))
-            return false;
         Token key = (Token) expression.getChildren().get(1).getChildren()
                 .get(0).getChildren().get(0); // $x5
 

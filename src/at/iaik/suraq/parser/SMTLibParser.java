@@ -1097,6 +1097,35 @@ public abstract class SMTLibParser extends Parser {
     }
 
     /**
+     * Checks whether the given expression is an let instance.
+     * 
+     * @param expression
+     *            the expression to check.
+     * @return <code>true</code> if the given expression is an let expression,
+     *         <code>false</code> otherwise.
+     */
+    protected boolean isLet(SExpression expression) {
+        if (expression instanceof Token)
+            return false;
+        if (expression.getChildren().size() != 3)
+            return false;
+        if (!(expression.getChildren().get(0) instanceof Token)) // let
+            return false;
+        assert (expression.getChildren().get(0) instanceof Token);
+        if (!(expression.getChildren().get(0).equals(SExpressionConstants.LET)))
+            return false;
+
+        for (SExpression child : expression.getChildren().get(1).getChildren()) {
+            if (child.size() != 2)
+                return false;
+            if (!(child.getChildren().get(0) instanceof Token))
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Returns a copy of the list of control variables.
      * 
      * @return a copy of the <code>controlVariables</code>

@@ -857,7 +857,8 @@ public class Suraq implements Runnable {
             assert (sExpParser.wasParsingSuccessfull());
         } catch (ParseError exc) {
             handleParseError(exc);
-            return null;
+            throw new RuntimeException(
+                    "S-Expression parse error. Cannot continue.", exc);
         }
 
         SExpression rootExp = sExpParser.getRootExpr();
@@ -869,7 +870,8 @@ public class Suraq implements Runnable {
             assert (tseitinParser.wasParsingSuccessfull());
         } catch (ParseError exc) {
             handleParseError(exc);
-            return null;
+            throw new RuntimeException(
+                    "Tseitin encoding parse error. Cannot continue.", exc);
         }
         tseitinEncoding = tseitinParser.getTseitinEncoding();
 
@@ -931,6 +933,7 @@ public class Suraq implements Runnable {
      * @return SMT description to proof
      * 
      */
+    @SuppressWarnings("unused")
     @Deprecated
     private String buildProofSMTDescription(String declarationStr,
             List<String> simplifiedAssertPartitions) {
@@ -971,6 +974,7 @@ public class Suraq implements Runnable {
      * @return SMT description of simplify operation
      * 
      */
+    @SuppressWarnings("unused")
     @Deprecated
     private String buildSimplifySMTDescription(String declarationStr,
             String assertPartition) {
@@ -1022,6 +1026,18 @@ public class Suraq implements Runnable {
         smtStr += SExpressionConstants.APPLY_TSEITIN.toString();
 
         smtStr += SExpressionConstants.EXIT.toString();
+
+        // DEBUG
+        try {
+            FileWriter fstream = new FileWriter("tmp.smt2");
+            fstream.write(smtStr);
+            fstream.close();
+        } catch (IOException exc) {
+            System.err.println("Error while writing to file tmp.smt2. ");
+            exc.printStackTrace();
+            noErrors = false;
+        }
+        // END DEBUG
 
         return smtStr;
     }

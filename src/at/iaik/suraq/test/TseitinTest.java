@@ -90,7 +90,7 @@ public class TseitinTest {
             exc.printStackTrace();
         }
 
-        Formula parsedFormula = tseitinParser.getRootFormula();
+        tseitinParser.getRootFormula();
         Map<PropositionalVariable, Formula> tseitinEncoding = tseitinParser
                 .getTseitinEncoding();
 

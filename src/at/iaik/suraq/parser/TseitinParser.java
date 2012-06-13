@@ -17,10 +17,13 @@ import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.util.Util;
 
 /**
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
@@ -117,11 +120,44 @@ public class TseitinParser extends SMTLibParser {
 
         List<Formula> clauses = new ArrayList<Formula>();
         for (SExpression expr : goalExpr.getChildren()) {
-            clauses.add(parseFormulaBody(expr));
+            if (isLet(expr))
+                clauses.add(handleLet(expr));
+            else
+                clauses.add(parseFormulaBody(expr));
         }
         rootFormula = new AndFormula(clauses);
         parsingSuccessfull = true;
 
+    }
+
+    /**
+     * Handles a let expression that defines Tseitin variables.
+     * 
+     * @param expr
+     * @return
+     * @throws ParseError
+     */
+    private Formula handleLet(SExpression expr) throws ParseError {
+        assert (expr.size() == 3);
+        assert (expr.getChildren().get(0) instanceof Token);
+        assert (expr.getChildren().get(0).equals(SExpressionConstants.LET));
+
+        Map<Token, Term> letDefinitions = new HashMap<Token, Term>();
+
+        for (SExpression defineExpr : expr.getChildren().get(1).getChildren()) {
+            assert (defineExpr.size() == 2);
+            assert (defineExpr.getChildren().get(0) instanceof Token);
+            Token key = (Token) defineExpr.getChildren().get(0);
+            FormulaTerm value = new FormulaTerm(parseFormulaBody(defineExpr
+                    .getChildren().get(1)));
+            assert (Util.isLiteral(value));
+            letDefinitions.put(key, value);
+        }
+
+        Formula formula = parseFormulaBody(expr.getChildren().get(2));
+        formula = formula.substituteFormula(letDefinitions);
+
+        return formula;
     }
 
     /**
