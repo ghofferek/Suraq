@@ -441,7 +441,8 @@ public class Suraq implements Runnable {
         System.out.println("  Compute interpolants...");
         timer.start();
         Map<PropositionalVariable, Formula> iteTrees = recoveredProof
-                .createITETrees(intermediateVars.getControlVars());
+                .createITETrees(intermediateVars.getControlVars(),
+                        tseitinEncoding);
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();

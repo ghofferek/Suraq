@@ -1829,7 +1829,8 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public Map<PropositionalVariable, Formula> createITETrees(
-            List<PropositionalVariable> ctrlSignals) {
+            List<PropositionalVariable> ctrlSignals,
+            Map<PropositionalVariable, Formula> tseitinEncoding) {
 
         Map<PropositionalVariable, Formula> trees = new HashMap<PropositionalVariable, Formula>();
 
@@ -1846,7 +1847,14 @@ public class TransformedZ3Proof extends Z3Proof {
         for (int signalNum = 0; signalNum < ctrlSignals.size(); signalNum++) {
             PropositionalVariable signal = ctrlSignals.get(signalNum);
             Formula tree = createITETree(signalNum);
-            trees.put(signal, tree);
+
+            // Replace Tseitin variables
+            Map<Token, Term> substitutionsMap = new HashMap<Token, Term>();
+            for (PropositionalVariable tseitinVar : tseitinEncoding.keySet())
+                substitutionsMap.put(new Token(tseitinVar.getVarName()),
+                        new FormulaTerm(tseitinEncoding.get(tseitinVar)));
+
+            trees.put(signal, tree.substituteFormula(substitutionsMap));
         }
 
         return trees;
