@@ -272,14 +272,24 @@ public class Suraq implements Runnable {
 
         System.out
                 .println("  Simplifying assert-partitions and tseitin-cnf encoding...");
+        Timer allPartitionsTimer = new Timer();
+        Timer onePartitionTimer = new Timer();
+        allPartitionsTimer.start();
         List<String> tseitinAssertPartitions = new ArrayList<String>();
+        int count = 0;
         for (SExpression assertPartition : assertPartitionList) {
+            onePartitionTimer.reset();
+            onePartitionTimer.start();
+            System.out.print("    Encoding partition " + ++count + "...");
             String smtStr = buildTseitinSMTDescription(declarationStr,
                     assertPartition.toString());
             String simpleSmtStr = z3.simplify(smtStr);
             tseitinAssertPartitions.add(simpleSmtStr);
-
+            onePartitionTimer.end();
+            System.out.println(" Done. (" + onePartitionTimer + ")");
         }
+        allPartitionsTimer.end();
+        System.out.println("  All done. (" + allPartitionsTimer + ")");
         String z3InputStr = buildSMTDescriptionFromTseitinPartitions(
                 declarationStr, tseitinAssertPartitions);
 
@@ -713,12 +723,14 @@ public class Suraq implements Runnable {
 
         // write output file
         try {
+            System.out
+                    .println(" Writing output to file " + options.getOutput());
             FileWriter fstream = new FileWriter(options.getOutput());
             fstream.write(outputStr);
             fstream.close();
         } catch (IOException exc) {
-            System.err.println("Error while writing to z3ProofFile: "
-                    + options.getZ3Proof());
+            System.err.println("Error while writing to output file: "
+                    + options.getOutput());
             exc.printStackTrace();
             noErrors = false;
         }
@@ -918,6 +930,7 @@ public class Suraq implements Runnable {
      * @return SMT description to proof
      * 
      */
+    @Deprecated
     private String buildProofSMTDescription(String declarationStr,
             List<String> simplifiedAssertPartitions) {
         String smtStr = "";
@@ -957,6 +970,7 @@ public class Suraq implements Runnable {
      * @return SMT description of simplify operation
      * 
      */
+    @Deprecated
     private String buildSimplifySMTDescription(String declarationStr,
             String assertPartition) {
         String smtStr = "";
@@ -993,11 +1007,11 @@ public class Suraq implements Runnable {
         String smtStr = "";
 
         smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
-        smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
-        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
-                .toString();
-        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
-                .toString();
+        // smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
+        // smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+        // .toString();
+        // smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
+        // .toString();
         smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
 
         smtStr += declarationStr;

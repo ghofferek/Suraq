@@ -940,11 +940,11 @@ public abstract class SMTLibParser extends Parser {
     }
 
     /**
-     * Checks if the given expression is a tseitin variable.
+     * Checks if the given expression is a Tseitin variable.
      * 
      * @param expression
      *            the expression to check
-     * @return <code>true</code> if the given expression is a tseitin variable,
+     * @return <code>true</code> if the given expression is a Tseitin variable,
      *         <code>false</code> otherwise.
      */
     protected boolean isTseitinVariable(SExpression expression) {
@@ -959,6 +959,7 @@ public abstract class SMTLibParser extends Parser {
             if (boolVariables.contains(variable)
                     || controlVariables.contains(variable))
                 assert (false);
+            System.out.println("INFO: Identified Tseitin variable: " + token);
             return true;
         }
 

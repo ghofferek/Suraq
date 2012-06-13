@@ -70,13 +70,29 @@ public class TseitinParser extends SMTLibParser {
     @Override
     public void parse() throws ParseError {
 
-        /*
-         * (goals (goal (or d k!0) (or a k!0) (or (not d) (not a) (not k!0)) (or
-         * a k!1) (or (not c) k!1) (or (not a) c (not k!1)) (or k!1 k!2) (or b
-         * k!2) (or (not e) k!2) (or a k!2) (or c k!2) (or k!0 k!2) (or (not
-         * k!1) (not b) e (not a) (not c) (not k!0) (not k!2)) (or (not k!2) a
-         * b) :precision precise :depth 3) ) sat
-         */
+        // Example:
+        //
+        // (goals
+        // (goal
+        // (or d k!0)
+        // (or a k!0)
+        // (or (not d) (not a) (not k!0))
+        // (or a k!1)
+        // (or (not c) k!1)
+        // (or (not a) c (not k!1))
+        // (or k!1 k!2)
+        // (or b k!2)
+        // (or (not e) k!2)
+        // (or a k!2)
+        // (or c k!2)
+        // (or k!0 k!2)
+        // (or (not k!1) (not b) e (not a) (not c) (not k!0) (not k!2))
+        // (or (not k!2) a b)
+        // :precision precise :depth 3
+        // )
+        // )
+        // sat
+
         assert (rootExpr.getChildren().size() == 1);
 
         SExpression goalExpr = rootExpr.getChildren().get(0).getChildren()
@@ -150,20 +166,16 @@ public class TseitinParser extends SMTLibParser {
                             currTseitinVar = (PropositionalVariable) var;
                             currTseitinConjuncts = new ArrayList<Formula>();
                         } else {
-                            assert (currTseitinVar
-                                    .equals((PropositionalVariable) var));
+                            assert (currTseitinVar.equals(var));
                         }
                         // // add clause to formula of tseitin var
                         Formula conjunct = ((OrFormula) clause).getDisjuncts()
                                 .get(0);
                         if (conjunct instanceof PropositionalVariable)
-                            if (this.tseitinVariables
-                                    .contains((PropositionalVariable) conjunct)) {
-                                assert (tseitinEncoding
-                                        .containsKey((PropositionalVariable) conjunct));
+                            if (this.tseitinVariables.contains(conjunct)) {
+                                assert (tseitinEncoding.containsKey(conjunct));
                                 conjunct = new NotFormula(
-                                        tseitinEncoding
-                                                .get((PropositionalVariable) conjunct));
+                                        tseitinEncoding.get(conjunct));
                             }
                         currTseitinConjuncts.add(conjunct);
                     } else if (start == true)
@@ -179,8 +191,7 @@ public class TseitinParser extends SMTLibParser {
                         Formula var = ((NotFormula) notFormula)
                                 .getNegatedFormula();
                         assert (var instanceof PropositionalVariable);
-                        assert (currTseitinVar
-                                .equals((PropositionalVariable) var));
+                        assert (currTseitinVar.equals(var));
                         assert (!tseitinEncoding.containsKey(currTseitinVar));
                         Formula tseitinFormula = new AndFormula(
                                 currTseitinConjuncts);
