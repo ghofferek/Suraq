@@ -17,6 +17,7 @@ import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -132,7 +133,9 @@ public class TseitinParser extends SMTLibParser {
         assert (rootFormula instanceof AndFormula);
         List<Formula> clauses = ((AndFormula) rootFormula).getConjuncts();
 
-        boolean start = true;
+        boolean start = false;
+        PropositionalVariable currTseitinVar = null;
+        ArrayList<Formula> currTseitinConjuncts = new ArrayList<Formula>();
 
         for (Formula clause : clauses) {
             // if clause has this form: (or d k!0), than it is part of formula
@@ -140,17 +143,73 @@ public class TseitinParser extends SMTLibParser {
 
             if (clause instanceof OrFormula) {
                 if (((OrFormula) clause).getDisjuncts().size() == 2) {
-                    Formula literal2 = ((OrFormula) clause).getDisjuncts().get(
-                            1);
-                    if (this.tseitinVariables.contains(literal2))
-                        if (start = false) { // start new formula of a tseitin
-                                             // variable
+                    Formula var = ((OrFormula) clause).getDisjuncts().get(1);
+                    if (this.tseitinVariables.contains(var)) {
+                        if (start == false) { // start formula of tseitin var
                             start = true;
-                        } else { // add clause to formula of a tseitin variable
-
+                            currTseitinVar = (PropositionalVariable) var;
+                            currTseitinConjuncts = new ArrayList<Formula>();
+                        } else {
+                            assert (currTseitinVar
+                                    .equals((PropositionalVariable) var));
                         }
+                        // // add clause to formula of tseitin var
+                        Formula conjunct = ((OrFormula) clause).getDisjuncts()
+                                .get(0);
+                        if (conjunct instanceof PropositionalVariable)
+                            if (this.tseitinVariables
+                                    .contains((PropositionalVariable) conjunct)) {
+                                assert (tseitinEncoding
+                                        .containsKey((PropositionalVariable) conjunct));
+                                conjunct = new NotFormula(
+                                        tseitinEncoding
+                                                .get((PropositionalVariable) conjunct));
+                            }
+                        currTseitinConjuncts.add(conjunct);
+                    } else if (start == true)
+                        assert (false);
 
-                } else {// Or Formula has more clausels
+                } else {// Or Formula has more clauses
+
+                    if (start == true) // end of formula for tseitin var
+                    {
+                        int size = ((OrFormula) clause).getDisjuncts().size();
+                        Formula notFormula = ((OrFormula) clause)
+                                .getDisjuncts().get(size - 1);
+                        Formula var = ((NotFormula) notFormula)
+                                .getNegatedFormula();
+                        assert (var instanceof PropositionalVariable);
+                        assert (currTseitinVar
+                                .equals((PropositionalVariable) var));
+                        assert (!tseitinEncoding.containsKey(currTseitinVar));
+                        Formula tseitinFormula = new AndFormula(
+                                currTseitinConjuncts);
+
+                        Set<Integer> partitions = tseitinFormula
+                                .getPartitionsFromSymbols();
+
+                        int partition;
+                        if (partitions.size() == 2) {
+                            assert (partitions.remove(-1));
+                            partition = partitions.iterator().next();
+                        } else {
+                            assert (partitions.size() == 1);
+                            partition = partitions.iterator().next();
+                        }
+                        assert (partition != 0);
+
+                        tseitinEncoding.put(new PropositionalVariable(
+                                currTseitinVar.getVarName(), partition),
+                                tseitinFormula);
+
+                        start = false;
+                    } else { // last element is not allowed to be a tseitin var
+                        int size = ((OrFormula) clause).getDisjuncts().size();
+                        Formula propVar = ((OrFormula) clause).getDisjuncts()
+                                .get(size - 1);
+                        if (propVar instanceof PropositionalVariable)
+                            assert (!this.tseitinVariables.contains(propVar));
+                    }
 
                 }
             }

@@ -7,13 +7,13 @@ package at.iaik.suraq.test;
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
  * 
  */
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import junit.framework.Assert;
 
 import org.junit.Test;
 
@@ -59,7 +59,7 @@ public class TseitinTest {
         PropositionalVariable a = new PropositionalVariable("a", -1);
         PropositionalVariable b = new PropositionalVariable("b", -1);
         PropositionalVariable c = new PropositionalVariable("c", -1);
-        PropositionalVariable d = new PropositionalVariable("d", -1);
+        PropositionalVariable d = new PropositionalVariable("d", 2);
         PropositionalVariable e = new PropositionalVariable("e", -1);
 
         Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
@@ -91,19 +91,22 @@ public class TseitinTest {
         }
 
         Formula parsedFormula = tseitinParser.getRootFormula();
+        Map<PropositionalVariable, Formula> tseitinEncoding = tseitinParser
+                .getTseitinEncoding();
 
+        // create expected Output
         Map<PropositionalVariable, Formula> expectedOutput = new HashMap<PropositionalVariable, Formula>();
         ArrayList<Formula> conjuncts = new ArrayList<Formula>();
         conjuncts.add(d);
         conjuncts.add(a);
         Formula notk0 = new AndFormula(conjuncts);
-        expectedOutput.put(new PropositionalVariable("notk0", -1), notk0);
+        expectedOutput.put(new PropositionalVariable("k!0", 2), notk0);
 
         conjuncts = new ArrayList<Formula>();
         conjuncts.add(a);
         conjuncts.add(new NotFormula(c));
         Formula notk1 = new AndFormula(conjuncts);
-        expectedOutput.put(new PropositionalVariable("notk1", -1), notk1);
+        expectedOutput.put(new PropositionalVariable("k!1", -1), notk1);
 
         conjuncts = new ArrayList<Formula>();
         conjuncts.add(new NotFormula(notk1.deepFormulaCopy()));
@@ -113,21 +116,17 @@ public class TseitinTest {
         conjuncts.add(c);
         conjuncts.add(new NotFormula(notk0.deepFormulaCopy()));
         Formula notk2 = new AndFormula(conjuncts);
-        expectedOutput.put(new PropositionalVariable("notk2", -1), notk2);
+        expectedOutput.put(new PropositionalVariable("k!2", 2), notk2);
 
-        // Map<PropositionalVariable, Formula> result = tseitinEncoding();
+        for (Map.Entry<PropositionalVariable, Formula> entry : expectedOutput
+                .entrySet()) {
+            PropositionalVariable tseitinVar = entry.getKey();
+            Formula expectedFormula = entry.getValue();
+            Formula actualFormula = tseitinEncoding.get(tseitinVar);
+            Assert.assertEquals(expectedFormula.toString(),
+                    actualFormula.toString());
+        }
 
-        // assert (result.size() == expectedOutput.size());
-
-        // für jeden Map Eintrag prüfen, ob äquivalent
-
-        // Assert.assertEquals(SExpression.fromString(expectedOutput),
-        // SExpression.fromString(output));
-    }
-
-    @Test
-    public void test() {
-        fail("Not yet implemented");
     }
 
 }

@@ -583,26 +583,20 @@ public class Suraq implements Runnable {
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, null, null, filename);// TODO:
-                                                                       // Add
-                                                                       // Tseitin
-                                                                       // Variables
+                        assertPartitionFormulas, tseitinEncoding, null,
+                        filename);
             } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
                 filename = saveCacheSerial.getPath();
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, null, rootProof, filename);// TODO:
-                                                                            // Add
-                                                                            // Tseitin
-                                                                            // Variables
+                        assertPartitionFormulas, tseitinEncoding, rootProof,
+                        filename);
             } else {
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, null, null, null); // TODO: Add
-                                                                    // Tseitin
-                                                                    // Variables
+                        assertPartitionFormulas, tseitinEncoding, null, null);
             }
 
         } else { // use cached files
@@ -635,6 +629,7 @@ public class Suraq implements Runnable {
                     mainFormula = intermediateVars.getMainFormula();
                     assertPartitionFormulas = intermediateVars
                             .getAssertPartitionFormulas();
+                    tseitinEncoding = intermediateVars.getTseitinEncoding();
 
                     rootProof = parseProof(proof,
                             intermediateVars.getPropsitionalVars(),
@@ -655,6 +650,7 @@ public class Suraq implements Runnable {
                     mainFormula = intermediateVars.getMainFormula();
                     assertPartitionFormulas = intermediateVars
                             .getAssertPartitionFormulas();
+                    tseitinEncoding = intermediateVars.getTseitinEncoding();
 
                     loadTimer.end();
                     System.out.println("Serialized cache loaded in: "
