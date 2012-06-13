@@ -27,6 +27,7 @@ import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
@@ -450,11 +451,14 @@ public class Util {
      * @return true, iff formula is an literal or a unit clause
      */
     public static boolean isLiteral(Formula formula) {
+
+        if (formula instanceof FormulaTerm)
+            formula = ((FormulaTerm) formula).getFormula();
+
         if (formula instanceof OrFormula) {
             if (((OrFormula) formula).getDisjuncts().size() != 1)
                 return false;
             formula = ((OrFormula) formula).getDisjuncts().get(0);
-
         }
         if (formula instanceof NotFormula) {
             Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
@@ -475,6 +479,10 @@ public class Util {
      * 
      */
     public static boolean isAtom(Formula formula) {
+
+        if (formula instanceof FormulaTerm)
+            formula = ((FormulaTerm) formula).getFormula();
+
         if (formula instanceof EqualityFormula)
             return true;
         if (formula instanceof PropositionalVariable)

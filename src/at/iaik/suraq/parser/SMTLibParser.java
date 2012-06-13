@@ -955,11 +955,12 @@ public abstract class SMTLibParser extends Parser {
         Token token = (Token) expression;
         PropositionalVariable variable = new PropositionalVariable(token);
 
-        if (expression.toString().contains("!")) {
+        if (expression.toString().startsWith("k!")) {
             if (boolVariables.contains(variable)
                     || controlVariables.contains(variable))
                 assert (false);
-            System.out.println("INFO: Identified Tseitin variable: " + token);
+            // System.out.println("INFO: Identified Tseitin variable: " +
+            // token);
             return true;
         }
 

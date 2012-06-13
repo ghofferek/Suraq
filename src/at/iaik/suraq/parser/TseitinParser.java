@@ -17,13 +17,10 @@ import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
-import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
-import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
-import at.iaik.suraq.util.Util;
 
 /**
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
@@ -142,22 +139,25 @@ public class TseitinParser extends SMTLibParser {
         assert (expr.getChildren().get(0) instanceof Token);
         assert (expr.getChildren().get(0).equals(SExpressionConstants.LET));
 
-        Map<Token, Term> letDefinitions = new HashMap<Token, Term>();
+        Map<Token, SExpression> letDefinitions = new HashMap<Token, SExpression>();
 
         for (SExpression defineExpr : expr.getChildren().get(1).getChildren()) {
             assert (defineExpr.size() == 2);
             assert (defineExpr.getChildren().get(0) instanceof Token);
             Token key = (Token) defineExpr.getChildren().get(0);
-            FormulaTerm value = new FormulaTerm(parseFormulaBody(defineExpr
-                    .getChildren().get(1)));
-            assert (Util.isLiteral(value));
+            SExpression value = defineExpr.getChildren().get(1);
+
             letDefinitions.put(key, value);
         }
 
-        Formula formula = parseFormulaBody(expr.getChildren().get(2));
-        formula = formula.substituteFormula(letDefinitions);
+        String formulaString = expr.getChildren().get(2).toString();
 
-        return formula;
+        for (Token token : letDefinitions.keySet())
+            formulaString = formulaString.replaceAll(token.toString(),
+                    letDefinitions.get(token).toString());
+
+        return parseFormulaBody(SExpression.fromString(formulaString));
+
     }
 
     /**
@@ -217,13 +217,15 @@ public class TseitinParser extends SMTLibParser {
                     } else if (start == true)
                         assert (false);
 
-                } else {// Or Formula has more clauses
+                } else {// Or Formula has more literals
 
                     if (start == true) // end of formula for tseitin var
                     {
                         int size = ((OrFormula) clause).getDisjuncts().size();
                         Formula notFormula = ((OrFormula) clause)
                                 .getDisjuncts().get(size - 1);
+                        if (!(notFormula instanceof NotFormula))
+                            assert (false);
                         Formula var = ((NotFormula) notFormula)
                                 .getNegatedFormula();
                         assert (var instanceof PropositionalVariable);
@@ -248,16 +250,10 @@ public class TseitinParser extends SMTLibParser {
                         tseitinEncoding.put(new PropositionalVariable(
                                 currTseitinVar.getVarName(), partition),
                                 tseitinFormula);
-
+                        System.out.println("INFO: Decoded Tseitin variable "
+                                + currTseitinVar.getVarName());
                         start = false;
-                    } else { // last element is not allowed to be a tseitin var
-                        int size = ((OrFormula) clause).getDisjuncts().size();
-                        Formula propVar = ((OrFormula) clause).getDisjuncts()
-                                .get(size - 1);
-                        if (propVar instanceof PropositionalVariable)
-                            assert (!this.tseitinVariables.contains(propVar));
                     }
-
                 }
             }
 
