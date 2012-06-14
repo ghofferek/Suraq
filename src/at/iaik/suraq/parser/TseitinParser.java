@@ -7,7 +7,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -188,10 +190,6 @@ public class TseitinParser extends SMTLibParser {
         assert (rootFormula instanceof AndFormula);
         List<Formula> clauses = ((AndFormula) rootFormula).getConjuncts();
 
-        boolean start = false;
-        PropositionalVariable currTseitinVar = null;
-        ArrayList<Formula> currTseitinConjuncts = new ArrayList<Formula>();
-
         try {
             FileWriter fstream = new FileWriter("clauses.smt2");
             BufferedWriter buffer = new BufferedWriter(fstream);
@@ -208,76 +206,442 @@ public class TseitinParser extends SMTLibParser {
             exc.printStackTrace();
         }
 
-        for (Formula clause : clauses) {
-            // if clause has this form: (or d k!0), than it is part of formula
-            // of a tseitin variable
+        int currTseitinIndex = 0;
+        List<Formula> currClauses = new ArrayList<Formula>();
+        boolean finishCurrTseitinDef = false;
+        TseitinVariableState tseitinState = null;
 
+        for (int i = 0; i < clauses.size(); i++) {
+            Formula clause = clauses.get(i);
             if (clause instanceof OrFormula) {
-                if (((OrFormula) clause).getDisjuncts().size() == 2) {
-                    Formula var = ((OrFormula) clause).getDisjuncts().get(1);
-                    if (this.tseitinVariables.contains(var)) {
-                        if (start == false) { // start formula of tseitin var
-                            start = true;
-                            currTseitinVar = (PropositionalVariable) var;
-                            currTseitinConjuncts = new ArrayList<Formula>();
-                        } else {
-                            assert (currTseitinVar.equals(var));
-                        }
-                        // // add clause to formula of tseitin var
-                        Formula conjunct = ((OrFormula) clause).getDisjuncts()
-                                .get(0);
-                        if (conjunct instanceof PropositionalVariable)
-                            if (this.tseitinVariables.contains(conjunct)) {
-                                assert (tseitinEncoding.containsKey(conjunct));
-                                conjunct = new NotFormula(
-                                        tseitinEncoding.get(conjunct));
-                            }
-                        currTseitinConjuncts.add(conjunct);
-                    } else if (start == true)
-                        assert (false);
+                List<Integer> tseitinIndices = getTseitinVariablesFromFormula(clause);
+                int numTseitinVars = tseitinIndices.size();
+                if (numTseitinVars > 0) {
+                    // check if current tseitin variable is in clause
+                    if (tseitinIndices.contains(currTseitinIndex)) {
+                        // check if clause doesn`t contain any larger idx
+                        Collections.sort(tseitinIndices);
+                        if (tseitinIndices.get(numTseitinVars - 1) <= currTseitinIndex) {
+                            // if clause is first clause of tseitin var def
+                            if (currClauses.size() == 0) {
+                                tseitinState = setTseitinVariableState(clause,
+                                        this.tseitinVariables
+                                                .get(currTseitinIndex));
+                                currClauses.add(clause);
+                            } else if (checkAndUpdateTseitinVariableState(
+                                    clause, tseitinState,
+                                    this.tseitinVariables.get(currTseitinIndex))) {
+                                currClauses.add(clause);
+                            } else
+                                finishCurrTseitinDef = true;
+                        } else
+                            finishCurrTseitinDef = true;
+                    } else
+                        finishCurrTseitinDef = true;
+                } else
+                    finishCurrTseitinDef = true;
+            } else
+                finishCurrTseitinDef = true;
 
-                } else {// Or Formula has more literals
+            if (finishCurrTseitinDef == true) {
+                finishCurrTseitinDef = false;
+                if (currClauses.size() > 0) {
+                    PropositionalVariable currTseitinVar = this.tseitinVariables
+                            .get(currTseitinIndex);
+                    Formula posFormula = buildPositiveFormula(currClauses,
+                            currTseitinVar);
+                    Formula negFormula = buildNegativeFormula(currClauses,
+                            currTseitinVar);
+                    assert (posFormula != null);
+                    assert (negFormula != null);
 
-                    if (start == true) // end of formula for tseitin var
-                    {
-                        int size = ((OrFormula) clause).getDisjuncts().size();
-                        Formula notFormula = ((OrFormula) clause)
-                                .getDisjuncts().get(size - 1);
-                        if (!(notFormula instanceof NotFormula))
-                            assert (false);
-                        Formula var = ((NotFormula) notFormula)
-                                .getNegatedFormula();
-                        assert (var instanceof PropositionalVariable);
-                        assert (currTseitinVar.equals(var));
-                        assert (!tseitinEncoding.containsKey(currTseitinVar));
-                        Formula tseitinFormula = new AndFormula(
-                                currTseitinConjuncts);
+                    checkEquivalenceOfFormulas(posFormula, negFormula);
 
-                        Set<Integer> partitions = tseitinFormula
-                                .getPartitionsFromSymbols();
+                    // calc partitions of tseitin variable
+                    Set<Integer> partitions = posFormula
+                            .getPartitionsFromSymbols();
 
-                        int partition;
-                        if (partitions.size() == 2) {
-                            assert (partitions.remove(-1));
-                            partition = partitions.iterator().next();
-                        } else {
-                            assert (partitions.size() == 1);
-                            partition = partitions.iterator().next();
-                        }
-                        assert (partition != 0);
-
-                        tseitinEncoding.put(new PropositionalVariable(
-                                currTseitinVar.getVarName(), partition),
-                                tseitinFormula);
-                        System.out.println("INFO: Decoded Tseitin variable "
-                                + currTseitinVar.getVarName());
-                        start = false;
+                    int partition;
+                    if (partitions.size() == 2) {
+                        assert (partitions.remove(-1));
+                        partition = partitions.iterator().next();
+                    } else {
+                        assert (partitions.size() == 1);
+                        partition = partitions.iterator().next();
                     }
+                    assert (partition != 0);
+
+                    tseitinEncoding
+                            .put(new PropositionalVariable(currTseitinVar
+                                    .getVarName(), partition), posFormula);
+
+                    System.out.println("INFO: Encoded Tseitin variable "
+                            + currTseitinVar.getVarName());
+
+                    // Compute something of clauses
+                    currTseitinIndex++;
+                    currClauses = new ArrayList<Formula>();
+                    i--; // re-check clause
                 }
             }
-
         }
 
         return tseitinEncoding;
+    }
+
+    /**
+     * Checks if the given formulas imply each other.
+     * 
+     * @param formula1
+     *            the first formula
+     * 
+     * @param formula2
+     *            the second formula
+     * 
+     * @return returns true, if the two variables imply each other.
+     */
+    private boolean checkEquivalenceOfFormulas(Formula formula1,
+            Formula formula2) {
+        return true;
+    }
+
+    /**
+     * Builds the formula, which is implied by the current tseitin variable.
+     * 
+     * @param clauses
+     *            clauses from which the formula is constructed
+     * 
+     * @param currTseitinVar
+     *            current tseitin variable.
+     * 
+     * @return formula, which is implied by the current tseitin variable.
+     */
+    private Formula buildNegativeFormula(List<Formula> clauses,
+            PropositionalVariable currTseitinVar) {
+
+        List<Formula> conjuncts = new ArrayList<Formula>();
+
+        Boolean first = null;
+        Boolean neg = null;
+
+        for (Formula clause : clauses) {
+            boolean processed = false;
+            assert (clause instanceof OrFormula);
+            List<Formula> literals = ((OrFormula) clause).getDisjuncts();
+            int numLiterals = literals.size();
+            Formula firstLiteral = literals.get(0);
+            Formula lastLiteral = literals.get(numLiterals - 1);
+
+            if (firstLiteral instanceof PropositionalVariable) {
+                if (firstLiteral.equals(currTseitinVar)) {
+                    first = true;
+                    neg = false;
+                    processed = true;
+                }
+            }
+            if (firstLiteral instanceof NotFormula && processed == false) {
+                firstLiteral = ((NotFormula) firstLiteral).getNegatedFormula();
+                if (firstLiteral instanceof PropositionalVariable) {
+                    if (firstLiteral.equals(currTseitinVar)) {
+                        first = true;
+                        neg = true;
+                        processed = true;
+                    }
+                }
+            }
+            if (lastLiteral instanceof PropositionalVariable
+                    && processed == false) {
+                if (lastLiteral.equals(currTseitinVar)) {
+                    first = false;
+                    neg = false;
+                    processed = true;
+                }
+            }
+            if (lastLiteral instanceof NotFormula && processed == false) {
+                lastLiteral = ((NotFormula) lastLiteral).getNegatedFormula();
+                if (lastLiteral instanceof PropositionalVariable) {
+                    if (lastLiteral.equals(currTseitinVar)) {
+                        first = false;
+                        neg = true;
+                        processed = true;
+                    }
+                }
+            }
+            if (!processed)
+                throw new RuntimeException(
+                        "In the definition of a tseitin variable, the variable should occurr in the beginning or in the end of the clause");
+
+            if (!neg)
+                continue;
+
+            if (first)
+                literals.remove(0);
+
+            else
+                literals.remove(numLiterals - 1);
+
+            conjuncts.add(new OrFormula(literals));
+
+        }
+        return new AndFormula(conjuncts);
+    }
+
+    /**
+     * Builds the formula, which implies current tseitin variable.
+     * 
+     * @param clauses
+     *            clauses from which the formula is constructed
+     * 
+     * @param currTseitinVar
+     *            current tseitin variable.
+     * 
+     * @return formula, which implies current tseitin variable
+     */
+    private Formula buildPositiveFormula(List<Formula> clauses,
+            PropositionalVariable currTseitinVar) {
+
+        List<Formula> disjuncts = new ArrayList<Formula>();
+
+        Boolean first = null;
+        Boolean neg = null;
+
+        for (Formula clause : clauses) {
+            boolean processed = false;
+
+            assert (clause instanceof OrFormula);
+            List<Formula> literals = ((OrFormula) clause).getDisjuncts();
+            int numLiterals = literals.size();
+            Formula firstLiteral = literals.get(0);
+            Formula lastLiteral = literals.get(numLiterals - 1);
+
+            if (firstLiteral instanceof PropositionalVariable) {
+                if (firstLiteral.equals(currTseitinVar)) {
+                    first = true;
+                    neg = false;
+                    processed = true;
+                }
+            }
+            if (firstLiteral instanceof NotFormula && processed == false) {
+                firstLiteral = ((NotFormula) firstLiteral).getNegatedFormula();
+                if (firstLiteral instanceof PropositionalVariable) {
+                    if (firstLiteral.equals(currTseitinVar)) {
+                        first = true;
+                        neg = true;
+                        processed = true;
+                    }
+                }
+            }
+            if (lastLiteral instanceof PropositionalVariable
+                    && processed == false) {
+                if (lastLiteral.equals(currTseitinVar)) {
+                    first = false;
+                    neg = false;
+                    processed = true;
+                }
+            }
+            if (lastLiteral instanceof NotFormula && processed == false) {
+                lastLiteral = ((NotFormula) lastLiteral).getNegatedFormula();
+                if (lastLiteral instanceof PropositionalVariable) {
+                    if (lastLiteral.equals(currTseitinVar)) {
+                        first = false;
+                        neg = true;
+                        processed = true;
+                    }
+                }
+            }
+            if (!processed)
+                throw new RuntimeException(
+                        "In the definition of a tseitin variable, the variable should occurr in the beginning or in the end of the clause");
+
+            if (neg)
+                continue;
+
+            if (first)
+                literals.remove(0);
+
+            else
+                literals.remove(numLiterals - 1);
+
+            disjuncts.add(new NotFormula(new OrFormula(literals)));
+
+        }
+        return new OrFormula(disjuncts);
+    }
+
+    /**
+     * Checks if the occurrence of the tseitin variable in the clause is allowed
+     * according the attributes in the <code>TseitinVariableState</code> and
+     * updates the attributes.
+     * 
+     * @param clause
+     *            clause to analyze
+     * @param tseitinState
+     *            attributes of the tseitin variables
+     * @param currTseitinVar
+     *            current tseitin variable.
+     * 
+     * @return <code>TseitinVariableState</code> with attributes set
+     */
+    private boolean checkAndUpdateTseitinVariableState(Formula clause,
+            TseitinVariableState tseitinState,
+            PropositionalVariable currTseitinVar) {
+
+        assert (clause instanceof OrFormula);
+        List<Formula> literals = ((OrFormula) clause).getDisjuncts();
+        int numLiterals = literals.size();
+        Formula firstLiteral = literals.get(0);
+        Formula lastLiteral = literals.get(numLiterals - 1);
+
+        if (firstLiteral instanceof PropositionalVariable) {
+            if (firstLiteral.equals(currTseitinVar)) {
+                if (!tseitinState.isFrontOccurrence())
+                    return false;
+                if (!tseitinState.isSign())
+                    if (!tseitinState.isSignedChange()) {
+                        tseitinState.setSignedChange(true);
+                        tseitinState.setSign(true);
+                    } else
+                        return false;
+            }
+        }
+        if (firstLiteral instanceof NotFormula) {
+            firstLiteral = ((NotFormula) firstLiteral).getNegatedFormula();
+            if (firstLiteral instanceof PropositionalVariable) {
+                if (firstLiteral.equals(currTseitinVar)) {
+                    if (!tseitinState.isFrontOccurrence())
+                        return false;
+                    if (tseitinState.isSign())
+                        if (!tseitinState.isSignedChange()) {
+                            tseitinState.setSignedChange(true);
+                            tseitinState.setSign(false);
+                        } else
+                            return false;
+                }
+            }
+        }
+        if (lastLiteral instanceof PropositionalVariable) {
+            if (lastLiteral.equals(currTseitinVar)) {
+                if (tseitinState.isFrontOccurrence())
+                    return false;
+                if (!tseitinState.isSign())
+                    if (!tseitinState.isSignedChange()) {
+                        tseitinState.setSignedChange(true);
+                        tseitinState.setSign(true);
+                    } else
+                        return false;
+            }
+        }
+        if (lastLiteral instanceof NotFormula) {
+            lastLiteral = ((NotFormula) lastLiteral).getNegatedFormula();
+            if (lastLiteral instanceof PropositionalVariable) {
+                if (lastLiteral.equals(currTseitinVar)) {
+                    if (tseitinState.isFrontOccurrence())
+                        return false;
+                    if (tseitinState.isSign())
+                        if (!tseitinState.isSignedChange()) {
+                            tseitinState.setSignedChange(true);
+                            tseitinState.setSign(false);
+                        } else
+                            return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Creates a new <code>TseitinVariableState</code> and sets attributes
+     * according to clause.
+     * 
+     * @param clause
+     *            clause to analyze
+     * 
+     * @param currTseitinVar
+     *            current tseitin variable.
+     * 
+     * @return <code>TseitinVariableState</code> with attributes set
+     */
+    private TseitinVariableState setTseitinVariableState(Formula clause,
+            PropositionalVariable currTseitinVar) {
+
+        Boolean frontOccurrence = null;
+        boolean signChange = false;
+        Boolean sign = null;
+        boolean processed = false;
+
+        assert (clause instanceof OrFormula);
+        List<Formula> literals = ((OrFormula) clause).getDisjuncts();
+        int numLiterals = literals.size();
+        Formula firstLiteral = literals.get(0);
+        Formula lastLiteral = literals.get(numLiterals - 1);
+
+        if (firstLiteral instanceof PropositionalVariable) {
+            if (firstLiteral.equals(currTseitinVar)) {
+                frontOccurrence = true;
+                sign = true;
+                processed = true;
+            }
+        }
+        if (firstLiteral instanceof NotFormula && processed == false) {
+            firstLiteral = ((NotFormula) firstLiteral).getNegatedFormula();
+            if (firstLiteral instanceof PropositionalVariable) {
+                if (firstLiteral.equals(currTseitinVar)) {
+                    frontOccurrence = true;
+                    sign = false;
+                    processed = true;
+                }
+            }
+        }
+        if (lastLiteral instanceof PropositionalVariable && processed == false) {
+            if (lastLiteral.equals(currTseitinVar)) {
+                assert (frontOccurrence == null);
+                frontOccurrence = false;
+                sign = true;
+                processed = true;
+            }
+        }
+        if (lastLiteral instanceof NotFormula && processed == false) {
+            lastLiteral = ((NotFormula) lastLiteral).getNegatedFormula();
+            if (lastLiteral instanceof PropositionalVariable) {
+                if (lastLiteral.equals(currTseitinVar)) {
+                    assert (frontOccurrence == null);
+                    frontOccurrence = false;
+                    sign = false;
+                    processed = true;
+                }
+            }
+        }
+        if (!processed)
+            throw new RuntimeException(
+                    "In the definition of a tseitin variable, the variable should occurr in the beginning or in the end of the clause");
+
+        return new TseitinVariableState(frontOccurrence, signChange, sign);
+    }
+
+    /**
+     * Returns the indices of the found tseitin variables contained by the
+     * formula.
+     * 
+     * @param formula
+     *            formula, to extract variable indices from
+     * 
+     * @return indices of found tseitin variables
+     */
+    private List<Integer> getTseitinVariablesFromFormula(Formula formula) {
+
+        List<Integer> tseitinIndices = new ArrayList<Integer>();
+
+        Set<PropositionalVariable> propVars = formula
+                .getPropositionalVariables();
+
+        Iterator<PropositionalVariable> iterator = propVars.iterator();
+        while (iterator.hasNext()) {
+            PropositionalVariable propVar = iterator.next();
+            int idx = tseitinVariables.indexOf(propVar);
+            if (idx >= 0)
+                tseitinIndices.add(idx);
+        }
+        return tseitinIndices;
     }
 }

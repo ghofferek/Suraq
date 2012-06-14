@@ -60,7 +60,7 @@ public abstract class SMTLibParser extends Parser {
 
     protected final Map<Token, Term> terms = new HashMap<Token, Term>();
 
-    protected final Set<PropositionalVariable> tseitinVariables = new HashSet<PropositionalVariable>();
+    protected final List<PropositionalVariable> tseitinVariables = new ArrayList<PropositionalVariable>();
 
     private static final int GLOBAL_PARTITION = -1;
 
@@ -179,7 +179,9 @@ public abstract class SMTLibParser extends Parser {
         if (isTseitinVariable(expression)) {
             PropositionalVariable var = new PropositionalVariable(
                     (Token) expression);
-            tseitinVariables.add(var);
+
+            if (!tseitinVariables.contains(var))
+                tseitinVariables.add(var);
             return var;
         }
 
