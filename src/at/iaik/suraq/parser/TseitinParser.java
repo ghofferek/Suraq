@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -26,6 +28,8 @@ import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.Timer;
 
 /**
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
@@ -38,6 +42,21 @@ public class TseitinParser extends SMTLibParser {
      * The formula that results from parsing.
      */
     private Formula rootFormula = null;
+
+    /**
+     * A set containing the already encountered domain variables.
+     */
+    private Set<DomainVariable> currDomainVars = null;
+
+    /**
+     * A set containing the already encountered propositional variables.
+     */
+    private Set<PropositionalVariable> currPropVars = null;
+
+    /**
+     * A set containing the already encountered uninterpreted functions.
+     */
+    private Set<UninterpretedFunction> currUIFs = null;
 
     /**
      * 
@@ -74,29 +93,6 @@ public class TseitinParser extends SMTLibParser {
      */
     @Override
     public void parse() throws ParseError {
-
-        // Example:
-        //
-        // (goals
-        // (goal
-        // (or d k!0)
-        // (or a k!0)
-        // (or (not d) (not a) (not k!0))
-        // (or a k!1)
-        // (or (not c) k!1)
-        // (or (not a) c (not k!1))
-        // (or k!1 k!2)
-        // (or b k!2)
-        // (or (not e) k!2)
-        // (or a k!2)
-        // (or c k!2)
-        // (or k!0 k!2)
-        // (or (not k!1) (not b) e (not a) (not c) (not k!0) (not k!2))
-        // (or (not k!2) a b)
-        // :precision precise :depth 3
-        // )
-        // )
-        // sat
 
         assert (rootExpr.getChildren().size() == 1);
 
@@ -224,16 +220,26 @@ public class TseitinParser extends SMTLibParser {
                         if (tseitinIndices.get(numTseitinVars - 1) <= currTseitinIndex) {
                             // if clause is first clause of tseitin var def
                             if (currClauses.size() == 0) {
+                                System.out
+                                        .println("INFO: Encoding Tseitin variable k!"
+                                                + currTseitinIndex);
+                                this.currDomainVars = new HashSet<DomainVariable>();
+                                this.currPropVars = new HashSet<PropositionalVariable>();
+                                this.currUIFs = new HashSet<UninterpretedFunction>();
+
                                 tseitinState = setTseitinVariableState(clause,
                                         this.tseitinVariables
                                                 .get(currTseitinIndex));
                                 currClauses.add(clause);
+                                addCurrentVariables(clause);
                             } else if (checkAndUpdateTseitinVariableState(
                                     clause, tseitinState,
                                     this.tseitinVariables.get(currTseitinIndex))) {
                                 currClauses.add(clause);
+                                addCurrentVariables(clause);
                             } else
                                 finishCurrTseitinDef = true;
+
                         } else
                             finishCurrTseitinDef = true;
                     } else
@@ -275,9 +281,6 @@ public class TseitinParser extends SMTLibParser {
                             .put(new PropositionalVariable(currTseitinVar
                                     .getVarName(), partition), posFormula);
 
-                    System.out.println("INFO: Encoded Tseitin variable "
-                            + currTseitinVar.getVarName());
-
                     // Compute something of clauses
                     currTseitinIndex++;
                     currClauses = new ArrayList<Formula>();
@@ -287,6 +290,21 @@ public class TseitinParser extends SMTLibParser {
         }
 
         return tseitinEncoding;
+    }
+
+    /**
+     * Adds all variables and uninterpreted functions contained in formula to
+     * <code>currDomianVars</code>, <code>currPropVars</code> and
+     * <code>curUIFs</code>.
+     * 
+     * @param formula
+     *            a single clause
+     * 
+     */
+    private void addCurrentVariables(Formula formula) {
+        this.currPropVars.addAll(formula.getPropositionalVariables());
+        this.currDomainVars.addAll(formula.getDomainVariables());
+        this.currUIFs.addAll(formula.getUninterpretedFunctions());
     }
 
     /**
@@ -300,9 +318,104 @@ public class TseitinParser extends SMTLibParser {
      * 
      * @return returns true, if the two variables imply each other.
      */
-    private boolean checkEquivalenceOfFormulas(Formula formula1,
-            Formula formula2) {
-        return true;
+    private void checkEquivalenceOfFormulas(Formula formula1, Formula formula2) {
+
+        System.out.println("start check equivalence of formulas.");
+        Timer checkEquivalenceTimer = new Timer();
+        checkEquivalenceTimer.start();
+
+        Set<DomainVariable> domainVars1 = formula1.getDomainVariables();
+        Set<PropositionalVariable> propVars1 = formula1
+                .getPropositionalVariables();
+        Set<UninterpretedFunction> uif1 = formula1.getUninterpretedFunctions();
+
+        Set<DomainVariable> domainVars2 = formula2.getDomainVariables();
+        Set<PropositionalVariable> propVars2 = formula2
+                .getPropositionalVariables();
+        Set<UninterpretedFunction> uif2 = formula2.getUninterpretedFunctions();
+
+        HashSet<DomainVariable> intersection = new HashSet<DomainVariable>(
+                domainVars2);
+        intersection.removeAll(domainVars1);
+
+        assert (domainVars1.equals(domainVars2));
+        assert (propVars1.equals(propVars2));
+        assert (uif1.equals(uif2));
+
+        checkFormulaImplication(formula1, formula2);
+        checkFormulaImplication(formula2, formula1);
+
+        checkEquivalenceTimer.end();
+        System.out.println("finished check equivalence of formulas in "
+                + checkEquivalenceTimer + ".\n");
+    }
+
+    /**
+     * Checks if the first formula implies the second formula.
+     * 
+     * @param formula1
+     *            the first formula
+     * 
+     * @param formula2
+     *            the second formula
+     * 
+     * @return returns true, the first formula implies the second formula.
+     */
+    private void checkFormulaImplication(Formula formula1, Formula formula2) {
+        List<Formula> conjuncts = new ArrayList<Formula>();
+        conjuncts.add(formula1);
+        conjuncts.add(new NotFormula(formula2));
+        Formula formulaToCheck = new AndFormula(conjuncts);
+
+        // Writes the declarations of all domain variables, propositional
+        // variables and uninterpreted functions
+        List<SExpression> outputExpressions = new ArrayList<SExpression>();
+
+        outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
+        outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
+
+        for (PropositionalVariable var : formula1.getPropositionalVariables())
+            outputExpressions
+                    .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
+                            SExpressionConstants.BOOL_TYPE, 0));
+
+        for (DomainVariable var : formula1.getDomainVariables())
+            outputExpressions.add(SExpression.makeDeclareFun(
+                    (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
+                    0));
+
+        for (UninterpretedFunction function : formula1
+                .getUninterpretedFunctions())
+            outputExpressions.add(SExpression.makeDeclareFun(
+                    function.getName(), function.getType(),
+                    function.getNumParams()));
+
+        outputExpressions.add(new SExpression(new Token("assert"), SExpression
+                .fromString(formulaToCheck.toString())));
+
+        outputExpressions.add(SExpressionConstants.CHECK_SAT);
+        outputExpressions.add(SExpressionConstants.EXIT);
+
+        String smtstr = "";
+        for (SExpression exp : outputExpressions)
+            smtstr += exp;
+
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                SuraqOptions.getZ3Path());
+        z3.solve(smtstr);
+
+        switch (z3.getState()) {
+        case SMTSolver.UNSAT:
+            break;
+        case SMTSolver.SAT:
+            throw (new RuntimeException(
+                    "Error while checking equivalence of formulas."
+                            + "Z3 tells us SAT."));
+        default:
+            throw (new RuntimeException(
+                    "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+        }
+
     }
 
     /**
@@ -471,7 +584,8 @@ public class TseitinParser extends SMTLibParser {
     /**
      * Checks if the occurrence of the tseitin variable in the clause is allowed
      * according the attributes in the <code>TseitinVariableState</code> and
-     * updates the attributes.
+     * updates the attributes. Checks if there are no new variables in the
+     * clause, after a sign change.
      * 
      * @param clause
      *            clause to analyze
@@ -545,6 +659,15 @@ public class TseitinParser extends SMTLibParser {
                             return false;
                 }
             }
+        }
+
+        if (tseitinState.isSignedChange()) {
+            if (!currDomainVars.containsAll(clause.getDomainVariables()))
+                return false;
+            if (!currPropVars.containsAll(clause.getPropositionalVariables()))
+                return false;
+            if (!currUIFs.containsAll(clause.getUninterpretedFunctions()))
+                return false;
         }
 
         return true;
