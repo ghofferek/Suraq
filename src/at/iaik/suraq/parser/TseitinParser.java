@@ -88,11 +88,14 @@ public class TseitinParser extends SMTLibParser {
     public void parse() throws ParseError {
 
         assert (rootExpr.getChildren().size() == 1);
-
-        SExpression goalExpr = rootExpr.getChildren().get(0).getChildren()
-                .get(1);
-
+        SExpression goalsExpr = rootExpr.getChildren().get(0);
+        assert (goalsExpr.size() == 2);
+        assert (goalsExpr.getChildren().get(0)
+                .equals(SExpressionConstants.GOALS));
+        SExpression goalExpr = goalsExpr.getChildren().get(1);
+        assert (goalExpr.size() >= 2);
         assert (goalExpr.getChildren().get(0).equals(SExpressionConstants.GOAL));
+
         goalExpr.getChildren().remove(0);
 
         int numChildren = goalExpr.size();
@@ -111,10 +114,7 @@ public class TseitinParser extends SMTLibParser {
 
         List<Formula> clauses = new ArrayList<Formula>();
         for (SExpression expr : goalExpr.getChildren()) {
-            if (isLet(expr))
-                clauses.add(handleLet(expr));
-            else
-                clauses.add(parseFormulaBody(expr));
+            clauses.add(parseFormulaBody(expr));
         }
 
         Map<Token, PropositionalVariable> renameMap = new HashMap<Token, PropositionalVariable>();
@@ -160,11 +160,13 @@ public class TseitinParser extends SMTLibParser {
         String formulaString = expr.getChildren().get(2).toString();
 
         for (Token token : letDefinitions.keySet())
-            formulaString = formulaString.replaceAll(token.toString(),
-                    letDefinitions.get(token).toString());
+            formulaString = formulaString.replaceAll(token.toString()
+                    + "[\\t\\n\\x0B\\f\\r(]", letDefinitions.get(token)
+                    .toString());
 
-        return parseFormulaBody(SExpression.fromString(formulaString));
+        SExpression tmpExpr = SExpression.fromString(formulaString);
 
+        return parseFormulaBody(tmpExpr);
     }
 
     /**
@@ -625,5 +627,17 @@ public class TseitinParser extends SMTLibParser {
                 tseitinIndices.add(idx);
         }
         return tseitinIndices;
+    }
+
+    /**
+     * @see at.iaik.suraq.parser.SMTLibParser#parseFormulaBody(at.iaik.suraq.sexp.SExpression)
+     */
+    @Override
+    protected Formula parseFormulaBody(SExpression expression)
+            throws ParseError {
+        if (isLet(expression))
+            return handleLet(expression);
+        else
+            return super.parseFormulaBody(expression);
     }
 }

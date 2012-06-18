@@ -53,6 +53,9 @@ public class SExpressionConstants {
     public static final SExpression SET_OPTION_PROPAGATE_VALUES_FALSE = SExpression
             .fromString("(set-option :propagate-values false)");
 
+    public static final SExpression SET_OPTION_PRODUCE_MODELS_TRUE = SExpression
+            .fromString("(set-option :produce-models true)");
+
     public static final SExpression DECLARE_SORT_VALUE = SExpression
             .fromString("(declare-sort " + SExpressionConstants.VALUE_TYPE
                     + " 0)");
@@ -117,6 +120,7 @@ public class SExpressionConstants {
     public static final Token ASSERTED = (Token) SExpression
             .fromString("asserted");
     public static final Token GOAL = (Token) SExpression.fromString("goal");
+    public static final Token GOALS = (Token) SExpression.fromString("goals");
     public static final Token MODUS_PONENS = (Token) SExpression
             .fromString("mp");
     public static final Token REFLEXIVITY = (Token) SExpression

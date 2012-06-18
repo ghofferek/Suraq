@@ -916,15 +916,12 @@ public class Suraq implements Runnable {
             String partition = tseitinAssertPartitions.get(count);
             TseitinParser parser = parseTseitinStr(partition, count + 1);
             Formula partitionFormula = parser.getRootFormula();
-            Z3Proof tseitinAssertPartition = new Z3Proof(
-                    SExpressionConstants.ASSERT, new ArrayList<Z3Proof>(),
-                    partitionFormula);
             for (PropositionalVariable var : parser.getTseitinVariables())
                 smtStr.append(SExpression.makeDeclareFun(
                         new Token(var.getVarName()),
                         SExpressionConstants.BOOL_TYPE, 0));
 
-            smtStr.append(tseitinAssertPartition.toString());
+            smtStr.append("(assert " + partitionFormula.toString() + ")");
 
         }
 
@@ -977,39 +974,6 @@ public class Suraq implements Runnable {
     }
 
     /**
-     * Creates an SMT description for an simplify operation
-     * 
-     * @param declarationStr
-     *            declarations of the SMT description
-     * @param assertPartition
-     *            partition to be simplified
-     * @return SMT description of simplify operation
-     * 
-     */
-    @SuppressWarnings("unused")
-    @Deprecated
-    private String buildSimplifySMTDescription(String declarationStr,
-            String assertPartition) {
-        String smtStr = "";
-
-        smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
-        smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
-        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
-                .toString();
-        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
-                .toString();
-        smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
-
-        smtStr += declarationStr;
-
-        smtStr += assertPartition;
-
-        smtStr += SExpressionConstants.EXIT.toString();
-
-        return smtStr;
-    }
-
-    /**
      * Creates an SMT description for an tseitin-cnf operation
      * 
      * @param declarationStr
@@ -1024,6 +988,8 @@ public class Suraq implements Runnable {
         String smtStr = "";
 
         smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+        smtStr += SExpressionConstants.SET_OPTION_PRODUCE_MODELS_TRUE
+                .toString();
         // smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
         // smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
         // .toString();
