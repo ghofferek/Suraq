@@ -194,10 +194,10 @@ public class ArrayWrite extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
         return new ArrayWrite((ArrayTerm) arrayTerm.substituteTerm(paramMap),
                 (DomainTerm) indexTerm.substituteTerm(paramMap),
                 (DomainTerm) valueTerm.substituteTerm(paramMap));

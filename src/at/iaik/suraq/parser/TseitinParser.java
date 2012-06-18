@@ -59,6 +59,11 @@ public class TseitinParser extends SMTLibParser {
     private Set<UninterpretedFunction> currUIFs = null;
 
     /**
+     * Stores the partition for which this parser is used.
+     */
+    private final int partition;
+
+    /**
      * 
      * Constructs a new <code>TseitinParser</code>.
      * 
@@ -72,17 +77,20 @@ public class TseitinParser extends SMTLibParser {
      *            proof array variables
      * @param uninterpretedFunctions
      *            proof uninterpreted Functions
+     * @param partition
+     *            the partition for which this parser is used (1 to n).
      */
     public TseitinParser(SExpression root, Set<DomainVariable> domainVars,
             Set<PropositionalVariable> propsitionalVars,
             Set<ArrayVariable> arrayVars,
-            Set<UninterpretedFunction> uninterpretedFunctions) {
+            Set<UninterpretedFunction> uninterpretedFunctions, int partition) {
 
         this.boolVariables = propsitionalVars;
         this.arrayVariables = arrayVars;
         this.domainVariables = domainVars;
         this.functions = uninterpretedFunctions;
         this.rootExpr = root;
+        this.partition = partition;
     }
 
     /**
@@ -123,9 +131,19 @@ public class TseitinParser extends SMTLibParser {
             else
                 clauses.add(parseFormulaBody(expr));
         }
-        rootFormula = new AndFormula(clauses);
-        parsingSuccessfull = true;
 
+        Map<Token, PropositionalVariable> renameMap = new HashMap<Token, PropositionalVariable>();
+        for (PropositionalVariable var : tseitinVariables) {
+            renameMap.put(new Token(var.getVarName()),
+                    new PropositionalVariable(var.getVarName() + "_p!"
+                            + partition));
+        }
+        tseitinVariables.clear();
+        tseitinVariables.addAll(new ArrayList<PropositionalVariable>(renameMap
+                .values()));
+
+        rootFormula = (new AndFormula(clauses)).substituteFormula(renameMap);
+        parsingSuccessfull = true;
     }
 
     /**
@@ -261,7 +279,7 @@ public class TseitinParser extends SMTLibParser {
                     assert (posFormula != null);
                     assert (negFormula != null);
 
-                    checkEquivalenceOfFormulas(posFormula, negFormula);
+                    // checkEquivalenceOfFormulas(posFormula, negFormula);
 
                     // calc partitions of tseitin variable
                     Set<Integer> partitions = posFormula

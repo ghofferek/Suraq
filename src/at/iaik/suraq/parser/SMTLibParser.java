@@ -1147,6 +1147,15 @@ public abstract class SMTLibParser extends Parser {
     }
 
     /**
+     * Returns a copy of the list of Tseitin variables.
+     * 
+     * @return a copy of the <code>boolVariables</code>
+     */
+    public List<PropositionalVariable> getTseitinVariables() {
+        return new ArrayList<PropositionalVariable>(tseitinVariables);
+    }
+
+    /**
      * Returns a copy of the list of domain variables.
      * 
      * @return a copy of the <code>domainVariables</code>

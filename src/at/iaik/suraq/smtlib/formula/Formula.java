@@ -101,7 +101,7 @@ public interface Formula extends SMTLibObject, Serializable {
      *            the map to convert local terms to the caller's scope
      * @return a (new) formula, converted according to the given map.
      */
-    public Formula substituteFormula(Map<Token, Term> paramMap);
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap);
 
     /**
      * Replaces all instances of <code>oldFunction</code> with instances of

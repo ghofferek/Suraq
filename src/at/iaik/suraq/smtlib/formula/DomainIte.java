@@ -206,10 +206,10 @@ public class DomainIte extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
         DomainTerm convertedThenBranch = (DomainTerm) thenBranch
                 .substituteTerm(paramMap);
         DomainTerm convertedElseBranch = (DomainTerm) elseBranch

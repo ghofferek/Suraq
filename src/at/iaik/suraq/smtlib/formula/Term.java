@@ -148,7 +148,7 @@ public abstract class Term implements Serializable {
      *            the map to convert local terms to the caller's scope
      * @return a (new) term, converted according to the given map.
      */
-    public abstract Term substituteTerm(Map<Token, Term> paramMap);
+    public abstract Term substituteTerm(Map<Token, ? extends Term> paramMap);
 
     /**
      * Computes the index set of this term. I.e., if it is an array read, its

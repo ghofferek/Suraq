@@ -82,7 +82,7 @@ public class TseitinTest {
         TseitinParser tseitinParser = new TseitinParser(rootExp,
                 new HashSet<DomainVariable>(), propsitionalVars,
                 new HashSet<ArrayVariable>(),
-                new HashSet<UninterpretedFunction>());
+                new HashSet<UninterpretedFunction>(), 0);
         try {
             tseitinParser.parse();
             assert (tseitinParser.wasParsingSuccessfull());

@@ -195,10 +195,10 @@ public class PropositionalVariable extends PropositionalTerm implements
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
         if (paramMap.containsKey(new Token(varName)))
             return paramMap.get(new Token(varName));
         else
@@ -206,10 +206,10 @@ public class PropositionalVariable extends PropositionalTerm implements
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
         if (paramMap.containsKey(new Token(varName)))
             return (PropositionalTerm) paramMap.get(new Token(varName));
         else

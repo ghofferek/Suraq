@@ -371,7 +371,7 @@ public class SExpression {
     /**
      * Creates an SExpression for a function declaration. Produces something of
      * the form <code>(declare-fun name () type)</code>. If
-     * <code>numParams > 0</code> the corresponding number if <code>Value</code>
+     * <code>numParams > 0</code> the corresponding number of <code>Value</code>
      * parameters will be added. E.g. for <code>numParams==2</code>:
      * <code>(declare-fun name (Value Value) type)</code>.
      * 
@@ -418,8 +418,8 @@ public class SExpression {
             PropositionalVariable controlSignal, Formula controlFormula) {
 
         SExpression eqFormulaExp = new SExpression(SExpressionConstants.EQUAL,
-                fromString(controlSignal.toString()),
-                fromString(controlFormula.toString()));
+                SExpression.fromString(controlSignal.toString()),
+                SExpression.fromString(controlFormula.toString()));
 
         SExpression result = new SExpression(SExpressionConstants.ASSERT,
                 eqFormulaExp);

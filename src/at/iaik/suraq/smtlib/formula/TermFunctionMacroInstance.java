@@ -215,10 +215,10 @@ public class TermFunctionMacroInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
         Map<Token, Term> convertedMap = new HashMap<Token, Term>();
 
         for (Token token : this.paramMap.keySet())

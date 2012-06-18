@@ -197,10 +197,10 @@ public class ArrayIte extends ArrayTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
         ArrayTerm convertedThenBranch = (ArrayTerm) thenBranch
                 .substituteTerm(paramMap);
         ArrayTerm convertedElseBranch = (ArrayTerm) elseBranch

@@ -233,10 +233,10 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
         Map<Token, Term> convertedMap = new HashMap<Token, Term>();
 
         for (Token token : this.paramMap.keySet())

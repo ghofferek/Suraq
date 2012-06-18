@@ -100,7 +100,10 @@ public class Suraq implements Runnable {
      */
     private String declarationStr = "";
 
-    private Map<PropositionalVariable, Formula> tseitinEncoding;
+    /**
+     * Stores the encoding from Tseitin variables to their formulas.
+     */
+    private Map<PropositionalVariable, Formula> tseitinEncoding = new HashMap<PropositionalVariable, Formula>();
 
     /**
      * stores the assert partitions of the smt description
@@ -289,7 +292,8 @@ public class Suraq implements Runnable {
             System.out.println(" Done. (" + onePartitionTimer + ")");
         }
         allPartitionsTimer.end();
-        System.out.println("  All done. (" + allPartitionsTimer + ")");
+        System.out.println("  All partitions done. (" + allPartitionsTimer
+                + ")");
         String z3InputStr = buildSMTDescriptionFromTseitinPartitions(
                 declarationStr, tseitinAssertPartitions);
 
@@ -846,10 +850,12 @@ public class Suraq implements Runnable {
      * 
      * @param tseitinStr
      *            output string of the z3 after applying tseitin encoding
-     * @return return parsed formula
+     * @param partition
+     *            the partition of the tseitin string
+     * @return the parser that parsed the formula.
      * 
      */
-    private Formula parseTseitinStr(String tseitinStr) {
+    private TseitinParser parseTseitinStr(String tseitinStr, int partition) {
 
         SExpParser sExpParser = new SExpParser(tseitinStr);
         try {
@@ -864,7 +870,7 @@ public class Suraq implements Runnable {
         SExpression rootExp = sExpParser.getRootExpr();
 
         TseitinParser tseitinParser = new TseitinParser(rootExp, domainVars,
-                propsitionalVars, arrayVars, uninterpretedFunctions);
+                propsitionalVars, arrayVars, uninterpretedFunctions, partition);
         try {
             tseitinParser.parse();
             assert (tseitinParser.wasParsingSuccessfull());
@@ -873,9 +879,9 @@ public class Suraq implements Runnable {
             throw new RuntimeException(
                     "Tseitin encoding parse error. Cannot continue.", exc);
         }
-        tseitinEncoding = tseitinParser.getTseitinEncoding();
+        tseitinEncoding.putAll(tseitinParser.getTseitinEncoding());
 
-        return tseitinParser.getRootFormula();
+        return tseitinParser;
     }
 
     /**
@@ -907,13 +913,20 @@ public class Suraq implements Runnable {
         // TODO: Add Tseitin variables
         smtStr += declarationStr;
 
-        for (String partition : tseitinAssertPartitions) {
-
-            Formula partitionFormula = parseTseitinStr(partition);
+        for (int count = 0; count < tseitinAssertPartitions.size(); count++) {
+            String partition = tseitinAssertPartitions.get(count);
+            TseitinParser parser = parseTseitinStr(partition, count + 1);
+            Formula partitionFormula = parser.getRootFormula();
             Z3Proof tseitinAssertPartition = new Z3Proof(
                     SExpressionConstants.ASSERT, new ArrayList<Z3Proof>(),
                     partitionFormula);
+            for (PropositionalVariable var : parser.getTseitinVariables())
+                smtStr += SExpression.makeDeclareFun(
+                        new Token(var.getVarName()),
+                        SExpressionConstants.BOOL_TYPE, 0);
+
             smtStr += tseitinAssertPartition.toString();
+
         }
 
         smtStr += SExpressionConstants.CHECK_SAT.toString();

@@ -232,10 +232,10 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, Term> paramMap) {
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
         List<DomainTerm> convertedParameters = new ArrayList<DomainTerm>();
         for (int count = 0; count < parameters.size(); count++)
             convertedParameters.add((DomainTerm) parameters.get(count)
@@ -446,10 +446,10 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
         // TODO Auto-generated method stub
         return null;
     }

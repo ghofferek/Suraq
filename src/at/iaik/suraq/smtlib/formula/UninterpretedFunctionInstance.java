@@ -263,10 +263,10 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, Term> paramMap) {
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
         List<DomainTerm> convertedParameters = new ArrayList<DomainTerm>();
         for (int count = 0; count < parameters.size(); count++)
             convertedParameters.add((DomainTerm) parameters.get(count)
