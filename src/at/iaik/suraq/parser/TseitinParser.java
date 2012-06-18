@@ -44,21 +44,6 @@ public class TseitinParser extends SMTLibParser {
     private Formula rootFormula = null;
 
     /**
-     * A set containing the already encountered domain variables.
-     */
-    private Set<DomainVariable> currDomainVars = null;
-
-    /**
-     * A set containing the already encountered propositional variables.
-     */
-    private Set<PropositionalVariable> currPropVars = null;
-
-    /**
-     * A set containing the already encountered uninterpreted functions.
-     */
-    private Set<UninterpretedFunction> currUIFs = null;
-
-    /**
      * Stores the partition for which this parser is used.
      */
     private final int partition;
@@ -223,7 +208,6 @@ public class TseitinParser extends SMTLibParser {
         int currTseitinIndex = 0;
         List<Formula> currClauses = new ArrayList<Formula>();
         boolean finishCurrTseitinDef = false;
-        TseitinVariableState tseitinState = null;
 
         for (int i = 0; i < clauses.size(); i++) {
             Formula clause = clauses.get(i);
@@ -231,78 +215,72 @@ public class TseitinParser extends SMTLibParser {
                 List<Integer> tseitinIndices = getTseitinVariablesFromFormula(clause);
                 int numTseitinVars = tseitinIndices.size();
                 if (numTseitinVars > 0) {
-                    // check if current tseitin variable is in clause
-                    if (tseitinIndices.contains(currTseitinIndex)) {
+                    // check if current tseitin variable occurs in first or in
+                    // the last literal
+                    Formula firstLiteral = ((OrFormula) clause).getDisjuncts()
+                            .get(0);
+                    List<Integer> indicesFirstLit = getTseitinVariablesFromFormula(firstLiteral);
+                    assert (indicesFirstLit.size() <= 1);
+
+                    int numLiterals = ((OrFormula) clause).getDisjuncts()
+                            .size();
+                    Formula lastLiteral = ((OrFormula) clause).getDisjuncts()
+                            .get(numLiterals - 1);
+                    List<Integer> indicesLastLit = getTseitinVariablesFromFormula(lastLiteral);
+                    assert (indicesLastLit.size() <= 1);
+
+                    if (indicesFirstLit.contains(currTseitinIndex)
+                            || indicesLastLit.contains(currTseitinIndex)) {
                         // check if clause doesn`t contain any larger idx
                         Collections.sort(tseitinIndices);
                         if (tseitinIndices.get(numTseitinVars - 1) <= currTseitinIndex) {
-                            // if clause is first clause of tseitin var def
                             if (currClauses.size() == 0) {
                                 System.out
                                         .println("INFO: Encoding Tseitin variable k!"
-                                                + currTseitinIndex);
-                                this.currDomainVars = new HashSet<DomainVariable>();
-                                this.currPropVars = new HashSet<PropositionalVariable>();
-                                this.currUIFs = new HashSet<UninterpretedFunction>();
-
-                                tseitinState = setTseitinVariableState(clause,
-                                        this.tseitinVariables
-                                                .get(currTseitinIndex));
+                                                + currTseitinIndex
+                                                + " from partition "
+                                                + this.partition);
                                 currClauses.add(clause);
-                                addCurrentVariables(clause);
-                            } else if (checkAndUpdateTseitinVariableState(
-                                    clause, tseitinState,
-                                    this.tseitinVariables.get(currTseitinIndex))) {
-                                currClauses.add(clause);
-                                addCurrentVariables(clause);
                             } else
                                 finishCurrTseitinDef = true;
-
                         } else
                             finishCurrTseitinDef = true;
                     } else
                         finishCurrTseitinDef = true;
                 } else
                     finishCurrTseitinDef = true;
-            } else
-                finishCurrTseitinDef = true;
 
-            if (finishCurrTseitinDef == true) {
-                finishCurrTseitinDef = false;
-                if (currClauses.size() > 0) {
-                    PropositionalVariable currTseitinVar = this.tseitinVariables
-                            .get(currTseitinIndex);
-                    Formula posFormula = buildPositiveFormula(currClauses,
-                            currTseitinVar);
-                    Formula negFormula = buildNegativeFormula(currClauses,
-                            currTseitinVar);
-                    assert (posFormula != null);
-                    assert (negFormula != null);
+                if (finishCurrTseitinDef == true) {
+                    finishCurrTseitinDef = false;
+                    if (currClauses.size() > 0) {
+                        PropositionalVariable currTseitinVar = this.tseitinVariables
+                                .get(currTseitinIndex);
 
-                    // checkEquivalenceOfFormulas(posFormula, negFormula);
+                        Formula formula = buildTseitinFormula(currClauses,
+                                currTseitinVar);
 
-                    // calc partitions of tseitin variable
-                    Set<Integer> partitions = posFormula
-                            .getPartitionsFromSymbols();
+                        // calc partitions of tseitin variable
+                        Set<Integer> partitions = formula
+                                .getPartitionsFromSymbols();
 
-                    int partition;
-                    if (partitions.size() == 2) {
-                        assert (partitions.remove(-1));
-                        partition = partitions.iterator().next();
-                    } else {
-                        assert (partitions.size() == 1);
-                        partition = partitions.iterator().next();
+                        int partition;
+                        if (partitions.size() == 2) {
+                            assert (partitions.remove(-1));
+                            partition = partitions.iterator().next();
+                        } else {
+                            assert (partitions.size() == 1);
+                            partition = partitions.iterator().next();
+                        }
+                        assert (partition != 0);
+
+                        tseitinEncoding.put(new PropositionalVariable(
+                                currTseitinVar.getVarName(), partition),
+                                formula);
+
+                        currTseitinIndex++;
+                        currClauses = new ArrayList<Formula>();
+                        i--; // re-check clause
                     }
-                    assert (partition != 0);
-
-                    tseitinEncoding
-                            .put(new PropositionalVariable(currTseitinVar
-                                    .getVarName(), partition), posFormula);
-
-                    // Compute something of clauses
-                    currTseitinIndex++;
-                    currClauses = new ArrayList<Formula>();
-                    i--; // re-check clause
                 }
             }
         }
@@ -311,18 +289,41 @@ public class TseitinParser extends SMTLibParser {
     }
 
     /**
-     * Adds all variables and uninterpreted functions contained in formula to
-     * <code>currDomianVars</code>, <code>currPropVars</code> and
-     * <code>curUIFs</code>.
+     * Build the formula representing a tseiting variable.
      * 
-     * @param formula
-     *            a single clause
+     * @param CurrClauses
+     *            clauses, from which the formula is build.
+     * @param tseitinVar
+     *            tseitin variable, for which a formula is build
      * 
+     * @return the formula representing the tseitin variable
      */
-    private void addCurrentVariables(Formula formula) {
-        this.currPropVars.addAll(formula.getPropositionalVariables());
-        this.currDomainVars.addAll(formula.getDomainVariables());
-        this.currUIFs.addAll(formula.getUninterpretedFunctions());
+    private Formula buildTseitinFormula(List<Formula> CurrClauses,
+            PropositionalVariable tseitinVar) {
+
+        System.out.println("start build tseitin formula.");
+        Timer buildTseitinFormulaTimer = new Timer();
+        buildTseitinFormulaTimer.start();
+
+        List<Formula> clauses = new ArrayList<Formula>(CurrClauses);
+
+        Formula posFormula = buildPositiveFormula(clauses, tseitinVar);
+        Formula negFormula = buildNegativeFormula(clauses, tseitinVar);
+        assert (posFormula != null);
+        assert (negFormula != null);
+        while (!checkEquivalenceOfFormulas(posFormula, negFormula)) {
+            clauses.remove(clauses.size() - 1); // remove last element from list
+            posFormula = buildPositiveFormula(clauses, tseitinVar);
+            negFormula = buildNegativeFormula(clauses, tseitinVar);
+            assert (posFormula != null);
+            assert (negFormula != null);
+        }
+
+        buildTseitinFormulaTimer.end();
+        System.out.println("finished build tseitin formula in "
+                + buildTseitinFormulaTimer + ".\n");
+
+        return posFormula;
     }
 
     /**
@@ -334,13 +335,10 @@ public class TseitinParser extends SMTLibParser {
      * @param formula2
      *            the second formula
      * 
-     * @return returns true, if the two variables imply each other.
+     * @return returns true, if the two formulas imply each other.
      */
-    private void checkEquivalenceOfFormulas(Formula formula1, Formula formula2) {
-
-        System.out.println("start check equivalence of formulas.");
-        Timer checkEquivalenceTimer = new Timer();
-        checkEquivalenceTimer.start();
+    private boolean checkEquivalenceOfFormulas(Formula formula1,
+            Formula formula2) {
 
         Set<DomainVariable> domainVars1 = formula1.getDomainVariables();
         Set<PropositionalVariable> propVars1 = formula1
@@ -356,16 +354,19 @@ public class TseitinParser extends SMTLibParser {
                 domainVars2);
         intersection.removeAll(domainVars1);
 
-        assert (domainVars1.equals(domainVars2));
-        assert (propVars1.equals(propVars2));
-        assert (uif1.equals(uif2));
+        if (!domainVars1.equals(domainVars2))
+            return false;
+        if (!propVars1.equals(propVars2))
+            return false;
+        if (!uif1.equals(uif2))
+            return false;
 
-        checkFormulaImplication(formula1, formula2);
-        checkFormulaImplication(formula2, formula1);
+        if (!checkFormulaImplication(formula1, formula2))
+            return false;
+        if (!checkFormulaImplication(formula2, formula1))
+            return false;
 
-        checkEquivalenceTimer.end();
-        System.out.println("finished check equivalence of formulas in "
-                + checkEquivalenceTimer + ".\n");
+        return true;
     }
 
     /**
@@ -379,7 +380,7 @@ public class TseitinParser extends SMTLibParser {
      * 
      * @return returns true, the first formula implies the second formula.
      */
-    private void checkFormulaImplication(Formula formula1, Formula formula2) {
+    private boolean checkFormulaImplication(Formula formula1, Formula formula2) {
         List<Formula> conjuncts = new ArrayList<Formula>();
         conjuncts.add(formula1);
         conjuncts.add(new NotFormula(formula2));
@@ -424,11 +425,9 @@ public class TseitinParser extends SMTLibParser {
 
         switch (z3.getState()) {
         case SMTSolver.UNSAT:
-            break;
+            return true;
         case SMTSolver.SAT:
-            throw (new RuntimeException(
-                    "Error while checking equivalence of formulas."
-                            + "Z3 tells us SAT."));
+            return false;
         default:
             throw (new RuntimeException(
                     "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
@@ -597,167 +596,6 @@ public class TseitinParser extends SMTLibParser {
 
         }
         return new OrFormula(disjuncts);
-    }
-
-    /**
-     * Checks if the occurrence of the tseitin variable in the clause is allowed
-     * according the attributes in the <code>TseitinVariableState</code> and
-     * updates the attributes. Checks if there are no new variables in the
-     * clause, after a sign change.
-     * 
-     * @param clause
-     *            clause to analyze
-     * @param tseitinState
-     *            attributes of the tseitin variables
-     * @param currTseitinVar
-     *            current tseitin variable.
-     * 
-     * @return <code>TseitinVariableState</code> with attributes set
-     */
-    private boolean checkAndUpdateTseitinVariableState(Formula clause,
-            TseitinVariableState tseitinState,
-            PropositionalVariable currTseitinVar) {
-
-        assert (clause instanceof OrFormula);
-        List<Formula> literals = ((OrFormula) clause).getDisjuncts();
-        int numLiterals = literals.size();
-        Formula firstLiteral = literals.get(0);
-        Formula lastLiteral = literals.get(numLiterals - 1);
-
-        if (firstLiteral instanceof PropositionalVariable) {
-            if (firstLiteral.equals(currTseitinVar)) {
-                if (!tseitinState.isFrontOccurrence())
-                    return false;
-                if (!tseitinState.isSign())
-                    if (!tseitinState.isSignedChange()) {
-                        tseitinState.setSignedChange(true);
-                        tseitinState.setSign(true);
-                    } else
-                        return false;
-            }
-        }
-        if (firstLiteral instanceof NotFormula) {
-            firstLiteral = ((NotFormula) firstLiteral).getNegatedFormula();
-            if (firstLiteral instanceof PropositionalVariable) {
-                if (firstLiteral.equals(currTseitinVar)) {
-                    if (!tseitinState.isFrontOccurrence())
-                        return false;
-                    if (tseitinState.isSign())
-                        if (!tseitinState.isSignedChange()) {
-                            tseitinState.setSignedChange(true);
-                            tseitinState.setSign(false);
-                        } else
-                            return false;
-                }
-            }
-        }
-        if (lastLiteral instanceof PropositionalVariable) {
-            if (lastLiteral.equals(currTseitinVar)) {
-                if (tseitinState.isFrontOccurrence())
-                    return false;
-                if (!tseitinState.isSign())
-                    if (!tseitinState.isSignedChange()) {
-                        tseitinState.setSignedChange(true);
-                        tseitinState.setSign(true);
-                    } else
-                        return false;
-            }
-        }
-        if (lastLiteral instanceof NotFormula) {
-            lastLiteral = ((NotFormula) lastLiteral).getNegatedFormula();
-            if (lastLiteral instanceof PropositionalVariable) {
-                if (lastLiteral.equals(currTseitinVar)) {
-                    if (tseitinState.isFrontOccurrence())
-                        return false;
-                    if (tseitinState.isSign())
-                        if (!tseitinState.isSignedChange()) {
-                            tseitinState.setSignedChange(true);
-                            tseitinState.setSign(false);
-                        } else
-                            return false;
-                }
-            }
-        }
-
-        if (tseitinState.isSignedChange()) {
-            if (!currDomainVars.containsAll(clause.getDomainVariables()))
-                return false;
-            if (!currPropVars.containsAll(clause.getPropositionalVariables()))
-                return false;
-            if (!currUIFs.containsAll(clause.getUninterpretedFunctions()))
-                return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Creates a new <code>TseitinVariableState</code> and sets attributes
-     * according to clause.
-     * 
-     * @param clause
-     *            clause to analyze
-     * 
-     * @param currTseitinVar
-     *            current tseitin variable.
-     * 
-     * @return <code>TseitinVariableState</code> with attributes set
-     */
-    private TseitinVariableState setTseitinVariableState(Formula clause,
-            PropositionalVariable currTseitinVar) {
-
-        Boolean frontOccurrence = null;
-        boolean signChange = false;
-        Boolean sign = null;
-        boolean processed = false;
-
-        assert (clause instanceof OrFormula);
-        List<Formula> literals = ((OrFormula) clause).getDisjuncts();
-        int numLiterals = literals.size();
-        Formula firstLiteral = literals.get(0);
-        Formula lastLiteral = literals.get(numLiterals - 1);
-
-        if (firstLiteral instanceof PropositionalVariable) {
-            if (firstLiteral.equals(currTseitinVar)) {
-                frontOccurrence = true;
-                sign = true;
-                processed = true;
-            }
-        }
-        if (firstLiteral instanceof NotFormula && processed == false) {
-            firstLiteral = ((NotFormula) firstLiteral).getNegatedFormula();
-            if (firstLiteral instanceof PropositionalVariable) {
-                if (firstLiteral.equals(currTseitinVar)) {
-                    frontOccurrence = true;
-                    sign = false;
-                    processed = true;
-                }
-            }
-        }
-        if (lastLiteral instanceof PropositionalVariable && processed == false) {
-            if (lastLiteral.equals(currTseitinVar)) {
-                assert (frontOccurrence == null);
-                frontOccurrence = false;
-                sign = true;
-                processed = true;
-            }
-        }
-        if (lastLiteral instanceof NotFormula && processed == false) {
-            lastLiteral = ((NotFormula) lastLiteral).getNegatedFormula();
-            if (lastLiteral instanceof PropositionalVariable) {
-                if (lastLiteral.equals(currTseitinVar)) {
-                    assert (frontOccurrence == null);
-                    frontOccurrence = false;
-                    sign = false;
-                    processed = true;
-                }
-            }
-        }
-        if (!processed)
-            throw new RuntimeException(
-                    "In the definition of a tseitin variable, the variable should occurr in the beginning or in the end of the clause");
-
-        return new TseitinVariableState(frontOccurrence, signChange, sign);
     }
 
     /**
