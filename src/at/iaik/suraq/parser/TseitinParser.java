@@ -118,14 +118,17 @@ public class TseitinParser extends SMTLibParser {
         }
 
         Map<Token, PropositionalVariable> renameMap = new HashMap<Token, PropositionalVariable>();
+        List<PropositionalVariable> tmpList = new ArrayList<PropositionalVariable>(
+                tseitinVariables.size());
         for (PropositionalVariable var : tseitinVariables) {
-            renameMap.put(new Token(var.getVarName()),
-                    new PropositionalVariable(var.getVarName() + "_p!"
-                            + partition));
+            PropositionalVariable newVar = new PropositionalVariable(
+                    var.getVarName() + "_p!" + partition);
+            renameMap.put(new Token(var.getVarName()), newVar);
+            tmpList.add(newVar);
         }
+
         tseitinVariables.clear();
-        tseitinVariables.addAll(new ArrayList<PropositionalVariable>(renameMap
-                .values()));
+        tseitinVariables.addAll(tmpList);
 
         rootFormula = (new AndFormula(clauses)).substituteFormula(renameMap);
         parsingSuccessfull = true;
@@ -236,10 +239,10 @@ public class TseitinParser extends SMTLibParser {
                         if (tseitinIndices.get(numTseitinVars - 1) <= currTseitinIndex) {
                             if (currClauses.size() == 0) {
                                 System.out
-                                        .println("INFO: Encoding Tseitin variable k!"
-                                                + currTseitinIndex
-                                                + " from partition "
-                                                + this.partition);
+                                        .println("INFO: Encoding Tseitin variable "
+                                                + this.tseitinVariables.get(
+                                                        currTseitinIndex)
+                                                        .getVarName());
                                 currClauses.add(clause);
                             } else
                                 finishCurrTseitinDef = true;

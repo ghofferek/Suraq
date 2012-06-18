@@ -899,19 +899,18 @@ public class Suraq implements Runnable {
     private String buildSMTDescriptionFromTseitinPartitions(
             String declarationStr, List<String> tseitinAssertPartitions) {
 
-        String smtStr = "";
+        StringBuffer smtStr = new StringBuffer();
 
-        smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
-        smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
-        smtStr += SExpressionConstants.PROOF_MODE_2.toString();
-        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
-                .toString();
-        smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
-                .toString();
-        smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+        smtStr.append(SExpressionConstants.SET_LOGIC_QF_UF.toString());
+        smtStr.append(SExpressionConstants.AUTO_CONFIG_FALSE.toString());
+        smtStr.append(SExpressionConstants.PROOF_MODE_2.toString());
+        smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+                .toString());
+        smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
+                .toString());
+        smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
 
-        // TODO: Add Tseitin variables
-        smtStr += declarationStr;
+        smtStr.append(declarationStr);
 
         for (int count = 0; count < tseitinAssertPartitions.size(); count++) {
             String partition = tseitinAssertPartitions.get(count);
@@ -921,19 +920,19 @@ public class Suraq implements Runnable {
                     SExpressionConstants.ASSERT, new ArrayList<Z3Proof>(),
                     partitionFormula);
             for (PropositionalVariable var : parser.getTseitinVariables())
-                smtStr += SExpression.makeDeclareFun(
+                smtStr.append(SExpression.makeDeclareFun(
                         new Token(var.getVarName()),
-                        SExpressionConstants.BOOL_TYPE, 0);
+                        SExpressionConstants.BOOL_TYPE, 0));
 
-            smtStr += tseitinAssertPartition.toString();
+            smtStr.append(tseitinAssertPartition.toString());
 
         }
 
-        smtStr += SExpressionConstants.CHECK_SAT.toString();
-        smtStr += SExpressionConstants.GET_PROOF.toString();
-        smtStr += SExpressionConstants.EXIT.toString();
+        smtStr.append(SExpressionConstants.CHECK_SAT.toString());
+        smtStr.append(SExpressionConstants.GET_PROOF.toString());
+        smtStr.append(SExpressionConstants.EXIT.toString());
 
-        return smtStr;
+        return smtStr.toString();
     }
 
     /**
