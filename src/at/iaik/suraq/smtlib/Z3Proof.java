@@ -420,31 +420,35 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     public Set<Z3Proof> getHypotheses() {
         int operationId = startDAGOperation();
-        Set<Z3Proof> result = this.getHypothesesRecursion(operationId);
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        this.getHypothesesRecursion(operationId, result);
         endDAGOperation(operationId);
         return result;
     }
 
-    private Set<Z3Proof> getHypothesesRecursion(int operationId) {
+    private void getHypothesesRecursion(int operationId, Set<Z3Proof> result) {
         visitedByDAGOperation(operationId);
 
-        Set<Z3Proof> hypotheses = new HashSet<Z3Proof>();
+        if (proofType.equals(SExpressionConstants.LEMMA))
+            return;
+
+        assert (result != null);
+
         if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
             assert (this.subProofs.size() == 0);
-            hypotheses.add(this);
+            result.add(this);
         }
         if (this instanceof TransformedZ3Proof) {
             if (((TransformedZ3Proof) this).isHypothesis()) {
                 assert (this.subProofs.size() == 0);
-                hypotheses.add(this);
+                result.add(this);
             }
         }
         for (Z3Proof z3Proofchild : this.subProofs) {
             if (z3Proofchild.wasVisitedByDAGOperation(operationId))
                 continue;
-            hypotheses.addAll(z3Proofchild.getHypothesesRecursion(operationId));
+            z3Proofchild.getHypothesesRecursion(operationId, result);
         }
-        return hypotheses;
     }
 
     @Deprecated
