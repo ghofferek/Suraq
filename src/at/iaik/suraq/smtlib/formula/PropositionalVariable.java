@@ -339,4 +339,13 @@ public class PropositionalVariable extends PropositionalTerm implements
 
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+        return new PropositionalVariable(varName, assertPartition);
+    }
+
 }

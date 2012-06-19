@@ -493,4 +493,20 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+        List<Formula> disjuncts = new ArrayList<Formula>(2);
+        if (leftSide instanceof NotFormula)
+            disjuncts.add(((NotFormula) leftSide).getNegatedFormula());
+        else
+            disjuncts.add(new NotFormula(leftSide));
+        disjuncts.add(rightSide);
+        OrFormula implication = new OrFormula(disjuncts);
+        return implication.tseitinEncode(clauses, encoding);
+    }
 }

@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A formula consisting of the (in)equality of propositional terms.
@@ -45,5 +46,28 @@ public class PropositionalEq extends EqualityFormula {
             terms.add((PropositionalTerm) term.deepTermCopy());
         }
         return new PropositionalEq(terms, equal);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.List,
+     *      java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+
+        assert (terms.size() == 2);
+        PropositionalTerm term1 = (PropositionalTerm) terms.get(0);
+        PropositionalTerm term2 = (PropositionalTerm) terms.get(1);
+        // TODO: split larger equalities
+
+        assert (clauses != null);
+        assert (encoding != null);
+
+        List<ImpliesFormula> conjuncts = new ArrayList<ImpliesFormula>(2);
+        conjuncts.add(new ImpliesFormula(term1, term2));
+        conjuncts.add(new ImpliesFormula(term2, term1));
+
+        return (new AndFormula(conjuncts).tseitinEncode(clauses, encoding));
     }
 }

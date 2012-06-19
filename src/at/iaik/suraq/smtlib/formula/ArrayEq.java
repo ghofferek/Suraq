@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
@@ -166,5 +167,15 @@ public class ArrayEq extends EqualityFormula {
             boolean firstLevel) {
         throw new RuntimeException(
                 "transformToConsequentsForm cannot be called on an ArrayEq.\nArrays should be removed by now.");
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+        throw new RuntimeException(
+                "Array equalities should have been removed before Tseitin encoding!");
     }
 }

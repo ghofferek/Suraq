@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib.formula;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -176,6 +177,45 @@ public class OrFormula extends AndOrXorFormula {
         if (Util.isLiteral(formula))
             return true;
         return false;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.List,
+     *      java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+        assert (clauses != null);
+        assert (encoding != null);
+
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        assert (partitions.size() == 1 || partitions.size() == 2);
+        if (partitions.size() == 2)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        int partition = partitions.iterator().next();
+        PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
+
+        List<Formula> disjuncts = new ArrayList<Formula>(formulas.size() + 1);
+        encoding.put(tseitinVar, this.deepFormulaCopy());
+
+        for (Formula formula : formulas) {
+            PropositionalVariable currentTseitinVar = formula.tseitinEncode(
+                    clauses, encoding);
+
+            disjuncts.add(currentTseitinVar);
+
+            List<Formula> tmp = new ArrayList<Formula>(2);
+            tmp.add(new NotFormula(currentTseitinVar));
+            tmp.add(tseitinVar);
+            clauses.add(new OrFormula(tmp));
+        }
+
+        disjuncts.add(new NotFormula(tseitinVar));
+        clauses.add(new OrFormula(disjuncts));
+
+        return tseitinVar;
     }
 
 }

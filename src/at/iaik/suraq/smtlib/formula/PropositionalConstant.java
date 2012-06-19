@@ -14,6 +14,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * A formula that consists of a simple propositional constant.
@@ -280,5 +281,27 @@ public class PropositionalConstant extends PropositionalTerm {
         }
 
         return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+
+        PropositionalVariable tseitinVar = Util.freshTseitinVar(-1);
+        encoding.put(tseitinVar, this.deepFormulaCopy());
+
+        List<Formula> disjuncts = new ArrayList<Formula>(1);
+
+        if (this.constant)
+            disjuncts.add(tseitinVar);
+        else
+            disjuncts.add(new NotFormula(tseitinVar));
+
+        clauses.add(new OrFormula(disjuncts));
+
+        return tseitinVar;
     }
 }

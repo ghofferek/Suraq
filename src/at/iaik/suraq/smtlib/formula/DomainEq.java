@@ -7,10 +7,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * A formula consisting of the equality of domain terms.
@@ -92,6 +94,43 @@ public class DomainEq extends EqualityFormula {
                 term.arrayReadsToUninterpretedFunctions(noDependenceVars);
 
         }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.List,
+     *      java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+
+        assert (terms.size() == 2);
+        // TODO: split larger equalities
+
+        assert (clauses != null);
+        assert (encoding != null);
+
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        assert (partitions.size() == 1 || partitions.size() == 2);
+        if (partitions.size() == 2)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        int partition = partitions.iterator().next();
+        PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
+        encoding.put(tseitinVar, this.deepFormulaCopy());
+
+        List<Formula> disjuncts = new ArrayList<Formula>(2);
+        disjuncts.add(new NotFormula(tseitinVar));
+        disjuncts.add(this.deepFormulaCopy());
+        clauses.add(new OrFormula(disjuncts));
+
+        disjuncts.clear();
+        disjuncts.add(tseitinVar);
+        disjuncts.add(new NotFormula(this.deepFormulaCopy()));
+        clauses.add(new OrFormula(disjuncts));
+
+        return tseitinVar;
+
     }
 
 }

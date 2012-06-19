@@ -460,4 +460,16 @@ public class PropositionalFunctionMacroInstance implements Formula {
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.List,
+     *      java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+        throw new RuntimeException(
+                "Macros should have been flattened before Tseitin encoding!");
+    }
+
 }

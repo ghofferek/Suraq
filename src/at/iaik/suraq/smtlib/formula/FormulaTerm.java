@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -294,6 +295,17 @@ public class FormulaTerm extends PropositionalTerm {
             return false;
 
         return formula.equals(((FormulaTerm) obj).formula);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.List,
+     *      java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+
+        return formula.tseitinEncode(clauses, encoding);
     }
 
 }

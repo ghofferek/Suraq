@@ -53,6 +53,24 @@ public class Util {
     private static Map<Integer, Formula> literalMap = new HashMap<Integer, Formula>();
 
     /**
+     * Counts the number of Tseitin vars that have been introduced so far. This
+     * makes sure they all get a unique name.
+     */
+    private static int tseitinVarCounter = 0;
+
+    /**
+     * 
+     * @param partition
+     *            the assert partition with which the variable will be
+     *            associated.
+     * @return a Tseitin variable with a name that has not been returned before.
+     */
+    public static PropositionalVariable freshTseitinVar(int partition) {
+        return new PropositionalVariable("ts!" + Util.tseitinVarCounter++,
+                partition);
+    }
+
+    /**
      * Chooses a fresh variable name with respect to the given formula. The name
      * is also distinct from present macro names and uninterpreted function
      * names.

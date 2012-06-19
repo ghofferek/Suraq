@@ -659,4 +659,14 @@ public class ArrayProperty implements Formula {
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+        throw new RuntimeException(
+                "Array properties should have been removed before Tseitin encoding!");
+    }
 }

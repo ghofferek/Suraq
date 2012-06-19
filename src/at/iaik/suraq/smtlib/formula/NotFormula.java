@@ -480,4 +480,38 @@ public class NotFormula extends BooleanCombinationFormula {
         return this.toString().compareTo(o.toString());
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+
+        assert (clauses != null);
+        assert (encoding != null);
+
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        assert (partitions.size() == 1 || partitions.size() == 2);
+        if (partitions.size() == 2)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        int partition = partitions.iterator().next();
+        PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
+        encoding.put(tseitinVar, this.deepFormulaCopy());
+
+        PropositionalVariable tseitinVarForSubformula = formula.tseitinEncode(
+                clauses, encoding);
+
+        List<Formula> disjuncts = new ArrayList<Formula>(2);
+        disjuncts.add(tseitinVar);
+        disjuncts.add(tseitinVarForSubformula);
+        clauses.add(new OrFormula(disjuncts));
+
+        disjuncts.clear();
+        disjuncts.add(new NotFormula(tseitinVar));
+        disjuncts.add(new NotFormula(tseitinVarForSubformula));
+        clauses.add(new OrFormula(disjuncts));
+
+        return tseitinVar;
+    }
 }

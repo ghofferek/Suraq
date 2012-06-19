@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -263,5 +264,20 @@ public interface Formula extends SMTLibObject, Serializable {
      */
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel);
+
+    /**
+     * Performs Tseitin encoding to transform a formula into CNF.
+     * 
+     * @param clauses
+     *            a (call-by-reference) parameter to which all the clauses of
+     *            the CNF will be added.
+     * 
+     * @param encoding
+     *            a (call-by-reference) parameter, which will contain the
+     *            mapping of Tseitin variables to the formulas they represent.
+     * @return the Tseitin variable that represents <code>this</code> formula.
+     */
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding);
 
 }

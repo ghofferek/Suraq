@@ -452,4 +452,28 @@ public class PropositionalIte extends BooleanCombinationFormula {
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.List,
+     *      java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+
+        List<Formula> conjuncts = new ArrayList<Formula>(2);
+        List<Formula> disjuncts = new ArrayList<Formula>(2);
+
+        conjuncts.add(condition);
+        conjuncts.add(thenBranch);
+        disjuncts.add(new AndFormula(conjuncts));
+
+        conjuncts.clear();
+        conjuncts.add(new NotFormula(condition));
+        conjuncts.add(elseBranch);
+        disjuncts.add(new AndFormula(conjuncts));
+
+        return (new OrFormula(disjuncts)).tseitinEncode(clauses, encoding);
+
+    }
 }

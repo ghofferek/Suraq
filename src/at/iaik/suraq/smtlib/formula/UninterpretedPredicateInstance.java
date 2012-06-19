@@ -450,8 +450,40 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     @Override
     public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        // TODO Auto-generated method stub
-        return null;
+        return (Term) substituteFormula(paramMap);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.List,
+     *      java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+
+        assert (clauses != null);
+        assert (encoding != null);
+
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        assert (partitions.size() == 1 || partitions.size() == 2);
+        if (partitions.size() == 2)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        int partition = partitions.iterator().next();
+        PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
+        encoding.put(tseitinVar, this.deepFormulaCopy());
+
+        List<Formula> disjuncts = new ArrayList<Formula>(2);
+        disjuncts.add(new NotFormula(tseitinVar));
+        disjuncts.add(this.deepFormulaCopy());
+        clauses.add(new OrFormula(disjuncts));
+
+        disjuncts.clear();
+        disjuncts.add(tseitinVar);
+        disjuncts.add(new NotFormula(this.deepFormulaCopy()));
+        clauses.add(new OrFormula(disjuncts));
+
+        return tseitinVar;
     }
 
 }

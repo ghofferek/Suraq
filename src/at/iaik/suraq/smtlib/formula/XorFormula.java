@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -96,5 +97,15 @@ public class XorFormula extends AndOrXorFormula {
         throw new RuntimeException(
                 "transformToConsequentsForm cannot be called on a Xor Formula.\n"
                         + "Xor Formulas should not occur in the consequents of a proof.");
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.Map)
+     */
+    @Override
+    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding) {
+        throw new RuntimeException(
+                "XOR formulas currently not supported for Tseitin encoding!");
     }
 }
