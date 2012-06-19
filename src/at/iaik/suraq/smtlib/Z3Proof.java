@@ -562,6 +562,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 this.subProofs = new ArrayList<Z3Proof>(0);
                 this.proofType = SExpressionConstants.ASSERTED;
                 this.assertPartition = partition;
+                assert (this.assertPartition > 0);
             }
         }
 
@@ -625,6 +626,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     public int startDAGOperation() {
         Z3Proof.operationCount++;
+        assert (Z3Proof.operationCount > 0);
+        // System.out.println("Starting DAG operation " + Z3Proof.operationCount
+        // + " in thread " + Thread.currentThread());
         return Z3Proof.operationCount;
     }
 
@@ -639,7 +643,15 @@ public class Z3Proof implements SMTLibObject, Serializable {
     public void endDAGOperation(int operationId) {
         assert (Z3Proof.operationCount >= operationId);
         this.resetMarks(operationId);
-        Z3Proof.operationCount--;
+        // System.out.println("Stopped DAG operation " + Z3Proof.operationCount
+        // + " in thread " + Thread.currentThread());
+
+        // Reusing operation-IDs seems to cause problems under some
+        // circumstances.
+        // In particular, when the structure of the DAG is modified by the
+        // operation. Thus, do not reuse operation-IDs.
+
+        // Z3Proof.operationCount--;
     }
 
     /**
@@ -679,8 +691,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
     private void resetMarks(int operationId) {
         this.visitedByOperation.remove((Integer) operationId);
 
-        for (Z3Proof node : this.allNodes())
+        for (Z3Proof node : this.allNodes()) {
             node.visitedByOperation.remove((Integer) operationId);
+            assert (!visitedByOperation.contains(operationId));
+        }
     }
 
     /**
@@ -1404,5 +1418,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     public boolean isLeaf() {
         return subProofs.isEmpty();
+    }
+
+    /**
+     * @return <code>true</code> iff this is a hypothesis node.
+     */
+    public boolean isHypothesis() {
+        return proofType.equals(SExpressionConstants.HYPOTHESIS);
     }
 }

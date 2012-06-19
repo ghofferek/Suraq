@@ -235,11 +235,11 @@ public class TransformedZ3Proof extends Z3Proof {
         // TODO Check: Should this be set for leafs only?
         this.assertPartition = node.part;
 
-        assert (proofType.equals(SExpressionConstants.ASSERTED)
-                || proofType.equals(SExpressionConstants.TRANSITIVITY)
-                || proofType.equals(SExpressionConstants.SYMMETRY)
-                || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
+        assert (proofType.equals(SExpressionConstants.ASSERTED) || proofType
                 .equals(SExpressionConstants.UNIT_RESOLUTION));
+
+        assert (this.assertPartition > 0 || !this.proofType
+                .equals(SExpressionConstants.ASSERTED));
     }
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
@@ -1598,8 +1598,10 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     /**
-     * @return the <code>hypothesis</code>
+     * 
+     * @see at.iaik.suraq.smtlib.Z3Proof#isHypothesis()
      */
+    @Override
     public boolean isHypothesis() {
         return hypothesis || proofType.equals(SExpressionConstants.HYPOTHESIS);
     }
@@ -1642,9 +1644,11 @@ public class TransformedZ3Proof extends Z3Proof {
                 newDisjuncts.add(negatedLiteral);
                 node.consequent = new OrFormula(newDisjuncts);
 
-                if (node.subProofs.contains(hypothesis)) {
+                Z3Proof foundHypothesis = Util.findHypothesisInSubproofs(node,
+                        hypothesis);
+                if (foundHypothesis != null) {
                     Z3Proof other = node.subProofs.get(node.subProofs
-                            .indexOf(hypothesis) == 0 ? 1 : 0);
+                            .indexOf(foundHypothesis) == 0 ? 1 : 0);
                     assert (other instanceof TransformedZ3Proof);
                     TransformedZ3Proof otherChild = (TransformedZ3Proof) other;
                     node.axiom = otherChild.axiom;
@@ -1652,6 +1656,9 @@ public class TransformedZ3Proof extends Z3Proof {
                     node.hypothesis = otherChild.hypothesis;
                     node.subProofs = otherChild.subProofs;
                     node.proofType = otherChild.proofType;
+                    node.assertPartition = otherChild.assertPartition;
+                    assert (node.assertPartition > 0 || !node.proofType
+                            .equals(SExpressionConstants.ASSERTED));
                 }
             }
         }
@@ -1873,6 +1880,7 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (literalPartitions.size() == 0 || literalPartitions.size() == 1);
 
             if (literalPartitions.size() == 1) {
+                assert (literalPartitions.iterator().next() > 0);
                 // This is resolution over a local literal.
                 // ==> This node can be converted to ASSERTED
                 // All descendants should only resolve on locals as well.
@@ -1936,7 +1944,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 }
             } else
                 throw new RuntimeException("found invalid unit-resolution.");
-        } else if (this.proofType == SExpressionConstants.ASSERTED) {
+        } else if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
 
             int partition = this.assertPartition;
             if (partition <= 0) {

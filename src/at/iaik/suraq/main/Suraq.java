@@ -60,6 +60,11 @@ import at.iaik.suraq.util.Util;
 public class Suraq implements Runnable {
 
     /**
+     * Timer for overall execution
+     */
+    private Timer overallTimer = new Timer();
+
+    /**
      * The parser that holds the data of the main formula from which to
      * synthesize.
      */
@@ -460,6 +465,7 @@ public class Suraq implements Runnable {
      */
     @Override
     public void run() {
+        overallTimer.start();
         // START: ASHUTOSH code
         // ResProofTest pTst = new ResProofTest();
         // if (pTst.takeControl())
@@ -710,11 +716,10 @@ public class Suraq implements Runnable {
             case SMTSolver.UNSAT:
                 System.out
                         .println("SUCCESSFULLY MODEL-CHECKED RESULTS WITH Z3! :-)");
-                System.out.println();
                 break;
             case SMTSolver.SAT:
                 noErrors = false;
-                System.out
+                System.err
                         .println("ERROR: Z3 tells us SAT. Implementation of control signal is not correct");
                 break;
             default:
@@ -745,6 +750,8 @@ public class Suraq implements Runnable {
 
         // All done :-)
         printEnd(noErrors);
+        overallTimer.end();
+        System.out.println("  (Overall time: " + overallTimer + ")");
         return;
     }
 

@@ -810,6 +810,29 @@ public class Util {
     }
 
     /**
+     * 
+     * @param z3proof
+     * @param hypothesis
+     * @return if any of the subproofs of <code>z3Proof</code> is a hypothesis
+     *         that has the some consequent as <code>hypothesis</code>, this
+     *         subproof is returned. <code>null</code> otherwise.
+     */
+    public static Z3Proof findHypothesisInSubproofs(Z3Proof z3proof,
+            Z3Proof hypothesis) {
+        for (Z3Proof subproof : z3proof.getSubProofs()) {
+            if (subproof.isHypothesis()) {
+                if (subproof
+                        .getConsequent()
+                        .transformToConsequentsForm()
+                        .equals(hypothesis.getConsequent()
+                                .transformToConsequentsForm()))
+                    return subproof;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Checks the given <code>node</code> for bad literals. Allows bad literals
      * only in unit clauses, and if the node deduces false. Also, allows only 2
      * subproofs.
