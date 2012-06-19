@@ -40,6 +40,7 @@ import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
@@ -915,13 +916,27 @@ public class Suraq implements Runnable {
         for (int count = 0; count < tseitinAssertPartitions.size(); count++) {
             String partition = tseitinAssertPartitions.get(count);
             TseitinParser parser = parseTseitinStr(partition, count + 1);
+            assert (parser.getTseitinVariables().size() == 0);
             Formula partitionFormula = parser.getRootFormula();
-            for (PropositionalVariable var : parser.getTseitinVariables())
+
+            List<OrFormula> clauses = new ArrayList<OrFormula>();
+            Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
+            PropositionalVariable tseitinVar = partitionFormula.tseitinEncode(
+                    clauses, encoding);
+            tseitinEncoding.putAll(encoding);
+            tseitinEncoding.put(tseitinVar, partitionFormula);
+
+            List<Formula> disjuncts = new ArrayList<Formula>(1);
+            disjuncts.add(tseitinVar);
+            clauses.add(new OrFormula(disjuncts));
+            Formula encodedPartitionFormula = new AndFormula(clauses);
+
+            for (PropositionalVariable var : encoding.keySet())
                 smtStr.append(SExpression.makeDeclareFun(
                         new Token(var.getVarName()),
                         SExpressionConstants.BOOL_TYPE, 0));
 
-            smtStr.append("(assert " + partitionFormula.toString() + ")");
+            smtStr.append("(assert " + encodedPartitionFormula.toString() + ")");
 
         }
 
@@ -1490,8 +1505,11 @@ public class Suraq implements Runnable {
         }
 
         // parsing proof
+        Set<PropositionalVariable> allPropVars = new HashSet<PropositionalVariable>();
+        allPropVars.addAll(propsitionalVars);
+        allPropVars.addAll(tseitinEncoding.keySet());
         ProofParser proofParser = new ProofParser(
-                sExpProofParser.getRootExpr(), domainVars, propsitionalVars,
+                sExpProofParser.getRootExpr(), domainVars, allPropVars,
                 arrayVars, uninterpretedFunctions);
 
         try {
@@ -1502,6 +1520,7 @@ public class Suraq implements Runnable {
         } catch (ParseError exc) {
             handleParseError(exc);
             noErrors = false;
+            throw new RuntimeException("Unable to parse proof!");
         } finally {
             timer.end();
             System.out.println("    Done. (" + timer + ")");
