@@ -110,7 +110,7 @@ public class SExpressionConstants {
             .fromString("(set-option :PROOF_MODE  2)");
 
     public static final SExpression APPLY_TSEITIN = SExpression
-            .fromString("(apply (then (! simplify :elim-and true) skip))");
+            .fromString("(apply (then (! simplify :elim-and true) (! simplify :elim-and true) tseitin-cnf))");
 
     public static final Token UNSAT = (Token) SExpression.fromString("unsat");
 

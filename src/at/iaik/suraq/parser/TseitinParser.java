@@ -342,7 +342,7 @@ public class TseitinParser extends SMTLibParser {
      * 
      * @return returns true, if the two formulas imply each other.
      */
-    private boolean checkEquivalenceOfFormulas(Formula formula1,
+    public static boolean checkEquivalenceOfFormulas(Formula formula1,
             Formula formula2) {
 
         Set<DomainVariable> domainVars1 = formula1.getDomainVariables();
@@ -385,7 +385,8 @@ public class TseitinParser extends SMTLibParser {
      * 
      * @return returns true, the first formula implies the second formula.
      */
-    private boolean checkFormulaImplication(Formula formula1, Formula formula2) {
+    public static boolean checkFormulaImplication(Formula formula1,
+            Formula formula2) {
         List<Formula> conjuncts = new ArrayList<Formula>();
         conjuncts.add(formula1);
         conjuncts.add(new NotFormula(formula2));

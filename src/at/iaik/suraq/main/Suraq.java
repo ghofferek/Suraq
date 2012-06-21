@@ -276,34 +276,104 @@ public class Suraq implements Runnable {
                 .entrySet())
             uninterpretedFunctions.addAll(functionList.getValue());
 
-        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
-                SuraqOptions.getZ3_4Path());
-
         System.out
                 .println("  Simplifying assert-partitions and tseitin-cnf encoding...");
+
         Timer allPartitionsTimer = new Timer();
-        Timer onePartitionTimer = new Timer();
         allPartitionsTimer.start();
-        List<String> tseitinAssertPartitions = new ArrayList<String>();
-        int count = 0;
-        for (SExpression assertPartition : assertPartitionList) {
-            onePartitionTimer.reset();
-            onePartitionTimer.start();
-            System.out.print("    Encoding partition " + ++count + "...");
-            String smtStr = buildTseitinSMTDescription(declarationStr,
-                    assertPartition.toString());
-            String simpleSmtStr = z3.simplify(smtStr);
-            tseitinAssertPartitions.add(simpleSmtStr);
-            onePartitionTimer.end();
-            System.out.println(" Done. (" + onePartitionTimer + ")");
+
+        List<String> tseitinPartitions = new ArrayList<String>();
+
+        if (options.getTseitinType() == options.TSEITIN_WITHOUT_Z3) {
+            System.out.println("  Performing tseitin encoding without Z3...");
+            tseitinPartitions = performTseitinEncodingWithoutZ3();
+        } else {
+            System.out.println("  Performing tseitin encoding with Z3...");
+            tseitinPartitions = performTseitinEncodingWithZ3();
         }
+
         allPartitionsTimer.end();
         System.out.println("  All partitions done. (" + allPartitionsTimer
                 + ")");
+
         String z3InputStr = buildSMTDescriptionFromTseitinPartitions(
-                declarationStr, tseitinAssertPartitions);
+                declarationStr, tseitinPartitions);
 
         return z3InputStr;
+    }
+
+    private List<String> performTseitinEncodingWithZ3() {
+
+        int count = 1;
+        Timer onePartitionTimer = new Timer();
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                SuraqOptions.getZ3_4Path());
+
+        List<String> tseitinPartitions = new ArrayList<String>();
+
+        for (SExpression assertPartition : assertPartitionList) {
+
+            onePartitionTimer.reset();
+            onePartitionTimer.start();
+            System.out.println("    Encoding partition " + count + "...");
+
+            String smtStr = buildSMTDescriptionForTseitinEncoding(
+                    declarationStr, assertPartition.toString());
+            String tseitingStr = z3.tseitin_encode(smtStr);
+
+            TseitinParser parser = parseTseitinStr(tseitingStr, count);
+            Formula partitionFormula = parser.getRootFormula();
+
+            tseitinPartitions.add(partitionFormula.toString());
+
+            System.out.println("      test if tseitin encoding is correct...");
+            assert (TseitinParser.checkFormulaImplication(partitionFormula,
+                    assertPartitionFormulas.get(count)));
+            System.out.println("      ...test finished");
+
+            onePartitionTimer.end();
+            System.out.println(" Done. (" + onePartitionTimer + ")");
+            count++;
+
+        }
+        return tseitinPartitions;
+    }
+
+    private List<String> performTseitinEncodingWithoutZ3() {
+
+        Timer onePartitionTimer = new Timer();
+        List<String> tseitinPartitions = new ArrayList<String>();
+
+        for (int count = 1; count <= assertPartitionFormulas.size(); count++) {
+            onePartitionTimer.reset();
+            onePartitionTimer.start();
+            System.out.println("    Encoding partition " + count + "...");
+
+            Formula partitionFormula = assertPartitionFormulas.get(count);
+
+            List<OrFormula> clauses = new ArrayList<OrFormula>();
+            Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
+            PropositionalVariable tseitinVar = partitionFormula.tseitinEncode(
+                    clauses, encoding);
+            tseitinEncoding.putAll(encoding);
+            tseitinEncoding.put(tseitinVar, partitionFormula);
+
+            List<Formula> disjuncts = new ArrayList<Formula>(1);
+            disjuncts.add(tseitinVar);
+            clauses.add(new OrFormula(disjuncts));
+            Formula encodedPartitionFormula = new AndFormula(clauses);
+
+            System.out.println("      test if tseitin encoding is correct...");
+            assert (TseitinParser.checkFormulaImplication(partitionFormula,
+                    assertPartitionFormulas.get(count)));
+            System.out.println("      ...test finished");
+
+            onePartitionTimer.end();
+            System.out.println(" Done. (" + onePartitionTimer + ")");
+            tseitinPartitions.add(encodedPartitionFormula.toString());
+
+        }
+        return tseitinPartitions;
     }
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
@@ -905,7 +975,7 @@ public class Suraq implements Runnable {
      * 
      */
     private String buildSMTDescriptionFromTseitinPartitions(
-            String declarationStr, List<String> tseitinAssertPartitions) {
+            String declarationStr, List<String> tseitinPartitions) {
 
         StringBuffer smtStr = new StringBuffer();
 
@@ -920,31 +990,14 @@ public class Suraq implements Runnable {
 
         smtStr.append(declarationStr);
 
-        for (int count = 0; count < tseitinAssertPartitions.size(); count++) {
-            String partition = tseitinAssertPartitions.get(count);
-            TseitinParser parser = parseTseitinStr(partition, count + 1);
-            assert (parser.getTseitinVariables().size() == 0);
-            Formula partitionFormula = parser.getRootFormula();
+        // declarations for tseitin variables
+        for (PropositionalVariable var : tseitinEncoding.keySet())
+            smtStr.append(SExpression.makeDeclareFun(
+                    new Token(var.getVarName()),
+                    SExpressionConstants.BOOL_TYPE, 0));
 
-            List<OrFormula> clauses = new ArrayList<OrFormula>();
-            Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
-            PropositionalVariable tseitinVar = partitionFormula.tseitinEncode(
-                    clauses, encoding);
-            tseitinEncoding.putAll(encoding);
-            tseitinEncoding.put(tseitinVar, partitionFormula);
-
-            List<Formula> disjuncts = new ArrayList<Formula>(1);
-            disjuncts.add(tseitinVar);
-            clauses.add(new OrFormula(disjuncts));
-            Formula encodedPartitionFormula = new AndFormula(clauses);
-
-            for (PropositionalVariable var : encoding.keySet())
-                smtStr.append(SExpression.makeDeclareFun(
-                        new Token(var.getVarName()),
-                        SExpressionConstants.BOOL_TYPE, 0));
-
-            smtStr.append("(assert " + encodedPartitionFormula.toString() + ")");
-
+        for (String tseitinPartition : tseitinPartitions) {
+            smtStr.append("(assert " + tseitinPartition + ")");
         }
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
@@ -1005,7 +1058,7 @@ public class Suraq implements Runnable {
      * @return SMT description of tseitin-encoding operation
      * 
      */
-    private String buildTseitinSMTDescription(String declarationStr,
+    private String buildSMTDescriptionForTseitinEncoding(String declarationStr,
             String assertPartition) {
         String smtStr = "";
 

@@ -24,6 +24,12 @@ public class SuraqOptions {
     public static final int CACHE_SERIAL = 2;
 
     /**
+     * Constants for tseitin types
+     */
+    public static final int TSEITIN_WITH_Z3 = 0;
+    public static final int TSEITIN_WITHOUT_Z3 = 1;
+
+    /**
      * Default value for verbose option.
      */
     private static final boolean verboseDefault = false;
@@ -36,7 +42,12 @@ public class SuraqOptions {
     /**
      * Default value for cache option.
      */
-    private static final int cacheDefault = 0;
+    private static final int cacheDefault = CACHE_NONE;
+
+    /**
+     * Default value for tseitin option.
+     */
+    private static final int tseitinDefault = TSEITIN_WITH_Z3;
 
     /**
      * Default value for input option.
@@ -82,6 +93,11 @@ public class SuraqOptions {
      * The value of the cache option.
      */
     private final Integer cacheValue;
+
+    /**
+     * The value of the tseitin option.
+     */
+    private final Integer tseitinValue;
 
     /**
      * The value of the input option.
@@ -148,6 +164,7 @@ public class SuraqOptions {
         Option checkResultOption = cmdLineParser
                 .addBooleanOption("check_result");
         Option cacheOption = cmdLineParser.addIntegerOption('c', "cache");
+        Option tseitinOption = cmdLineParser.addIntegerOption("tseitin");
 
         try {
             cmdLineParser.parse(args);
@@ -163,6 +180,7 @@ public class SuraqOptions {
         checkResultValue = (Boolean) cmdLineParser
                 .getOptionValue(checkResultOption);
         cacheValue = (Integer) cmdLineParser.getOptionValue(cacheOption);
+        tseitinValue = (Integer) cmdLineParser.getOptionValue(tseitinOption);
 
         int end = inputValue.lastIndexOf(".");
 
@@ -238,6 +256,16 @@ public class SuraqOptions {
      */
     public int getCacheType() {
         return cacheValue != null ? cacheValue : SuraqOptions.cacheDefault;
+    }
+
+    /**
+     * Returns the value of the tseitin option.
+     * 
+     * @return the value of the tseitin option.
+     */
+    public int getTseitinType() {
+        return tseitinValue != null ? tseitinValue
+                : SuraqOptions.tseitinDefault;
     }
 
     /**

@@ -73,10 +73,10 @@ public class z3 extends SMTSolver {
     }
 
     /**
-     * @see at.iaik.suraq.smtsolver.SMTSolver#simplify(String)
+     * @see at.iaik.suraq.smtsolver.SMTSolver#tseitin_encode(String)
      */
     @Override
-    public String simplify(String smtStr) {
+    public String tseitin_encode(String smtStr) {
         String executionPath = z3Path;
         if (System.getProperty("os.name").toLowerCase().contains("windows"))
             executionPath = executionPath.concat(" /smt2 /in");
