@@ -86,7 +86,7 @@ public abstract class SMTSolver {
 	 * 
 	 * @return the simplified string
 	 */
-	public abstract String tseitin_encode(String smtStr);
+	public abstract String solve2(String smtStr);
 
 	/**
 	 * Runs the SMT-solver instance with the given string as input.

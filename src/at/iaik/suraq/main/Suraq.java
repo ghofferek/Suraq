@@ -302,6 +302,14 @@ public class Suraq implements Runnable {
         return z3InputStr;
     }
 
+    /**
+     * Performs the tseitin encoding for each partition. Therefore it uses the
+     * Z3 solver. Adds the encoding for each tseitin variable in the
+     * <code>tseitinEncoding</code> map and returns the new encodet partitions.
+     * 
+     * @return the tseitin encoded partitions
+     * 
+     */
     private List<String> performTseitinEncodingWithZ3() {
 
         int count = 1;
@@ -319,7 +327,7 @@ public class Suraq implements Runnable {
 
             String smtStr = buildSMTDescriptionForTseitinEncoding(
                     declarationStr, assertPartition.toString());
-            String tseitingStr = z3.tseitin_encode(smtStr);
+            String tseitingStr = z3.solve2(smtStr);
 
             TseitinParser parser = parseTseitinStr(tseitingStr, count);
             Formula partitionFormula = parser.getRootFormula();
@@ -339,10 +347,21 @@ public class Suraq implements Runnable {
         return tseitinPartitions;
     }
 
+    /**
+     * Performs the tseitin encoding for each partition. This method does not
+     * use the Z3 solver. Adds the encoding for each tseitin variable in the
+     * <code>tseitinEncoding</code> map and returns the new encodet partitions.
+     * 
+     * @return the tseitin encoded partitions
+     * 
+     */
     private List<String> performTseitinEncodingWithoutZ3() {
 
         Timer onePartitionTimer = new Timer();
         List<String> tseitinPartitions = new ArrayList<String>();
+
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                SuraqOptions.getZ3_4Path());
 
         for (int count = 1; count <= assertPartitionFormulas.size(); count++) {
             onePartitionTimer.reset();
@@ -351,6 +370,27 @@ public class Suraq implements Runnable {
 
             Formula partitionFormula = assertPartitionFormulas.get(count);
 
+            // simplify assert partition
+
+            String smtStr = "";
+            smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+            smtStr += SExpressionConstants.SET_OPTION_PRODUCE_MODELS_TRUE
+                    .toString();
+            smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+            smtStr += declarationStr;
+            smtStr += "(assert " + partitionFormula.toString() + " )";
+            smtStr += "(apply (then (! simplify :elim-and true) skip))";
+            smtStr += SExpressionConstants.EXIT.toString();
+
+            String simpleSmtStr = z3.solve2(smtStr);
+
+            TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
+            assert (parser.getTseitinVariables().size() == 0);
+
+            partitionFormula = parser.getRootFormula();
+
+            // apply tseitin encoding
+
             List<OrFormula> clauses = new ArrayList<OrFormula>();
             Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
             PropositionalVariable tseitinVar = partitionFormula.tseitinEncode(
@@ -358,7 +398,7 @@ public class Suraq implements Runnable {
             tseitinEncoding.putAll(encoding);
             tseitinEncoding.put(tseitinVar, partitionFormula);
 
-            List<Formula> disjuncts = new ArrayList<Formula>(1);
+            List<Formula> disjuncts = new ArrayList<Formula>();
             disjuncts.add(tseitinVar);
             clauses.add(new OrFormula(disjuncts));
             Formula encodedPartitionFormula = new AndFormula(clauses);
@@ -1065,11 +1105,6 @@ public class Suraq implements Runnable {
         smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
         smtStr += SExpressionConstants.SET_OPTION_PRODUCE_MODELS_TRUE
                 .toString();
-        // smtStr += SExpressionConstants.AUTO_CONFIG_FALSE.toString();
-        // smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
-        // .toString();
-        // smtStr += SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
-        // .toString();
         smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
 
         smtStr += declarationStr;
@@ -1079,18 +1114,6 @@ public class Suraq implements Runnable {
         smtStr += SExpressionConstants.APPLY_TSEITIN.toString();
 
         smtStr += SExpressionConstants.EXIT.toString();
-
-        // DEBUG
-        try {
-            FileWriter fstream = new FileWriter("tmp.smt2");
-            fstream.write(smtStr);
-            fstream.close();
-        } catch (IOException exc) {
-            System.err.println("Error while writing to file tmp.smt2. ");
-            exc.printStackTrace();
-            noErrors = false;
-        }
-        // END DEBUG
 
         return smtStr;
     }

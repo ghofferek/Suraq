@@ -399,18 +399,28 @@ public class TseitinParser extends SMTLibParser {
         outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
 
-        for (PropositionalVariable var : formula1.getPropositionalVariables())
+        Set<PropositionalVariable> allPropositionalVars = formula1
+                .getPropositionalVariables();
+        allPropositionalVars.addAll(formula2.getPropositionalVariables());
+
+        Set<DomainVariable> allDomainVars = formula1.getDomainVariables();
+        allDomainVars.addAll(formula2.getDomainVariables());
+
+        Set<UninterpretedFunction> allFunctions = formula1
+                .getUninterpretedFunctions();
+        allFunctions.addAll(formula2.getUninterpretedFunctions());
+
+        for (PropositionalVariable var : allPropositionalVars)
             outputExpressions
                     .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
                             SExpressionConstants.BOOL_TYPE, 0));
 
-        for (DomainVariable var : formula1.getDomainVariables())
+        for (DomainVariable var : allDomainVars)
             outputExpressions.add(SExpression.makeDeclareFun(
                     (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
                     0));
 
-        for (UninterpretedFunction function : formula1
-                .getUninterpretedFunctions())
+        for (UninterpretedFunction function : allFunctions)
             outputExpressions.add(SExpression.makeDeclareFun(
                     function.getName(), function.getType(),
                     function.getNumParams()));

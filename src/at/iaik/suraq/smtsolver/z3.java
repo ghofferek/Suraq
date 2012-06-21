@@ -69,14 +69,15 @@ public class z3 extends SMTSolver {
         if (pResult.getExitCode() != 0) {
             System.out.println("EXIT CODE: " + pResult.getExitCode());
             System.out.println("ERROR from Z3:" + pResult.getErrorStream());
+            System.out.println("OUTPUT from Z3: " + pResult.getOutputStream());
         }
     }
 
     /**
-     * @see at.iaik.suraq.smtsolver.SMTSolver#tseitin_encode(String)
+     * @see at.iaik.suraq.smtsolver.SMTSolver#solve2(String)
      */
     @Override
-    public String tseitin_encode(String smtStr) {
+    public String solve2(String smtStr) {
         String executionPath = z3Path;
         if (System.getProperty("os.name").toLowerCase().contains("windows"))
             executionPath = executionPath.concat(" /smt2 /in");
@@ -89,6 +90,8 @@ public class z3 extends SMTSolver {
         if (pResult.getExitCode() != 0) {
             System.out.println("EXIT CODE: " + pResult.getExitCode());
             System.out.println("ERROR from Z3: " + pResult.getErrorStream());
+            System.out.println("OUTPUT from Z3: " + pResult.getOutputStream());
+
         }
         return pResult.getOutputStream();
     }
