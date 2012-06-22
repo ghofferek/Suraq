@@ -305,7 +305,7 @@ public class Suraq implements Runnable {
     /**
      * Performs the tseitin encoding for each partition. Therefore it uses the
      * Z3 solver. Adds the encoding for each tseitin variable in the
-     * <code>tseitinEncoding</code> map and returns the new encodet partitions.
+     * <code>tseitinEncoding</code> map and returns the new encoded partitions.
      * 
      * @return the tseitin encoded partitions
      * 
@@ -350,7 +350,7 @@ public class Suraq implements Runnable {
     /**
      * Performs the tseitin encoding for each partition. This method does not
      * use the Z3 solver. Adds the encoding for each tseitin variable in the
-     * <code>tseitinEncoding</code> map and returns the new encodet partitions.
+     * <code>tseitinEncoding</code> map and returns the new encoded partitions.
      * 
      * @return the tseitin encoded partitions
      * 
