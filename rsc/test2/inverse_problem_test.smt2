@@ -35,13 +35,20 @@
   ; main expression  
   (
     and  (= x_
-            (ite (= x ZERO) (f x) (h x)))           
-         (ite (= x ZERO) (= x (finv (f x))) (= x (hinv (h x))))             
+            (ite (= x ZERO) (f x) (h x)))                        
          (= x__
-            (ite c (finv x_) (hinv x_)))          
+            (ite c (finv x_) (hinv x_)))
+        (= (finv (f x)) x)   
+        (= (finv (f x_)) x_)
+        (= (finv (f x__)) x__)        
+        (= (finv (f ZERO)) ZERO) 
+        (= (hinv (h x)) x)   
+        (= (hinv (h x_)) x_)
+        (= (hinv (h x__)) x__)        
+        (= (hinv (h ZERO)) ZERO)         
   )    
 )
-
+; 
 ; The whole formula
 
 (define-fun formula (
