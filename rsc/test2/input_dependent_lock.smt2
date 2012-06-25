@@ -1,0 +1,105 @@
+(set-logic Suraq)
+
+(declare-fun ZERO    () Value)
+(declare-fun ONE     () Value)
+(declare-fun TWO     () Value)
+(declare-fun THREE   () Value)
+(declare-fun FOUR   () Value)
+
+(define-fun pc1_0 () Value ZERO)
+(declare-fun pc1_1 () Value)
+(declare-fun pc1_2 () Value)
+(declare-fun pc1_3 () Value)
+(declare-fun pc1_4 () Value)
+(declare-fun pc1_5 () Value)
+(declare-fun pc1_6 () Value)
+(declare-fun pc1_7 () Value)
+
+(define-fun pc2_0 () Value ZERO)
+(declare-fun pc2_1 () Value)
+(declare-fun pc2_2 () Value)
+(declare-fun pc2_3 () Value)
+(declare-fun pc2_4 () Value)
+(declare-fun pc2_5 () Value)
+(declare-fun pc2_6 () Value)
+(declare-fun pc2_7 () Value)
+
+(declare-fun MEM_0      () (Array Value Value))
+(declare-fun MEM_1      () (Array Value Value))
+(declare-fun MEM_2      () (Array Value Value))
+(declare-fun MEM_3      () (Array Value Value))
+(declare-fun MEM_4      () (Array Value Value))
+(declare-fun MEM_5      () (Array Value Value))
+(declare-fun MEM_6      () (Array Value Value))
+(declare-fun MEM_7      () (Array Value Value))
+
+(declare-fun tmp11_0 () Value)
+(declare-fun tmp11_1 () Value)
+(declare-fun tmp11_2 () Value)
+(declare-fun tmp11_3 () Value)
+(declare-fun tmp11_4 () Value)
+(declare-fun tmp11_5 () Value)
+(declare-fun tmp11_6 () Value)
+(declare-fun tmp11_7 () Value)
+
+(declare-fun tmp12_0 () Value)
+(declare-fun tmp12_1 () Value)
+(declare-fun tmp12_2 () Value)
+(declare-fun tmp12_3 () Value)
+(declare-fun tmp12_4 () Value)
+(declare-fun tmp12_5 () Value)
+(declare-fun tmp12_6 () Value)
+(declare-fun tmp12_7 () Value)
+
+(declare-fun tmp21_0 () Value)
+(declare-fun tmp21_1 () Value)
+(declare-fun tmp21_2 () Value)
+(declare-fun tmp21_3 () Value)
+(declare-fun tmp21_4 () Value)
+(declare-fun tmp21_5 () Value)
+(declare-fun tmp21_6 () Value)
+(declare-fun tmp21_7 () Value)
+
+(declare-fun tmp22_0 () Value)
+(declare-fun tmp22_1 () Value)
+(declare-fun tmp22_2 () Value)
+(declare-fun tmp22_3 () Value)
+(declare-fun tmp22_4 () Value)
+(declare-fun tmp22_5 () Value)
+(declare-fun tmp22_6 () Value)
+(declare-fun tmp22_7 () Value)
+
+(declare-fun op  (Value) Value)
+
+(define-fun step  ((pc1 Value)(pc1_n Value)(pc2 Value)(pc2_n Value)(Mem (Array Value Value))(Mem_n (Array Value Value))(tmp11 Value)(tmp11_n Value)(tmp12 Value)(tmp12_n Value) (tmp21 Value)(tmp21_n Value)(tmp22 Value)(tmp22_n Value)(idx1 Value)(idx2 Value)) Bool (
+or 
+  (and
+    (=> (=pc1 ZERO) (and (= pc1_n ONE)  (= pc2_n pc2)(= tmp11_n (op (select MEM idx1)))(= tmp12_n tmp12)                 (= Mem_n Mem)                  )
+    (=> (=pc1 ONE)  (and (= pc1_n TWO)  (= pc2_n pc2)(= tmp11_n tmp11)                 (= tmp12_n (op (select MEM idx2)))(= Mem_n Mem)                  )
+    (=> (=pc1 TWO)  (and (= pc1_n THREE)(= pc2_n pc2)(= tmp11_n tmp11)                 (= tmp12_n tmp12)                 (= Mem_n(store Mem idx1 tmp12)))
+    (=> (=pc1 TREE) (and (= pc1_n FOUR) (= pc2_n pc2)(= tmp11_n tmp11)                 (= tmp12_n tmp12)                 (= Mem_n(store Mem idx2 tmp11)))  
+    (=> (=pc1 FOUR) false)    
+  )
+  (and
+    (=> (=pc2 ZERO) (and (= pc1_n pc1)(= pc2_n ONE)  (= tmp21_n (op (select MEM idx1)))(= tmp22_n tmp22)                 (= Mem_n Mem)                  )
+    (=> (=pc2 ONE)  (and (= pc1_n pc1)(= pc2_n TWO)  (= tmp21_n tmp21)                 (= tmp22_n (op (select MEM idx2)))(= Mem_n Mem)                  )
+    (=> (=pc2 TWO)  (and (= pc1_n pc1)(= pc2_n THREE)(= tmp21_n tmp21)                 (= tmp22_n tmp22)                 (= Mem_n(store Mem idx1 tmp22)))
+    (=> (=pc2 THREE)(and (= pc1_n pc1)(= pc2_n FOUR) (= tmp21_n tmp21)                 (= tmp22_n tmp22)                 (= Mem_n(store Mem idx2 tmp21)))  
+    (=> (=pc2 FOUR) false)     
+  )
+))
+
+(assert 
+ (and
+    (step pc1_0 pc1_1 pc2_0 pc2_1 Mem_0 Mem_1 tmp11_0 tmp11_1 tmp12_0 tmp12_1 tmp21_0 tmp21_1 tmp22_0 tmp22_1 idx1 idx2)
+    (step pc1_1 pc1_2 pc2_1 pc2_2 Mem_1 Mem_2 tmp11_1 tmp11_2 tmp12_1 tmp12_2 tmp21_1 tmp21_2 tmp22_1 tmp22_2 idx1 idx2)
+    (step pc1_2 pc1_3 pc2_2 pc2_3 Mem_2 Mem_3 tmp11_2 tmp11_3 tmp12_2 tmp12_3 tmp21_2 tmp21_3 tmp22_2 tmp22_3 idx1 idx2)
+    (step pc1_3 pc1_4 pc2_3 pc2_4 Mem_3 Mem_4 tmp11_3 tmp11_4 tmp12_3 tmp12_4 tmp21_3 tmp21_4 tmp22_3 tmp22_4 idx1 idx2)
+    (step pc1_4 pc1_5 pc2_4 pc2_5 Mem_4 Mem_5 tmp11_4 tmp11_5 tmp12_4 tmp12_5 tmp21_4 tmp21_5 tmp22_4 tmp22_5 idx1 idx2)
+    (step pc1_5 pc1_6 pc2_5 pc2_6 Mem_5 Mem_6 tmp11_5 tmp11_6 tmp12_5 tmp12_6 tmp21_5 tmp21_6 tmp22_5 tmp22_6 idx1 idx2)
+    (step pc1_6 pc1_7 pc2_6 pc2_7 Mem_6 Mem_7 tmp11_6 tmp11_7 tmp12_6 tmp12_7 tmp21_6 tmp21_7 tmp22_6 tmp22_7 idx1 idx2)
+    (step pc1_7 pc1_8 pc2_7 pc2_8 Mem_7 Mem_8 tmp11_7 tmp11_8 tmp12_7 tmp12_8 tmp21_7 tmp21_8 tmp22_7 tmp22_8 idx1 idx2)
+))
+                                                               
+;Spec???????????            
+;Input Dependent Lock???
