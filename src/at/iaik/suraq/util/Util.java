@@ -251,7 +251,8 @@ public class Util {
         Formula formula = clause.transformToConsequentsForm();
         assert (formula instanceof OrFormula);
         List<Formula> disjuncts = ((OrFormula) formula).getDisjuncts();
-        assert (disjuncts.size() == 1);
+        if (disjuncts.size() != 1)
+            assert (false);
         assert (Util.isLiteral(disjuncts.get(0)));
         return disjuncts.get(0);
     }

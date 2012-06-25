@@ -48,7 +48,7 @@ import at.iaik.suraq.util.Util;
  * 
  * Should only contain the following proof rules: Asserted, Symmetry, (simple,
  * i.e., 2-subproof) Transitivity, Monotonicity and (simple, i.e. 2-subproof)
- * Resolution.
+ * Resolution. Hypothesis-Lemma-Structures are also still allowed.
  * 
  * Formulas for consequents should have the following structure: - each atom is
  * either a positive equality of two terms, a propositional variable, or an
@@ -57,8 +57,8 @@ import at.iaik.suraq.util.Util;
  * 
  * Formulas for literals should be positive atoms as defined above.
  * 
- * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
- * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
+ * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>, Georg
+ *         Hofferek <georg.hofferek@iaik.tugraz.at>
  */
 public class TransformedZ3Proof extends Z3Proof {
 
@@ -118,8 +118,10 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
-                || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
-                .equals(SExpressionConstants.UNIT_RESOLUTION));
+                || proofType.equals(SExpressionConstants.MONOTONICITY)
+                || proofType.equals(SExpressionConstants.UNIT_RESOLUTION)
+                || proofType.equals(SExpressionConstants.LEMMA) || proofType
+                .equals(SExpressionConstants.HYPOTHESIS));
         // if (this.id == 548)
         // this.checkZ3ProofNodeRecursive();
         // assert (this.checkZ3ProofNode());
@@ -410,55 +412,13 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof transformedHypotheticalProof = TransformedZ3Proof
                     .convertToTransformedZ3Proof(hypotheticalProof);
 
-            // assert
-            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
-            transformedHypotheticalProof.toLocalProof();
-            assert (transformedHypotheticalProof.isLocal());
-
-            // assert
-            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
-            transformedHypotheticalProof.toResolutionProof();
-
-            // assert
-            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
-
-            if (!transformedHypotheticalProof.consequent
-                    .equals((new PropositionalConstant(false))
-                            .transformToConsequentsForm()))
-                throw new RuntimeException(
-                        "Hypothetical proof (antecedent of lemma) does not prove false, but: "
-                                + transformedHypotheticalProof.consequent
-                                        .toString());
-
-            // assert
-            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
-            transformedHypotheticalProof.removeHypotheses();
-            // assert
-            // (transformedHypotheticalProof.checkZ3ProofNodeRecursive());
-
-            List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
-            for (Z3Proof proof : transformedHypotheticalProof.subProofs) {
-                assert (proof instanceof TransformedZ3Proof);
-                subProofs.add((TransformedZ3Proof) proof);
-            }
-
+            List<TransformedZ3Proof> list = new ArrayList<TransformedZ3Proof>(0);
+            list.add(transformedHypotheticalProof);
             TransformedZ3Proof result = new TransformedZ3Proof(
-                    transformedHypotheticalProof.proofType, subProofs,
-                    transformedHypotheticalProof.consequent);
-            result.literal = Util
-                    .getSingleLiteral(transformedHypotheticalProof.literal);
-
-            assert (result.consequent.equals(z3Proof.consequent
-                    .transformToConsequentsForm()));
-            // Remove stored conversion results for all subproofs
-            // They are "tainted" by hypothesis removal.
-            Set<Z3Proof> allSubNodes = z3Proof.allNodes();
-            for (Z3Proof proof : allSubNodes)
-                TransformedZ3Proof.proofMap.remove(proof);
-
+                    SExpressionConstants.LEMMA, list,
+                    z3Proof.consequent.deepFormulaCopy());
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
-            // assert (result.checkZ3ProofNode());
             return result;
 
         } else if (proofType.equals(SExpressionConstants.TRANSITIVITY)) {
@@ -524,7 +484,21 @@ public class TransformedZ3Proof extends Z3Proof {
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
-            subProof.toLocalProofRecursion(operationId);
+            if (subProof.proofType.equals(SExpressionConstants.LEMMA)) {
+                // For a hypothetical proof, use a new frame on the
+                // annotatedNodesStack
+                // TODO This partially unwinds the DAG.
+                // Can this be avoided?
+                assert (subProof.subProofs.size() == 1);
+                assert (subProof.subProofs.get(0) instanceof TransformedZ3Proof);
+                TransformedZ3Proof hypotheticalProof = (TransformedZ3Proof) subProof.subProofs
+                        .get(0);
+                assert (hypotheticalProof.consequent
+                        .equals((new PropositionalConstant(false))
+                                .transformToConsequentsForm()));
+                hypotheticalProof.toLocalProof();
+            } else
+                subProof.toLocalProofRecursion(operationId);
         }
 
         // Recursive calls are completed. Now handle this particular node.
@@ -628,8 +602,9 @@ public class TransformedZ3Proof extends Z3Proof {
             // TODO Check if this assumption is valid. If not, change code
             // accordingly!
 
-            assert (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION) || this.proofType
-                    .equals(SExpressionConstants.ASSERTED));
+            if (!(this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION) || this.proofType
+                    .equals(SExpressionConstants.ASSERTED)))
+                assert (false);
 
             if (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
                 // Update subproofs
@@ -1668,8 +1643,46 @@ public class TransformedZ3Proof extends Z3Proof {
     /**
      * Transforms a proof with transitivity, monotonicity, resolution and
      * symmetry into a pure resolution proof
+     * 
+     * @param operationId
+     *            TODO
      */
     public void toResolutionProof() {
+        int operationId = startDAGOperation();
+        this.toResolutionProofRecursion(operationId);
+        endDAGOperation(operationId);
+    }
+
+    private void toResolutionProofRecursion(int operationId) {
+        if (this.wasVisitedByDAGOperation(operationId))
+            return;
+        this.visitedByDAGOperation(operationId);
+
+        if (this.proofType.equals(SExpressionConstants.LEMMA)) {
+            assert (this.subProofs.size() == 1);
+            assert (this.subProofs.get(0) instanceof TransformedZ3Proof);
+            TransformedZ3Proof hypotheticalProof = (TransformedZ3Proof) this.subProofs
+                    .get(0);
+            assert (hypotheticalProof.consequent
+                    .equals((new PropositionalConstant(false))
+                            .transformToConsequentsForm()));
+
+            hypotheticalProof.toResolutionProofRecursion(operationId);
+            hypotheticalProof.removeHypotheses();
+
+            this.consequent = hypotheticalProof.consequent;
+            this.subProofs = hypotheticalProof.subProofs;
+            this.literal = Util.getSingleLiteral(hypotheticalProof.literal);
+            this.proofType = hypotheticalProof.proofType;
+            assert (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION));
+            this.hypothesis = hypotheticalProof.hypothesis;
+            assert (!this.hypothesis);
+            this.axiom = hypotheticalProof.axiom;
+            this.assertPartition = hypotheticalProof.assertPartition;
+            return;
+
+        }
+
         if (this.proofType.equals(SExpressionConstants.MONOTONICITY)
                 || this.proofType.equals(SExpressionConstants.TRANSITIVITY)) {
 
@@ -1702,7 +1715,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
                 TransformedZ3Proof currentEquality = (TransformedZ3Proof) this.subProofs
                         .get(count);
-                currentEquality.toResolutionProof();
+                currentEquality.toResolutionProofRecursion(operationId);
                 axiomParts.remove(0);
 
                 remainingAxiom = new TransformedZ3Proof(
@@ -1715,7 +1728,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             TransformedZ3Proof currentEquality = (TransformedZ3Proof) this.subProofs
                     .get(this.subProofs.size() - 1);
-            currentEquality.toResolutionProof();
+            currentEquality.toResolutionProofRecursion(operationId);
 
             this.subProofs = new ArrayList<Z3Proof>();
             this.subProofs.add(currentEquality);
@@ -1730,7 +1743,8 @@ public class TransformedZ3Proof extends Z3Proof {
         } else if (proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
             for (Z3Proof child : subProofs) {
                 assert (child instanceof TransformedZ3Proof);
-                ((TransformedZ3Proof) child).toResolutionProof();
+                ((TransformedZ3Proof) child)
+                        .toResolutionProofRecursion(operationId);
             }
             return;
 
@@ -1745,7 +1759,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             TransformedZ3Proof z3SubProof = (TransformedZ3Proof) this.subProofs
                     .get(0);
-            z3SubProof.toResolutionProof();
+            z3SubProof.toResolutionProofRecursion(operationId);
 
             this.consequent = z3SubProof.consequent;
             this.subProofs = z3SubProof.subProofs;
@@ -1756,7 +1770,11 @@ public class TransformedZ3Proof extends Z3Proof {
             this.assertPartition = z3SubProof.assertPartition;
             return;
 
-        } else if (proofType.equals(SExpressionConstants.ASSERTED)) {
+        } else if (proofType.equals(SExpressionConstants.ASSERTED)
+                || this.isHypothesis()) {
+            assert (this.consequent instanceof OrFormula);
+            assert (this.isLocal());
+            assert (this.subProofs.size() == 0);
             return;
 
         } else {
