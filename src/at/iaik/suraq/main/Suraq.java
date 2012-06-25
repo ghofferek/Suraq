@@ -284,7 +284,7 @@ public class Suraq implements Runnable {
 
         List<String> tseitinPartitions = new ArrayList<String>();
 
-        if (options.getTseitinType() == options.TSEITIN_WITHOUT_Z3) {
+        if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
             System.out.println("  Performing tseitin encoding without Z3...");
             tseitinPartitions = performTseitinEncodingWithoutZ3();
         } else {
