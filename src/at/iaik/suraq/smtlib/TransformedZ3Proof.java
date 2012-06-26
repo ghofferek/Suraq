@@ -497,6 +497,12 @@ public class TransformedZ3Proof extends Z3Proof {
                         .equals((new PropositionalConstant(false))
                                 .transformToConsequentsForm()));
                 hypotheticalProof.toLocalProof();
+                if (subProof.hasSingleLiteralConsequent()) {
+                    AnnotatedProofNode annotatedNode = annotatedNodeFromProofWithSingleLiteralConsequent(subProof);
+                    assert (annotatedNode != null);
+                    TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                            annotatedNode);
+                }
             } else
                 subProof.toLocalProofRecursion(operationId);
         }
@@ -559,30 +565,10 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // -------------------------------------------------------------
         if (this.hasSingleLiteralConsequent()) {
-            Formula literal = ((OrFormula) (this.consequent)).getDisjuncts()
-                    .iterator().next();
-            Set<Integer> partitions = literal.getPartitionsFromSymbols();
-            assert (partitions.size() > 0);
-            partitions.remove(-1);
-            if (partitions.size() > 1)
-                // this is a bad literal. We ignore it. It will be
-                // removed by this method anyway
-                return;
-
-            int partition;
-            if (partitions.size() == 0)
-                partition = 1; // put global stuff in partition 1 (arbitrary
-                               // choice)
-            else {
-                assert (partitions.iterator().hasNext());
-                assert (partitions.size() == 1);
-                partition = partitions.iterator().next();
-            }
-
-            AnnotatedProofNode annotatedNode = new AnnotatedProofNode(
-                    partition, partition, this, null, null, null);
-            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                    annotatedNode);
+            AnnotatedProofNode annotatedNode = annotatedNodeFromProofWithSingleLiteralConsequent(this);
+            if (annotatedNode != null)
+                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                        annotatedNode);
 
             if (this.proofType.equals(SExpressionConstants.ASSERTED))
                 // for UNIT-RESOLUTION we still need to update the subProofs
@@ -662,9 +648,34 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (false);
     }
 
-    /**
-     * 
-     */
+    private AnnotatedProofNode annotatedNodeFromProofWithSingleLiteralConsequent(
+            TransformedZ3Proof proof) {
+        assert (proof.hasSingleLiteralConsequent());
+        Formula literal = ((OrFormula) (proof.consequent)).getDisjuncts()
+                .iterator().next();
+        Set<Integer> partitions = literal.getPartitionsFromSymbols();
+        assert (partitions.size() > 0);
+        partitions.remove(-1);
+        if (partitions.size() > 1)
+            // this is a bad literal. We ignore it. It will be
+            // removed anyway
+            return null;
+
+        int partition;
+        if (partitions.size() == 0)
+            partition = 1; // put global stuff in partition 1 (arbitrary
+                           // choice)
+        else {
+            assert (partitions.iterator().hasNext());
+            assert (partitions.size() == 1);
+            partition = partitions.iterator().next();
+        }
+
+        AnnotatedProofNode annotatedNode = new AnnotatedProofNode(partition,
+                partition, proof, null, null, null);
+        return annotatedNode;
+    }
+
     private void handleMonotonicity() {
         assert (subProofs.size() >= 1);
 
