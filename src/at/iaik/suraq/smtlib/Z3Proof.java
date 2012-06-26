@@ -742,6 +742,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
         assert (subProofs != null);
         assert (!subProofs.isEmpty());
         subProofs = new ArrayList<Z3Proof>(subProofs);
+        List<TransformedZ3Proof> transformedSubProofs = new ArrayList<TransformedZ3Proof>(
+                subProofs.size());
         if (subProofs.size() == 1) {
             return subProofs.get(0);
         }
@@ -767,9 +769,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
             if (subProofs.size() == 1)
                 return subProofs.get(0);
             else {
+                assert (subProofs.size() == 0);
                 assert (toRemove.size() == initialSize);
                 Object[] proofs = toRemove.toArray();
                 assert (proofs.length == initialSize);
+                assert (proofs.length == 2 || proofs.length == 3);
                 assert (proofs[0] instanceof Z3Proof);
                 assert (proofs[1] instanceof Z3Proof);
                 if (proofs.length > 2) {
@@ -781,7 +785,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
                     assert (((Z3Proof) proofs[0]).consequent
                             .equals(((Z3Proof) proofs[1]).consequent));
                 }
-                Z3Proof result = new Z3Proof(SExpressionConstants.ASSERTED,
+                Z3Proof result = (proofs[0] instanceof TransformedZ3Proof) ? new TransformedZ3Proof(
+                        SExpressionConstants.ASSERTED,
+                        new ArrayList<TransformedZ3Proof>(),
+                        ((Z3Proof) proofs[0]).consequent) : new Z3Proof(
+                        SExpressionConstants.ASSERTED,
                         new ArrayList<Z3Proof>(),
                         ((Z3Proof) proofs[0]).consequent);
                 result.axiom = true;
@@ -790,17 +798,38 @@ public class Z3Proof implements SMTLibObject, Serializable {
         }
 
         if (subProofs.size() > 3) {
-            Z3Proof intermediate = Z3Proof
-                    .createTransitivityProof(new ArrayList<Z3Proof>(subProofs
-                            .subList(0, 2)));
-            for (int count = 2; count < subProofs.size(); count++) {
-                List<Z3Proof> currentSubProofs = new ArrayList<Z3Proof>(2);
-                currentSubProofs.add(intermediate);
-                currentSubProofs.add(subProofs.get(count));
-                intermediate = Z3Proof
-                        .createTransitivityProof(currentSubProofs);
+            if (subProofs.get(0) instanceof TransformedZ3Proof) {
+                for (Z3Proof subProof : subProofs) {
+                    assert (subProof instanceof TransformedZ3Proof);
+                    transformedSubProofs.add((TransformedZ3Proof) subProof);
+                }
+                Z3Proof intermediate = (subProofs.get(0) instanceof TransformedZ3Proof) ? TransformedZ3Proof
+                        .createTransitivityProofForTransformedZ3Proofs(new ArrayList<TransformedZ3Proof>(
+                                transformedSubProofs.subList(0, 2)))
+                        : Z3Proof
+                                .createTransitivityProof(new ArrayList<Z3Proof>(
+                                        subProofs.subList(0, 2)));
+                for (int count = 2; count < subProofs.size(); count++) {
+                    List<Z3Proof> currentSubProofs = new ArrayList<Z3Proof>(2);
+                    // / FIXME ugly hack to deal with transformed proofs.
+                    List<TransformedZ3Proof> transformedCurrentSubProofs = new ArrayList<TransformedZ3Proof>(
+                            2);
+                    currentSubProofs.add(intermediate);
+                    currentSubProofs.add(subProofs.get(count));
+                    if (intermediate instanceof TransformedZ3Proof
+                            && subProofs.get(count) instanceof TransformedZ3Proof) {
+                        transformedCurrentSubProofs
+                                .add((TransformedZ3Proof) intermediate);
+                        transformedCurrentSubProofs
+                                .add((TransformedZ3Proof) subProofs.get(count));
+                    }
+                    intermediate = (subProofs.get(0) instanceof TransformedZ3Proof) ? TransformedZ3Proof
+                            .createTransitivityProofForTransformedZ3Proofs(new ArrayList<TransformedZ3Proof>(
+                                    transformedCurrentSubProofs.subList(0, 2)))
+                            : Z3Proof.createTransitivityProof(currentSubProofs);
+                }
+                return intermediate;
             }
-            return intermediate;
         }
 
         EqualityFormula firstFormula = (EqualityFormula) Util
@@ -858,7 +887,17 @@ public class Z3Proof implements SMTLibObject, Serializable {
                     exc);
         }
 
-        Z3Proof result = new Z3Proof(SExpressionConstants.TRANSITIVITY,
+        transformedSubProofs = new ArrayList<TransformedZ3Proof>(
+                subProofs.size());
+        if (subProofs.get(0) instanceof TransformedZ3Proof) {
+            for (Z3Proof subProof : subProofs) {
+                assert (subProof instanceof TransformedZ3Proof);
+                transformedSubProofs.add((TransformedZ3Proof) subProof);
+            }
+        }
+        Z3Proof result = (subProofs.get(0) instanceof TransformedZ3Proof) ? new TransformedZ3Proof(
+                SExpressionConstants.TRANSITIVITY, transformedSubProofs,
+                newFormula) : new Z3Proof(SExpressionConstants.TRANSITIVITY,
                 subProofs, newFormula);
 
         // If we have three subproofs, we need to split them,
@@ -867,8 +906,17 @@ public class Z3Proof implements SMTLibObject, Serializable {
         assert (result.subProofs.size() <= 3);
         if (result.subProofs.size() == 3) {
             assert (result.proofType == SExpressionConstants.TRANSITIVITY);
-            Z3Proof intermediate = Z3Proof
-                    .createTransitivityProof(new ArrayList<Z3Proof>(
+            if (subProofs.get(0) instanceof TransformedZ3Proof) {
+                transformedSubProofs = new ArrayList<TransformedZ3Proof>();
+                for (Z3Proof proof : result.subProofs) {
+                    assert (proof instanceof TransformedZ3Proof);
+                    transformedSubProofs.add((TransformedZ3Proof) proof);
+                }
+            }
+            Z3Proof intermediate = (subProofs.get(0) instanceof TransformedZ3Proof) ? TransformedZ3Proof
+                    .createTransitivityProofForTransformedZ3Proofs(new ArrayList<TransformedZ3Proof>(
+                            transformedSubProofs.subList(0, 2)))
+                    : Z3Proof.createTransitivityProof(new ArrayList<Z3Proof>(
                             result.subProofs.subList(0, 2)));
             Z3Proof rest = result.subProofs.get(2);
             result.subProofs.clear();

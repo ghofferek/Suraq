@@ -112,6 +112,9 @@ public class TransitivityChainBuilder {
      */
     public List<TransformedZ3Proof> getChain() {
         List<Z3Proof> chain = graph.findPath(targetStartTerm, targetEndTerm);
+        if (chain == null)
+            return null;
+        assert (chain != null);
         List<TransformedZ3Proof> transformedChain = new ArrayList<TransformedZ3Proof>(
                 chain.size());
         for (Z3Proof proof : chain) {
