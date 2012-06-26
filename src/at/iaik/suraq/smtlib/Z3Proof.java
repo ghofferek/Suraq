@@ -1531,8 +1531,15 @@ public class Z3Proof implements SMTLibObject, Serializable {
                     .getFormula()).getTerms().size() == 2);
             assert (((DomainEq) ((FormulaTerm) consequentEq.getTerms().get(1))
                     .getFormula()).getTerms().size() == 2);
-            leftTerms.add(consequentEq.getTerms().get(0));
-            rightTerms.add(consequentEq.getTerms().get(1));
+            leftTerms.add(((EqualityFormula) ((FormulaTerm) consequentEq
+                    .getTerms().get(0)).getFormula()).getTerms().get(0));
+            leftTerms.add(((EqualityFormula) ((FormulaTerm) consequentEq
+                    .getTerms().get(0)).getFormula()).getTerms().get(1));
+            rightTerms.add(((EqualityFormula) ((FormulaTerm) consequentEq
+                    .getTerms().get(1)).getFormula()).getTerms().get(0));
+            rightTerms.add(((EqualityFormula) ((FormulaTerm) consequentEq
+                    .getTerms().get(1)).getFormula()).getTerms().get(1));
+
         } else
             throw new RuntimeException(
                     "Unexpected type of monotonicity proof. ID: " + this.id);
@@ -1542,7 +1549,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
         assert (leftTerms.size() == rightTerms.size());
         assert (leftTerms.size() >= subProofs.size());
 
-        List<Z3Proof> newSubProofs = new ArrayList<Z3Proof>(leftTerms.size());
         for (int count = 0; count < leftTerms.size(); count++) {
             Term leftTerm = leftTerms.get(count);
             Term rightTerm = rightTerms.get(count);
@@ -1560,15 +1566,18 @@ public class Z3Proof implements SMTLibObject, Serializable {
                     missingSubProof = true;
             }
             if (missingSubProof) {
-                assert (leftTerm.equals(rightTerm));
+                if (!leftTerm.equals(rightTerm))
+                    assert (false);
+
                 Z3Proof missingProof = TransformedZ3Proof
                         .createReflexivityProof(leftTerm);
+                List<Z3Proof> newSubProofs = new ArrayList<Z3Proof>();
+                newSubProofs.addAll(subProofs.subList(0, count));
                 newSubProofs.add(missingProof);
-            } else {
-                newSubProofs.add(subProof);
+                newSubProofs.addAll(subProofs.subList(count, subProofs.size()));
+                this.subProofs = newSubProofs;
             }
         }
-        this.subProofs = newSubProofs;
 
     }
 }
