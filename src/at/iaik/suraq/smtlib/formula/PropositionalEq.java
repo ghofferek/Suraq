@@ -31,7 +31,7 @@ public class PropositionalEq extends EqualityFormula {
      *            <code>false</code> for an inequality.
      * 
      */
-    public PropositionalEq(Collection<PropositionalTerm> propTerms,
+    public PropositionalEq(Collection<? extends PropositionalTerm> propTerms,
             boolean equal) {
         super(propTerms, equal);
     }

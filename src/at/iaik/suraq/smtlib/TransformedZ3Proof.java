@@ -680,12 +680,14 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (subProofs.size() >= 1);
 
         Formula literal = Util.getSingleLiteral(consequent);
-        assert (literal instanceof DomainEq);
-        DomainEq eqLiteral = (DomainEq) literal;
-        assert (eqLiteral.getTerms().get(0) instanceof DomainTerm);
-        DomainTerm leftTerm = (DomainTerm) eqLiteral.getTerms().get(0);
-        assert (eqLiteral.getTerms().get(eqLiteral.getTerms().size() - 1) instanceof DomainTerm);
-        DomainTerm rightTerm = (DomainTerm) eqLiteral.getTerms().get(
+        if (!(literal instanceof EqualityFormula))
+            assert (false);
+        EqualityFormula eqLiteral = (EqualityFormula) literal;
+        // assert (eqLiteral.getTerms().get(0) instanceof Term);
+        Term leftTerm = eqLiteral.getTerms().get(0);
+        // assert (eqLiteral.getTerms().get(eqLiteral.getTerms().size() - 1)
+        // instanceof DomainTerm);
+        Term rightTerm = eqLiteral.getTerms().get(
                 eqLiteral.getTerms().size() - 1);
 
         Set<Integer> leftPartitions = leftTerm.getPartitionsFromSymbols();
@@ -802,14 +804,30 @@ public class TransformedZ3Proof extends Z3Proof {
             proofs2.add(currentProofs[1]);
             proofs3.add(currentProofs[2]);
         }
-        UninterpretedFunction function = Util.getUninterpretedFunction(Util
-                .getSingleLiteral(consequent));
-        TransformedZ3Proof proof1 = TransformedZ3Proof.createMonotonicityProof(
-                proofs1, function);
-        TransformedZ3Proof proof2 = TransformedZ3Proof.createMonotonicityProof(
-                proofs2, function);
-        TransformedZ3Proof proof3 = TransformedZ3Proof.createMonotonicityProof(
-                proofs3, function);
+
+        TransformedZ3Proof proof1 = null;
+        TransformedZ3Proof proof2 = null;
+        TransformedZ3Proof proof3 = null;
+        if (literal instanceof PropositionalEq) {
+            proof1 = TransformedZ3Proof
+                    .createMonotonicityProofForEquality(proofs1);
+            proof2 = TransformedZ3Proof
+                    .createMonotonicityProofForEquality(proofs2);
+            proof3 = TransformedZ3Proof
+                    .createMonotonicityProofForEquality(proofs3);
+        } else {
+            UninterpretedFunction function = Util
+                    .getUninterpretedFunction(literal);
+            proof1 = TransformedZ3Proof.createMonotonicityProof(proofs1,
+                    function);
+            proof2 = TransformedZ3Proof.createMonotonicityProof(proofs2,
+                    function);
+            proof3 = TransformedZ3Proof.createMonotonicityProof(proofs3,
+                    function);
+        }
+        assert (proof1 != null);
+        assert (proof2 != null);
+        assert (proof3 != null);
 
         // put things together, add new annotated node
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
@@ -1524,6 +1542,36 @@ public class TransformedZ3Proof extends Z3Proof {
                         exc);
             }
         }
+        TransformedZ3Proof result = new TransformedZ3Proof(
+                SExpressionConstants.MONOTONICITY, subProofs, consequent);
+        return result;
+    }
+
+    /**
+     * Creates a monotonicity proof with equality as the "function".
+     * 
+     * @param subProofs
+     *            the equality proofs for the arguments
+     * @return a monotonicity proof for the given parameters.
+     */
+    public static TransformedZ3Proof createMonotonicityProofForEquality(
+            List<TransformedZ3Proof> subProofs) {
+
+        assert (subProofs.size() == 2);
+        assert (Util.getSingleLiteral(subProofs.get(0).consequent) instanceof DomainEq);
+        assert (Util.getSingleLiteral(subProofs.get(1).consequent) instanceof DomainEq);
+
+        DomainEq leftEq = (DomainEq) Util
+                .getSingleLiteral(subProofs.get(0).consequent);
+        DomainEq rightEq = (DomainEq) Util
+                .getSingleLiteral(subProofs.get(1).consequent);
+
+        List<FormulaTerm> propTerms = new ArrayList<FormulaTerm>(2);
+        propTerms.add(new FormulaTerm(leftEq));
+        propTerms.add(new FormulaTerm(rightEq));
+
+        Formula consequent = new PropositionalEq(propTerms, true);
+
         TransformedZ3Proof result = new TransformedZ3Proof(
                 SExpressionConstants.MONOTONICITY, subProofs, consequent);
         return result;
