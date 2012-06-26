@@ -442,9 +442,24 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof.proofMap.put(z3Proof.id, current1);
             return current1;
 
-        } else if (proofType.equals(SExpressionConstants.MONOTONICITY)
-                || proofType.equals(SExpressionConstants.SYMMETRY)) {
+        } else if (proofType.equals(SExpressionConstants.SYMMETRY)) {
 
+            List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
+            for (Z3Proof proof : z3Proof.subProofs) {
+                subProofs.add(TransformedZ3Proof
+                        .convertToTransformedZ3Proof(proof));
+            }
+            TransformedZ3Proof result = new TransformedZ3Proof(proofType,
+                    subProofs, z3Proof.getConsequent()
+                            .transformToConsequentsForm());
+            assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
+            TransformedZ3Proof.proofMap.put(z3Proof.id, result);
+            return result;
+        } else if (proofType.equals(SExpressionConstants.MONOTONICITY)) {
+
+            // Add missing reflexivity proofs. Having them makes some
+            // intermediate step easier, although they are removed later on.
+            z3Proof.addMissingReflexivityProofs();
             List<TransformedZ3Proof> subProofs = new ArrayList<TransformedZ3Proof>();
             for (Z3Proof proof : z3Proof.subProofs) {
                 subProofs.add(TransformedZ3Proof
@@ -1557,14 +1572,35 @@ public class TransformedZ3Proof extends Z3Proof {
     public static TransformedZ3Proof createMonotonicityProofForEquality(
             List<TransformedZ3Proof> subProofs) {
 
-        assert (subProofs.size() == 2);
+        if (subProofs.size() != 2)
+            assert (false);
         assert (Util.getSingleLiteral(subProofs.get(0).consequent) instanceof DomainEq);
         assert (Util.getSingleLiteral(subProofs.get(1).consequent) instanceof DomainEq);
 
-        DomainEq leftEq = (DomainEq) Util
-                .getSingleLiteral(subProofs.get(0).consequent);
-        DomainEq rightEq = (DomainEq) Util
-                .getSingleLiteral(subProofs.get(1).consequent);
+        List<DomainTerm> leftParams = new ArrayList<DomainTerm>(2);
+        List<DomainTerm> rightParams = new ArrayList<DomainTerm>(2);
+
+        for (TransformedZ3Proof subProof : subProofs) {
+            Formula literal = Util.getSingleLiteral(subProof.consequent);
+            assert (literal instanceof DomainEq);
+            DomainEq eqLiteral = (DomainEq) literal;
+            assert (eqLiteral.getTerms().size() == 2);
+            assert (eqLiteral.getTerms().get(0) instanceof DomainTerm);
+            assert (eqLiteral.getTerms().get(1) instanceof DomainTerm);
+            leftParams.add((DomainTerm) eqLiteral.getTerms().get(0));
+            rightParams.add((DomainTerm) eqLiteral.getTerms().get(1));
+        }
+        assert (leftParams.size() == 2);
+        assert (rightParams.size() == 2);
+
+        DomainEq leftEq;
+        DomainEq rightEq;
+        try {
+            leftEq = (DomainEq) EqualityFormula.create(leftParams, true);
+            rightEq = (DomainEq) EqualityFormula.create(rightParams, true);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException("Incomparable terms!", exc);
+        }
 
         List<FormulaTerm> propTerms = new ArrayList<FormulaTerm>(2);
         propTerms.add(new FormulaTerm(leftEq));

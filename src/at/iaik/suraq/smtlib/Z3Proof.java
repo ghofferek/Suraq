@@ -18,15 +18,19 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
+import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
@@ -1473,5 +1477,98 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     public boolean isHypothesis() {
         return proofType.equals(SExpressionConstants.HYPOTHESIS);
+    }
+
+    /**
+     * Adds missing reflexivity proofs to a monotonicity proof. Does nothing on
+     * other proof types.
+     * 
+     * Also performs sanity checks. E.g. if the subproofs actually proof what
+     * they are supposed to prove.
+     * 
+     */
+    protected void addMissingReflexivityProofs() {
+        if (!this.proofType.equals(SExpressionConstants.MONOTONICITY))
+            return;
+        assert (this.hasSingleLiteralConsequent());
+        assert (Util.getSingleLiteral(this.consequent) instanceof EqualityFormula);
+        EqualityFormula consequentEq = (EqualityFormula) Util
+                .getSingleLiteral(this.consequent);
+        assert (consequentEq.getTerms().size() == 2);
+        List<Term> leftTerms = new ArrayList<Term>();
+        List<Term> rightTerms = new ArrayList<Term>();
+
+        if (consequentEq.getTerms().get(0) instanceof UninterpretedFunctionInstance) {
+            assert (consequentEq.getTerms().get(1) instanceof UninterpretedFunctionInstance);
+            UninterpretedFunctionInstance leftFunctionInstance = (UninterpretedFunctionInstance) consequentEq
+                    .getTerms().get(0);
+            UninterpretedFunctionInstance rightFunctionInstance = (UninterpretedFunctionInstance) consequentEq
+                    .getTerms().get(1);
+            assert (leftFunctionInstance.getFunction()
+                    .equals(rightFunctionInstance.getFunction()));
+            assert (leftFunctionInstance.getParameters().size() == rightFunctionInstance
+                    .getParameters().size());
+            leftTerms.addAll(leftFunctionInstance.getParameters());
+            rightTerms.addAll(rightFunctionInstance.getParameters());
+
+        } else if (consequentEq.getTerms().get(0) instanceof UninterpretedPredicateInstance) {
+            assert (consequentEq.getTerms().get(1) instanceof UninterpretedPredicateInstance);
+            UninterpretedPredicateInstance leftPredicateInstance = (UninterpretedPredicateInstance) consequentEq
+                    .getTerms().get(0);
+            UninterpretedPredicateInstance rightPredicateInstance = (UninterpretedPredicateInstance) consequentEq
+                    .getTerms().get(1);
+            assert (leftPredicateInstance.getFunction()
+                    .equals(rightPredicateInstance.getFunction()));
+            assert (leftPredicateInstance.getParameters().size() == rightPredicateInstance
+                    .getParameters().size());
+            leftTerms.addAll(leftPredicateInstance.getParameters());
+            rightTerms.addAll(rightPredicateInstance.getParameters());
+        } else if (consequentEq.getTerms().get(0) instanceof FormulaTerm) {
+            assert (consequentEq.getTerms().get(1) instanceof FormulaTerm);
+            assert (((FormulaTerm) consequentEq.getTerms().get(0)).getFormula() instanceof DomainEq);
+            assert (((FormulaTerm) consequentEq.getTerms().get(1)).getFormula() instanceof DomainEq);
+            assert (((DomainEq) ((FormulaTerm) consequentEq.getTerms().get(0))
+                    .getFormula()).getTerms().size() == 2);
+            assert (((DomainEq) ((FormulaTerm) consequentEq.getTerms().get(1))
+                    .getFormula()).getTerms().size() == 2);
+            leftTerms.add(consequentEq.getTerms().get(0));
+            rightTerms.add(consequentEq.getTerms().get(1));
+        } else
+            throw new RuntimeException(
+                    "Unexpected type of monotonicity proof. ID: " + this.id);
+
+        assert (leftTerms.size() > 0);
+        assert (rightTerms.size() > 0);
+        assert (leftTerms.size() == rightTerms.size());
+        assert (leftTerms.size() >= subProofs.size());
+
+        List<Z3Proof> newSubProofs = new ArrayList<Z3Proof>(leftTerms.size());
+        for (int count = 0; count < leftTerms.size(); count++) {
+            Term leftTerm = leftTerms.get(count);
+            Term rightTerm = rightTerms.get(count);
+            Z3Proof subProof = subProofs.size() > count ? subProofs.get(count)
+                    : null;
+            boolean missingSubProof = (subProof == null);
+            if (subProof != null) {
+                assert (Util.getSingleLiteral(subProof.consequent) instanceof EqualityFormula);
+                EqualityFormula subEq = (EqualityFormula) Util
+                        .getSingleLiteral(subProof.consequent);
+                assert (subEq.getTerms().size() == 2);
+                if (!subEq.getTerms().get(0).equals(leftTerm))
+                    missingSubProof = true;
+                if (!subEq.getTerms().get(1).equals(rightTerm))
+                    missingSubProof = true;
+            }
+            if (missingSubProof) {
+                assert (leftTerm.equals(rightTerm));
+                Z3Proof missingProof = TransformedZ3Proof
+                        .createReflexivityProof(leftTerm);
+                newSubProofs.add(missingProof);
+            } else {
+                newSubProofs.add(subProof);
+            }
+        }
+        this.subProofs = newSubProofs;
+
     }
 }

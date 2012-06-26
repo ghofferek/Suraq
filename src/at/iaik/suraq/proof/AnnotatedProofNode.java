@@ -98,7 +98,8 @@ public class AnnotatedProofNode {
                     .makeLiteralPositive(Util.getSingleLiteral((this.consequent
                             .getConsequent())))).getTerms().toArray();
 
-            assert (consequentTerms[0].equals(part1[0]));
+            if (!consequentTerms[0].equals(part1[0]))
+                assert (false);
             assert (consequentTerms[1].equals(part3[1]));
             assert (part1[1].equals(part2[0]));
             assert (part2[1].equals(part3[0]));
