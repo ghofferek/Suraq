@@ -267,14 +267,15 @@ public class Util {
      *            proof.
      * @return the uninterpreted function that is used in the given equality.
      */
-    public static UninterpretedFunction getUninterpretedFunction(Formula literal) {
-        assert (literal instanceof DomainEq);
-        DomainEq equality = (DomainEq) literal;
+    public static UninterpretedFunction getUninterpretedFunctionOrPredicate(
+            Formula literal) {
+        assert (literal instanceof EqualityFormula);
+        EqualityFormula equality = (EqualityFormula) literal;
         assert (equality.getTerms().size() == 2);
         assert ((equality.getTerms().get(0) instanceof UninterpretedFunctionInstance) || (equality
-                .getTerms().get(0) instanceof UninterpretedPredicateInstance));
+                .getTerms().get(0) instanceof FormulaTerm));
         assert ((equality.getTerms().get(1) instanceof UninterpretedFunctionInstance) || (equality
-                .getTerms().get(1) instanceof UninterpretedPredicateInstance));
+                .getTerms().get(1) instanceof FormulaTerm));
         if (equality.getTerms().get(0) instanceof UninterpretedFunctionInstance) {
             assert (equality.getTerms().get(1) instanceof UninterpretedFunctionInstance);
             UninterpretedFunctionInstance instance1 = (UninterpretedFunctionInstance) (equality
@@ -284,12 +285,17 @@ public class Util {
             UninterpretedFunction function = instance1.getFunction();
             assert (function.equals(instance2.getFunction()));
             return function;
-        } else if (equality.getTerms().get(0) instanceof UninterpretedPredicateInstance) {
-            assert (equality.getTerms().get(1) instanceof UninterpretedPredicateInstance);
-            UninterpretedPredicateInstance instance1 = (UninterpretedPredicateInstance) (equality
-                    .getTerms().get(0));
-            UninterpretedPredicateInstance instance2 = (UninterpretedPredicateInstance) (equality
-                    .getTerms().get(1));
+        } else if (equality.getTerms().get(0) instanceof FormulaTerm) {
+            assert (equality.getTerms().get(1) instanceof FormulaTerm);
+            FormulaTerm term1 = (FormulaTerm) equality.getTerms().get(0);
+            FormulaTerm term2 = (FormulaTerm) equality.getTerms().get(1);
+            assert (term1.getFormula() instanceof UninterpretedPredicateInstance);
+            assert (term2.getFormula() instanceof UninterpretedPredicateInstance);
+
+            UninterpretedPredicateInstance instance1 = (UninterpretedPredicateInstance) term1
+                    .getFormula();
+            UninterpretedPredicateInstance instance2 = (UninterpretedPredicateInstance) term2
+                    .getFormula();
             UninterpretedFunction function = instance1.getFunction();
             assert (function.equals(instance2.getFunction()));
             return function;

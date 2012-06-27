@@ -698,16 +698,16 @@ public class TransformedZ3Proof extends Z3Proof {
     private void handleMonotonicity() {
         assert (subProofs.size() >= 1);
 
-        Formula literal = Util.getSingleLiteral(consequent);
-        if (!(literal instanceof EqualityFormula))
+        Formula consequentLiteral = Util.getSingleLiteral(consequent);
+        if (!(consequentLiteral instanceof EqualityFormula))
             assert (false);
-        EqualityFormula eqLiteral = (EqualityFormula) literal;
+        EqualityFormula consequentEq = (EqualityFormula) consequentLiteral;
         // assert (eqLiteral.getTerms().get(0) instanceof Term);
-        Term leftTerm = eqLiteral.getTerms().get(0);
+        Term leftTerm = consequentEq.getTerms().get(0);
         // assert (eqLiteral.getTerms().get(eqLiteral.getTerms().size() - 1)
         // instanceof DomainTerm);
-        Term rightTerm = eqLiteral.getTerms().get(
-                eqLiteral.getTerms().size() - 1);
+        Term rightTerm = consequentEq.getTerms().get(
+                consequentEq.getTerms().size() - 1);
 
         Set<Integer> leftPartitions = leftTerm.getPartitionsFromSymbols();
         leftPartitions.remove(-1);
@@ -827,22 +827,45 @@ public class TransformedZ3Proof extends Z3Proof {
         TransformedZ3Proof proof1 = null;
         TransformedZ3Proof proof2 = null;
         TransformedZ3Proof proof3 = null;
-        if (literal instanceof PropositionalEq) {
-            proof1 = TransformedZ3Proof
-                    .createMonotonicityProofForEquality(proofs1);
-            proof2 = TransformedZ3Proof
-                    .createMonotonicityProofForEquality(proofs2);
-            proof3 = TransformedZ3Proof
-                    .createMonotonicityProofForEquality(proofs3);
-        } else {
+
+        if (consequentEq.getTerms().get(0) instanceof UninterpretedFunctionInstance) {
             UninterpretedFunction function = Util
-                    .getUninterpretedFunction(literal);
+                    .getUninterpretedFunctionOrPredicate(consequentLiteral);
             proof1 = TransformedZ3Proof.createMonotonicityProof(proofs1,
                     function);
             proof2 = TransformedZ3Proof.createMonotonicityProof(proofs2,
                     function);
             proof3 = TransformedZ3Proof.createMonotonicityProof(proofs3,
                     function);
+        } else {
+            assert (consequentEq.getTerms().get(0) instanceof FormulaTerm);
+            assert (consequentEq.getTerms().get(1) instanceof FormulaTerm);
+            Formula leftFormula = ((FormulaTerm) consequentEq.getTerms().get(0))
+                    .getFormula();
+            Formula rightFormula = ((FormulaTerm) consequentEq.getTerms()
+                    .get(1)).getFormula();
+
+            if (leftFormula instanceof UninterpretedPredicateInstance) {
+                assert (rightFormula instanceof UninterpretedPredicateInstance);
+                UninterpretedFunction function = Util
+                        .getUninterpretedFunctionOrPredicate(consequentLiteral);
+                proof1 = TransformedZ3Proof.createMonotonicityProof(proofs1,
+                        function);
+                proof2 = TransformedZ3Proof.createMonotonicityProof(proofs2,
+                        function);
+                proof3 = TransformedZ3Proof.createMonotonicityProof(proofs3,
+                        function);
+
+            } else {
+                assert (leftFormula instanceof DomainEq);
+                assert (rightFormula instanceof DomainEq);
+                proof1 = TransformedZ3Proof
+                        .createMonotonicityProofForEquality(proofs1);
+                proof2 = TransformedZ3Proof
+                        .createMonotonicityProofForEquality(proofs2);
+                proof3 = TransformedZ3Proof
+                        .createMonotonicityProofForEquality(proofs3);
+            }
         }
         assert (proof1 != null);
         assert (proof2 != null);
