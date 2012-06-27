@@ -1511,38 +1511,40 @@ public class Z3Proof implements SMTLibObject, Serializable {
             leftTerms.addAll(leftFunctionInstance.getParameters());
             rightTerms.addAll(rightFunctionInstance.getParameters());
 
-        } else if (consequentEq.getTerms().get(0) instanceof UninterpretedPredicateInstance) {
-            assert (consequentEq.getTerms().get(1) instanceof UninterpretedPredicateInstance);
-            UninterpretedPredicateInstance leftPredicateInstance = (UninterpretedPredicateInstance) consequentEq
-                    .getTerms().get(0);
-            UninterpretedPredicateInstance rightPredicateInstance = (UninterpretedPredicateInstance) consequentEq
-                    .getTerms().get(1);
-            assert (leftPredicateInstance.getFunction()
-                    .equals(rightPredicateInstance.getFunction()));
-            assert (leftPredicateInstance.getParameters().size() == rightPredicateInstance
-                    .getParameters().size());
-            leftTerms.addAll(leftPredicateInstance.getParameters());
-            rightTerms.addAll(rightPredicateInstance.getParameters());
-        } else if (consequentEq.getTerms().get(0) instanceof FormulaTerm) {
+        } else {
+            assert (consequentEq.getTerms().get(0) instanceof FormulaTerm);
             assert (consequentEq.getTerms().get(1) instanceof FormulaTerm);
-            assert (((FormulaTerm) consequentEq.getTerms().get(0)).getFormula() instanceof DomainEq);
-            assert (((FormulaTerm) consequentEq.getTerms().get(1)).getFormula() instanceof DomainEq);
-            assert (((DomainEq) ((FormulaTerm) consequentEq.getTerms().get(0))
-                    .getFormula()).getTerms().size() == 2);
-            assert (((DomainEq) ((FormulaTerm) consequentEq.getTerms().get(1))
-                    .getFormula()).getTerms().size() == 2);
-            leftTerms.add(((EqualityFormula) ((FormulaTerm) consequentEq
-                    .getTerms().get(0)).getFormula()).getTerms().get(0));
-            leftTerms.add(((EqualityFormula) ((FormulaTerm) consequentEq
-                    .getTerms().get(0)).getFormula()).getTerms().get(1));
-            rightTerms.add(((EqualityFormula) ((FormulaTerm) consequentEq
-                    .getTerms().get(1)).getFormula()).getTerms().get(0));
-            rightTerms.add(((EqualityFormula) ((FormulaTerm) consequentEq
-                    .getTerms().get(1)).getFormula()).getTerms().get(1));
+            Formula leftFormula = ((FormulaTerm) consequentEq.getTerms().get(0))
+                    .getFormula();
+            Formula rightFormula = ((FormulaTerm) consequentEq.getTerms()
+                    .get(1)).getFormula();
 
-        } else
-            throw new RuntimeException(
-                    "Unexpected type of monotonicity proof. ID: " + this.id);
+            if (leftFormula instanceof UninterpretedPredicateInstance) {
+                assert (rightFormula instanceof UninterpretedPredicateInstance);
+                UninterpretedPredicateInstance leftPredicateInstance = (UninterpretedPredicateInstance) leftFormula;
+                UninterpretedPredicateInstance rightPredicateInstance = (UninterpretedPredicateInstance) rightFormula;
+                assert (leftPredicateInstance.getFunction()
+                        .equals(rightPredicateInstance.getFunction()));
+                assert (leftPredicateInstance.getParameters().size() == rightPredicateInstance
+                        .getParameters().size());
+                leftTerms.addAll(leftPredicateInstance.getParameters());
+                rightTerms.addAll(rightPredicateInstance.getParameters());
+            } else if (leftFormula instanceof DomainEq) {
+                assert (rightFormula instanceof DomainEq);
+                DomainEq leftEq = (DomainEq) leftFormula;
+                DomainEq rightEq = (DomainEq) rightFormula;
+
+                assert (leftEq.getTerms().size() == 2);
+                assert (rightEq.getTerms().size() == 2);
+                leftTerms.add(leftEq.getTerms().get(0));
+                leftTerms.add(leftEq.getTerms().get(1));
+                rightTerms.add(rightEq.getTerms().get(0));
+                rightTerms.add(rightEq.getTerms().get(1));
+
+            } else
+                throw new RuntimeException(
+                        "Unexpected type of monotonicity proof. ID: " + this.id);
+        }
 
         assert (leftTerms.size() > 0);
         assert (rightTerms.size() > 0);

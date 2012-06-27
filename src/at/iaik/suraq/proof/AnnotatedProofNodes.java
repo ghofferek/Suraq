@@ -3,8 +3,8 @@
  */
 package at.iaik.suraq.proof;
 
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 
 import at.iaik.suraq.smtlib.formula.Formula;
 
@@ -12,12 +12,14 @@ import at.iaik.suraq.smtlib.formula.Formula;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class AnnotatedProofNodes extends HashSet<AnnotatedProofNode> {
+public class AnnotatedProofNodes {
 
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
+
+    private Map<Formula, AnnotatedProofNode> map = new HashMap<Formula, AnnotatedProofNode>();
 
     /**
      * Constructs a new <code>AnnotatedProofNodes</code> set.
@@ -36,12 +38,14 @@ public class AnnotatedProofNodes extends HashSet<AnnotatedProofNode> {
      *         node does not exist.
      */
     public AnnotatedProofNode getNodeWithConsequent(Formula consequent) {
-        Iterator<AnnotatedProofNode> iterator = this.iterator();
-        while (iterator.hasNext()) {
-            AnnotatedProofNode currentNode = iterator.next();
-            if (currentNode.hasConsequent(consequent))
-                return currentNode;
-        }
-        return null;
+        return map.get(consequent.transformToConsequentsForm());
+    }
+
+    public void add(AnnotatedProofNode node) {
+        assert (node != null);
+        assert (node.getConsequent() != null);
+        assert (node.getConsequent().getConsequent() != null);
+        map.put(node.getConsequent().getConsequent()
+                .transformToConsequentsForm(), node);
     }
 }

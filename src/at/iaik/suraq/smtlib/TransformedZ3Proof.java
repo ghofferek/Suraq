@@ -149,6 +149,10 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.literal = literal == null ? null : Util.getSingleLiteral(literal
                 .deepFormulaCopy());
+
+        assert (literal == null || this.proofType
+                .equals(SExpressionConstants.UNIT_RESOLUTION));
+        assert (this.checkLiteralOccurenceInSubProofs());
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
@@ -192,8 +196,8 @@ public class TransformedZ3Proof extends Z3Proof {
         super(proofType, subProof1, subProof2, consequent
                 .transformToConsequentsForm().deepFormulaCopy());
 
-        this.literal = literal == null ? null : Util.getSingleLiteral(literal
-                .deepFormulaCopy());
+        this.literal = literal == null ? null : Util.makeLiteralPositive(Util
+                .getSingleLiteral(literal.deepFormulaCopy()));
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
@@ -1779,12 +1783,12 @@ public class TransformedZ3Proof extends Z3Proof {
                 TransformedZ3Proof currentEquality = (TransformedZ3Proof) this.subProofs
                         .get(count);
                 currentEquality.toResolutionProofRecursion(operationId);
-                axiomParts.remove(0);
+                Formula literal = axiomParts.remove(0);
+                assert (Util.isLiteral(literal.transformToConsequentsForm()));
 
                 remainingAxiom = new TransformedZ3Proof(
                         SExpressionConstants.UNIT_RESOLUTION, currentEquality,
-                        remainingAxiom, this.subProofs.get(count)
-                                .getConsequent().transformToConsequentsForm(),
+                        remainingAxiom, literal.transformToConsequentsForm(),
                         (new OrFormula(axiomParts))
                                 .transformToConsequentsForm());
             }
@@ -2059,6 +2063,59 @@ public class TransformedZ3Proof extends Z3Proof {
             value = value >>> 1;
         }
         return bits;
+    }
+
+    /**
+     * 
+     * @return <code>true</code> if this is not a resolution node,
+     *         <code>literal</code> is <code>null</code>, or if the exactly 2
+     *         subproofs contain the resolving literal in opposite polarity.
+     */
+    private boolean checkLiteralOccurenceInSubProofs() {
+        if (!this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION))
+            return true;
+
+        if (literal == null)
+            return true;
+
+        if (this.subProofs.size() != 2)
+            return false;
+
+        assert (subProofs.get(0).consequent instanceof OrFormula);
+        assert (subProofs.get(1).consequent instanceof OrFormula);
+
+        OrFormula premise1 = (OrFormula) subProofs.get(0).consequent;
+        OrFormula premise2 = (OrFormula) subProofs.get(0).consequent;
+
+        Formula negatedLiteral = new NotFormula(literal);
+
+        int polarity = 0;
+        for (Formula literalFromPremise1 : premise1.getDisjuncts()) {
+            literalFromPremise1 = Util.getSingleLiteral(literalFromPremise1);
+            if (literal.equals(literalFromPremise1)) {
+                polarity = 1;
+                break;
+            }
+            if (negatedLiteral.equals(literalFromPremise1)) {
+                polarity = -1;
+                break;
+            }
+        }
+        if (polarity == 0)
+            return false;
+        for (Formula literalFromPremise2 : premise2.getDisjuncts()) {
+            literalFromPremise2 = Util.getSingleLiteral(literalFromPremise2);
+            assert (polarity != 0);
+            if (polarity < 0) {
+                if (literal.equals(literalFromPremise2))
+                    return true;
+            } else {
+                assert (polarity > 0);
+                if (negatedLiteral.equals(literalFromPremise2))
+                    return true;
+            }
+        }
+        return false;
     }
 
     private boolean checkPresence(OrFormula haystack, Formula needle) {
