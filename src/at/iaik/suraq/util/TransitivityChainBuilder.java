@@ -149,10 +149,12 @@ public class TransitivityChainBuilder {
 
         if (tmpChain == null) {
             reversePolarity = true;
-            FormulaTerm reverseStartTerm = new FormulaTerm(new NotFormula(
-                    ((FormulaTerm) targetStartTerm).getFormula()));
-            FormulaTerm reverseEndTerm = new FormulaTerm(new NotFormula(
-                    ((FormulaTerm) targetEndTerm).getFormula()));
+            PropositionalTerm reverseStartTerm = FormulaTerm
+                    .create(new NotFormula(((FormulaTerm) targetStartTerm)
+                            .getFormula()));
+            PropositionalTerm reverseEndTerm = FormulaTerm
+                    .create(new NotFormula(((FormulaTerm) targetEndTerm)
+                            .getFormula()));
             tmpChain = graph.findPath(reverseStartTerm, reverseEndTerm);
             if (tmpChain == null)
                 assert (false);

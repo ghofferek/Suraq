@@ -36,6 +36,7 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalIte;
+import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -1151,11 +1152,11 @@ public class TransformedZ3Proof extends Z3Proof {
             }
 
             // Build transitivity chain for the propositional equalities
-            Term startTerm = new FormulaTerm(
-                    Util.makeLiteralPositive(Util
+            Term startTerm = FormulaTerm
+                    .create(Util.makeLiteralPositive(Util
                             .getSingleLiteral(z3Proof.subProofs.get(0)
                                     .getConsequent())));
-            Term endTerm = new FormulaTerm(Util.makeLiteralPositive(Util
+            Term endTerm = FormulaTerm.create(Util.makeLiteralPositive(Util
                     .getSingleLiteral(z3Proof.consequent)));
             TransitivityChainBuilder chainBuilder = new TransitivityChainBuilder(
                     startTerm, endTerm);
@@ -1629,9 +1630,9 @@ public class TransformedZ3Proof extends Z3Proof {
             throw new RuntimeException("Incomparable terms!", exc);
         }
 
-        List<FormulaTerm> propTerms = new ArrayList<FormulaTerm>(2);
-        propTerms.add(new FormulaTerm(leftEq));
-        propTerms.add(new FormulaTerm(rightEq));
+        List<PropositionalTerm> propTerms = new ArrayList<PropositionalTerm>(2);
+        propTerms.add(FormulaTerm.create(leftEq));
+        propTerms.add(FormulaTerm.create(rightEq));
 
         Formula consequent = new PropositionalEq(propTerms, true);
 
@@ -1967,7 +1968,7 @@ public class TransformedZ3Proof extends Z3Proof {
             Map<Token, Term> substitutionsMap = new HashMap<Token, Term>();
             for (PropositionalVariable tseitinVar : tseitinEncoding.keySet())
                 substitutionsMap.put(new Token(tseitinVar.getVarName()),
-                        new FormulaTerm(tseitinEncoding.get(tseitinVar)));
+                        FormulaTerm.create(tseitinEncoding.get(tseitinVar)));
 
             trees.put(signal, tree.substituteFormula(substitutionsMap));
         }

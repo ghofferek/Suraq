@@ -566,9 +566,9 @@ public abstract class SMTLibParser extends Parser {
 
             if (thenBranch instanceof PropositionalTerm
                     && elseBranch instanceof PropositionalTerm)
-                return new FormulaTerm(new PropositionalIte(condition,
+                return FormulaTerm.create((new PropositionalIte(condition,
                         (PropositionalTerm) thenBranch,
-                        (PropositionalTerm) elseBranch));
+                        (PropositionalTerm) elseBranch)));
 
             throw new ParseError(expression,
                     "Incompatible types in 'ite' expression");
@@ -698,8 +698,8 @@ public abstract class SMTLibParser extends Parser {
             try {
                 if (macro.getType().equals(SExpressionConstants.BOOL_TYPE)) {
                     assert (macro instanceof PropositionalFunctionMacro);
-                    return new FormulaTerm(
-                            new PropositionalFunctionMacroInstance(
+                    return FormulaTerm
+                            .create(new PropositionalFunctionMacroInstance(
                                     (PropositionalFunctionMacro) macro,
                                     paramMap));
                 } else {
@@ -717,7 +717,7 @@ public abstract class SMTLibParser extends Parser {
         // as a last resort, try interpreting the expression as a formula
         // this will throw a parse error, if it fails.
         Formula formula = parseFormulaBody(expression);
-        return new FormulaTerm(formula);
+        return FormulaTerm.create(formula);
     }
 
     /**

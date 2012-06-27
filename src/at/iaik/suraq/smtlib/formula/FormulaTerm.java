@@ -33,8 +33,26 @@ public class FormulaTerm extends PropositionalTerm {
      * @param formula
      *            the formula that represents this term.
      */
-    public FormulaTerm(Formula formula) {
+    private FormulaTerm(Formula formula) {
         this.formula = formula.deepFormulaCopy();
+    }
+
+    /**
+     * Creates and returns a new <code>FormulaTerm</code> for the given
+     * <code>formula</code>, unless the <code>formula</code> is already a
+     * <code>PropositionalTerm</code>, in which case it is returned unaltered.
+     * 
+     * @param formula
+     *            the formula to encapsulate
+     * @return either a <code>FormulaTerm</code> encapsulating
+     *         <code>formula</code>, or <code>formula</code> itself, if it
+     *         already is a <code>PropositionalTerm</code>.
+     */
+    public static PropositionalTerm create(Formula formula) {
+        if (formula instanceof PropositionalTerm)
+            return (PropositionalTerm) formula;
+        else
+            return new FormulaTerm(formula);
     }
 
     /**

@@ -386,7 +386,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                 Util.freshVarName(topLeveFormula, "aux"));
         List<PropositionalTerm> terms = new ArrayList<PropositionalTerm>();
         terms.add(newVar);
-        terms.add(new FormulaTerm(this.deepFormulaCopy()));
+        terms.add(FormulaTerm.create(this.deepFormulaCopy()));
         constraints.add(new PropositionalEq(terms, true));
 
         if (Util.formulaContainsAny(this, noDependenceVars))
