@@ -141,8 +141,8 @@ public class TransitivityChainBuilder {
      */
     public TransformedZ3Proof convertToResolutionChain(boolean predicatePolarity) {
 
-        assert (targetStartTerm instanceof FormulaTerm);
-        assert (targetEndTerm instanceof FormulaTerm);
+        assert (targetStartTerm instanceof PropositionalTerm);
+        assert (targetEndTerm instanceof PropositionalTerm);
 
         boolean reversePolarity = false;
         List<Z3Proof> tmpChain = graph.findPath(targetStartTerm, targetEndTerm);
@@ -150,11 +150,9 @@ public class TransitivityChainBuilder {
         if (tmpChain == null) {
             reversePolarity = true;
             PropositionalTerm reverseStartTerm = FormulaTerm
-                    .create(new NotFormula(((FormulaTerm) targetStartTerm)
-                            .getFormula()));
+                    .create(new NotFormula((PropositionalTerm) targetStartTerm));
             PropositionalTerm reverseEndTerm = FormulaTerm
-                    .create(new NotFormula(((FormulaTerm) targetEndTerm)
-                            .getFormula()));
+                    .create(new NotFormula((PropositionalTerm) targetEndTerm));
             tmpChain = graph.findPath(reverseStartTerm, reverseEndTerm);
             if (tmpChain == null)
                 assert (false);
