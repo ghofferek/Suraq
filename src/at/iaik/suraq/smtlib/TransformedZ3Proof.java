@@ -887,16 +887,16 @@ public class TransformedZ3Proof extends Z3Proof {
             result[0] = annotatedNode.getConsequent();
 
         // result[1]
-        if (newLeftTerm.equals(newRightTerm))
+        if (newLeftTerm.equals(newRightTerm)) {
             result[1] = TransformedZ3Proof.createReflexivityProof(newLeftTerm);
-
-        if (annotatedNode.numPremises() == 3) {
+        } else if (annotatedNode.numPremises() == 3) {
             assert (newProofNode != null);
             result[1] = newProofNode;
         } else {
             assert (annotatedNode.numPremises() == 0);
             if (leftTerm.equals(newLeftTerm)) {
-                assert (rightTerm.equals(newRightTerm));
+                if (!rightTerm.equals(newRightTerm))
+                    assert (false);
                 result[1] = annotatedNode.getConsequent();
             } else {
                 assert (!rightTerm.equals(newRightTerm));
