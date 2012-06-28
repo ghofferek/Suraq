@@ -1335,6 +1335,46 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     /**
      * 
+     * @return the maximum "depth" of this proof. (length of the chain to a
+     *         leaf)
+     */
+    public int depth() {
+        if (this.subProofs.isEmpty())
+            return 1;
+        int result = 0;
+        for (Z3Proof child : subProofs) {
+            int childDepth = child.depth();
+            if (childDepth > result)
+                result = childDepth;
+        }
+        return result;
+    }
+
+    public Set<Z3Proof> getNodesWithConsequent(Formula consequent) {
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        long operationId = startDAGOperation();
+        this.getNodesWithConsequentRecursion(consequent, result, operationId);
+        endDAGOperation(operationId);
+        return result;
+    }
+
+    public void getNodesWithConsequentRecursion(Formula consequent,
+            Set<Z3Proof> result, long operationId) {
+        assert (result != null);
+        if (wasVisitedByDAGOperation(operationId))
+            return;
+        visitedByDAGOperation(operationId);
+
+        if (this.consequent.equals(consequent))
+            result.add(this);
+
+        for (Z3Proof child : subProofs)
+            child.getNodesWithConsequentRecursion(consequent, result,
+                    operationId);
+    }
+
+    /**
+     * 
      * @return number of nodes in this proof
      */
     public int size() {

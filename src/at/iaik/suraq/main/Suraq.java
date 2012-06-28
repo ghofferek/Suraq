@@ -434,7 +434,7 @@ public class Suraq implements Runnable {
         // noErrors = false;
         // }
 
-        printProofSize(rootProof);
+        printProofStats(rootProof);
 
         // timer.start();
         // int all_nodes_size = rootProof.allNodes().size();
@@ -470,7 +470,7 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         // assert (rootProof.checkZ3ProofNodeRecursive());
-        printProofSize(rootProof);
+        printProofStats(rootProof);
 
         // System.out.println("Num Instances: " +
         // Z3Proof.numInstances());
@@ -481,7 +481,7 @@ public class Suraq implements Runnable {
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
-        printProofSize(transformedZ3Proof);
+        printProofStats(transformedZ3Proof);
 
         /*
          * System.out.println("Num Instances: " + Z3Proof.numInstances()); try {
@@ -503,7 +503,7 @@ public class Suraq implements Runnable {
         timer.reset();
         // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
         assert (transformedZ3Proof.isLocal());
-        printProofSize(transformedZ3Proof);
+        printProofStats(transformedZ3Proof);
         // System.out
         // .println("----Check:"
         // + transformedZ3Proof
@@ -514,7 +514,7 @@ public class Suraq implements Runnable {
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
-        printProofSize(transformedZ3Proof);
+        printProofStats(transformedZ3Proof);
         // System.out
         // .println("----Check:"
         // + transformedZ3Proof
@@ -551,7 +551,7 @@ public class Suraq implements Runnable {
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
-        printProofSize(recoveredProof);
+        printProofStats(recoveredProof);
         // System.out
         // .println("----Check:"
         // + recoveredProof
@@ -1642,7 +1642,7 @@ public class Suraq implements Runnable {
      * 
      * @param proof
      */
-    private void printProofSize(Z3Proof proof) {
+    private void printProofStats(Z3Proof proof) {
 
         SuraqOptions options = SuraqOptions.getInstance();
 
@@ -1663,6 +1663,15 @@ public class Suraq implements Runnable {
             System.out.println("    Proof (tree) size: " + treeSizeString
                     + " (computed in " + treeTimer + ")");
             System.out.println();
+
+            Timer depthTimer = new Timer();
+            depthTimer.start();
+            int depth = proof.depth();
+            depthTimer.end();
+            System.out.println("    Proof depth: " + depth + " (computed in "
+                    + depthTimer + ")");
+            System.out.println();
+
         }
     }
 }
