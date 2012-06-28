@@ -1339,14 +1339,23 @@ public class Z3Proof implements SMTLibObject, Serializable {
      *         leaf)
      */
     public int depth() {
+        Map<Z3Proof, Integer> map = new HashMap<Z3Proof, Integer>();
+        return depthRecursion(map);
+    }
+
+    private int depthRecursion(Map<Z3Proof, Integer> map) {
         if (this.subProofs.isEmpty())
             return 1;
+
+        if (map.containsKey(this))
+            return map.get(this);
         int result = 0;
         for (Z3Proof child : subProofs) {
             int childDepth = child.depth();
             if (childDepth > result)
                 result = childDepth;
         }
+        map.put(this, result);
         return result;
     }
 
