@@ -1351,8 +1351,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
             return map.get(this);
         int result = 0;
         for (Z3Proof child : subProofs) {
-            int childDepth = child.depth();
-            if (childDepth > result)
+            int childDepth = child.depthRecursion(map);
+            if (++childDepth > result)
                 result = childDepth;
         }
         map.put(this, result);
