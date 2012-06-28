@@ -348,16 +348,6 @@
 (declare-fun c_unlock1 () Control) 
 (declare-fun c_unlock2 () Control)
 
-(declare-fun c_lock1_no_L1 () Control)    
-(declare-fun c_lock2_no_L1 () Control) 
-(declare-fun c_unlock1_no_L1 () Control) 
-(declare-fun c_unlock2_no_L1 () Control)
-
-(declare-fun c_lock1_no_L2 () Control)    
-(declare-fun c_lock2_no_L2 () Control) 
-(declare-fun c_unlock1_no_L2 () Control) 
-(declare-fun c_unlock2_no_L2 () Control)
-
 (declare-fun tmp_1_s () Value :no_dependence)
 (declare-fun tmp_2_s () Value :no_dependence)
 (declare-fun tmp_3_s () Value :no_dependence)
@@ -418,16 +408,30 @@
   )    
 )
 
-(define-fun equiv ((A (Array Value Value))(B (Array Value Value))) Bool (
-  forall ((i Value)) (
-    = (select A i)
-      (select B i)
-    )
+;(define-fun equiv ((A (Array Value Value))(B (Array Value Value))) Bool (
+;  forall ((i Value)) (
+;    = (select A i)
+;      (select B i)
+;    )
+;  )
+;)
+
+(define-fun equiv ((A (Array Value Value))(B (Array Value Value))) Bool 
+
+ (and 
+      (= (select A ZERO)  (select B ZERO))
+      (= (select A ONE)   (select B ONE))
+      (= (select A TWO)   (select B TWO))
+      (= (select A THREE) (select B THREE))
+      (= (select A FOUR)  (select B FOUR))
+      (= (select A FIVE)  (select B FIVE))
+      (= (select A SIX)   (select B SIX))
   )
 )
 
  ;one step in T1||T2
-(define-fun step  ((pc1 Value)(pc1_n Value)(pc2 Value)(pc2_n Value)(MEM (Array Value Value))(MEM_n (Array Value Value))(tmp11 Value)(tmp11_n Value)(tmp12 Value)(tmp12_n Value) (tmp21 Value)(tmp21_n Value)(tmp22 Value)(tmp22_n Value)
+(define-fun step  ((pc1 Value)(pc1_n Value)(pc2 Value)(pc2_n Value)(MEM (Array Value Value))(MEM_n (Array Value Value))
+                   (tmp11 Value)(tmp11_n Value)(tmp12 Value)(tmp12_n Value) (tmp21 Value)(tmp21_n Value)(tmp22 Value)(tmp22_n Value)
                    (idx1 Value)(idx2 Value)(idx3 Value)(idx4 Value)(lock Value)(lock_n Value)(c_lock1 Bool) (c_lock2 Bool) (c_unlock1 Bool) (c_unlock2 Bool)) Bool 
                    
   (or
@@ -536,19 +540,20 @@
 )
 
 (assert
-
- (and
-   (distinct1 ZERO ONE TWO THREE FOUR FIVE SIX)
-   (distinct2 free hold_by_t1 hold_by_t2)
+  (=>
+   (and
+     (distinct1 ZERO ONE TWO THREE FOUR FIVE SIX)
+     (distinct2 free hold_by_t1 hold_by_t2)
   
-   ;indices can have global or local values 
-   (select_index idx1 ZERO ONE TWO THREE)
-   (select_index idx2 ZERO ONE TWO THREE)
-   (select_index idx3 TWO THREE FOUR FIVE)
-   (select_index idx4 TWO THREE FOUR FIVE)
- 
-   ;phi(c_lock1, c_lock2))
-   (phi  
+     ;indices can have global or local values 
+     (select_index idx1 ZERO ONE TWO THREE)
+     (select_index idx2 ZERO ONE TWO THREE)
+     (select_index idx3 TWO THREE FOUR FIVE)
+     (select_index idx4 TWO THREE FOUR FIVE)
+    )
+    (and
+      ;phi(c_lock1, c_lock2))
+      (phi  
         ZERO pc1_1	pc1_2	pc1_3	pc1_4	pc1_5	pc1_6	pc1_7	pc1_8	pc1_9	pc1_10	pc1_11	pc1_12
         ZERO pc2_1	pc2_2	pc2_3	pc2_4	pc2_5	pc2_6	pc2_7	pc2_8	pc2_9	pc2_10	pc2_11	pc2_12
         MEM	MEM_1	MEM_2	MEM_3	MEM_4	MEM_5	MEM_6	MEM_7	MEM_8	MEM_9	MEM_10	MEM_11	MEM_12
@@ -561,48 +566,48 @@
         c_lock1 c_lock2 c_unlock1 c_unlock2
         
         tmp_1_s tmp_2_s tmp_3_s tmp_4_s MEM_1_s MEM_2_s MEM_3_s MEM_4_s
-   )  
-   ;phi|c_lock2(c_lock1))-> nicht c_lock1    no unnecessary locks
-   (=> 
-     (phi  
-        ZERO pc1_1_no_L1	pc1_2_no_L1	pc1_3_no_L1	pc1_4_no_L1	pc1_5_no_L1	pc1_6_no_L1	pc1_7_no_L1	pc1_8_no_L1	pc1_9_no_L1	pc1_10_no_L1	pc1_11_no_L1	pc1_12_no_L1
-        ZERO pc2_1_no_L1	pc2_2_no_L1	pc2_3_no_L1	pc2_4_no_L1	pc2_5_no_L1	pc2_6_no_L1	pc2_7_no_L1	pc2_8_no_L1	pc2_9_no_L1	pc2_10_no_L1	pc2_11_no_L1	pc2_12_no_L1
-        MEM	MEM_1_no_L1	MEM_2_no_L1	MEM_3_no_L1	MEM_4_no_L1	MEM_5_no_L1	MEM_6_no_L1	MEM_7_no_L1	MEM_8_no_L1	MEM_9_no_L1	MEM_10_no_L1	MEM_11_no_L1	MEM_12_no_L1
-        tmp11_0_no_L1	tmp11_1_no_L1	tmp11_2_no_L1	tmp11_3_no_L1	tmp11_4_no_L1	tmp11_5_no_L1	tmp11_6_no_L1	tmp11_7_no_L1	tmp11_8_no_L1	tmp11_9_no_L1	tmp11_10_no_L1	tmp11_11_no_L1	tmp11_12_no_L1
-        tmp12_0_no_L1	tmp12_1_no_L1	tmp12_2_no_L1	tmp12_3_no_L1	tmp12_4_no_L1	tmp12_5_no_L1	tmp12_6_no_L1	tmp12_7_no_L1	tmp12_8_no_L1	tmp12_9_no_L1	tmp12_10_no_L1	tmp12_11_no_L1	tmp12_12_no_L1
-        tmp21_0_no_L1	tmp21_1_no_L1	tmp21_2_no_L1	tmp21_3_no_L1	tmp21_4_no_L1	tmp21_5_no_L1	tmp21_6_no_L1	tmp21_7_no_L1	tmp21_8_no_L1	tmp21_9_no_L1	tmp21_10_no_L1	tmp21_11_no_L1	tmp21_12_no_L1
-        tmp22_0_no_L1	tmp22_1_no_L1	tmp22_2_no_L1	tmp22_3_no_L1	tmp22_4_no_L1	tmp22_5_no_L1	tmp22_6_no_L1	tmp22_7_no_L1	tmp22_8_no_L1	tmp22_9_no_L1	tmp22_10_no_L1	tmp22_11_no_L1	tmp22_12_no_L1
-        idx1 idx2 idx3 idx4
-        free	lock_1_no_L1	lock_2_no_L1	lock_3_no_L1	lock_4_no_L1	lock_5_no_L1	lock_6_no_L1	lock_7_no_L1	lock_8_no_L1	lock_9_no_L1	lock_10_no_L1	lock_11_no_L1	lock_12_no_L1
-        false c_lock1_no_L1 c_unlock1_no_L1 c_unlock2_no_L1
+      )  
+      ;phi|c_lock2(c_lock1))-> nicht c_lock1    no unnecessary locks
+      (=> 
+       (phi  
+          ZERO pc1_1_no_L1	pc1_2_no_L1	pc1_3_no_L1	pc1_4_no_L1	pc1_5_no_L1	pc1_6_no_L1	pc1_7_no_L1	pc1_8_no_L1	pc1_9_no_L1	pc1_10_no_L1	pc1_11_no_L1	pc1_12_no_L1
+          ZERO pc2_1_no_L1	pc2_2_no_L1	pc2_3_no_L1	pc2_4_no_L1	pc2_5_no_L1	pc2_6_no_L1	pc2_7_no_L1	pc2_8_no_L1	pc2_9_no_L1	pc2_10_no_L1	pc2_11_no_L1	pc2_12_no_L1
+          MEM	MEM_1_no_L1	MEM_2_no_L1	MEM_3_no_L1	MEM_4_no_L1	MEM_5_no_L1	MEM_6_no_L1	MEM_7_no_L1	MEM_8_no_L1	MEM_9_no_L1	MEM_10_no_L1	MEM_11_no_L1	MEM_12_no_L1
+          tmp11_0_no_L1	tmp11_1_no_L1	tmp11_2_no_L1	tmp11_3_no_L1	tmp11_4_no_L1	tmp11_5_no_L1	tmp11_6_no_L1	tmp11_7_no_L1	tmp11_8_no_L1	tmp11_9_no_L1	tmp11_10_no_L1	tmp11_11_no_L1	tmp11_12_no_L1
+          tmp12_0_no_L1	tmp12_1_no_L1	tmp12_2_no_L1	tmp12_3_no_L1	tmp12_4_no_L1	tmp12_5_no_L1	tmp12_6_no_L1	tmp12_7_no_L1	tmp12_8_no_L1	tmp12_9_no_L1	tmp12_10_no_L1	tmp12_11_no_L1	tmp12_12_no_L1
+          tmp21_0_no_L1	tmp21_1_no_L1	tmp21_2_no_L1	tmp21_3_no_L1	tmp21_4_no_L1	tmp21_5_no_L1	tmp21_6_no_L1	tmp21_7_no_L1	tmp21_8_no_L1	tmp21_9_no_L1	tmp21_10_no_L1	tmp21_11_no_L1	tmp21_12_no_L1
+          tmp22_0_no_L1	tmp22_1_no_L1	tmp22_2_no_L1	tmp22_3_no_L1	tmp22_4_no_L1	tmp22_5_no_L1	tmp22_6_no_L1	tmp22_7_no_L1	tmp22_8_no_L1	tmp22_9_no_L1	tmp22_10_no_L1	tmp22_11_no_L1	tmp22_12_no_L1
+          idx1 idx2 idx3 idx4
+          free	lock_1_no_L1	lock_2_no_L1	lock_3_no_L1	lock_4_no_L1	lock_5_no_L1	lock_6_no_L1	lock_7_no_L1	lock_8_no_L1	lock_9_no_L1	lock_10_no_L1	lock_11_no_L1	lock_12_no_L1
+          false c_lock1 c_unlock1 c_unlock2
         
-        tmp_1_s tmp_2_s tmp_3_s tmp_4_s MEM_1_s MEM_2_s MEM_3_s MEM_4_s
-      )
-      (
+          tmp_1_s tmp_2_s tmp_3_s tmp_4_s MEM_1_s MEM_2_s MEM_3_s MEM_4_s
+        )
+        (
          = c_lock1 false
-      )
-   )
+        )
+      )  
    
-   ;phi|c_lock1(c_lock2))-> nicht c_lock2    no unnecessary locks
-   (=> 
-     (phi  
-        ZERO pc1_1_no_L2	pc1_2_no_L2	pc1_3_no_L2	pc1_4_no_L2	pc1_5_no_L2	pc1_6_no_L2	pc1_7_no_L2	pc1_8_no_L2	pc1_9_no_L2	pc1_10_no_L2	pc1_11_no_L2	pc1_12_no_L2
-        ZERO pc2_1_no_L2	pc2_2_no_L2	pc2_3_no_L2	pc2_4_no_L2	pc2_5_no_L2	pc2_6_no_L2	pc2_7_no_L2	pc2_8_no_L2	pc2_9_no_L2	pc2_10_no_L2	pc2_11_no_L2	pc2_12_no_L2
-        MEM	MEM_1_no_L2	MEM_2_no_L2	MEM_3_no_L2	MEM_4_no_L2	MEM_5_no_L2	MEM_6_no_L2	MEM_7_no_L2	MEM_8_no_L2	MEM_9_no_L2	MEM_10_no_L2	MEM_11_no_L2	MEM_12_no_L2
-        tmp11_0_no_L2	tmp11_1_no_L2	tmp11_2_no_L2	tmp11_3_no_L2	tmp11_4_no_L2	tmp11_5_no_L2	tmp11_6_no_L2	tmp11_7_no_L2	tmp11_8_no_L2	tmp11_9_no_L2	tmp11_10_no_L2	tmp11_11_no_L2	tmp11_12_no_L2
-        tmp12_0_no_L2	tmp12_1_no_L2	tmp12_2_no_L2	tmp12_3_no_L2	tmp12_4_no_L2	tmp12_5_no_L2	tmp12_6_no_L2	tmp12_7_no_L2	tmp12_8_no_L2	tmp12_9_no_L2	tmp12_10_no_L2	tmp12_11_no_L2	tmp12_12_no_L2
-        tmp21_0_no_L2	tmp21_1_no_L2	tmp21_2_no_L2	tmp21_3_no_L2	tmp21_4_no_L2	tmp21_5_no_L2	tmp21_6_no_L2	tmp21_7_no_L2	tmp21_8_no_L2	tmp21_9_no_L2	tmp21_10_no_L2	tmp21_11_no_L2	tmp21_12_no_L2
-        tmp22_0_no_L2	tmp22_1_no_L2	tmp22_2_no_L2	tmp22_3_no_L2	tmp22_4_no_L2	tmp22_5_no_L2	tmp22_6_no_L2	tmp22_7_no_L2	tmp22_8_no_L2	tmp22_9_no_L2	tmp22_10_no_L2	tmp22_11_no_L2	tmp22_12_no_L2
-        idx1 idx2 idx3 idx4
-        free	lock_1_no_L2	lock_2_no_L2	lock_3_no_L2	lock_4_no_L2	lock_5_no_L2	lock_6_no_L2	lock_7_no_L2	lock_8_no_L2	lock_9_no_L2	lock_10_no_L2	lock_11_no_L2	lock_12_no_L2
-        c_lock1_no_L2 false c_unlock1_no_L2 c_unlock2_no_L2
+      ;phi|c_lock1(c_lock2))-> nicht c_lock2    no unnecessary locks
+      (=> 
+        (phi  
+          ZERO pc1_1_no_L2	pc1_2_no_L2	pc1_3_no_L2	pc1_4_no_L2	pc1_5_no_L2	pc1_6_no_L2	pc1_7_no_L2	pc1_8_no_L2	pc1_9_no_L2	pc1_10_no_L2	pc1_11_no_L2	pc1_12_no_L2
+          ZERO pc2_1_no_L2	pc2_2_no_L2	pc2_3_no_L2	pc2_4_no_L2	pc2_5_no_L2	pc2_6_no_L2	pc2_7_no_L2	pc2_8_no_L2	pc2_9_no_L2	pc2_10_no_L2	pc2_11_no_L2	pc2_12_no_L2
+          MEM	MEM_1_no_L2	MEM_2_no_L2	MEM_3_no_L2	MEM_4_no_L2	MEM_5_no_L2	MEM_6_no_L2	MEM_7_no_L2	MEM_8_no_L2	MEM_9_no_L2	MEM_10_no_L2	MEM_11_no_L2	MEM_12_no_L2
+          tmp11_0_no_L2	tmp11_1_no_L2	tmp11_2_no_L2	tmp11_3_no_L2	tmp11_4_no_L2	tmp11_5_no_L2	tmp11_6_no_L2	tmp11_7_no_L2	tmp11_8_no_L2	tmp11_9_no_L2	tmp11_10_no_L2	tmp11_11_no_L2	tmp11_12_no_L2
+          tmp12_0_no_L2	tmp12_1_no_L2	tmp12_2_no_L2	tmp12_3_no_L2	tmp12_4_no_L2	tmp12_5_no_L2	tmp12_6_no_L2	tmp12_7_no_L2	tmp12_8_no_L2	tmp12_9_no_L2	tmp12_10_no_L2	tmp12_11_no_L2	tmp12_12_no_L2
+          tmp21_0_no_L2	tmp21_1_no_L2	tmp21_2_no_L2	tmp21_3_no_L2	tmp21_4_no_L2	tmp21_5_no_L2	tmp21_6_no_L2	tmp21_7_no_L2	tmp21_8_no_L2	tmp21_9_no_L2	tmp21_10_no_L2	tmp21_11_no_L2	tmp21_12_no_L2
+          tmp22_0_no_L2	tmp22_1_no_L2	tmp22_2_no_L2	tmp22_3_no_L2	tmp22_4_no_L2	tmp22_5_no_L2	tmp22_6_no_L2	tmp22_7_no_L2	tmp22_8_no_L2	tmp22_9_no_L2	tmp22_10_no_L2	tmp22_11_no_L2	tmp22_12_no_L2
+          idx1 idx2 idx3 idx4
+          free	lock_1_no_L2	lock_2_no_L2	lock_3_no_L2	lock_4_no_L2	lock_5_no_L2	lock_6_no_L2	lock_7_no_L2	lock_8_no_L2	lock_9_no_L2	lock_10_no_L2	lock_11_no_L2	lock_12_no_L2
+          c_lock1 false c_unlock1 c_unlock2
         
-        tmp_1_s tmp_2_s tmp_3_s tmp_4_s MEM_1_s MEM_2_s MEM_3_s MEM_4_s
-      )
-      (
+          tmp_1_s tmp_2_s tmp_3_s tmp_4_s MEM_1_s MEM_2_s MEM_3_s MEM_4_s
+        )
+        (
          = c_lock2 false
+        )
       )
-   )
- )
+    )
+  )
 )
-
