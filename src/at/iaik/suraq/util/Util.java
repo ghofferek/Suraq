@@ -32,6 +32,7 @@ import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.PropositionalEq;
+import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -273,9 +274,9 @@ public class Util {
         EqualityFormula equality = (EqualityFormula) literal;
         assert (equality.getTerms().size() == 2);
         assert ((equality.getTerms().get(0) instanceof UninterpretedFunctionInstance) || (equality
-                .getTerms().get(0) instanceof FormulaTerm));
+                .getTerms().get(0) instanceof PropositionalTerm));
         assert ((equality.getTerms().get(1) instanceof UninterpretedFunctionInstance) || (equality
-                .getTerms().get(1) instanceof FormulaTerm));
+                .getTerms().get(1) instanceof PropositionalTerm));
         if (equality.getTerms().get(0) instanceof UninterpretedFunctionInstance) {
             assert (equality.getTerms().get(1) instanceof UninterpretedFunctionInstance);
             UninterpretedFunctionInstance instance1 = (UninterpretedFunctionInstance) (equality
@@ -285,17 +286,31 @@ public class Util {
             UninterpretedFunction function = instance1.getFunction();
             assert (function.equals(instance2.getFunction()));
             return function;
-        } else if (equality.getTerms().get(0) instanceof FormulaTerm) {
-            assert (equality.getTerms().get(1) instanceof FormulaTerm);
-            FormulaTerm term1 = (FormulaTerm) equality.getTerms().get(0);
-            FormulaTerm term2 = (FormulaTerm) equality.getTerms().get(1);
-            assert (term1.getFormula() instanceof UninterpretedPredicateInstance);
-            assert (term2.getFormula() instanceof UninterpretedPredicateInstance);
+        } else if (equality.getTerms().get(0) instanceof PropositionalTerm) {
+            assert (equality.getTerms().get(1) instanceof PropositionalTerm);
 
-            UninterpretedPredicateInstance instance1 = (UninterpretedPredicateInstance) term1
-                    .getFormula();
-            UninterpretedPredicateInstance instance2 = (UninterpretedPredicateInstance) term2
-                    .getFormula();
+            UninterpretedPredicateInstance instance1 = null;
+            if (equality.getTerms().get(0) instanceof FormulaTerm) {
+                FormulaTerm term1 = (FormulaTerm) equality.getTerms().get(0);
+                instance1 = (UninterpretedPredicateInstance) term1.getFormula();
+            } else {
+                assert (equality.getTerms().get(0) instanceof UninterpretedPredicateInstance);
+                instance1 = (UninterpretedPredicateInstance) equality
+                        .getTerms().get(0);
+            }
+            assert (instance1 != null);
+
+            UninterpretedPredicateInstance instance2 = null;
+            if (equality.getTerms().get(1) instanceof FormulaTerm) {
+                FormulaTerm term2 = (FormulaTerm) equality.getTerms().get(1);
+                instance2 = (UninterpretedPredicateInstance) term2.getFormula();
+            } else {
+                assert (equality.getTerms().get(1) instanceof UninterpretedPredicateInstance);
+                instance2 = (UninterpretedPredicateInstance) equality
+                        .getTerms().get(1);
+            }
+            assert (instance2 != null);
+
             UninterpretedFunction function = instance1.getFunction();
             assert (function.equals(instance2.getFunction()));
             return function;
