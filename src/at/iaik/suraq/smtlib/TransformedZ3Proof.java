@@ -493,7 +493,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     .addFirst(new AnnotatedProofNodes());
         assert (TransformedZ3Proof.annotatedNodesStack.size() == 1);
 
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         this.toLocalProofRecursion(operationId);
         endDAGOperation(operationId);
 
@@ -503,7 +503,7 @@ public class TransformedZ3Proof extends Z3Proof {
     /**
      * Transforms the proof into a local resolution proof (in place).
      */
-    private void toLocalProofRecursion(int operationId) {
+    private void toLocalProofRecursion(long operationId) {
         if (this.wasVisitedByDAGOperation(operationId))
             return;
         visitedByDAGOperation(operationId);
@@ -1495,14 +1495,14 @@ public class TransformedZ3Proof extends Z3Proof {
 
     public List<TransformedZ3Proof> getLeafs() {
 
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         List<TransformedZ3Proof> result = this.getLeafsRecursion(operationId);
         endDAGOperation(operationId);
 
         return result;
     }
 
-    private List<TransformedZ3Proof> getLeafsRecursion(int operationId) {
+    private List<TransformedZ3Proof> getLeafsRecursion(long operationId) {
         visitedByDAGOperation(operationId);
 
         List<TransformedZ3Proof> result = new LinkedList<TransformedZ3Proof>();
@@ -1818,12 +1818,12 @@ public class TransformedZ3Proof extends Z3Proof {
      *            TODO
      */
     public void toResolutionProof() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         this.toResolutionProofRecursion(operationId);
         endDAGOperation(operationId);
     }
 
-    private void toResolutionProofRecursion(int operationId) {
+    private void toResolutionProofRecursion(long operationId) {
         if (this.wasVisitedByDAGOperation(operationId))
             return;
         this.visitedByDAGOperation(operationId);
@@ -1998,14 +1998,14 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     public boolean isLocal() {
 
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         boolean result = this.isLocalRecursion(operationId);
         endDAGOperation(operationId);
 
         return result;
     }
 
-    private boolean isLocalRecursion(int operationId) {
+    private boolean isLocalRecursion(long operationId) {
         if (this.wasVisitedByDAGOperation(operationId))
             return true;
         visitedByDAGOperation(operationId);

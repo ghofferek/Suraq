@@ -50,12 +50,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
     /**
      * global counter to keep track of running DAG traversals.
      */
-    private static int operationCount = 0;
+    private static long operationCount = 0;
 
     /**
      * lists operations which already traversed this node.
      */
-    protected List<Integer> visitedByOperation = new ArrayList<Integer>();
+    protected Set<Long> visitedByOperation = new HashSet<Long>();
 
     @Deprecated
     protected Set<String> assertedStr = new HashSet<String>();
@@ -324,14 +324,14 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         Set<Integer> result = this
                 .getPartitionsFromSymbolsRecursion(operationId);
         endDAGOperation(operationId);
         return result;
     }
 
-    private Set<Integer> getPartitionsFromSymbolsRecursion(int operationId) {
+    private Set<Integer> getPartitionsFromSymbolsRecursion(long operationId) {
         visitedByDAGOperation(operationId);
 
         Set<Integer> partitions = consequent.getPartitionsFromSymbols();
@@ -377,14 +377,14 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
 
     public Set<Integer> getPartitionsFromAsserts() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         Set<Integer> result = new HashSet<Integer>();
         this.getPartitionsFromAssertsRecursion(operationId, result);
         endDAGOperation(operationId);
         return result;
     }
 
-    private void getPartitionsFromAssertsRecursion(int operationId,
+    private void getPartitionsFromAssertsRecursion(long operationId,
             Set<Integer> result) {
 
         visitedByDAGOperation(operationId);
@@ -408,13 +408,13 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public Set<Z3Proof> getLemmas() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         Set<Z3Proof> result = this.getLemmasRecursion(operationId);
         endDAGOperation(operationId);
         return result;
     }
 
-    private Set<Z3Proof> getLemmasRecursion(int operationId) {
+    private Set<Z3Proof> getLemmasRecursion(long operationId) {
         visitedByDAGOperation(operationId);
 
         Set<Z3Proof> lemmas = new HashSet<Z3Proof>();
@@ -438,14 +438,14 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public Set<Z3Proof> getHypotheses() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         Set<Z3Proof> result = new HashSet<Z3Proof>();
         this.getHypothesesRecursion(operationId, result);
         endDAGOperation(operationId);
         return result;
     }
 
-    private void getHypothesesRecursion(int operationId, Set<Z3Proof> result) {
+    private void getHypothesesRecursion(long operationId, Set<Z3Proof> result) {
         visitedByDAGOperation(operationId);
 
         if (proofType.equals(SExpressionConstants.LEMMA))
@@ -472,13 +472,13 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     @Deprecated
     public void localLemmasToAssertions() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         this.localLemmasToAssertionsRecursion(operationId);
         endDAGOperation(operationId);
     }
 
     @Deprecated
-    private void localLemmasToAssertionsRecursion(int operationId) {
+    private void localLemmasToAssertionsRecursion(long operationId) {
         visitedByDAGOperation(operationId);
 
         if (proofType.equals(SExpressionConstants.LEMMA)) {
@@ -524,7 +524,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * Removes local subproofs (including lemmas, if they are local).
      */
     public void removeLocalSubProofs() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         Map<Z3Proof, Set<Integer>> partitionMap = new HashMap<Z3Proof, Set<Integer>>();
         Map<Z3Proof, Boolean> existHypothesesMap = new HashMap<Z3Proof, Boolean>();
         this.removeLocalSubProofsRecursion(operationId, partitionMap,
@@ -532,7 +532,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         endDAGOperation(operationId);
     }
 
-    private void removeLocalSubProofsRecursion(int operationId,
+    private void removeLocalSubProofsRecursion(long operationId,
             Map<Z3Proof, Set<Integer>> partitionMap,
             Map<Z3Proof, Boolean> existHypothesesMap) {
         assert (!this.wasVisitedByDAGOperation(operationId));
@@ -598,14 +598,14 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public String prettyPrint() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         StringBuffer buffer = new StringBuffer();
         this.prettyPrintRecursive(operationId, buffer);
         endDAGOperation(operationId);
         return buffer.toString();
     }
 
-    private void prettyPrintRecursive(int operationId, StringBuffer buffer) {
+    private void prettyPrintRecursive(long operationId, StringBuffer buffer) {
         visitedByDAGOperation(operationId);
 
         buffer.append("----------------------------------------------\n");
@@ -643,7 +643,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * 
      * @return unique operation id.
      */
-    public int startDAGOperation() {
+    public long startDAGOperation() {
         Z3Proof.operationCount++;
         assert (Z3Proof.operationCount > 0);
         // System.out.println("Starting DAG operation " + Z3Proof.operationCount
@@ -659,7 +659,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @param operationId
      *            unique id of the operation to end.
      */
-    public void endDAGOperation(int operationId) {
+    public void endDAGOperation(long operationId) {
         assert (Z3Proof.operationCount >= operationId);
         this.resetMarks(operationId);
         // System.out.println("Stopped DAG operation " + Z3Proof.operationCount
@@ -679,7 +679,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @param operationId
      *            unique id of the operation.
      */
-    protected void visitedByDAGOperation(int operationId) {
+    protected void visitedByDAGOperation(long operationId) {
         // check for consistency.
         if (this.visitedByOperation.contains(operationId))
             throw new RuntimeException("revisited node#" + this.id
@@ -696,7 +696,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      *            unique id of the operation.
      * @return true if was visited.
      */
-    protected boolean wasVisitedByDAGOperation(int operationId) {
+    protected boolean wasVisitedByDAGOperation(long operationId) {
         return this.visitedByOperation.contains(operationId);
     }
 
@@ -707,11 +707,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @param operationId
      *            unique id of the operation.
      */
-    private void resetMarks(int operationId) {
-        this.visitedByOperation.remove((Integer) operationId);
+    private void resetMarks(long operationId) {
+        this.visitedByOperation.remove(operationId);
 
         for (Z3Proof node : this.allNodes()) {
-            node.visitedByOperation.remove((Integer) operationId);
+            node.visitedByOperation.remove(operationId);
             assert (!visitedByOperation.contains(operationId));
         }
     }
@@ -1033,14 +1033,14 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     public boolean checkZ3ProofNodeRecursive() {
 
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         boolean result = this.checkZ3ProofNodeRecursiveRecursion(operationId);
         endDAGOperation(operationId);
 
         return result;
     }
 
-    private boolean checkZ3ProofNodeRecursiveRecursion(int operationId) {
+    private boolean checkZ3ProofNodeRecursiveRecursion(long operationId) {
         if (this.wasVisitedByDAGOperation(operationId))
             return true;
         visitedByDAGOperation(operationId);
@@ -1240,15 +1240,15 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     public Set<Z3Proof> allLeafs() {
 
-        int operationId = startDAGOperation();
-        Set<Z3Proof> leafes = new HashSet<Z3Proof>();
-        this.allLeafsRecursion(leafes, operationId);
+        long operationId = startDAGOperation();
+        Set<Z3Proof> leafs = new HashSet<Z3Proof>();
+        this.allLeafsRecursion(leafs, operationId);
         endDAGOperation(operationId);
 
-        return leafes;
+        return leafs;
     }
 
-    private void allLeafsRecursion(Set<Z3Proof> set, int operationId) {
+    private void allLeafsRecursion(Set<Z3Proof> set, long operationId) {
         if (this.wasVisitedByDAGOperation(operationId))
             return;
         visitedByDAGOperation(operationId);
@@ -1357,7 +1357,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             return result;
         } else {
 
-            int operationId = startDAGOperation();
+            long operationId = startDAGOperation();
             result = this.sizeRecursion(operationId);
             endDAGOperation(operationId);
 
@@ -1365,7 +1365,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         }
     }
 
-    private int sizeRecursion(int operationId) {
+    private int sizeRecursion(long operationId) {
         int result = 1;
         if (this.wasVisitedByDAGOperation(operationId))
             return 0;
@@ -1384,7 +1384,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     @Deprecated
     public Map<Z3Proof, Set<Z3Proof>> computeParents() {
-        int operationId = startDAGOperation();
+        long operationId = startDAGOperation();
         Map<Z3Proof, Set<Z3Proof>> result = new HashMap<Z3Proof, Set<Z3Proof>>();
         this.computeParentsRecursion(operationId, result);
         endDAGOperation(operationId);
@@ -1397,7 +1397,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      *            call-by-reference parameter to be updated during recursion
      */
     @Deprecated
-    private void computeParentsRecursion(int operationId,
+    private void computeParentsRecursion(long operationId,
             Map<Z3Proof, Set<Z3Proof>> map) {
         if (this.wasVisitedByDAGOperation(operationId))
             return;
