@@ -964,7 +964,8 @@ public class Util {
      */
     public static int getSinglePartitionOfProof(
             TransformedZ3Proof transformedZ3Proof) {
-        Set<Integer> partitions = transformedZ3Proof.getPartitionsFromSymbols();
+        Set<Integer> partitions = transformedZ3Proof.getConsequent()
+                .getPartitionsFromSymbols();
         if (partitions.size() == 1)
             return partitions.iterator().next();
         partitions.remove(-1);
