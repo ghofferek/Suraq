@@ -657,7 +657,8 @@ public class TransformedZ3Proof extends Z3Proof {
                             update = TransformedZ3Proof
                                     .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
                         }
-                        assert (((TransformedZ3Proof) update).isLocal());
+                        // Too expensive?
+                        // assert (((TransformedZ3Proof) update).isLocal());
                         subProofs.set(0, update);
                     }
                 }
@@ -679,7 +680,8 @@ public class TransformedZ3Proof extends Z3Proof {
                             update = TransformedZ3Proof
                                     .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
                         }
-                        assert (((TransformedZ3Proof) update).isLocal());
+                        // Too expensive?
+                        // assert (((TransformedZ3Proof) update).isLocal());
                         subProofs.set(1, update);
                     }
                 }
@@ -1943,7 +1945,9 @@ public class TransformedZ3Proof extends Z3Proof {
         } else if (proofType.equals(SExpressionConstants.ASSERTED)
                 || this.isHypothesis()) {
             assert (this.consequent instanceof OrFormula);
-            assert (this.isLocal());
+
+            // Too expensive?
+            // assert (this.isLocal());
             assert (this.subProofs.size() == 0);
             return;
 
