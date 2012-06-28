@@ -70,8 +70,14 @@ public class ArrayProperty implements Formula {
             InvalidValueConstraintException {
         this.uVars = new ArrayList<DomainVariable>(uVars);
 
+        if (indexGuard instanceof FormulaTerm)
+            indexGuard = ((FormulaTerm) indexGuard).getFormula();
+
         if (!ArrayProperty.checkIndexGuard(uVars, indexGuard))
             throw new InvalidIndexGuardException();
+
+        if (valueConstraint instanceof FormulaTerm)
+            valueConstraint = ((FormulaTerm) valueConstraint).getFormula();
 
         if (!ArrayProperty.checkValueConstraint(uVars, valueConstraint))
             throw new InvalidValueConstraintException();

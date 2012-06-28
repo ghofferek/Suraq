@@ -49,8 +49,15 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      *            the right side of the implication
      */
     public ImpliesFormula(Formula leftSide, Formula rightSide) {
-        this.leftSide = leftSide;
-        this.rightSide = rightSide;
+        if (leftSide instanceof FormulaTerm)
+            this.leftSide = ((FormulaTerm) leftSide).getFormula();
+        else
+            this.leftSide = leftSide;
+
+        if (rightSide instanceof FormulaTerm)
+            this.rightSide = ((FormulaTerm) rightSide).getFormula();
+        else
+            this.rightSide = rightSide;
     }
 
     /**

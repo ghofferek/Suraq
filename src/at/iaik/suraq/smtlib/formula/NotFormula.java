@@ -42,7 +42,10 @@ public class NotFormula extends BooleanCombinationFormula {
      *            the negation of this formula.
      */
     public NotFormula(Formula formula) {
-        this.formula = formula;
+        if (formula instanceof FormulaTerm)
+            this.formula = ((FormulaTerm) formula).getFormula();
+        else
+            this.formula = formula;
     }
 
     /**

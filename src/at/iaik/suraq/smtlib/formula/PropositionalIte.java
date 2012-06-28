@@ -56,9 +56,20 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     public PropositionalIte(Formula condition, Formula thenBranch,
             Formula elseBranch) {
-        this.condition = condition;
-        this.thenBranch = thenBranch;
-        this.elseBranch = elseBranch;
+        if (condition instanceof FormulaTerm)
+            this.condition = ((FormulaTerm) condition).getFormula();
+        else
+            this.condition = condition;
+
+        if (thenBranch instanceof FormulaTerm)
+            this.thenBranch = ((FormulaTerm) thenBranch).getFormula();
+        else
+            this.thenBranch = thenBranch;
+
+        if (elseBranch instanceof FormulaTerm)
+            this.elseBranch = ((FormulaTerm) elseBranch).getFormula();
+        else
+            this.elseBranch = elseBranch;
     }
 
     /**

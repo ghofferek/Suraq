@@ -43,7 +43,12 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     protected AndOrXorFormula(List<? extends Formula> formulas) {
         this.formulas = new ArrayList<Formula>();
-        this.formulas.addAll(formulas);
+        for (Formula formula : formulas) {
+            if (formula instanceof FormulaTerm)
+                this.formulas.add(((FormulaTerm) formula).getFormula());
+            else
+                this.formulas.add(formula);
+        }
         if (formulas.size() < 1)
             this.formulas.add(new PropositionalConstant(true));
     }

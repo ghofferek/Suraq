@@ -54,7 +54,10 @@ public class DomainIte extends DomainTerm {
      */
     public DomainIte(Formula condition, DomainTerm thenBranch,
             DomainTerm elseBranch) {
-        this.condition = condition;
+        if (condition instanceof FormulaTerm)
+            this.condition = ((FormulaTerm) condition).getFormula();
+        else
+            this.condition = condition;
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
     }

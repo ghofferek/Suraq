@@ -53,7 +53,10 @@ public class ArrayIte extends ArrayTerm {
      */
     public ArrayIte(Formula condition, ArrayTerm thenBranch,
             ArrayTerm elseBranch) {
-        this.condition = condition;
+        if (condition instanceof FormulaTerm)
+            this.condition = ((FormulaTerm) condition).getFormula();
+        else
+            this.condition = condition;
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
     }
