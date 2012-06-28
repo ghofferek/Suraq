@@ -1613,4 +1613,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
         }
 
     }
+
+    /**
+     * @return the <code>operationCount</code>
+     */
+    public static long getOperationCount() {
+        return Z3Proof.operationCount;
+    }
 }

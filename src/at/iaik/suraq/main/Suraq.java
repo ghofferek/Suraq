@@ -862,6 +862,10 @@ public class Suraq implements Runnable {
         printEnd(noErrors);
         overallTimer.end();
         System.out.println("  (Overall time: " + overallTimer + ")");
+        System.out.println("  (DAG operation counter: "
+                + Z3Proof.getOperationCount() + ")");
+        System.out.println("  (Proof instance counter: "
+                + Z3Proof.getInstanceCounter() + ")");
         return;
     }
 
