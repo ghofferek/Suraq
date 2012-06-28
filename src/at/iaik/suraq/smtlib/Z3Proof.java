@@ -26,6 +26,7 @@ import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -104,6 +105,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.subProofs = new ArrayList<Z3Proof>();
         this.consequent = null;
         this.id = Z3Proof.instanceCounter++;
+        if (this.id >= 4099833)
+            assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             DecimalFormat myFormatter = new DecimalFormat("###,###,###");
             String output = myFormatter.format(this.id);
@@ -137,6 +140,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
             this.subProofs.add(subProof2);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
+        if (this.id >= 4099833)
+            assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             DecimalFormat myFormatter = new DecimalFormat("###,###,###");
             String output = myFormatter.format(this.id);
@@ -191,6 +196,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.subProofs.addAll(subProofs);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
+        if (this.id >= 4099833)
+            assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             DecimalFormat myFormatter = new DecimalFormat("###,###,###");
             String output = myFormatter.format(this.id);
@@ -1512,12 +1519,28 @@ public class Z3Proof implements SMTLibObject, Serializable {
             rightTerms.addAll(rightFunctionInstance.getParameters());
 
         } else {
-            assert (consequentEq.getTerms().get(0) instanceof FormulaTerm);
-            assert (consequentEq.getTerms().get(1) instanceof FormulaTerm);
-            Formula leftFormula = ((FormulaTerm) consequentEq.getTerms().get(0))
-                    .getFormula();
-            Formula rightFormula = ((FormulaTerm) consequentEq.getTerms()
-                    .get(1)).getFormula();
+
+            Formula leftFormula = null;
+            if (consequentEq.getTerms().get(0) instanceof FormulaTerm)
+                leftFormula = ((FormulaTerm) consequentEq.getTerms().get(0))
+                        .getFormula();
+            else {
+                assert (consequentEq.getTerms().get(0) instanceof PropositionalTerm);
+                leftFormula = ((PropositionalTerm) consequentEq.getTerms().get(
+                        0));
+            }
+            assert (leftFormula != null);
+
+            Formula rightFormula = null;
+            if (consequentEq.getTerms().get(1) instanceof FormulaTerm)
+                rightFormula = ((FormulaTerm) consequentEq.getTerms().get(1))
+                        .getFormula();
+            else {
+                assert (consequentEq.getTerms().get(1) instanceof PropositionalTerm);
+                rightFormula = ((PropositionalTerm) consequentEq.getTerms()
+                        .get(1));
+            }
+            assert (rightFormula != null);
 
             if (leftFormula instanceof UninterpretedPredicateInstance) {
                 assert (rightFormula instanceof UninterpretedPredicateInstance);

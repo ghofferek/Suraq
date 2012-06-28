@@ -839,12 +839,27 @@ public class TransformedZ3Proof extends Z3Proof {
             proof3 = TransformedZ3Proof.createMonotonicityProof(proofs3,
                     function);
         } else {
-            assert (consequentEq.getTerms().get(0) instanceof FormulaTerm);
-            assert (consequentEq.getTerms().get(1) instanceof FormulaTerm);
-            Formula leftFormula = ((FormulaTerm) consequentEq.getTerms().get(0))
-                    .getFormula();
-            Formula rightFormula = ((FormulaTerm) consequentEq.getTerms()
-                    .get(1)).getFormula();
+            Formula leftFormula = null;
+            if (consequentEq.getTerms().get(0) instanceof FormulaTerm)
+                leftFormula = ((FormulaTerm) consequentEq.getTerms().get(0))
+                        .getFormula();
+            else {
+                assert (consequentEq.getTerms().get(0) instanceof PropositionalTerm);
+                leftFormula = ((PropositionalTerm) consequentEq.getTerms().get(
+                        0));
+            }
+            assert (leftFormula != null);
+
+            Formula rightFormula = null;
+            if (consequentEq.getTerms().get(1) instanceof FormulaTerm)
+                rightFormula = ((FormulaTerm) consequentEq.getTerms().get(1))
+                        .getFormula();
+            else {
+                assert (consequentEq.getTerms().get(1) instanceof PropositionalTerm);
+                rightFormula = ((PropositionalTerm) consequentEq.getTerms()
+                        .get(1));
+            }
+            assert (rightFormula != null);
 
             if (leftFormula instanceof UninterpretedPredicateInstance) {
                 assert (rightFormula instanceof UninterpretedPredicateInstance);
