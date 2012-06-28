@@ -169,7 +169,9 @@ public class TransitivityChainBuilder {
                 AnnotatedProofNodes annotatedNodes = transformedProof
                         .toLocalProof();
                 AnnotatedProofNode annotatedNode = annotatedNodes
-                        .getNodeWithConsequent(transformedProof.getConsequent());
+                        .getNodeWithConsequent(
+                                transformedProof.getConsequent(),
+                                transformedProof.getHypothesisFormulas());
                 assert (annotatedNode != null);
                 assert (annotatedNode.numPremises() == 3);
                 chain.add(annotatedNode.getPremise1());

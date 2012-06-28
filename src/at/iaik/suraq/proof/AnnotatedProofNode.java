@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.proof;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
@@ -31,7 +32,15 @@ public class AnnotatedProofNode {
 
     private final TransformedZ3Proof premise3;
 
+    private final AnnotatedProofNode annotatedPremise1;
+
+    private final AnnotatedProofNode annotatedPremise2;
+
+    private final AnnotatedProofNode annotatedPremise3;
+
     private final int hash;
+
+    private final Set<Formula> hypotheses;
 
     /**
      * Constructs a new <code>AnnotatedProofNode</code>. If one premise is
@@ -45,8 +54,8 @@ public class AnnotatedProofNode {
      * @param premise3
      */
     public AnnotatedProofNode(int leftPartition, int rightPartition,
-            TransformedZ3Proof consequent, TransformedZ3Proof premise1,
-            TransformedZ3Proof premise2, TransformedZ3Proof premise3) {
+            TransformedZ3Proof consequent, AnnotatedProofNode premise1,
+            AnnotatedProofNode premise2, AnnotatedProofNode premise3) {
         super();
         this.leftPartition = leftPartition;
         this.rightPartition = rightPartition;
@@ -55,16 +64,24 @@ public class AnnotatedProofNode {
         assert ((premise1 == null && premise2 == null && premise3 == null) || (premise1 != null
                 && premise2 != null && premise3 != null));
 
-        this.premise1 = premise1;
-        this.premise2 = premise2;
-        this.premise3 = premise3;
+        this.annotatedPremise1 = premise1;
+        this.annotatedPremise2 = premise2;
+        this.annotatedPremise3 = premise3;
+
+        this.premise1 = premise1 == null ? null : premise1.consequent;
+        this.premise2 = premise2 == null ? null : premise2.consequent;
+        this.premise3 = premise3 == null ? null : premise3.consequent;
 
         if (numPremises() > 0) {
-            // Do some checks
 
             assert (this.premise1 != null);
             assert (this.premise2 != null);
             assert (this.premise3 != null);
+
+            hypotheses = new HashSet<Formula>();
+            hypotheses.addAll(premise1.hypotheses);
+            hypotheses.addAll(premise2.hypotheses);
+            hypotheses.addAll(premise3.hypotheses);
 
             assert (Util.isLiteral(Util.getSingleLiteral(this.premise1
                     .getConsequent())));
@@ -128,6 +145,8 @@ public class AnnotatedProofNode {
                     .contains(-1));
             assert (consequentPartitions.contains(rightPartition) || consequentPartitions
                     .contains(-1));
+        } else {
+            hypotheses = consequent.getHypothesisFormulas();
         }
 
         this.hash = (premise1 == null ? 0 : premise1.hashCode())
@@ -135,19 +154,19 @@ public class AnnotatedProofNode {
                 ^ (premise3 == null ? 0 : premise3.hashCode())
                 ^ consequent.hashCode()
                 ^ (new Integer(leftPartition)).toString().hashCode()
-                ^ (new Integer(rightPartition)).toString().hashCode();
+                ^ (new Integer(rightPartition)).toString().hashCode()
+                ^ hypotheses.hashCode();
     }
 
     /**
      * Constructs a new <code>AnnotatedProofNode</code>.
      * 
-     * @param partition
-     * @param partition2
      * @param transformedZ3Proof
      */
-    public AnnotatedProofNode(int partition, int partition2,
-            TransformedZ3Proof transformedZ3Proof) {
-        this(partition, partition2, transformedZ3Proof, null, null, null);
+    public AnnotatedProofNode(TransformedZ3Proof transformedZ3Proof) {
+        this(Util.getSinglePartitionOfProof(transformedZ3Proof), Util
+                .getSinglePartitionOfProof(transformedZ3Proof),
+                transformedZ3Proof, null, null, null);
     }
 
     /**
@@ -311,6 +330,34 @@ public class AnnotatedProofNode {
                 .toString().replaceAll("\\s{2,}", " ").replace("\n", ""));
         buffer.append("\n");
         return buffer.toString();
+    }
+
+    /**
+     * @return the <code>hypotheses</code> (copy)
+     */
+    public Set<Formula> getHypotheses() {
+        return new HashSet<Formula>(hypotheses);
+    }
+
+    /**
+     * @return the <code>annotatedPremise1</code>
+     */
+    public AnnotatedProofNode getAnnotatedPremise1() {
+        return annotatedPremise1;
+    }
+
+    /**
+     * @return the <code>annotatedPremise2</code>
+     */
+    public AnnotatedProofNode getAnnotatedPremise2() {
+        return annotatedPremise2;
+    }
+
+    /**
+     * @return the <code>annotatedPremise3</code>
+     */
+    public AnnotatedProofNode getAnnotatedPremise3() {
+        return annotatedPremise3;
     }
 
 }

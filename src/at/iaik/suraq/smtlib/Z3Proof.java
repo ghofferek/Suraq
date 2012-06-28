@@ -429,6 +429,14 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return lemmas;
     }
 
+    public Set<Formula> getHypothesisFormulas() {
+        Set<Z3Proof> hypotheses = this.getHypotheses();
+        Set<Formula> result = new HashSet<Formula>();
+        for (Z3Proof hypothesis : hypotheses)
+            result.add(hypothesis.getConsequent().transformToConsequentsForm());
+        return result;
+    }
+
     public Set<Z3Proof> getHypotheses() {
         int operationId = startDAGOperation();
         Set<Z3Proof> result = new HashSet<Z3Proof>();

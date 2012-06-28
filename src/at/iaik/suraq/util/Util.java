@@ -958,4 +958,18 @@ public class Util {
         }
     }
 
+    /**
+     * @param transformedZ3Proof
+     * @return
+     */
+    public static int getSinglePartitionOfProof(
+            TransformedZ3Proof transformedZ3Proof) {
+        Set<Integer> partitions = transformedZ3Proof.getPartitionsFromSymbols();
+        if (partitions.size() == 1)
+            return partitions.iterator().next();
+        partitions.remove(-1);
+        assert (partitions.size() == 1);
+        return partitions.iterator().next();
+    }
+
 }

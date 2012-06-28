@@ -484,8 +484,14 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public AnnotatedProofNodes toLocalProof() {
-        TransformedZ3Proof.annotatedNodesStack
-                .addFirst(new AnnotatedProofNodes());
+
+        // Actually, stack seems not to be needed.
+        // To avoid refactoring, just don't add a new frame,
+        // if there already is one.
+        if (TransformedZ3Proof.annotatedNodesStack.size() < 1)
+            TransformedZ3Proof.annotatedNodesStack
+                    .addFirst(new AnnotatedProofNodes());
+        assert (TransformedZ3Proof.annotatedNodesStack.size() == 1);
 
         int operationId = startDAGOperation();
         this.toLocalProofRecursion(operationId);
@@ -504,30 +510,30 @@ public class TransformedZ3Proof extends Z3Proof {
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
-            if (subProof.proofType.equals(SExpressionConstants.LEMMA)) {
-                // For a hypothetical proof, use a new frame on the
-                // annotatedNodesStack
-                // TODO This partially unwinds the DAG.
-                // Can this be avoided?
-                assert (subProof.subProofs.size() == 1);
-                assert (subProof.subProofs.get(0) instanceof TransformedZ3Proof);
-                TransformedZ3Proof hypotheticalProof = (TransformedZ3Proof) subProof.subProofs
-                        .get(0);
-                assert (hypotheticalProof.consequent
-                        .equals((new PropositionalConstant(false))
-                                .transformToConsequentsForm()));
-                hypotheticalProof.toLocalProof();
-                if (subProof.hasSingleLiteralConsequent()) {
-                    AnnotatedProofNode annotatedNode = annotatedNodeFromProofWithSingleLiteralConsequent(subProof);
-                    assert (annotatedNode != null);
-                    TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                            annotatedNode);
-                }
-            } else
-                subProof.toLocalProofRecursion(operationId);
+            subProof.toLocalProofRecursion(operationId);
         }
 
         // Recursive calls are completed. Now handle this particular node.
+        // -------------------------------------------------------------
+        if (this.proofType.equals(SExpressionConstants.LEMMA)) {
+
+            assert (this.subProofs.size() == 1);
+            assert (this.subProofs.get(0) instanceof TransformedZ3Proof);
+            TransformedZ3Proof hypotheticalProof = (TransformedZ3Proof) this.subProofs
+                    .get(0);
+            assert (hypotheticalProof.consequent
+                    .equals((new PropositionalConstant(false))
+                            .transformToConsequentsForm()));
+            hypotheticalProof.toLocalProofRecursion(operationId);
+            if (this.hasSingleLiteralConsequent()) {
+                AnnotatedProofNode annotatedNode = annotatedNodeFromProofWithSingleLiteralConsequent(this);
+                assert (annotatedNode != null);
+                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                        annotatedNode);
+            }
+            return;
+        }
+
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.SYMMETRY)) {
             assert (this.hasSingleLiteralConsequent());
@@ -536,7 +542,8 @@ public class TransformedZ3Proof extends Z3Proof {
             Formula premiseLiteral = ((OrFormula) (subproof.consequent))
                     .getDisjuncts().iterator().next();
             AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodesStack
-                    .peekFirst().getNodeWithConsequent(premiseLiteral);
+                    .peekFirst().getNodeWithConsequent(premiseLiteral,
+                            subproof.getHypothesisFormulas());
             if (annotatedNode == null)
                 throw new RuntimeException(
                         "No annotated proof node found when there should be one.");
@@ -555,16 +562,30 @@ public class TransformedZ3Proof extends Z3Proof {
                                 null));
             } else {
                 assert (numPremises == 3);
+                TransformedZ3Proof newSymmetry1 = TransformedZ3Proof
+                        .createSymmetryProof(annotatedNode.getPremise3());
+                AnnotatedProofNode newPremise1 = new AnnotatedProofNode(
+                        newSymmetry1);
+                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                        newPremise1);
+                TransformedZ3Proof newSymmetry2 = TransformedZ3Proof
+                        .createSymmetryProof(annotatedNode.getPremise2());
+                AnnotatedProofNode newPremise2 = new AnnotatedProofNode(
+                        newSymmetry2);
+                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                        newPremise2);
+                TransformedZ3Proof newSymmetry3 = TransformedZ3Proof
+                        .createSymmetryProof(annotatedNode.getPremise1());
+                AnnotatedProofNode newPremise3 = new AnnotatedProofNode(
+                        newSymmetry3);
+                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                        newPremise3);
+
                 TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                         new AnnotatedProofNode(annotatedNode
                                 .getRightPartition(), annotatedNode
-                                .getLeftPartition(), this, TransformedZ3Proof
-                                .createSymmetryProof(annotatedNode
-                                        .getPremise3()), TransformedZ3Proof
-                                .createSymmetryProof(annotatedNode
-                                        .getPremise2()), TransformedZ3Proof
-                                .createSymmetryProof(annotatedNode
-                                        .getPremise1())));
+                                .getLeftPartition(), this, newPremise1,
+                                newPremise2, newPremise3));
             }
             return;
         }
@@ -623,7 +644,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodesStack
                             .peekFirst()
                             .getNodeWithConsequent(
-                                    Util.getSingleLiteral(subProofs.get(0).consequent));
+                                    Util.getSingleLiteral(subProofs.get(0).consequent),
+                                    subProofs.get(0).getHypothesisFormulas());
                     if (annotatedNode != null) {
                         Z3Proof update = annotatedNode.getConsequent();
                         if (annotatedNode.numPremises() == 3) {
@@ -644,7 +666,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodesStack
                             .peekFirst()
                             .getNodeWithConsequent(
-                                    Util.getSingleLiteral(subProofs.get(1).consequent));
+                                    Util.getSingleLiteral(subProofs.get(1).consequent),
+                                    subProofs.get(1).getHypothesisFormulas());
                     if (annotatedNode2 != null) {
                         Z3Proof update = annotatedNode2.getConsequent();
                         if (annotatedNode2.numPremises() == 3) {
@@ -732,15 +755,15 @@ public class TransformedZ3Proof extends Z3Proof {
 
         if (leftPartition == rightPartition) {
             // this is a local node
-            TransformedZ3Proof.annotatedNodesStack.peekFirst()
-                    .add(new AnnotatedProofNode(leftPartition, rightPartition,
-                            this));
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                    new AnnotatedProofNode(this));
 
             for (int count = 0; count < subProofs.size(); count++) {
                 assert (subProofs.get(count) instanceof TransformedZ3Proof);
                 Z3Proof subProof = subProofs.get(count);
                 AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
-                        .peekFirst().getNodeWithConsequent(subProof.consequent);
+                        .peekFirst().getNodeWithConsequent(subProof.consequent,
+                                subProof.getHypothesisFormulas());
                 if (currentAnnotatedNode.numPremises() == 3) {
                     List<TransformedZ3Proof> proofs = new ArrayList<TransformedZ3Proof>(
                             3);
@@ -751,8 +774,7 @@ public class TransformedZ3Proof extends Z3Proof {
                             .createTransitivityProofForTransformedZ3Proofs(proofs);
                     subProofs.set(count, newProof);
                     TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                            new AnnotatedProofNode(leftPartition,
-                                    leftPartition, this));
+                            new AnnotatedProofNode(this));
                 }
             }
             return;
@@ -763,7 +785,8 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (child instanceof TransformedZ3Proof);
             Z3Proof subProof = child;
             AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
-                    .peekFirst().getNodeWithConsequent(subProof.consequent);
+                    .peekFirst().getNodeWithConsequent(subProof.consequent,
+                            subProof.getHypothesisFormulas());
             assert (currentAnnotatedNode != null);
             currentAnnotatedNodes.add(currentAnnotatedNode);
         }
@@ -775,7 +798,8 @@ public class TransformedZ3Proof extends Z3Proof {
         for (int count = 0; count < subProofs.size(); count++) {
             AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
                     .peekFirst().getNodeWithConsequent(
-                            subProofs.get(count).consequent);
+                            subProofs.get(count).consequent,
+                            subProofs.get(count).getHypothesisFormulas());
             DomainTerm[] oldTerms = Util.getDomainTerms(currentAnnotatedNode);
             DomainTerm currentLeftTerm = computeCurrentLeftTermForMonotonicity(
                     leftPartition, currentAnnotatedNode);
@@ -887,10 +911,17 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (proof2 != null);
         assert (proof3 != null);
 
+        AnnotatedProofNode newPremise1 = new AnnotatedProofNode(proof1);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(newPremise1);
+        AnnotatedProofNode newPremise2 = new AnnotatedProofNode(proof2);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(newPremise2);
+        AnnotatedProofNode newPremise3 = new AnnotatedProofNode(proof3);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(newPremise3);
+
         // put things together, add new annotated node
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                 new AnnotatedProofNode(leftPartition, rightPartition, this,
-                        proof1, proof2, proof3));
+                        newPremise1, newPremise2, newPremise3));
     }
 
     /**
@@ -1215,21 +1246,22 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (subProofs.size() == 2);
 
         AnnotatedProofNode firstAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
-                .peekFirst().getNodeWithConsequent(subProofs.get(0).consequent);
+                .peekFirst().getNodeWithConsequent(subProofs.get(0).consequent,
+                        subProofs.get(0).getHypothesisFormulas());
         assert (firstAnnotatedNode != null);
 
         AnnotatedProofNode secondAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
-                .peekFirst().getNodeWithConsequent(subProofs.get(1).consequent);
+                .peekFirst().getNodeWithConsequent(subProofs.get(1).consequent,
+                        subProofs.get(1).getHypothesisFormulas());
         assert (secondAnnotatedNode != null);
 
         if (firstAnnotatedNode.numPremises() == 0
                 && secondAnnotatedNode.numPremises() == 0) {
             if (firstAnnotatedNode.getPartition() == secondAnnotatedNode
                     .getPartition())
-                handleTransitivityCase1(firstAnnotatedNode.getPartition());
+                handleTransitivityCase1();
             else
-                handleTransitivityCase2(firstAnnotatedNode.getPartition(),
-                        secondAnnotatedNode.getPartition());
+                handleTransitivityCase2(firstAnnotatedNode, secondAnnotatedNode);
         } else if (firstAnnotatedNode.numPremises() == 3
                 && secondAnnotatedNode.numPremises() == 0) {
             if (firstAnnotatedNode.getRightPartition() == secondAnnotatedNode
@@ -1255,23 +1287,20 @@ public class TransformedZ3Proof extends Z3Proof {
      * Deals with the case that both equalities are from the same partition and
      * have annotated nodes with 0 premises.
      * 
-     * @param partition
-     *            the partition to which the new annotated node should be added
      */
-    private void handleTransitivityCase1(int partition) {
+    private void handleTransitivityCase1() {
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                new AnnotatedProofNode(partition, partition, this));
+                new AnnotatedProofNode(this));
     }
 
     /**
      * Deals with the case that both equalities have annotated nodes with 0
      * premises, but from different partitions.
      * 
-     * @param leftPartition
-     * @param rightPartition
-     * 
      */
-    private void handleTransitivityCase2(int leftPartition, int rightPartition) {
+    private void handleTransitivityCase2(
+            AnnotatedProofNode firstAnnotatedProofNode,
+            AnnotatedProofNode secondAnnotatedProofNode) {
         assert (Util
                 .makeLiteralPositive(Util.getSingleLiteral(subProofs.get(0).consequent)) instanceof EqualityFormula);
         EqualityFormula formula = (EqualityFormula) Util
@@ -1290,11 +1319,16 @@ public class TransformedZ3Proof extends Z3Proof {
 
         TransformedZ3Proof reflexivity = TransformedZ3Proof
                 .createReflexivityProof(term);
-        TransformedZ3Proof.annotatedNodesStack
-                .peekFirst()
-                .add(new AnnotatedProofNode(leftPartition, rightPartition,
-                        this, (TransformedZ3Proof) this.subProofs.get(0),
-                        reflexivity, (TransformedZ3Proof) this.subProofs.get(1)));
+        AnnotatedProofNode annotatedReflexivity = new AnnotatedProofNode(
+                reflexivity);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                annotatedReflexivity);
+
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(firstAnnotatedProofNode.getPartition(),
+                        secondAnnotatedProofNode.getPartition(), this,
+                        firstAnnotatedProofNode, annotatedReflexivity,
+                        secondAnnotatedProofNode));
     }
 
     /**
@@ -1315,12 +1349,18 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getConsequent());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        AnnotatedProofNode newAnnotatedNode = new AnnotatedProofNode(
+                newProofNode);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst()
+                .add(newAnnotatedNode);
+
         // assert (newProofNode.checkZ3ProofNode());
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                 new AnnotatedProofNode(firstAnnotatedNode.getLeftPartition(),
                         firstAnnotatedNode.getRightPartition(), this,
-                        firstAnnotatedNode.getPremise1(), firstAnnotatedNode
-                                .getPremise2(), newProofNode));
+                        firstAnnotatedNode.getAnnotatedPremise1(),
+                        firstAnnotatedNode.getAnnotatedPremise2(),
+                        newAnnotatedNode));
     }
 
     /**
@@ -1339,11 +1379,17 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getPremise1());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        AnnotatedProofNode newAnnotatedNode = new AnnotatedProofNode(
+                newProofNode);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst()
+                .add(newAnnotatedNode);
+
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                 new AnnotatedProofNode(firstAnnotatedNode.getPartition(),
                         secondAnnotatedNode.getRightPartition(), this,
-                        newProofNode, secondAnnotatedNode.getPremise2(),
-                        secondAnnotatedNode.getPremise3()));
+                        newAnnotatedNode, secondAnnotatedNode
+                                .getAnnotatedPremise2(), secondAnnotatedNode
+                                .getAnnotatedPremise3()));
 
     }
 
@@ -1364,11 +1410,16 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(firstAnnotatedNode.getPremise3());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        AnnotatedProofNode newAnnotatedNode = new AnnotatedProofNode(
+                newProofNode);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst()
+                .add(newAnnotatedNode);
+
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                 new AnnotatedProofNode(firstAnnotatedNode.getLeftPartition(),
                         secondAnnotatedNode.getPartition(), this,
-                        firstAnnotatedNode.getPremise1(), newProofNode,
-                        secondAnnotatedNode.getConsequent()));
+                        firstAnnotatedNode.getAnnotatedPremise1(),
+                        newAnnotatedNode, secondAnnotatedNode));
 
     }
 
@@ -1389,11 +1440,15 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getPremise2());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        AnnotatedProofNode newAnnotatedNode = new AnnotatedProofNode(
+                newProofNode);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst()
+                .add(newAnnotatedNode);
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                 new AnnotatedProofNode(firstAnnotatedNode.getPartition(),
                         secondAnnotatedNode.getRightPartition(), this,
-                        firstAnnotatedNode.getConsequent(), newProofNode,
-                        secondAnnotatedNode.getPremise3()));
+                        firstAnnotatedNode, newAnnotatedNode,
+                        secondAnnotatedNode.getAnnotatedPremise3()));
     }
 
     /**
@@ -1416,12 +1471,21 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs2.add(secondAnnotatedNode.getPremise2());
         TransformedZ3Proof newProofNode2 = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs2);
+        AnnotatedProofNode newAnnotatedNode1 = new AnnotatedProofNode(
+                newProofNode1);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                newAnnotatedNode1);
+        AnnotatedProofNode newAnnotatedNode2 = new AnnotatedProofNode(
+                newProofNode2);
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                newAnnotatedNode2);
 
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                 new AnnotatedProofNode(firstAnnotatedNode.getLeftPartition(),
                         secondAnnotatedNode.getRightPartition(), this,
-                        firstAnnotatedNode.getPremise1(), newProofNode2,
-                        secondAnnotatedNode.getPremise3()));
+                        firstAnnotatedNode.getAnnotatedPremise1(),
+                        newAnnotatedNode2, secondAnnotatedNode
+                                .getAnnotatedPremise3()));
     }
 
     /**
