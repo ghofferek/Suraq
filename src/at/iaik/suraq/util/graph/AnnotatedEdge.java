@@ -17,6 +17,8 @@ class AnnotatedEdge<N, A> {
 
     private final A annotation;
 
+    private final int hash;
+
     /**
      * Constructs a new <code>AnnotatedEdge</code>.
      * 
@@ -30,6 +32,8 @@ class AnnotatedEdge<N, A> {
         this.src = src;
         this.dst = dst;
         this.annotation = annotation;
+
+        this.hash = src.hashCode() ^ dst.hashCode() ^ annotation.hashCode();
     }
 
     /**
@@ -51,6 +55,36 @@ class AnnotatedEdge<N, A> {
      */
     public A getAnnotation() {
         return annotation;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return this.hash;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof AnnotatedEdge))
+            return false;
+
+        if (!((AnnotatedEdge<?, ?>) obj).src.equals(this.src))
+            return false;
+
+        if (!((AnnotatedEdge<?, ?>) obj).dst.equals(this.dst))
+            return false;
+
+        if (!((AnnotatedEdge<?, ?>) obj).annotation.equals(this.annotation))
+            return false;
+
+        return true;
     }
 
 }

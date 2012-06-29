@@ -90,6 +90,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof UninterpretedPredicateInstance))
             return false;
         UninterpretedPredicateInstance other = (UninterpretedPredicateInstance) obj;

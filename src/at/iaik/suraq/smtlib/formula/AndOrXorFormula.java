@@ -203,6 +203,9 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+
         if (!(this.getClass().isInstance(obj)))
             return false;
         Set<Formula> set1 = new HashSet<Formula>();

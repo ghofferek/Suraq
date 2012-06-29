@@ -235,6 +235,8 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(this.getClass().isInstance(obj)))
             return false;
         if (!((EqualityFormula) obj).terms.equals(terms))

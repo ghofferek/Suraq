@@ -204,6 +204,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof PropositionalFunctionMacroInstance))
             return false;
         return ((PropositionalFunctionMacroInstance) obj).macro.equals(macro)

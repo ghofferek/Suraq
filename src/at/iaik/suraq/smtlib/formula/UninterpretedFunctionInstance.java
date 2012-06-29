@@ -232,6 +232,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof UninterpretedFunctionInstance))
             return false;
         UninterpretedFunctionInstance other = (UninterpretedFunctionInstance) obj;

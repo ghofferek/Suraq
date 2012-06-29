@@ -20,20 +20,44 @@ public class ImmutableSet<E> implements Set<E> {
 
     private static Map<Set<?>, ImmutableSet<?>> instances = new HashMap<Set<?>, ImmutableSet<?>>();
 
+    private static Map<Object, Object> uniqueElements = new HashMap<Object, Object>();
+
     /**
      * Constructs a new <code>ImmutableSet</code>.
      * 
      * @param set
      */
     private ImmutableSet(Collection<? extends E> set) {
+
+        assert (set != null);
         internalSet = new HashSet<E>();
-        internalSet.addAll(set);
+
+        for (E element : set) {
+            if (element == null) {
+                internalSet.add(null);
+            } else {
+                assert (element != null);
+                @SuppressWarnings("unchecked")
+                E uniqueElement = (E) ImmutableSet.uniqueElements.get(element);
+                if (uniqueElement != null)
+                    internalSet.add(uniqueElement);
+                else {
+                    ImmutableSet.uniqueElements.put(element, element);
+                    internalSet.add(element);
+                }
+            }
+        }
+
         Set<E> key = new HashSet<E>();
         key.addAll(set);
         ImmutableSet.instances.put(key, this);
     }
 
     public static <T> ImmutableSet<T> create(Collection<? extends T> set) {
+
+        if (set == null)
+            throw new NullPointerException(
+                    "Cannot create ImmutableSet from null.");
 
         ImmutableSet<?> existingSet = ImmutableSet.instances.get(set);
         if (existingSet != null) {
@@ -172,4 +196,67 @@ public class ImmutableSet<E> implements Set<E> {
         throw new UnsupportedOperationException(
                 "'removeAll' called on immutable set!");
     }
+
+    /**
+     * Returns a new immutable set that contains all elements of
+     * <code>this</code> set, plus the given <code>element</code>.
+     * <code>this</code> set is not altered.
+     * 
+     * @param element
+     * @return <code>this</code> union <code>element</code>.
+     */
+    public ImmutableSet<E> addToCopy(E element) {
+        Set<E> tmp = new HashSet<E>();
+        tmp.addAll(internalSet);
+        tmp.add(element);
+        return ImmutableSet.create(tmp);
+    }
+
+    /**
+     * Returns a new immutable set that contains all elements of
+     * <code>this</code> set, plus the given <code>set</code>. <code>this</code>
+     * set is not altered.
+     * 
+     * @param set
+     * @return <code>this</code> union <code>set</code>.
+     */
+    public ImmutableSet<E> addAllToCopy(Collection<? extends E> set) {
+        Set<E> tmp = new HashSet<E>();
+        tmp.addAll(internalSet);
+        tmp.addAll(set);
+        return ImmutableSet.create(tmp);
+    }
+
+    /**
+     * Returns a new immutable set that contains all elements of
+     * <code>this</code> set, minus the given <code>element</code>.
+     * <code>this</code> set is not altered. If <code>element</code> is not in
+     * <code>this</code> set, then a copy of <code>this</code> set is returned.
+     * 
+     * @param element
+     * @return <code>this</code> union <code>element</code>.
+     */
+    public ImmutableSet<E> removeFromCopy(E element) {
+        Set<E> tmp = new HashSet<E>();
+        tmp.addAll(internalSet);
+        tmp.remove(element);
+        return ImmutableSet.create(tmp);
+    }
+
+    /**
+     * Returns a new immutable set that contains all elements of
+     * <code>this</code> set, minus the given <code>set</code>.
+     * <code>this</code> set is not altered. Any elements of <code>set</code>
+     * not contained in <code>this</code> are basically ignored.
+     * 
+     * @param set
+     * @return <code>this</code> union <code>set</code>.
+     */
+    public ImmutableSet<E> removeAllFromCopy(Collection<? extends E> set) {
+        Set<E> tmp = new HashSet<E>();
+        tmp.addAll(internalSet);
+        tmp.removeAll(set);
+        return ImmutableSet.create(tmp);
+    }
+
 }

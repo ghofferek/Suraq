@@ -170,6 +170,8 @@ public class ArrayIte extends ArrayTerm {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof ArrayIte))
             return false;
         return ((ArrayIte) obj).thenBranch.equals(thenBranch)

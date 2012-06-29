@@ -96,6 +96,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof DomainVariable))
             return false;
         return varName.equals(((DomainVariable) obj).varName);

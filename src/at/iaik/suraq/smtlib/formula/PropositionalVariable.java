@@ -97,6 +97,8 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof PropositionalVariable))
             return false;
         return varName.equals(((PropositionalVariable) obj).varName);

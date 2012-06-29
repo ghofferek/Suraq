@@ -127,6 +127,8 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof PropositionalConstant))
             return false;
         return ((PropositionalConstant) obj).constant == constant;

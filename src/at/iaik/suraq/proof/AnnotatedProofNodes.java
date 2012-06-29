@@ -44,7 +44,18 @@ public class AnnotatedProofNodes {
             Set<Formula> hypotheses) {
         Map<Set<Formula>, AnnotatedProofNode> currentMap = map.get(consequent
                 .transformToConsequentsForm());
+
+        // TODO Instead of returning a node with matching hypotheses, or
+        // a matching subset, one could search for the smallest subset here.
+        // This would decrease overall proof size.
+
         AnnotatedProofNode result = currentMap.get(hypotheses);
+        if (result == null) {
+            for (AnnotatedProofNode potentialResult : currentMap.values()) {
+                if (hypotheses.containsAll(potentialResult.getHypotheses()))
+                    return potentialResult;
+            }
+        }
         return result;
     }
 

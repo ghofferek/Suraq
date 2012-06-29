@@ -572,6 +572,46 @@ public class Util {
                 "Did not find a matching literal in clauses.");
     }
 
+    /**
+     * Checks if these clauses resolve on one of the given obsolete literals. If
+     * so, the obsolete clause is returned. If no clause is obsolete,
+     * <code>null</code> is returned.
+     * 
+     * @param clause1
+     * @param clause2
+     * @param obsoleteLiterals
+     * @return the clause that is obsolete, or <code>null</code> if none.
+     */
+    public static OrFormula findObsoleteClause(OrFormula clause1,
+            OrFormula clause2, Set<Formula> obsoleteLiterals) {
+        Formula resolvingLiteral = Util.findResolvingLiteral(clause1, clause2);
+
+        Formula obsoleteLiteral = null;
+        if (obsoleteLiterals.contains(resolvingLiteral)) {
+            obsoleteLiteral = resolvingLiteral;
+        } else if (obsoleteLiterals.contains(Util
+                .invertLiteral(resolvingLiteral))) {
+            obsoleteLiteral = Util.invertLiteral(resolvingLiteral);
+        } else
+            return null;
+
+        assert (obsoleteLiteral != null);
+
+        if (clause1.getDisjuncts().contains(obsoleteLiteral)) {
+            assert (!clause2.getDisjuncts().contains(obsoleteLiteral));
+            assert (!clause2.getDisjuncts().contains(
+                    Util.invertLiteral(obsoleteLiteral)));
+            return clause1;
+        } else if (clause2.getDisjuncts().contains(obsoleteLiteral)) {
+            assert (!clause1.getDisjuncts().contains(obsoleteLiteral));
+            assert (!clause1.getDisjuncts().contains(
+                    Util.invertLiteral(obsoleteLiteral)));
+            return clause2;
+        }
+        assert (false); // one of the clauses *must* have the literal
+        return null;
+    }
+
     public static EqualityFormula reverseEquality(EqualityFormula formula) {
         assert (formula.getTerms().size() == 2);
         Term term1 = formula.getTerms().get(0);

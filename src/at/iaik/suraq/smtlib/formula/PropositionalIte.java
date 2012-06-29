@@ -196,6 +196,8 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof PropositionalIte))
             return false;
         return ((PropositionalIte) obj).thenBranch.equals(thenBranch)

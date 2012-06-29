@@ -42,6 +42,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.TransitivityChainBuilder;
 import at.iaik.suraq.util.Util;
 
@@ -93,6 +94,19 @@ public class TransformedZ3Proof extends Z3Proof {
      * also a leave.
      */
     private boolean hypothesis = false;
+
+    /**
+     * The set of literals that have become obsolete by proof rewriting.
+     * Resolutions with these literals are no longer necessary. Literals are
+     * added in the reverse polarity of that in which they would originally have
+     * occurred in this node. I.e., the polarity is the same as that of the
+     * corresponding hypothesis (that is no longer present), and also the same
+     * of the one that is supposed to occur in another node with which this one
+     * will be resolved. I.e., the clause that contains the literal in the same
+     * polarity as in this set is the obsolete clause. The set should contain
+     * the literals directly, not their unit clauses.
+     */
+    private ImmutableSet<Formula> obsoleteLiterals = null;
 
     /**
      * Storage for annotated nodes used during proof conversion.
@@ -507,40 +521,29 @@ public class TransformedZ3Proof extends Z3Proof {
         if (this.wasVisitedByDAGOperation(operationId))
             return;
         visitedByDAGOperation(operationId);
+
+        if (obsoleteLiterals == null)
+            obsoleteLiterals = ImmutableSet.create(new HashSet<Formula>());
+
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
             subProof.toLocalProofRecursion(operationId);
+
+            assert (obsoleteLiterals != null);
+            obsoleteLiterals = obsoleteLiterals
+                    .addAllToCopy(subProof.obsoleteLiterals);
         }
 
         // Recursive calls are completed. Now handle this particular node.
-        // -------------------------------------------------------------
-        if (this.proofType.equals(SExpressionConstants.LEMMA)) {
-
-            assert (this.subProofs.size() == 1);
-            assert (this.subProofs.get(0) instanceof TransformedZ3Proof);
-            TransformedZ3Proof hypotheticalProof = (TransformedZ3Proof) this.subProofs
-                    .get(0);
-            assert (hypotheticalProof.consequent
-                    .equals((new PropositionalConstant(false))
-                            .transformToConsequentsForm()));
-            hypotheticalProof.toLocalProofRecursion(operationId);
-            if (this.hasSingleLiteralConsequent()) {
-                AnnotatedProofNode annotatedNode = annotatedNodeFromProofWithSingleLiteralConsequent(this);
-                assert (annotatedNode != null);
-                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                        annotatedNode);
-            }
-            return;
-        }
 
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.SYMMETRY)) {
             assert (this.hasSingleLiteralConsequent());
             assert (subProofs.size() == 1);
             Z3Proof subproof = subProofs.get(0);
-            Formula premiseLiteral = ((OrFormula) (subproof.consequent))
-                    .getDisjuncts().iterator().next();
+            Formula premiseLiteral = Util.getSingleLiteral(subproof.consequent);
+
             AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodesStack
                     .peekFirst().getNodeWithConsequent(premiseLiteral,
                             subproof.getHypothesisFormulas());
@@ -606,7 +609,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // -------------------------------------------------------------
         if (this.hasSingleLiteralConsequent()) {
-            AnnotatedProofNode annotatedNode = annotatedNodeFromProofWithSingleLiteralConsequent(this);
+            AnnotatedProofNode annotatedNode = createNewAnnotatedNodeFromProofWithSingleLiteralConsequent(this);
             if (annotatedNode != null)
                 TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                         annotatedNode);
@@ -659,7 +662,9 @@ public class TransformedZ3Proof extends Z3Proof {
                         }
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
+
                         subProofs.set(0, update);
+                        recomputeObsoleteLiterals();
                     }
                 }
 
@@ -683,6 +688,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
                         subProofs.set(1, update);
+                        recomputeObsoleteLiterals();
                     }
                 }
             }
@@ -693,7 +699,19 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (false);
     }
 
-    private AnnotatedProofNode annotatedNodeFromProofWithSingleLiteralConsequent(
+    /**
+     * 
+     */
+    private void recomputeObsoleteLiterals() {
+        obsoleteLiterals = ImmutableSet.create(new HashSet<Formula>());
+        for (Z3Proof subproof : subProofs) {
+            assert (subproof instanceof TransformedZ3Proof);
+            obsoleteLiterals = obsoleteLiterals
+                    .addAllToCopy(((TransformedZ3Proof) subproof).obsoleteLiterals);
+        }
+    }
+
+    private AnnotatedProofNode createNewAnnotatedNodeFromProofWithSingleLiteralConsequent(
             TransformedZ3Proof proof) {
         assert (proof.hasSingleLiteralConsequent());
         Formula literal = ((OrFormula) (proof.consequent)).getDisjuncts()

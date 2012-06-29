@@ -122,6 +122,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof PropositionalFunctionMacro))
             return false;
         PropositionalFunctionMacro other = (PropositionalFunctionMacro) obj;

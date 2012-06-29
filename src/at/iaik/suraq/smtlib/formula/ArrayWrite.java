@@ -168,6 +168,8 @@ public class ArrayWrite extends ArrayTerm {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof ArrayWrite))
             return false;
         return ((ArrayWrite) obj).arrayTerm.equals(arrayTerm)

@@ -171,6 +171,8 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof ImpliesFormula))
             return false;
         return ((ImpliesFormula) obj).leftSide.equals(leftSide)

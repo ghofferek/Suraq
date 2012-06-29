@@ -374,6 +374,8 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof ArrayProperty))
             return false;
         ArrayProperty other = (ArrayProperty) obj;

@@ -62,6 +62,8 @@ public class TermFunctionMacro extends FunctionMacro {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof TermFunctionMacro))
             return false;
         TermFunctionMacro other = (TermFunctionMacro) obj;

@@ -227,6 +227,8 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof NotFormula))
             return false;
         return ((NotFormula) obj).formula.equals(formula);

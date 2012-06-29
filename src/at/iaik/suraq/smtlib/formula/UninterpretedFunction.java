@@ -150,6 +150,8 @@ public class UninterpretedFunction implements Serializable {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
         if (!(obj instanceof UninterpretedFunction))
             return false;
         return ((UninterpretedFunction) obj).name.equals(name)
