@@ -1662,7 +1662,6 @@ public class Suraq implements Runnable {
             String treeSizeString = myFormatter.format(treeSize);
             System.out.println("    Proof (tree) size: " + treeSizeString
                     + " (computed in " + treeTimer + ")");
-            System.out.println();
 
             Timer depthTimer = new Timer();
             depthTimer.start();
@@ -1671,7 +1670,7 @@ public class Suraq implements Runnable {
             System.out.println("    Proof depth: " + depth + " (computed in "
                     + depthTimer + ")");
             System.out.println();
-
+            System.out.println();
         }
     }
 }
