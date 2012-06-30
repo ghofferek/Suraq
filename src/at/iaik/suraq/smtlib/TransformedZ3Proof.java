@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -108,6 +109,8 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private ImmutableSet<Formula> obsoleteLiterals = null;
 
+    private static long numberOfRemovedObsoloteResolutionSteps = 0;
+
     /**
      * Storage for annotated nodes used during proof conversion.
      */
@@ -129,7 +132,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
         super(proofType, subProofs, consequent.transformToConsequentsForm()
                 .deepFormulaCopy());
-
+        this.recomputeObsoleteLiterals();
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
@@ -165,6 +168,8 @@ public class TransformedZ3Proof extends Z3Proof {
         this.literal = literal == null ? null : Util.getSingleLiteral(literal
                 .deepFormulaCopy());
 
+        this.recomputeObsoleteLiterals();
+
         assert (literal == null || this.proofType
                 .equals(SExpressionConstants.UNIT_RESOLUTION));
         assert (this.checkLiteralOccurenceInSubProofs());
@@ -183,6 +188,7 @@ public class TransformedZ3Proof extends Z3Proof {
             int assertPartition, boolean axiom) {
         super(proofType, subProofs, consequent.transformToConsequentsForm()
                 .deepFormulaCopy(), assertPartition, axiom);
+        this.recomputeObsoleteLiterals();
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
@@ -213,6 +219,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.literal = literal == null ? null : Util.makeLiteralPositive(Util
                 .getSingleLiteral(literal.deepFormulaCopy()));
+        this.recomputeObsoleteLiterals();
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
@@ -253,6 +260,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
         this.consequent = new OrFormula(disjuncts);
 
+        this.recomputeObsoleteLiterals();
+
         // TODO Check: Should this be set for leafs only?
         this.assertPartition = node.part;
 
@@ -261,6 +270,16 @@ public class TransformedZ3Proof extends Z3Proof {
 
         assert (this.assertPartition > 0 || !this.proofType
                 .equals(SExpressionConstants.ASSERTED));
+    }
+
+    @Override
+    protected void takeValuesFrom(Z3Proof proof) {
+        assert (proof instanceof TransformedZ3Proof);
+        super.takeValuesFrom(proof);
+        TransformedZ3Proof transformedProof = (TransformedZ3Proof) proof;
+        this.literal = transformedProof.literal;
+        this.hypothesis = transformedProof.hypothesis;
+        this.obsoleteLiterals = transformedProof.obsoleteLiterals;
     }
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
@@ -538,58 +557,16 @@ public class TransformedZ3Proof extends Z3Proof {
         // Recursive calls are completed. Now handle this particular node.
 
         // -------------------------------------------------------------
+        if (this.proofType.equals(SExpressionConstants.LEMMA)) {
+            // Nothing more to do for lemmas with multiple-literal consequents.
+            if (!this.hasSingleLiteralConsequent())
+                return;
+        }
+        // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.SYMMETRY)) {
             assert (this.hasSingleLiteralConsequent());
             assert (subProofs.size() == 1);
-            Z3Proof subproof = subProofs.get(0);
-            Formula premiseLiteral = Util.getSingleLiteral(subproof.consequent);
-
-            AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodesStack
-                    .peekFirst().getNodeWithConsequent(premiseLiteral,
-                            subproof.getHypothesisFormulas());
-            if (annotatedNode == null)
-                throw new RuntimeException(
-                        "No annotated proof node found when there should be one.");
-            int numPremises = annotatedNode.numPremises();
-            if (numPremises != 0 && numPremises != 3)
-                throw new RuntimeException(
-                        "Unexpected number of premises for annotated symmetry node: "
-                                + (new Integer(numPremises)).toString());
-            if (numPremises == 0) {
-                assert (this.subProofs.size() == 1);
-                Z3Proof premise = this.subProofs.get(0);
-                assert (premise.hasSingleLiteralConsequent());
-                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                        new AnnotatedProofNode(annotatedNode.getPartition(),
-                                annotatedNode.getPartition(), this, null, null,
-                                null));
-            } else {
-                assert (numPremises == 3);
-                TransformedZ3Proof newSymmetry1 = TransformedZ3Proof
-                        .createSymmetryProof(annotatedNode.getPremise3());
-                AnnotatedProofNode newPremise1 = new AnnotatedProofNode(
-                        newSymmetry1);
-                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                        newPremise1);
-                TransformedZ3Proof newSymmetry2 = TransformedZ3Proof
-                        .createSymmetryProof(annotatedNode.getPremise2());
-                AnnotatedProofNode newPremise2 = new AnnotatedProofNode(
-                        newSymmetry2);
-                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                        newPremise2);
-                TransformedZ3Proof newSymmetry3 = TransformedZ3Proof
-                        .createSymmetryProof(annotatedNode.getPremise1());
-                AnnotatedProofNode newPremise3 = new AnnotatedProofNode(
-                        newSymmetry3);
-                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                        newPremise3);
-
-                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                        new AnnotatedProofNode(annotatedNode
-                                .getRightPartition(), annotatedNode
-                                .getLeftPartition(), this, newPremise1,
-                                newPremise2, newPremise3));
-            }
+            handleSymmetry();
             return;
         }
 
@@ -609,15 +586,19 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // -------------------------------------------------------------
         if (this.hasSingleLiteralConsequent()) {
+
+            // Add a new annotated node for this single-literal-consequent node.
             AnnotatedProofNode annotatedNode = createNewAnnotatedNodeFromProofWithSingleLiteralConsequent(this);
             if (annotatedNode != null)
                 TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                         annotatedNode);
 
-            if (this.proofType.equals(SExpressionConstants.ASSERTED))
+            if (this.proofType.equals(SExpressionConstants.ASSERTED)
+                    || this.proofType.equals(SExpressionConstants.LEMMA))
                 // for UNIT-RESOLUTION we still need to update the subProofs
                 return;
         }
+
         if (!this.hasSingleLiteralConsequent()
                 || this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
 
@@ -644,13 +625,16 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (Util.checkResolutionNodeForBadLiterals(this));
 
                 if (Util.isLiteral(subProofs.get(0).consequent)) {
+                    Set<Formula> newObsoleteLiterals = new HashSet<Formula>();
                     AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodesStack
                             .peekFirst()
                             .getNodeWithConsequent(
                                     Util.getSingleLiteral(subProofs.get(0).consequent),
-                                    subProofs.get(0).getHypothesisFormulas());
+                                    subProofs.get(0).getHypothesisFormulas(),
+                                    newObsoleteLiterals);
                     if (annotatedNode != null) {
-                        Z3Proof update = annotatedNode.getConsequent();
+                        TransformedZ3Proof update = annotatedNode
+                                .getConsequent();
                         if (annotatedNode.numPremises() == 3) {
                             List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
                                     3);
@@ -659,6 +643,8 @@ public class TransformedZ3Proof extends Z3Proof {
                             transSubProofs.add(annotatedNode.getPremise3());
                             update = TransformedZ3Proof
                                     .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
+                            update.obsoleteLiterals = update.obsoleteLiterals
+                                    .addAllToCopy(newObsoleteLiterals);
                         }
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
@@ -669,13 +655,16 @@ public class TransformedZ3Proof extends Z3Proof {
                 }
 
                 if (Util.isLiteral(subProofs.get(1).consequent)) {
+                    Set<Formula> newObsoleteLiterals = new HashSet<Formula>();
                     AnnotatedProofNode annotatedNode2 = TransformedZ3Proof.annotatedNodesStack
                             .peekFirst()
                             .getNodeWithConsequent(
                                     Util.getSingleLiteral(subProofs.get(1).consequent),
-                                    subProofs.get(1).getHypothesisFormulas());
+                                    subProofs.get(1).getHypothesisFormulas(),
+                                    newObsoleteLiterals);
                     if (annotatedNode2 != null) {
-                        Z3Proof update = annotatedNode2.getConsequent();
+                        TransformedZ3Proof update = annotatedNode2
+                                .getConsequent();
                         if (annotatedNode2.numPremises() == 3) {
                             List<TransformedZ3Proof> transSubProofs = new ArrayList<TransformedZ3Proof>(
                                     3);
@@ -684,12 +673,51 @@ public class TransformedZ3Proof extends Z3Proof {
                             transSubProofs.add(annotatedNode2.getPremise3());
                             update = TransformedZ3Proof
                                     .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
+                            update.obsoleteLiterals = update.obsoleteLiterals
+                                    .addAllToCopy(newObsoleteLiterals);
                         }
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
                         subProofs.set(1, update);
                         recomputeObsoleteLiterals();
                     }
+                }
+
+                // Remove obsolete resolution steps
+
+                assert (subProofs.get(0).consequent instanceof OrFormula);
+                assert (subProofs.get(1).consequent instanceof OrFormula);
+                OrFormula obsoleteClause = Util.findObsoleteClause(
+                        (OrFormula) subProofs.get(0).consequent,
+                        (OrFormula) subProofs.get(1).consequent,
+                        obsoleteLiterals);
+                if (obsoleteClause != null) {
+                    TransformedZ3Proof.numberOfRemovedObsoloteResolutionSteps++;
+                    Formula literal = Util.findResolvingLiteral(
+                            (OrFormula) subProofs.get(0).consequent,
+                            (OrFormula) subProofs.get(1).consequent);
+
+                    Collection<Formula> newObsoleteLiterals = obsoleteClause
+                            .getDisjuncts();
+                    if (!newObsoleteLiterals.remove(literal))
+                        if (!newObsoleteLiterals.remove(Util
+                                .invertLiteral(literal)))
+                            assert (false); // One of the polarities must be
+                                            // contained
+
+                    Z3Proof nonObsoleteProof = null;
+                    if (obsoleteClause.equals(subProofs.get(0).consequent)) {
+                        nonObsoleteProof = subProofs.get(1);
+                    } else {
+                        assert (obsoleteClause
+                                .equals(subProofs.get(1).consequent));
+                        nonObsoleteProof = subProofs.get(0);
+                    }
+                    assert (nonObsoleteProof != null);
+                    assert (nonObsoleteProof instanceof TransformedZ3Proof);
+                    this.takeValuesFrom(nonObsoleteProof);
+                    obsoleteLiterals = obsoleteLiterals
+                            .addAllToCopy(newObsoleteLiterals);
                 }
             }
             return;
@@ -700,7 +728,9 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     /**
-     * 
+     * (Re-)computes the set of obsolete literals as the union of obsolete
+     * literals of the subproofs. Existing obsolete literals are overwritten and
+     * will not be present any more, unless they also occur in a subproof.
      */
     private void recomputeObsoleteLiterals() {
         obsoleteLiterals = ImmutableSet.create(new HashSet<Formula>());
@@ -739,6 +769,57 @@ public class TransformedZ3Proof extends Z3Proof {
         return annotatedNode;
     }
 
+    private void handleSymmetry() {
+        Z3Proof subproof = subProofs.get(0);
+        Formula premiseLiteral = Util.getSingleLiteral(subproof.consequent);
+
+        Set<Formula> newObsoleteLiterals = new HashSet<Formula>();
+        AnnotatedProofNode annotatedNode = TransformedZ3Proof.annotatedNodesStack
+                .peekFirst().getNodeWithConsequent(premiseLiteral,
+                        subproof.getHypothesisFormulas(), newObsoleteLiterals);
+        obsoleteLiterals = obsoleteLiterals.addAllToCopy(newObsoleteLiterals);
+        if (annotatedNode == null)
+            throw new RuntimeException(
+                    "No annotated proof node found when there should be one.");
+        int numPremises = annotatedNode.numPremises();
+        if (numPremises != 0 && numPremises != 3)
+            throw new RuntimeException(
+                    "Unexpected number of premises for annotated symmetry node: "
+                            + (new Integer(numPremises)).toString());
+        if (numPremises == 0) {
+            assert (this.subProofs.size() == 1);
+            Z3Proof premise = this.subProofs.get(0);
+            assert (premise.hasSingleLiteralConsequent());
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                    new AnnotatedProofNode(annotatedNode.getPartition(),
+                            annotatedNode.getPartition(), this, null, null,
+                            null));
+        } else {
+            assert (numPremises == 3);
+            TransformedZ3Proof newSymmetry1 = TransformedZ3Proof
+                    .createSymmetryProof(annotatedNode.getPremise3());
+            AnnotatedProofNode newPremise1 = new AnnotatedProofNode(
+                    newSymmetry1);
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(newPremise1);
+            TransformedZ3Proof newSymmetry2 = TransformedZ3Proof
+                    .createSymmetryProof(annotatedNode.getPremise2());
+            AnnotatedProofNode newPremise2 = new AnnotatedProofNode(
+                    newSymmetry2);
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(newPremise2);
+            TransformedZ3Proof newSymmetry3 = TransformedZ3Proof
+                    .createSymmetryProof(annotatedNode.getPremise1());
+            AnnotatedProofNode newPremise3 = new AnnotatedProofNode(
+                    newSymmetry3);
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(newPremise3);
+
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                    new AnnotatedProofNode(annotatedNode.getRightPartition(),
+                            annotatedNode.getLeftPartition(), this,
+                            newPremise1, newPremise2, newPremise3));
+        }
+
+    }
+
     private void handleMonotonicity() {
         assert (subProofs.size() >= 1);
 
@@ -746,10 +827,7 @@ public class TransformedZ3Proof extends Z3Proof {
         if (!(consequentLiteral instanceof EqualityFormula))
             assert (false);
         EqualityFormula consequentEq = (EqualityFormula) consequentLiteral;
-        // assert (eqLiteral.getTerms().get(0) instanceof Term);
         Term leftTerm = consequentEq.getTerms().get(0);
-        // assert (eqLiteral.getTerms().get(eqLiteral.getTerms().size() - 1)
-        // instanceof DomainTerm);
         Term rightTerm = consequentEq.getTerms().get(
                 consequentEq.getTerms().size() - 1);
 
@@ -775,40 +853,36 @@ public class TransformedZ3Proof extends Z3Proof {
 
         if (leftPartition == rightPartition) {
             // this is a local node
-            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                    new AnnotatedProofNode(this));
 
+            Set<Formula> newObsoleteLiterals = new HashSet<Formula>();
             for (int count = 0; count < subProofs.size(); count++) {
                 assert (subProofs.get(count) instanceof TransformedZ3Proof);
                 Z3Proof subProof = subProofs.get(count);
+                Set<Formula> currentNewObsoleteLiterals = new HashSet<Formula>();
                 AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
                         .peekFirst().getNodeWithConsequent(subProof.consequent,
-                                subProof.getHypothesisFormulas());
+                                subProof.getHypothesisFormulas(),
+                                currentNewObsoleteLiterals);
+                newObsoleteLiterals.addAll(currentNewObsoleteLiterals);
                 if (currentAnnotatedNode.numPremises() == 3) {
                     List<TransformedZ3Proof> proofs = new ArrayList<TransformedZ3Proof>(
                             3);
                     proofs.add(currentAnnotatedNode.getPremise1());
                     proofs.add(currentAnnotatedNode.getPremise2());
                     proofs.add(currentAnnotatedNode.getPremise3());
-                    Z3Proof newProof = TransformedZ3Proof
+                    TransformedZ3Proof newProof = TransformedZ3Proof
                             .createTransitivityProofForTransformedZ3Proofs(proofs);
                     subProofs.set(count, newProof);
                     TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                            new AnnotatedProofNode(this));
+                            new AnnotatedProofNode(newProof));
                 }
             }
+            this.recomputeObsoleteLiterals();
+            this.obsoleteLiterals = this.obsoleteLiterals
+                    .addAllToCopy(newObsoleteLiterals);
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                    new AnnotatedProofNode(this));
             return;
-        }
-
-        List<AnnotatedProofNode> currentAnnotatedNodes = new ArrayList<AnnotatedProofNode>();
-        for (Z3Proof child : subProofs) {
-            assert (child instanceof TransformedZ3Proof);
-            Z3Proof subProof = child;
-            AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
-                    .peekFirst().getNodeWithConsequent(subProof.consequent,
-                            subProof.getHypothesisFormulas());
-            assert (currentAnnotatedNode != null);
-            currentAnnotatedNodes.add(currentAnnotatedNode);
         }
 
         List<DomainTerm> newLeftTerms = new ArrayList<DomainTerm>();
@@ -819,7 +893,8 @@ public class TransformedZ3Proof extends Z3Proof {
             AnnotatedProofNode currentAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
                     .peekFirst().getNodeWithConsequent(
                             subProofs.get(count).consequent,
-                            subProofs.get(count).getHypothesisFormulas());
+                            subProofs.get(count).getHypothesisFormulas(),
+                            new HashSet<Formula>());
             DomainTerm[] oldTerms = Util.getDomainTerms(currentAnnotatedNode);
             DomainTerm currentLeftTerm = computeCurrentLeftTermForMonotonicity(
                     leftPartition, currentAnnotatedNode);
@@ -1267,12 +1342,14 @@ public class TransformedZ3Proof extends Z3Proof {
 
         AnnotatedProofNode firstAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
                 .peekFirst().getNodeWithConsequent(subProofs.get(0).consequent,
-                        subProofs.get(0).getHypothesisFormulas());
+                        subProofs.get(0).getHypothesisFormulas(),
+                        new HashSet<Formula>());
         assert (firstAnnotatedNode != null);
 
         AnnotatedProofNode secondAnnotatedNode = TransformedZ3Proof.annotatedNodesStack
                 .peekFirst().getNodeWithConsequent(subProofs.get(1).consequent,
-                        subProofs.get(1).getHypothesisFormulas());
+                        subProofs.get(1).getHypothesisFormulas(),
+                        new HashSet<Formula>());
         assert (secondAnnotatedNode != null);
 
         if (firstAnnotatedNode.numPremises() == 0
@@ -1547,7 +1624,8 @@ public class TransformedZ3Proof extends Z3Proof {
      *            must have a single literal as a consequence
      * @return a symmetry proof for the given premise.
      */
-    public static TransformedZ3Proof createSymmetryProof(Z3Proof premise) {
+    public static TransformedZ3Proof createSymmetryProof(
+            TransformedZ3Proof premise) {
         Z3Proof z3Proof = Z3Proof.createSymmetryProof(premise);
         List<TransformedZ3Proof> newSubProofs = new ArrayList<TransformedZ3Proof>(
                 3);
@@ -1555,8 +1633,10 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (subProof instanceof TransformedZ3Proof);
             newSubProofs.add((TransformedZ3Proof) subProof);
         }
-        return new TransformedZ3Proof(z3Proof.proofType, newSubProofs,
-                z3Proof.consequent);
+        TransformedZ3Proof result = new TransformedZ3Proof(z3Proof.proofType,
+                newSubProofs, z3Proof.consequent);
+
+        return result;
     }
 
     /**
@@ -1816,14 +1896,10 @@ public class TransformedZ3Proof extends Z3Proof {
                             .indexOf(foundHypothesis) == 0 ? 1 : 0);
                     assert (other instanceof TransformedZ3Proof);
                     TransformedZ3Proof otherChild = (TransformedZ3Proof) other;
-                    node.axiom = otherChild.axiom;
-                    node.literal = otherChild.literal;
-                    node.hypothesis = otherChild.hypothesis;
-                    node.subProofs = otherChild.subProofs;
-                    node.proofType = otherChild.proofType;
-                    node.assertPartition = otherChild.assertPartition;
-                    assert (node.assertPartition > 0 || !node.proofType
-                            .equals(SExpressionConstants.ASSERTED));
+                    node.takeValuesFrom(otherChild);
+                    // Consequent must be overwritten with new value containing
+                    // the hypothesis
+                    node.consequent = new OrFormula(newDisjuncts);
                 }
             }
         }
@@ -1860,15 +1936,13 @@ public class TransformedZ3Proof extends Z3Proof {
             hypotheticalProof.toResolutionProofRecursion(operationId);
             hypotheticalProof.removeHypotheses();
 
-            this.consequent = hypotheticalProof.consequent;
-            this.subProofs = hypotheticalProof.subProofs;
-            this.literal = Util.getSingleLiteral(hypotheticalProof.literal);
-            this.proofType = hypotheticalProof.proofType;
-            assert (this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION));
-            this.hypothesis = hypotheticalProof.hypothesis;
+            this.takeValuesFrom(hypotheticalProof);
+            if (!(this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION) || this.proofType
+                    .equals(SExpressionConstants.ASSERTED)))
+                assert (false);
+
             assert (!this.hypothesis);
-            this.axiom = hypotheticalProof.axiom;
-            this.assertPartition = hypotheticalProof.assertPartition;
+
             return;
 
         }
@@ -1951,13 +2025,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     .get(0);
             z3SubProof.toResolutionProofRecursion(operationId);
 
-            this.consequent = z3SubProof.consequent;
-            this.subProofs = z3SubProof.subProofs;
-            this.literal = Util.getSingleLiteral(z3SubProof.literal);
-            this.proofType = z3SubProof.proofType;
-            this.hypothesis = z3SubProof.hypothesis;
-            this.axiom = z3SubProof.axiom;
-            this.assertPartition = z3SubProof.assertPartition;
+            this.takeValuesFrom(z3SubProof);
             return;
 
         } else if (proofType.equals(SExpressionConstants.ASSERTED)
@@ -2258,6 +2326,13 @@ public class TransformedZ3Proof extends Z3Proof {
 
         throw new RuntimeException(
                 "neither literal nor negated literal found! this should not happen!!");
+    }
+
+    /**
+     * @return the <code>numberOfRemovedObsoloteResolutionSteps</code>
+     */
+    public static long getNumberOfRemovedObsoloteResolutionSteps() {
+        return TransformedZ3Proof.numberOfRemovedObsoloteResolutionSteps;
     }
 
 }

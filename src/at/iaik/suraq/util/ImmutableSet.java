@@ -61,7 +61,20 @@ public class ImmutableSet<E> implements Set<E> {
 
         ImmutableSet<?> existingSet = ImmutableSet.instances.get(set);
         if (existingSet != null) {
-            assert (set.getClass().isInstance(existingSet));
+
+            if (set.isEmpty()) {
+                assert (existingSet.isEmpty());
+                ImmutableSet<?> tmp = existingSet;
+                assert (tmp.isEmpty());
+                @SuppressWarnings("unchecked")
+                ImmutableSet<T> castResult = (ImmutableSet<T>) tmp;
+                return castResult;
+            }
+
+            assert (!set.isEmpty());
+            assert (!existingSet.isEmpty());
+            assert (existingSet.iterator().next().getClass().isInstance(set
+                    .iterator().next()));
             @SuppressWarnings("unchecked")
             ImmutableSet<T> castResult = (ImmutableSet<T>) existingSet;
             return castResult;
@@ -205,7 +218,7 @@ public class ImmutableSet<E> implements Set<E> {
      * @param element
      * @return <code>this</code> union <code>element</code>.
      */
-    public ImmutableSet<E> addToCopy(E element) {
+    public ImmutableSet<? extends E> addToCopy(E element) {
         Set<E> tmp = new HashSet<E>();
         tmp.addAll(internalSet);
         tmp.add(element);
@@ -221,6 +234,8 @@ public class ImmutableSet<E> implements Set<E> {
      * @return <code>this</code> union <code>set</code>.
      */
     public ImmutableSet<E> addAllToCopy(Collection<? extends E> set) {
+        if (set == null)
+            return this;
         Set<E> tmp = new HashSet<E>();
         tmp.addAll(internalSet);
         tmp.addAll(set);
@@ -253,10 +268,17 @@ public class ImmutableSet<E> implements Set<E> {
      * @return <code>this</code> union <code>set</code>.
      */
     public ImmutableSet<E> removeAllFromCopy(Collection<? extends E> set) {
+        if (set == null)
+            return this;
         Set<E> tmp = new HashSet<E>();
         tmp.addAll(internalSet);
         tmp.removeAll(set);
         return ImmutableSet.create(tmp);
+    }
+
+    @Override
+    public String toString() {
+        return internalSet.toString();
     }
 
 }

@@ -10,6 +10,7 @@ import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -40,7 +41,7 @@ public class AnnotatedProofNode {
 
     private final int hash;
 
-    private final Set<Formula> hypotheses;
+    private final ImmutableSet<Formula> hypotheses;
 
     /**
      * Constructs a new <code>AnnotatedProofNode</code>. If one premise is
@@ -78,10 +79,11 @@ public class AnnotatedProofNode {
             assert (this.premise2 != null);
             assert (this.premise3 != null);
 
-            hypotheses = new HashSet<Formula>();
-            hypotheses.addAll(premise1.hypotheses);
-            hypotheses.addAll(premise2.hypotheses);
-            hypotheses.addAll(premise3.hypotheses);
+            Set<Formula> tmp = new HashSet<Formula>();
+            tmp.addAll(premise1.hypotheses);
+            tmp.addAll(premise2.hypotheses);
+            tmp.addAll(premise3.hypotheses);
+            hypotheses = ImmutableSet.create(tmp);
 
             assert (Util.isLiteral(Util.getSingleLiteral(this.premise1
                     .getConsequent())));
@@ -335,8 +337,8 @@ public class AnnotatedProofNode {
     /**
      * @return the <code>hypotheses</code> (copy)
      */
-    public Set<Formula> getHypotheses() {
-        return new HashSet<Formula>(hypotheses);
+    public ImmutableSet<Formula> getHypotheses() {
+        return hypotheses;
     }
 
     /**

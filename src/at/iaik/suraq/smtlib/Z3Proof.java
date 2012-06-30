@@ -33,6 +33,7 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 
@@ -239,6 +240,19 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     /**
+     * @param proof
+     */
+    protected void takeValuesFrom(Z3Proof proof) {
+        this.axiom = proof.axiom;
+        this.subProofs = proof.subProofs;
+        this.proofType = proof.proofType;
+        this.consequent = proof.consequent;
+        this.assertPartition = proof.assertPartition;
+        assert (this.assertPartition > 0 || !this.proofType
+                .equals(SExpressionConstants.ASSERTED));
+    }
+
+    /**
      * Creates a new <code>Z3Proof</code> which is of the same type as
      * <code>this</code> object and has the given subProofs and consequent.
      * 
@@ -429,12 +443,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return lemmas;
     }
 
-    public Set<Formula> getHypothesisFormulas() {
+    public ImmutableSet<Formula> getHypothesisFormulas() {
         Set<Z3Proof> hypotheses = this.getHypotheses();
-        Set<Formula> result = new HashSet<Formula>();
+        Set<Formula> tmp = new HashSet<Formula>();
         for (Z3Proof hypothesis : hypotheses)
-            result.add(hypothesis.getConsequent().transformToConsequentsForm());
-        return result;
+            tmp.add(hypothesis.getConsequent().transformToConsequentsForm());
+        return ImmutableSet.create(tmp);
     }
 
     public Set<Z3Proof> getHypotheses() {
@@ -1669,4 +1683,5 @@ public class Z3Proof implements SMTLibObject, Serializable {
     public static long getOperationCount() {
         return Z3Proof.operationCount;
     }
+
 }

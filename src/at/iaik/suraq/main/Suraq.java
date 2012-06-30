@@ -859,13 +859,8 @@ public class Suraq implements Runnable {
         System.out.println(" done!");
 
         // All done :-)
-        printEnd(noErrors);
         overallTimer.end();
-        System.out.println("  (Overall time: " + overallTimer + ")");
-        System.out.println("  (DAG operation counter: "
-                + Z3Proof.getOperationCount() + ")");
-        System.out.println("  (Proof instance counter: "
-                + Z3Proof.getInstanceCounter() + ")");
+        printEnd(noErrors, overallTimer);
         return;
     }
 
@@ -1465,14 +1460,25 @@ public class Suraq implements Runnable {
      * @param result
      *            <code>true</code> if there were no errors, <code>false</code>
      *            otherwise.
+     * @param overallTimer
      */
-    private void printEnd(boolean result) {
+    private void printEnd(boolean result, Timer overallTimer) {
         System.out
                 .println("################################################################################");
-        // System.out.println("Synthesis completed successfully!");
-        System.out.println("");
+        System.out.println("  (Overall time: " + overallTimer + ")");
+        System.out.println("  (DAG operation counter: "
+                + Z3Proof.getOperationCount() + ")");
+        System.out.println("  (Total number of proof objects ever created: "
+                + Z3Proof.getInstanceCounter() + ")");
+        System.out.println("  (No. of obsolete resolution steps removed: "
+                + TransformedZ3Proof
+                        .getNumberOfRemovedObsoloteResolutionSteps() + ")");
         if (result)
-            System.out.println("LIVE LONG AND PROSPER!");
+
+            if (SuraqOptions.getInstance().isCheckResult())
+                System.out.println("LIVE LONG AND PROSPER!");
+            else
+                System.out.println("Live long and prosper!");
         else
             System.out.println("There were errors.\nRESISTANCE IS FUTILE!");
     }

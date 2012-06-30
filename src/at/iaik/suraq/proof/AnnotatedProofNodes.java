@@ -37,11 +37,16 @@ public class AnnotatedProofNodes {
      *            the consequent to look for
      * @param hypotheses
      *            the set of hypotheses the searched node should have
+     * @param obsoleteLiterals
+     *            a call-by-reference parameter, via which the new obsolete
+     *            literals (if any) will be returned. Must be an empty set at
+     *            call time!
      * @return a node with the given consequent or <code>null</code> if such a
      *         node does not exist.
      */
     public AnnotatedProofNode getNodeWithConsequent(Formula consequent,
-            Set<Formula> hypotheses) {
+            Set<Formula> hypotheses, Set<Formula> obsoleteLiterals) {
+        assert (obsoleteLiterals.isEmpty());
         Map<Set<Formula>, AnnotatedProofNode> currentMap = map.get(consequent
                 .transformToConsequentsForm());
 
@@ -52,8 +57,11 @@ public class AnnotatedProofNodes {
         AnnotatedProofNode result = currentMap.get(hypotheses);
         if (result == null) {
             for (AnnotatedProofNode potentialResult : currentMap.values()) {
-                if (hypotheses.containsAll(potentialResult.getHypotheses()))
+                if (hypotheses.containsAll(potentialResult.getHypotheses())) {
+                    obsoleteLiterals.addAll(hypotheses);
+                    obsoleteLiterals.removeAll(potentialResult.getHypotheses());
                     return potentialResult;
+                }
             }
         }
         return result;

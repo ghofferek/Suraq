@@ -4,6 +4,7 @@
 package at.iaik.suraq.util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import at.iaik.suraq.proof.AnnotatedProofNode;
@@ -171,7 +172,8 @@ public class TransitivityChainBuilder {
                 AnnotatedProofNode annotatedNode = annotatedNodes
                         .getNodeWithConsequent(
                                 transformedProof.getConsequent(),
-                                transformedProof.getHypothesisFormulas());
+                                transformedProof.getHypothesisFormulas(),
+                                new HashSet<Formula>());
                 assert (annotatedNode != null);
                 assert (annotatedNode.numPremises() == 3);
                 chain.add(annotatedNode.getPremise1());
