@@ -999,16 +999,20 @@ public final class Util {
     }
 
     /**
+     * Returns the partition of the consequent of this proof. Fails with
+     * assertion error, if there are local symbols from multiple partitions.
+     * 
      * @param transformedZ3Proof
-     * @return
+     * @return The partition of the symbols of the consequent of the given
+     *         proof, or <code>1</code> if there are only global symbols
      */
     public static int getSinglePartitionOfProof(
             TransformedZ3Proof transformedZ3Proof) {
         Set<Integer> partitions = transformedZ3Proof.getConsequent()
                 .getPartitionsFromSymbols();
-        if (partitions.size() == 1)
-            return partitions.iterator().next();
         partitions.remove(-1);
+        if (partitions.size() == 0)
+            return 1; // arbitrary choice
         assert (partitions.size() == 1);
         return partitions.iterator().next();
     }

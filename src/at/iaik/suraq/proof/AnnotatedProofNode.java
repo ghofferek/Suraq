@@ -58,6 +58,10 @@ public final class AnnotatedProofNode {
             TransformedZ3Proof consequent, AnnotatedProofNode premise1,
             AnnotatedProofNode premise2, AnnotatedProofNode premise3) {
         super();
+
+        assert (leftPartition > 0);
+        assert (rightPartition > 0);
+        assert (consequent != null);
         this.leftPartition = leftPartition;
         this.rightPartition = rightPartition;
         this.consequent = consequent;
@@ -147,6 +151,12 @@ public final class AnnotatedProofNode {
                     .contains(-1));
             assert (consequentPartitions.contains(rightPartition) || consequentPartitions
                     .contains(-1));
+
+            if (!Util.containsBadLiteral(consequent.getConsequent()
+                    .transformToConsequentsForm())) {
+                consequent.setHasBeenMadeLocal();
+            }
+
         } else { // numPremises() == 0
             assert (numPremises() == 0);
             assert (this.leftPartition == this.rightPartition);

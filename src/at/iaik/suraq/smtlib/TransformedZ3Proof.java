@@ -813,8 +813,12 @@ public class TransformedZ3Proof extends Z3Proof {
     private AnnotatedProofNode createNewAnnotatedNodeFromProofWithSingleLiteralConsequent(
             TransformedZ3Proof proof) {
         assert (proof.hasSingleLiteralConsequent());
-        Formula literal = ((OrFormula) (proof.consequent)).getDisjuncts()
-                .iterator().next();
+        Formula literal = Util.getSingleLiteral(proof.consequent);
+
+        if (literal.equals(new PropositionalConstant(false)))
+            // We do not need an AnnotatedNode for false.
+            return null;
+
         Set<Integer> partitions = literal.getPartitionsFromSymbols();
         assert (partitions.size() > 0);
         partitions.remove(-1);
