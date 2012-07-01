@@ -639,14 +639,26 @@ public class TransformedZ3Proof extends Z3Proof {
         if (obsoleteLiterals == null)
             obsoleteLiterals = ImmutableSet.create(new HashSet<Formula>());
 
-        for (Z3Proof child : subProofs) {
+        for (int count = 0; count < subProofs.size(); count++) {
+            Z3Proof child = subProofs.get(count);
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
             subProof.toLocalProofRecursion(operationId);
 
-            // The fact that a subproof has been visited does not imply that it
-            // is now local. Either this node, or the subproof could be due for
-            // detaching.
+            if (subProof.hasSingleLiteralConsequent()
+                    && !this.proofType.equals(SExpressionConstants.LEMMA)) {
+                // Use a localized version of this subproof
+
+                Set<Formula> newObsoleteLiterals = new HashSet<Formula>();
+                TransformedZ3Proof update = TransformedZ3Proof.annotatedNodesStack
+                        .peekFirst()
+                        .getNodeWithConsequent(subProof.consequent,
+                                subProof.getHypothesisFormulas(),
+                                newObsoleteLiterals).getConsequent();
+                subProofs.set(count, update);
+                this.obsoleteLiterals = this.obsoleteLiterals
+                        .addAllToCopy(newObsoleteLiterals);
+            }
 
             assert (obsoleteLiterals != null);
             obsoleteLiterals = obsoleteLiterals
@@ -1777,7 +1789,15 @@ public class TransformedZ3Proof extends Z3Proof {
                 SExpressionConstants.ASSERTED,
                 new ArrayList<TransformedZ3Proof>(), formula);
         result.axiom = true;
-        result.hasBeenMadeLocal = true;
+
+        // Reflexivity is axiomatically true. So it's safe to add
+        // it at any time.
+        if (TransformedZ3Proof.annotatedNodesStack.size() == 0)
+            TransformedZ3Proof.annotatedNodesStack
+                    .addFirst(new AnnotatedProofNodes());
+
+        TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                new AnnotatedProofNode(result));
         return result;
     }
 
@@ -2470,9 +2490,9 @@ public class TransformedZ3Proof extends Z3Proof {
         // At least, the direct children must also have the flag set.
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
-            assert (((TransformedZ3Proof) child).hasBeenMadeLocal);
+            if (!(((TransformedZ3Proof) child).hasBeenMadeLocal))
+                assert (false);
         }
         this.hasBeenMadeLocal = true;
     }
-
 }
