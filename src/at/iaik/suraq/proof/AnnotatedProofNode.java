@@ -19,7 +19,7 @@ import at.iaik.suraq.util.Util;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class AnnotatedProofNode {
+public final class AnnotatedProofNode {
 
     private final int leftPartition;
 
@@ -147,8 +147,11 @@ public class AnnotatedProofNode {
                     .contains(-1));
             assert (consequentPartitions.contains(rightPartition) || consequentPartitions
                     .contains(-1));
-        } else {
+        } else { // numPremises() == 0
+            assert (numPremises() == 0);
+            assert (this.leftPartition == this.rightPartition);
             hypotheses = consequent.getHypothesisFormulas();
+            consequent.setHasBeenMadeLocal();
         }
 
         this.hash = (premise1 == null ? 0 : premise1.hashCode())

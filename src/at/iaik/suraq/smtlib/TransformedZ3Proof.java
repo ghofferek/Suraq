@@ -110,6 +110,15 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     private ImmutableSet<Formula> obsoleteLiterals = null;
 
+    /**
+     * This flag stores whether this node has already been made local, at some
+     * point in time.
+     * 
+     * Caveat: If something is changed in somewhere in the sub-graph below this
+     * node, this flag might indicate the wrong value. Thus, be careful!
+     */
+    private boolean hasBeenMadeLocal = false;
+
     private static long numberOfRemovedObsoloteResolutionSteps = 0;
 
     /**
@@ -539,6 +548,10 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public AnnotatedProofNodes toLocalProof() {
+        return this.toLocalProof(null);
+    }
+
+    public AnnotatedProofNodes toLocalProof(String operationName) {
 
         // Actually, stack seems not to be needed.
         // To avoid refactoring, just don't add a new frame,
@@ -548,7 +561,12 @@ public class TransformedZ3Proof extends Z3Proof {
                     .addFirst(new AnnotatedProofNodes());
         assert (TransformedZ3Proof.annotatedNodesStack.size() == 1);
 
-        long operationId = DagOperationManager.startDAGOperation();
+        long operationId = operationName != null ? DagOperationManager
+                .startDAGOperation(operationName) : DagOperationManager
+                .startDAGOperation();
+        if (operationName != null)
+            DagOperationManager.setMessageInterval(operationId, 1000);
+
         this.toLocalProofRecursion(operationId);
         DagOperationManager.endDAGOperation(operationId);
 
@@ -559,8 +577,23 @@ public class TransformedZ3Proof extends Z3Proof {
      * Transforms the proof into a local resolution proof (in place).
      */
     private void toLocalProofRecursion(long operationId) {
-        if (this.wasVisitedByDAGOperation(operationId))
+        if (this.hasBeenMadeLocal) {
+            // Do a quick, sound, but non-complete check
+            // At least, the direct children must also have the flag set.
+            for (Z3Proof child : subProofs) {
+                assert (child instanceof TransformedZ3Proof);
+                assert (((TransformedZ3Proof) child).hasBeenMadeLocal);
+            }
+            visitedByDAGOperation(operationId);
             return;
+        }
+        if (this.wasVisitedByDAGOperation(operationId)) {
+            // The fact that this node was visited does not imply that it is now
+            // local. It could have been "detached" from the branch by which it
+            // was visited, because, e.g., it contains a bad literal.
+            return;
+        }
+
         visitedByDAGOperation(operationId);
 
         if (obsoleteLiterals == null)
@@ -570,6 +603,10 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (child instanceof TransformedZ3Proof);
             TransformedZ3Proof subProof = (TransformedZ3Proof) child;
             subProof.toLocalProofRecursion(operationId);
+
+            // The fact that a subproof has been visited does not imply that it
+            // is now local. Either this node, or the subproof could be due for
+            // detaching.
 
             assert (obsoleteLiterals != null);
             obsoleteLiterals = obsoleteLiterals
@@ -581,8 +618,12 @@ public class TransformedZ3Proof extends Z3Proof {
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.LEMMA)) {
             // Nothing more to do for lemmas with multiple-literal consequents.
-            if (!this.hasSingleLiteralConsequent())
+            if (!this.hasSingleLiteralConsequent()) {
+                assert (!Util.containsBadLiteral(this.consequent
+                        .transformToConsequentsForm()));
+                this.hasBeenMadeLocal = true;
                 return;
+            }
         }
         // -------------------------------------------------------------
         if (this.proofType.equals(SExpressionConstants.SYMMETRY)) {
@@ -616,9 +657,12 @@ public class TransformedZ3Proof extends Z3Proof {
                         annotatedNode);
 
             if (this.proofType.equals(SExpressionConstants.ASSERTED)
-                    || this.proofType.equals(SExpressionConstants.LEMMA))
+                    || this.proofType.equals(SExpressionConstants.LEMMA)) {
                 // for UNIT-RESOLUTION we still need to update the subProofs
+                // in other cases, we can return.
+                assert (this.hasBeenMadeLocal);
                 return;
+            }
         }
 
         if (!this.hasSingleLiteralConsequent()
@@ -1683,6 +1727,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 SExpressionConstants.ASSERTED,
                 new ArrayList<TransformedZ3Proof>(), formula);
         result.axiom = true;
+        result.hasBeenMadeLocal = true;
         return result;
     }
 
@@ -2350,7 +2395,7 @@ public class TransformedZ3Proof extends Z3Proof {
         }
 
         throw new RuntimeException(
-                "neither literal nor negated literal found! this should not happen!!");
+                "Neither literal nor negated literal found! This should not happen!!");
     }
 
     /**
@@ -2358,6 +2403,26 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     public static long getNumberOfRemovedObsoloteResolutionSteps() {
         return TransformedZ3Proof.numberOfRemovedObsoloteResolutionSteps;
+    }
+
+    /**
+     * @return the <code>hasBeenMadeLocal</code>
+     */
+    public boolean isHasBeenMadeLocal() {
+        return hasBeenMadeLocal;
+    }
+
+    /**
+     * Sets the <code>hasBeenMadeLocalFlag</code> to <code>true</code>.
+     */
+    public void setHasBeenMadeLocal() {
+        // Do a quick, sound, but non-complete check
+        // At least, the direct children must also have the flag set.
+        for (Z3Proof child : subProofs) {
+            assert (child instanceof TransformedZ3Proof);
+            assert (((TransformedZ3Proof) child).hasBeenMadeLocal);
+        }
+        this.hasBeenMadeLocal = true;
     }
 
 }

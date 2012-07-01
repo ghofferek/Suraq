@@ -13,7 +13,7 @@ import at.iaik.suraq.smtlib.formula.Formula;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class AnnotatedProofNodes {
+public final class AnnotatedProofNodes {
 
     /**
      * 

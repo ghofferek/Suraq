@@ -14,7 +14,7 @@ import at.iaik.suraq.exceptions.SuraqException;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class SuraqOptions {
+public final class SuraqOptions {
 
     /**
      * Constants for cache types
@@ -42,12 +42,12 @@ public class SuraqOptions {
     /**
      * Default value for cache option.
      */
-    private static final int cacheDefault = CACHE_NONE;
+    private static final int cacheDefault = SuraqOptions.CACHE_NONE;
 
     /**
      * Default value for tseitin option.
      */
-    private static final int tseitinDefault = TSEITIN_WITH_Z3;
+    private static final int tseitinDefault = SuraqOptions.TSEITIN_WITH_Z3;
 
     /**
      * Default value for input option.
@@ -184,11 +184,16 @@ public class SuraqOptions {
 
         int end = inputValue.lastIndexOf(".");
 
-        z3InputDefault = inputValue.substring(0, end) + '_' + z3InputDefault;
-        z3ProofDefault = inputValue.substring(0, end) + '_' + z3ProofDefault;
-        outputDefault = inputValue.substring(0, end) + '_' + outputDefault;
-        cacheFile = inputValue.substring(0, end) + '_' + cacheFile;
-        cacheFileSerial = inputValue.substring(0, end) + '_' + cacheFileSerial;
+        SuraqOptions.z3InputDefault = inputValue.substring(0, end) + '_'
+                + SuraqOptions.z3InputDefault;
+        SuraqOptions.z3ProofDefault = inputValue.substring(0, end) + '_'
+                + SuraqOptions.z3ProofDefault;
+        SuraqOptions.outputDefault = inputValue.substring(0, end) + '_'
+                + SuraqOptions.outputDefault;
+        SuraqOptions.cacheFile = inputValue.substring(0, end) + '_'
+                + SuraqOptions.cacheFile;
+        SuraqOptions.cacheFileSerial = inputValue.substring(0, end) + '_'
+                + SuraqOptions.cacheFileSerial;
     }
 
     /**
@@ -303,7 +308,7 @@ public class SuraqOptions {
      * @return the filename of the cache file.
      */
     public String getCacheFile() {
-        return cacheFile;
+        return SuraqOptions.cacheFile;
     }
 
     /**
@@ -312,7 +317,7 @@ public class SuraqOptions {
      * @return the filename of the serial cache file.
      */
     public String getCacheFileSerial() {
-        return cacheFileSerial;
+        return SuraqOptions.cacheFileSerial;
     }
 
     /**
@@ -330,7 +335,7 @@ public class SuraqOptions {
      * @return the path of the Z3.2 solver.
      */
     public static String getZ3Path() {
-        return z3Path;
+        return SuraqOptions.z3Path;
     }
 
     /**
@@ -339,7 +344,7 @@ public class SuraqOptions {
      * @return the path of the Z3.4 solver.
      */
     public static String getZ3_4Path() {
-        return z3_4Path;
+        return SuraqOptions.z3_4Path;
     }
 
 }

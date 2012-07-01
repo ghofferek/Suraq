@@ -168,7 +168,9 @@ public class TransitivityChainBuilder {
             if (Util.isBadLiteral(Util.getSingleLiteral(transformedProof
                     .getConsequent()))) {
                 AnnotatedProofNodes annotatedNodes = transformedProof
-                        .toLocalProof();
+                        .toLocalProof("<ResChainNode"
+                                + DagOperationManager.myFormatter.format(proof
+                                        .getID()) + ">.toLocalProof");
                 AnnotatedProofNode annotatedNode = annotatedNodes
                         .getNodeWithConsequent(
                                 transformedProof.getConsequent(),
