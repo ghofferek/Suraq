@@ -96,10 +96,12 @@ public final class DagOperationManager {
         String operationName = DagOperationManager.operationNames
                 .get(operationId);
         if (operationName != null) {
-            long counter = DagOperationManager.nodeCounterPerOperation
+            Long counterObj = DagOperationManager.nodeCounterPerOperation
                     .get(operationId);
-            String counterString = DagOperationManager.myFormatter
-                    .format(counter);
+
+            String counterString = counterObj == null ? "(<increment)"
+                    : DagOperationManager.myFormatter.format(counterObj
+                            .longValue());
             System.out.println("PROGRESS-INFO: DAG operation " + operationName
                     + " finished with node counter value " + counterString
                     + ".");

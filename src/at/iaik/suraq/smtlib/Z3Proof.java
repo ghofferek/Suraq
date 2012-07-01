@@ -105,7 +105,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.subProofs = new ArrayList<Z3Proof>();
         this.consequent = null;
         this.id = Z3Proof.instanceCounter++;
-        if (this.id >= 4099833)
+        if (this.id == 4035772)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);
@@ -139,7 +139,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             this.subProofs.add(subProof2);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
-        if (this.id >= 4099833)
+        if (this.id == 4035772)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);
@@ -194,7 +194,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.subProofs.addAll(subProofs);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
-        if (this.id >= 4099833)
+        if (this.id == 4035772)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);

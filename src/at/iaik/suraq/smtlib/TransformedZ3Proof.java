@@ -149,6 +149,8 @@ public class TransformedZ3Proof extends Z3Proof {
         super(proofType, subProofs, consequent.transformToConsequentsForm()
                 .deepFormulaCopy());
         this.recomputeObsoleteLiterals();
+        this.computeHasBeenMadeLocal();
+
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
@@ -185,6 +187,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 .deepFormulaCopy());
 
         this.recomputeObsoleteLiterals();
+        this.computeHasBeenMadeLocal();
 
         assert (literal == null || this.proofType
                 .equals(SExpressionConstants.UNIT_RESOLUTION));
@@ -205,6 +208,8 @@ public class TransformedZ3Proof extends Z3Proof {
         super(proofType, subProofs, consequent.transformToConsequentsForm()
                 .deepFormulaCopy(), assertPartition, axiom);
         this.recomputeObsoleteLiterals();
+        this.computeHasBeenMadeLocal();
+
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
@@ -236,6 +241,8 @@ public class TransformedZ3Proof extends Z3Proof {
         this.literal = literal == null ? null : Util.makeLiteralPositive(Util
                 .getSingleLiteral(literal.deepFormulaCopy()));
         this.recomputeObsoleteLiterals();
+        this.computeHasBeenMadeLocal();
+
         assert (proofType.equals(SExpressionConstants.ASSERTED)
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
@@ -287,6 +294,37 @@ public class TransformedZ3Proof extends Z3Proof {
 
         assert (this.assertPartition > 0 || !this.proofType
                 .equals(SExpressionConstants.ASSERTED));
+    }
+
+    private void computeHasBeenMadeLocal() {
+
+        if (subProofs.size() == 0) {
+            // Leafs must be marked false at construction time.
+            this.hasBeenMadeLocal = false;
+            return;
+        }
+
+        if (Util.containsBadLiteral(this.consequent
+                .transformToConsequentsForm())) {
+            this.hasBeenMadeLocal = false;
+            return;
+        }
+        for (Z3Proof child : subProofs) {
+            assert (child instanceof TransformedZ3Proof);
+            if (!((TransformedZ3Proof) child).hasBeenMadeLocal) {
+                this.hasBeenMadeLocal = false;
+                return;
+            }
+        }
+
+        this.hasBeenMadeLocal = true;
+
+        if (this.hasSingleLiteralConsequent()) {
+            TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                    new AnnotatedProofNode(this));
+        }
+
+        return;
     }
 
     @Override
@@ -571,7 +609,7 @@ public class TransformedZ3Proof extends Z3Proof {
         this.toLocalProofRecursion(operationId);
         DagOperationManager.endDAGOperation(operationId);
 
-        return TransformedZ3Proof.annotatedNodesStack.removeFirst();
+        return TransformedZ3Proof.annotatedNodesStack.peekFirst();
     }
 
     /**
@@ -623,7 +661,7 @@ public class TransformedZ3Proof extends Z3Proof {
             if (!this.hasSingleLiteralConsequent()) {
                 assert (!Util.containsBadLiteral(this.consequent
                         .transformToConsequentsForm()));
-                this.hasBeenMadeLocal = true;
+                this.setHasBeenMadeLocal();
                 return;
             }
         }
@@ -711,6 +749,8 @@ public class TransformedZ3Proof extends Z3Proof {
                             transSubProofs.add(annotatedNode.getPremise3());
                             update = TransformedZ3Proof
                                     .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
+                            TransformedZ3Proof.annotatedNodesStack.peekFirst()
+                                    .add(new AnnotatedProofNode(update));
                             update.obsoleteLiterals = update.obsoleteLiterals
                                     .addAllToCopy(newObsoleteLiterals);
                         }
@@ -741,6 +781,8 @@ public class TransformedZ3Proof extends Z3Proof {
                             transSubProofs.add(annotatedNode2.getPremise3());
                             update = TransformedZ3Proof
                                     .createTransitivityProofForTransformedZ3Proofs(transSubProofs);
+                            TransformedZ3Proof.annotatedNodesStack.peekFirst()
+                                    .add(new AnnotatedProofNode(update));
                             update.obsoleteLiterals = update.obsoleteLiterals
                                     .addAllToCopy(newObsoleteLiterals);
                         }
@@ -968,6 +1010,7 @@ public class TransformedZ3Proof extends Z3Proof {
                             subProofs.get(count).consequent,
                             subProofs.get(count).getHypothesisFormulas(),
                             new HashSet<Formula>());
+            assert (currentAnnotatedNode != null);
             DomainTerm[] oldTerms = Util.getDomainTerms(currentAnnotatedNode);
             DomainTerm currentLeftTerm = computeCurrentLeftTermForMonotonicity(
                     leftPartition, currentAnnotatedNode);

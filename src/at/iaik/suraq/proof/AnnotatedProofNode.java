@@ -152,11 +152,6 @@ public final class AnnotatedProofNode {
             assert (consequentPartitions.contains(rightPartition) || consequentPartitions
                     .contains(-1));
 
-            if (!Util.containsBadLiteral(consequent.getConsequent()
-                    .transformToConsequentsForm())) {
-                consequent.setHasBeenMadeLocal();
-            }
-
         } else { // numPremises() == 0
             assert (numPremises() == 0);
             assert (this.leftPartition == this.rightPartition);
