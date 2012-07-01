@@ -297,6 +297,7 @@ public class TransformedZ3Proof extends Z3Proof {
         this.literal = transformedProof.literal;
         this.hypothesis = transformedProof.hypothesis;
         this.obsoleteLiterals = transformedProof.obsoleteLiterals;
+        this.hasBeenMadeLocal = transformedProof.hasBeenMadeLocal;
     }
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
@@ -577,6 +578,13 @@ public class TransformedZ3Proof extends Z3Proof {
      * Transforms the proof into a local resolution proof (in place).
      */
     private void toLocalProofRecursion(long operationId) {
+
+        if (this.wasVisitedByDAGOperation(operationId)) {
+            // The fact that this node was visited does not imply that it is now
+            // local. It could have been "detached" from the branch by which it
+            // was visited, because, e.g., it contains a bad literal.
+            return;
+        }
         if (this.hasBeenMadeLocal) {
             // Do a quick, sound, but non-complete check
             // At least, the direct children must also have the flag set.
@@ -585,12 +593,6 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (((TransformedZ3Proof) child).hasBeenMadeLocal);
             }
             visitedByDAGOperation(operationId);
-            return;
-        }
-        if (this.wasVisitedByDAGOperation(operationId)) {
-            // The fact that this node was visited does not imply that it is now
-            // local. It could have been "detached" from the branch by which it
-            // was visited, because, e.g., it contains a bad literal.
             return;
         }
 
@@ -786,6 +788,7 @@ public class TransformedZ3Proof extends Z3Proof {
                             .addAllToCopy(newObsoleteLiterals);
                 }
             }
+            this.setHasBeenMadeLocal();
             return;
         }
 
