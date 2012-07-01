@@ -46,7 +46,7 @@ import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class Util {
+public final class Util {
 
     private static Map<String, Integer> literalsID = new HashMap<String, Integer>();
     private static Map<Integer, ResNode> resNodes = new HashMap<Integer, ResNode>();

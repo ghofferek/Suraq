@@ -43,6 +43,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.util.DagOperationManager;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.TransitivityChainBuilder;
 import at.iaik.suraq.util.Util;
@@ -115,6 +116,12 @@ public class TransformedZ3Proof extends Z3Proof {
      * Storage for annotated nodes used during proof conversion.
      */
     private static Deque<AnnotatedProofNodes> annotatedNodesStack = new ArrayDeque<AnnotatedProofNodes>();
+
+    /**
+     * Counts how often the method <code>convertToTransformedZ3Proof</code> has
+     * been called.
+     */
+    private static long conversionCounter = 0;
 
     /**
      * Creates a new <code>TransformedZ3Proof</code>.
@@ -258,7 +265,8 @@ public class TransformedZ3Proof extends Z3Proof {
         if (disjuncts.size() == 0)
             disjuncts.add(new PropositionalConstant(false));
 
-        this.consequent = new OrFormula(disjuncts);
+        this.consequent = (new OrFormula(disjuncts))
+                .transformToConsequentsForm();
 
         this.recomputeObsoleteLiterals();
 
@@ -283,6 +291,19 @@ public class TransformedZ3Proof extends Z3Proof {
     }
 
     public static TransformedZ3Proof convertToTransformedZ3Proof(Z3Proof z3Proof) {
+
+        TransformedZ3Proof.conversionCounter++;
+
+        if (TransformedZ3Proof.conversionCounter % 1000 == 0) {
+            System.out
+                    .println("PROGRESS-INFO: Conversion counter is at "
+                            + Z3Proof.myFormatter
+                                    .format(TransformedZ3Proof.conversionCounter)
+                            + ".");
+            System.out.println("PROGRESS-INFO: proofMap contains "
+                    + Z3Proof.myFormatter.format(TransformedZ3Proof.proofMap
+                            .size()) + " nodes.");
+        }
 
         // TransformedZ3Proof.debugNode = TransformedZ3Proof.proofMap.get(307);
 
@@ -396,7 +417,8 @@ public class TransformedZ3Proof extends Z3Proof {
                                     + "List of Literals:  " + remainingFormula
                                     + "given Literal:  " + invLiteral);
 
-                remainingFormula = new OrFormula(newDisjuncts);
+                remainingFormula = (new OrFormula(newDisjuncts))
+                        .transformToConsequentsForm();
 
                 transformedAntecedent = new TransformedZ3Proof(
                         SExpressionConstants.UNIT_RESOLUTION,
@@ -526,9 +548,9 @@ public class TransformedZ3Proof extends Z3Proof {
                     .addFirst(new AnnotatedProofNodes());
         assert (TransformedZ3Proof.annotatedNodesStack.size() == 1);
 
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         this.toLocalProofRecursion(operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
 
         return TransformedZ3Proof.annotatedNodesStack.removeFirst();
     }
@@ -1592,9 +1614,9 @@ public class TransformedZ3Proof extends Z3Proof {
 
     public List<TransformedZ3Proof> getLeafs() {
 
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         List<TransformedZ3Proof> result = this.getLeafsRecursion(operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
 
         return result;
     }
@@ -1887,7 +1909,8 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (!newDisjuncts.contains(negatedLiteral));
                 newDisjuncts.remove(new PropositionalConstant(false));
                 newDisjuncts.add(negatedLiteral);
-                node.consequent = new OrFormula(newDisjuncts);
+                node.consequent = (new OrFormula(newDisjuncts))
+                        .transformToConsequentsForm();
 
                 Z3Proof foundHypothesis = Util.findHypothesisInSubproofs(node,
                         hypothesis);
@@ -1899,7 +1922,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     node.takeValuesFrom(otherChild);
                     // Consequent must be overwritten with new value containing
                     // the hypothesis
-                    node.consequent = new OrFormula(newDisjuncts);
+                    node.consequent = (new OrFormula(newDisjuncts))
+                            .transformToConsequentsForm();
                 }
             }
         }
@@ -1914,9 +1938,9 @@ public class TransformedZ3Proof extends Z3Proof {
      *            TODO
      */
     public void toResolutionProof() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         this.toResolutionProofRecursion(operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
     }
 
     private void toResolutionProofRecursion(long operationId) {
@@ -1963,12 +1987,12 @@ public class TransformedZ3Proof extends Z3Proof {
 
             List<Formula> axiomParts = new ArrayList<Formula>();
             for (Z3Proof subProof : this.subProofs) {
-                axiomParts.add((new NotFormula(subProof.consequent))
-                        .transformToConsequentsForm());
+                axiomParts.add((new NotFormula(subProof.consequent)));
             }
 
             axiomParts.add(this.consequent);
-            OrFormula axiomFormula = new OrFormula(axiomParts);
+            OrFormula axiomFormula = (new OrFormula(axiomParts))
+                    .transformToConsequentsForm();
 
             Z3Proof remainingAxiom = new TransformedZ3Proof(
                     SExpressionConstants.ASSERTED,
@@ -1980,8 +2004,9 @@ public class TransformedZ3Proof extends Z3Proof {
                 TransformedZ3Proof currentEquality = (TransformedZ3Proof) this.subProofs
                         .get(count);
                 currentEquality.toResolutionProofRecursion(operationId);
-                Formula literal = axiomParts.remove(0);
-                assert (Util.isLiteral(literal.transformToConsequentsForm()));
+                Formula literal = Util.getSingleLiteral(axiomParts.remove(0)
+                        .transformToConsequentsForm());
+                assert (Util.isLiteral(literal));
 
                 remainingAxiom = new TransformedZ3Proof(
                         SExpressionConstants.UNIT_RESOLUTION, currentEquality,
@@ -2088,9 +2113,9 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     public boolean isLocal() {
 
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         boolean result = this.isLocalRecursion(operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
 
         return result;
     }

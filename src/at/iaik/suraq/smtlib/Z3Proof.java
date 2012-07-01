@@ -33,6 +33,7 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.DagOperationManager;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
@@ -48,10 +49,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     private static final long serialVersionUID = 7871807524124015582L;
 
-    /**
-     * global counter to keep track of running DAG traversals.
-     */
-    private static long operationCount = 0;
+    protected static final DecimalFormat myFormatter = new DecimalFormat(
+            "###,###,###");
 
     /**
      * lists operations which already traversed this node.
@@ -109,8 +108,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         if (this.id >= 4099833)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
-            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
-            String output = myFormatter.format(this.id);
+            String output = Z3Proof.myFormatter.format(this.id);
             System.out.println("INFO: Created the " + output + " proof node.");
         }
         // this.assertPartition = -1;
@@ -144,8 +142,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         if (this.id >= 4099833)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
-            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
-            String output = myFormatter.format(this.id);
+            String output = Z3Proof.myFormatter.format(this.id);
             System.out.println("INFO: Created the " + output + " proof node.");
         }
         this.setAssertPartition();
@@ -200,8 +197,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         if (this.id >= 4099833)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
-            DecimalFormat myFormatter = new DecimalFormat("###,###,###");
-            String output = myFormatter.format(this.id);
+            String output = Z3Proof.myFormatter.format(this.id);
             System.out.println("INFO: Created the " + output + " proof node.");
         }
         if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
@@ -338,10 +334,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         Set<Integer> result = this
                 .getPartitionsFromSymbolsRecursion(operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
         return result;
     }
 
@@ -391,10 +387,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
 
     public Set<Integer> getPartitionsFromAsserts() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         Set<Integer> result = new HashSet<Integer>();
         this.getPartitionsFromAssertsRecursion(operationId, result);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
         return result;
     }
 
@@ -422,9 +418,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public Set<Z3Proof> getLemmas() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> result = this.getLemmasRecursion(operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
         return result;
     }
 
@@ -452,10 +448,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public Set<Z3Proof> getHypotheses() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> result = new HashSet<Z3Proof>();
         this.getHypothesesRecursion(operationId, result);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
         return result;
     }
 
@@ -486,9 +482,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     @Deprecated
     public void localLemmasToAssertions() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         this.localLemmasToAssertionsRecursion(operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
     }
 
     @Deprecated
@@ -538,12 +534,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * Removes local subproofs (including lemmas, if they are local).
      */
     public void removeLocalSubProofs() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         Map<Z3Proof, Set<Integer>> partitionMap = new HashMap<Z3Proof, Set<Integer>>();
         Map<Z3Proof, Boolean> existHypothesesMap = new HashMap<Z3Proof, Boolean>();
         this.removeLocalSubProofsRecursion(operationId, partitionMap,
                 existHypothesesMap);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
     }
 
     private void removeLocalSubProofsRecursion(long operationId,
@@ -612,10 +608,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public String prettyPrint() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         StringBuffer buffer = new StringBuffer();
         this.prettyPrintRecursive(operationId, buffer);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
         return buffer.toString();
     }
 
@@ -652,42 +648,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     /**
-     * start a new DAG operation. increments global operation counter and
-     * provides a unique operation id.
-     * 
-     * @return unique operation id.
-     */
-    public long startDAGOperation() {
-        Z3Proof.operationCount++;
-        assert (Z3Proof.operationCount > 0);
-        // System.out.println("Starting DAG operation " + Z3Proof.operationCount
-        // + " in thread " + Thread.currentThread());
-        return Z3Proof.operationCount;
-    }
-
-    /**
-     * ends a DAG operation. decrements the global operation counter and removes
-     * all <code>visitedByOperation</code> list entries for this operation in
-     * all nodes.
-     * 
-     * @param operationId
-     *            unique id of the operation to end.
-     */
-    public void endDAGOperation(long operationId) {
-        assert (Z3Proof.operationCount >= operationId);
-        this.resetMarks(operationId);
-        // System.out.println("Stopped DAG operation " + Z3Proof.operationCount
-        // + " in thread " + Thread.currentThread());
-
-        // Reusing operation-IDs seems to cause problems under some
-        // circumstances.
-        // In particular, when the structure of the DAG is modified by the
-        // operation. Thus, do not reuse operation-IDs.
-
-        // Z3Proof.operationCount--;
-    }
-
-    /**
      * marks a node as visited by this operation.
      * 
      * @param operationId
@@ -700,7 +660,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
                     + " with operation#" + operationId
                     + ". this should not happen!");
 
+        this.visitedByOperation.removeAll(DagOperationManager
+                .getFinishedOperations());
         this.visitedByOperation.add(operationId);
+
     }
 
     /**
@@ -712,22 +675,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     protected boolean wasVisitedByDAGOperation(long operationId) {
         return this.visitedByOperation.contains(operationId);
-    }
-
-    /**
-     * removes the marks for the specified operation from this and all
-     * sub-nodes.
-     * 
-     * @param operationId
-     *            unique id of the operation.
-     */
-    private void resetMarks(long operationId) {
-        this.visitedByOperation.remove(operationId);
-
-        for (Z3Proof node : this.allNodes()) {
-            node.visitedByOperation.remove(operationId);
-            assert (!visitedByOperation.contains(operationId));
-        }
     }
 
     /**
@@ -1047,9 +994,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     public boolean checkZ3ProofNodeRecursive() {
 
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         boolean result = this.checkZ3ProofNodeRecursiveRecursion(operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
 
         return result;
     }
@@ -1254,10 +1201,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     public Set<Z3Proof> allLeafs() {
 
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> leafs = new HashSet<Z3Proof>();
         this.allLeafsRecursion(leafs, operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
 
         return leafs;
     }
@@ -1375,9 +1322,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     public Set<Z3Proof> getNodesWithConsequent(Formula consequent) {
         Set<Z3Proof> result = new HashSet<Z3Proof>();
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         this.getNodesWithConsequentRecursion(consequent, result, operationId);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
         return result;
     }
 
@@ -1420,9 +1367,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
             return result;
         } else {
 
-            long operationId = startDAGOperation();
+            long operationId = DagOperationManager.startDAGOperation();
             result = this.sizeRecursion(operationId);
-            endDAGOperation(operationId);
+            DagOperationManager.endDAGOperation(operationId);
 
             return result;
         }
@@ -1447,10 +1394,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     @Deprecated
     public Map<Z3Proof, Set<Z3Proof>> computeParents() {
-        long operationId = startDAGOperation();
+        long operationId = DagOperationManager.startDAGOperation();
         Map<Z3Proof, Set<Z3Proof>> result = new HashMap<Z3Proof, Set<Z3Proof>>();
         this.computeParentsRecursion(operationId, result);
-        endDAGOperation(operationId);
+        DagOperationManager.endDAGOperation(operationId);
         return result;
     }
 
@@ -1675,13 +1622,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
             }
         }
 
-    }
-
-    /**
-     * @return the <code>operationCount</code>
-     */
-    public static long getOperationCount() {
-        return Z3Proof.operationCount;
     }
 
 }

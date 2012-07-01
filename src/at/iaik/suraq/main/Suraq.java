@@ -46,6 +46,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.DagOperationManager;
 import at.iaik.suraq.util.SaveCache;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
@@ -1467,7 +1468,7 @@ public class Suraq implements Runnable {
                 .println("################################################################################");
         System.out.println("  (Overall time: " + overallTimer + ")");
         System.out.println("  (DAG operation counter: "
-                + Z3Proof.getOperationCount() + ")");
+                + DagOperationManager.getOperationCount() + ")");
         System.out.println("  (Total number of proof objects ever created: "
                 + Z3Proof.getInstanceCounter() + ")");
         System.out.println("  (No. of obsolete resolution steps removed: "
