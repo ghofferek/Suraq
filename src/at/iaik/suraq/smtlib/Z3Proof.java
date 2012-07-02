@@ -122,8 +122,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     private static long debugGetHypothesesCallCounter = 0;
 
+    private static long debugLastGetHypothesesStatsTime = 0;
+
     private static final void printDebugGetHypothesesTimerStats() {
-        if (Z3Proof.debugGetHypothesesTimer.getTotalTimeMillis() % 10000 == 0) {
+        if ((Z3Proof.debugGetHypothesesTimer.getTotalTimeMillis() - Z3Proof.debugLastGetHypothesesStatsTime) > 5000) {
+            Z3Proof.debugLastGetHypothesesStatsTime = Z3Proof.debugGetHypothesesTimer
+                    .getTotalTimeMillis();
             System.out.println("INFO: Spent a total of "
                     + Z3Proof.debugGetHypothesesTimer + " on "
                     + Z3Proof.debugGetHypothesesCallCounter
@@ -489,6 +493,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
         }
 
         Set<Z3Proof> hypotheses = this.getHypotheses();
+        Z3Proof.debugGetHypothesesTimer.start(); // timer is stopped by the call
+                                                 // above.
         Set<Formula> tmp = new HashSet<Formula>();
         for (Z3Proof hypothesis : hypotheses)
             tmp.add(hypothesis.getConsequent().transformToConsequentsForm());

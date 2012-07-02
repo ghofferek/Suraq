@@ -34,7 +34,8 @@ public class Timer {
      * 
      */
     public void start() {
-        this.startTime = System.currentTimeMillis();
+        if (startTime == 0)
+            this.startTime = System.currentTimeMillis();
     }
 
     /**
@@ -42,6 +43,8 @@ public class Timer {
      * 
      */
     public void stop() {
+        if (this.startTime == 0)
+            return;
         this.endTime = System.currentTimeMillis();
         this.elapsedTime += (this.endTime - this.startTime);
         this.startTime = 0;
@@ -64,10 +67,9 @@ public class Timer {
      */
     public long getTotalTimeMillis() {
         if (startTime != 0)
-            return (System.currentTimeMillis() - this.startTime)
-                    + this.elapsedTime;
+            return ((System.currentTimeMillis() - this.startTime) + this.elapsedTime);
         else
-            return (this.endTime - this.startTime) + this.elapsedTime;
+            return ((this.endTime - this.startTime) + this.elapsedTime);
     }
 
     /**
