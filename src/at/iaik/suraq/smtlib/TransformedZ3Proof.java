@@ -700,23 +700,6 @@ public class TransformedZ3Proof extends Z3Proof {
         }
 
         // -------------------------------------------------------------
-        if (this.hasSingleLiteralConsequent()) {
-
-            // Add a new annotated node for this single-literal-consequent node.
-            AnnotatedProofNode annotatedNode = createNewAnnotatedNodeFromProofWithSingleLiteralConsequent(this);
-            if (annotatedNode != null)
-                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
-                        annotatedNode);
-
-            if (this.proofType.equals(SExpressionConstants.ASSERTED)
-                    || this.proofType.equals(SExpressionConstants.LEMMA)) {
-                // for UNIT-RESOLUTION we still need to update the subProofs
-                // in other cases, we can return.
-                assert (this.hasBeenMadeLocal);
-                return;
-            }
-        }
-
         if (!this.hasSingleLiteralConsequent()
                 || this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION)) {
 
@@ -842,7 +825,21 @@ public class TransformedZ3Proof extends Z3Proof {
                             .addAllToCopy(newObsoleteLiterals);
                 }
             }
+
             this.setHasBeenMadeLocal();
+
+            if (!this.hasSingleLiteralConsequent())
+                // For single literals, we still need to add an annotated node
+                return;
+        }
+
+        if (this.hasSingleLiteralConsequent()) {
+            // Add a new annotated node for this single-literal-consequent
+            // node.
+            AnnotatedProofNode annotatedNode = createNewAnnotatedNodeFromProofWithSingleLiteralConsequent(this);
+            if (annotatedNode != null)
+                TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
+                        annotatedNode);
             return;
         }
 
