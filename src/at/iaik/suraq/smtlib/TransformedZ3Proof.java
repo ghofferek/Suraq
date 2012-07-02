@@ -604,7 +604,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 .startDAGOperation(operationName) : DagOperationManager
                 .startDAGOperation();
         if (operationName != null)
-            DagOperationManager.setMessageInterval(operationId, 1000);
+            DagOperationManager.setMessageInterval(operationId, 100);
 
         this.toLocalProofRecursion(operationId);
         DagOperationManager.endDAGOperation(operationId);
@@ -655,10 +655,13 @@ public class TransformedZ3Proof extends Z3Proof {
                         .getNodeWithConsequent(subProof.consequent,
                                 subProof.getHypothesisFormulas(),
                                 newObsoleteLiterals).getConsequent();
-                subProofs.set(count, update);
-                Z3Proof.hypModCount++;
-                this.obsoleteLiterals = this.obsoleteLiterals
-                        .addAllToCopy(newObsoleteLiterals);
+
+                if (subProof != update) {
+                    subProofs.set(count, update);
+                    Z3Proof.hypModCount++;
+                    this.obsoleteLiterals = this.obsoleteLiterals
+                            .addAllToCopy(newObsoleteLiterals);
+                }
             }
 
             assert (obsoleteLiterals != null);
@@ -752,10 +755,11 @@ public class TransformedZ3Proof extends Z3Proof {
                         }
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
-
-                        subProofs.set(0, update);
-                        Z3Proof.hypModCount++;
-                        recomputeObsoleteLiterals();
+                        if (subProofs.get(0) != update) {
+                            subProofs.set(0, update);
+                            Z3Proof.hypModCount++;
+                            recomputeObsoleteLiterals();
+                        }
                     }
                 }
 
@@ -785,9 +789,11 @@ public class TransformedZ3Proof extends Z3Proof {
                         }
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
-                        subProofs.set(1, update);
-                        Z3Proof.hypModCount++;
-                        recomputeObsoleteLiterals();
+                        if (subProofs.get(1) != update) {
+                            subProofs.set(1, update);
+                            Z3Proof.hypModCount++;
+                            recomputeObsoleteLiterals();
+                        }
                     }
                 }
 

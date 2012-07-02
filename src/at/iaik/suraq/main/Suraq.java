@@ -216,7 +216,7 @@ public class Suraq implements Runnable {
             noErrors = false;
             return null;
         } finally {
-            sExpParseTimer.end();
+            sExpParseTimer.stop();
             System.out.println("S-Expression parsing took " + sExpParseTimer);
         }
 
@@ -232,7 +232,7 @@ public class Suraq implements Runnable {
             noErrors = false;
             return null;
         } finally {
-            logicParseTimer.end();
+            logicParseTimer.stop();
             System.out.println("Logic parsing took " + logicParseTimer);
         }
         // Parsing complete
@@ -293,7 +293,7 @@ public class Suraq implements Runnable {
             tseitinPartitions = performTseitinEncodingWithZ3();
         }
 
-        allPartitionsTimer.end();
+        allPartitionsTimer.stop();
         System.out.println("  All partitions done. (" + allPartitionsTimer
                 + ")");
 
@@ -340,7 +340,7 @@ public class Suraq implements Runnable {
                     assertPartitionFormulas.get(count)));
             System.out.println("      ...test finished");
 
-            onePartitionTimer.end();
+            onePartitionTimer.stop();
             System.out.println(" Done. (" + onePartitionTimer + ")");
             count++;
 
@@ -409,7 +409,7 @@ public class Suraq implements Runnable {
                     assertPartitionFormulas.get(count)));
             System.out.println("      ...test finished");
 
-            onePartitionTimer.end();
+            onePartitionTimer.stop();
             System.out.println(" Done. (" + onePartitionTimer + ")");
             tseitinPartitions.add(encodedPartitionFormula.toString());
 
@@ -467,7 +467,7 @@ public class Suraq implements Runnable {
         timer.start();
         rootProof.removeLocalSubProofs();
 
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         // assert (rootProof.checkZ3ProofNodeRecursive());
@@ -479,7 +479,7 @@ public class Suraq implements Runnable {
         timer.start();
         TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
                 .convertToTransformedZ3Proof(rootProof);
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         printProofStats(transformedZ3Proof);
@@ -499,7 +499,7 @@ public class Suraq implements Runnable {
         System.out.println("  To local proof...");
         timer.start();
         transformedZ3Proof.toLocalProof();
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         // assert (transformedZ3Proof.checkZ3ProofNodeRecursive());
@@ -512,7 +512,7 @@ public class Suraq implements Runnable {
         System.out.println("  To resolution proof...");
         timer.start();
         transformedZ3Proof.toResolutionProof();
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         printProofStats(transformedZ3Proof);
@@ -526,7 +526,7 @@ public class Suraq implements Runnable {
         timer.start();
         ResProof resolutionProof = Util
                 .createResolutionProof(transformedZ3Proof);
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
 
@@ -539,7 +539,7 @@ public class Suraq implements Runnable {
         resolutionProof.deLocalizeProof();
         resolutionProof.checkProof(false);
         resolutionProof.tranformResProofs();
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         // END: ASHUTOSH code
@@ -549,7 +549,7 @@ public class Suraq implements Runnable {
         timer.start();
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
                 resolutionProof.getRoot(), Util.getLiteralMap());
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
         printProofStats(recoveredProof);
@@ -564,7 +564,7 @@ public class Suraq implements Runnable {
         Map<PropositionalVariable, Formula> iteTrees = recoveredProof
                 .createITETrees(intermediateVars.getControlVars(),
                         tseitinEncoding);
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
 
@@ -644,7 +644,7 @@ public class Suraq implements Runnable {
 
             String z3InputStr = inputTransformations(sourceFile);
 
-            inputTransformationTimer.end();
+            inputTransformationTimer.stop();
             System.out.println("finished input transformations in "
                     + inputTransformationTimer + ".\n");
 
@@ -682,7 +682,7 @@ public class Suraq implements Runnable {
                         "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
             }
 
-            proofcalculationTimer.end();
+            proofcalculationTimer.stop();
             System.out.println("finished proof calculation in "
                     + proofcalculationTimer + ".\n");
 
@@ -769,7 +769,7 @@ public class Suraq implements Runnable {
                             intermediateVars.getDomainVars(),
                             intermediateVars.getArrayVars(),
                             intermediateVars.getUninterpretedFunctions());
-                    loadTimer.end();
+                    loadTimer.stop();
                     System.out.println("Cached proof loaded and parsed in: "
                             + loadTimer);
                     assert (rootProof != null);
@@ -785,7 +785,7 @@ public class Suraq implements Runnable {
                             .getAssertPartitionFormulas();
                     tseitinEncoding = intermediateVars.getTseitinEncoding();
 
-                    loadTimer.end();
+                    loadTimer.stop();
                     System.out.println("Serialized cache loaded in: "
                             + loadTimer);
                     rootProof = intermediateVars.getProof();
@@ -809,7 +809,7 @@ public class Suraq implements Runnable {
         Map<PropositionalVariable, Formula> iteTrees = proofTransformationAndInterpolation(
                 rootProof, intermediateVars);
 
-        interpolationTimer.end();
+        interpolationTimer.stop();
         System.out
                 .println("finished proof transformations and interpolation calculations in "
                         + interpolationTimer + ".\n");
@@ -838,7 +838,7 @@ public class Suraq implements Runnable {
                 System.out
                         .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
             }
-            checkTimer.end();
+            checkTimer.stop();
             System.out.println("Check finished in " + checkTimer);
 
         }
@@ -860,7 +860,7 @@ public class Suraq implements Runnable {
         System.out.println(" done!");
 
         // All done :-)
-        overallTimer.end();
+        overallTimer.stop();
         printEnd(noErrors, overallTimer);
         return;
     }
@@ -1136,7 +1136,7 @@ public class Suraq implements Runnable {
         System.out.println("  Flattening formula...");
         timer.start();
         Formula formula = logicParser.getMainFormula().flatten();
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         assert (formula.getFunctionMacros().size() == 0);
         Set<Token> noDependenceVars = new HashSet<Token>(
@@ -1147,7 +1147,7 @@ public class Suraq implements Runnable {
         timer.reset();
         timer.start();
         formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         System.out.println("  Removing array writes...");
         timer.reset();
@@ -1159,14 +1159,14 @@ public class Suraq implements Runnable {
             AndFormula arrayConstraints = new AndFormula(constraintsList);
             formula = new ImpliesFormula(arrayConstraints, formula);
         }
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
         System.out.println("  Removing array equalities...");
         timer.reset();
         timer.start();
         formula.removeArrayEqualities();
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
@@ -1189,7 +1189,7 @@ public class Suraq implements Runnable {
         timer.reset();
         timer.start();
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
         formula = new ImpliesFormula(lambdaConstraints, formula);
@@ -1205,7 +1205,7 @@ public class Suraq implements Runnable {
         timer.start();
         formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
         noDependenceVars.removeAll(currentDependenceArrayVariables);
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
         List<PropositionalVariable> controlSignals = logicParser
@@ -1234,7 +1234,7 @@ public class Suraq implements Runnable {
         timer.start();
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
         // get declarations and functions
@@ -1593,7 +1593,7 @@ public class Suraq implements Runnable {
             handleParseError(exc);
             noErrors = false;
         } finally {
-            timer.end();
+            timer.stop();
             System.out.println("    Done. (" + timer + ")");
             timer.reset();
         }
@@ -1616,7 +1616,7 @@ public class Suraq implements Runnable {
             noErrors = false;
             throw new RuntimeException("Unable to parse proof!");
         } finally {
-            timer.end();
+            timer.stop();
             System.out.println("    Done. (" + timer + ")");
             timer.reset();
         }
@@ -1658,14 +1658,14 @@ public class Suraq implements Runnable {
             Timer dagTimer = new Timer();
             dagTimer.start();
             int dagSize = proof.size(false);
-            dagTimer.end();
+            dagTimer.stop();
             String dagSizeString = myFormatter.format(dagSize);
             System.out.println("    Proof (DAG)  size: " + dagSizeString
                     + " (computed in " + dagTimer + ")");
             Timer treeTimer = new Timer();
             treeTimer.start();
             int treeSize = proof.size(true);
-            treeTimer.end();
+            treeTimer.stop();
             String treeSizeString = myFormatter.format(treeSize);
             System.out.println("    Proof (tree) size: " + treeSizeString
                     + " (computed in " + treeTimer + ")");
@@ -1673,7 +1673,7 @@ public class Suraq implements Runnable {
             Timer depthTimer = new Timer();
             depthTimer.start();
             int depth = proof.depth();
-            depthTimer.end();
+            depthTimer.stop();
             System.out.println("    Proof depth: " + depth + " (computed in "
                     + depthTimer + ")");
             System.out.println();

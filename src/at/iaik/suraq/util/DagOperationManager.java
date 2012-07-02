@@ -77,6 +77,8 @@ public final class DagOperationManager {
      * @return a unique operation id.
      */
     public static long startDAGOperation(String name) {
+        System.out
+                .println("PROGRESS-INFO: DAG operation " + name + " started.");
         long operationId = DagOperationManager.startDAGOperation();
         DagOperationManager.operationNames.put(operationId, name);
         return operationId;
@@ -124,9 +126,10 @@ public final class DagOperationManager {
      * @param operationId
      */
     public static void incrementNodeCounter(long operationId) {
-        long currentValue = DagOperationManager.nodeCounterPerOperation
+        Long currentValueObj = DagOperationManager.nodeCounterPerOperation
                 .get(operationId);
-        currentValue++;
+        long currentValue = (currentValueObj == null ? 0 : currentValueObj
+                .longValue()) + 1;
 
         Long increment = DagOperationManager.progressIncrement.get(operationId);
         if (increment != null) {
@@ -171,5 +174,17 @@ public final class DagOperationManager {
     public static String getOperationName(long operationId) {
         String result = DagOperationManager.operationNames.get(operationId);
         return ((result == null) ? "" : result);
+    }
+
+    /**
+     * 
+     * @param operationId
+     * @return the node current node count of the given operation, or 0, if the
+     *         operation is not found in the map.
+     */
+    public static long getNodeCounterForOperation(long operationId) {
+        Long result = DagOperationManager.nodeCounterPerOperation
+                .get(operationId);
+        return result == null ? 0L : result.longValue();
     }
 }

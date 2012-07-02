@@ -93,10 +93,17 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     protected boolean axiom = false;
 
+    private static int instanceCounter = 1;
+
     /**
      * A cache for hypotheses on which this node depends.
      */
     protected Set<Z3Proof> hypothesesCache = null;
+
+    /**
+     * A cache for hypothesis formulas.
+     */
+    protected ImmutableSet<Formula> hypothesisFormulasCache = null;
 
     /**
      * Store the modification counter at which the hypotheses cache was last
@@ -111,7 +118,18 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     protected static long hypModCount = 0;
 
-    private static int instanceCounter = 1;
+    private static final Timer debugGetHypothesesTimer = new Timer();
+
+    private static long debugGetHypothesesCallCounter = 0;
+
+    private static final void printDebugGetHypothesesTimerStats() {
+        if (Z3Proof.debugGetHypothesesTimer.getTotalTimeMillis() % 10000 == 0) {
+            System.out.println("INFO: Spent a total of "
+                    + Z3Proof.debugGetHypothesesTimer + " on "
+                    + Z3Proof.debugGetHypothesesCallCounter
+                    + " calls to get hypotheses(formulas).");
+        }
+    }
 
     /**
      * 
@@ -459,18 +477,37 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public ImmutableSet<Formula> getHypothesisFormulas() {
+        Z3Proof.debugGetHypothesesCallCounter++;
+        Z3Proof.debugGetHypothesesTimer.start();
+
+        if (hypothesisFormulasCache != null) {
+            if (this.hypCacheModCount == Z3Proof.hypModCount) {
+                Z3Proof.debugGetHypothesesTimer.stop();
+                Z3Proof.printDebugGetHypothesesTimerStats();
+                return hypothesisFormulasCache;
+            }
+        }
+
         Set<Z3Proof> hypotheses = this.getHypotheses();
         Set<Formula> tmp = new HashSet<Formula>();
         for (Z3Proof hypothesis : hypotheses)
             tmp.add(hypothesis.getConsequent().transformToConsequentsForm());
-        return ImmutableSet.create(tmp);
+        hypothesisFormulasCache = ImmutableSet.create(tmp);
+        Z3Proof.debugGetHypothesesTimer.stop();
+        Z3Proof.printDebugGetHypothesesTimerStats();
+        return hypothesisFormulasCache;
     }
 
     public Set<Z3Proof> getHypotheses() {
+        Z3Proof.debugGetHypothesesCallCounter++;
+        Z3Proof.debugGetHypothesesTimer.start();
 
         if (hypothesesCache != null) {
-            if (this.hypCacheModCount == Z3Proof.hypModCount)
+            if (this.hypCacheModCount == Z3Proof.hypModCount) {
+                Z3Proof.debugGetHypothesesTimer.stop();
+                Z3Proof.printDebugGetHypothesesTimerStats();
                 return new HashSet<Z3Proof>(hypothesesCache);
+            }
         }
 
         long operationId = DagOperationManager.startDAGOperation();
@@ -478,7 +515,13 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.getHypothesesRecursion(operationId, result);
         DagOperationManager.endDAGOperation(operationId);
         hypothesesCache = new HashSet<Z3Proof>(result);
+        Set<Formula> tmp = new HashSet<Formula>();
+        for (Z3Proof hypothesis : result)
+            tmp.add(hypothesis.getConsequent().transformToConsequentsForm());
+        hypothesisFormulasCache = ImmutableSet.create(tmp);
         this.hypCacheModCount = Z3Proof.hypModCount;
+        Z3Proof.debugGetHypothesesTimer.stop();
+        Z3Proof.printDebugGetHypothesesTimerStats();
         return result;
     }
 
@@ -690,7 +733,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.visitedByOperation.removeAll(DagOperationManager
                 .getFinishedOperations());
         this.visitedByOperation.add(operationId);
-
+        DagOperationManager.incrementNodeCounter(operationId);
     }
 
     /**
@@ -1160,7 +1203,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 result = false;
             }
         }
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
 
@@ -1214,7 +1257,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             result = false;
         }
 
-        timer.end();
+        timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
 

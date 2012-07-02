@@ -25,6 +25,11 @@ public class Timer {
     private long endTime = 0;
 
     /**
+     * Time elapsed during previous runs.
+     */
+    private long elapsedTime = 0;
+
+    /**
      * Starts the measure
      * 
      */
@@ -36,8 +41,11 @@ public class Timer {
      * Stops the timing
      * 
      */
-    public void end() {
+    public void stop() {
         this.endTime = System.currentTimeMillis();
+        this.elapsedTime += (this.endTime - this.startTime);
+        this.startTime = 0;
+        this.endTime = 0;
     }
 
     /**
@@ -46,24 +54,7 @@ public class Timer {
     public void reset() {
         startTime = 0;
         endTime = 0;
-    }
-
-    /**
-     * Returns the start time.
-     * 
-     * @return the start time.
-     */
-    public long getStartTime() {
-        return this.startTime;
-    }
-
-    /**
-     * Returns the end time.
-     * 
-     * @return the end time.
-     */
-    public long getEndTime() {
-        return this.endTime;
+        elapsedTime = 0;
     }
 
     /**
@@ -71,8 +62,12 @@ public class Timer {
      * 
      * @return the total time.
      */
-    public long getTotalTime() {
-        return this.endTime - this.startTime;
+    public long getTotalTimeMillis() {
+        if (startTime != 0)
+            return (System.currentTimeMillis() - this.startTime)
+                    + this.elapsedTime;
+        else
+            return (this.endTime - this.startTime) + this.elapsedTime;
     }
 
     /**
@@ -82,7 +77,7 @@ public class Timer {
      */
     @Override
     public String toString() {
-        long totalTime = getTotalTime();
+        long totalTime = getTotalTimeMillis();
         if (totalTime > 1000) {
             DecimalFormat myFormatter = new DecimalFormat("###,###,###.###");
             String output = myFormatter.format(totalTime / 1000.0);

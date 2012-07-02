@@ -324,7 +324,7 @@ public class TseitinParser extends SMTLibParser {
             assert (negFormula != null);
         }
 
-        buildTseitinFormulaTimer.end();
+        buildTseitinFormulaTimer.stop();
         System.out.println("finished build tseitin formula in "
                 + buildTseitinFormulaTimer + ".\n");
 
