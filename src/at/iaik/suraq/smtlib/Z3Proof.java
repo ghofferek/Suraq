@@ -93,6 +93,24 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     protected boolean axiom = false;
 
+    /**
+     * A cache for hypotheses on which this node depends.
+     */
+    protected Set<Z3Proof> hypothesesCache = null;
+
+    /**
+     * Store the modification counter at which the hypotheses cache was last
+     * updated
+     */
+    protected long hypCacheModCount = 0;
+
+    /**
+     * Is incremented every time a structural change is made to the proof DAG,
+     * which might affect the hypotheses cache.
+     * 
+     */
+    protected static long hypModCount = 0;
+
     private static int instanceCounter = 1;
 
     /**
@@ -241,6 +259,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
     protected void takeValuesFrom(Z3Proof proof) {
         this.axiom = proof.axiom;
         this.subProofs = proof.subProofs;
+        Z3Proof.hypModCount++;
         this.proofType = proof.proofType;
         this.consequent = proof.consequent;
         this.assertPartition = proof.assertPartition;
@@ -448,10 +467,18 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public Set<Z3Proof> getHypotheses() {
+
+        if (hypothesesCache != null) {
+            if (this.hypCacheModCount == Z3Proof.hypModCount)
+                return new HashSet<Z3Proof>(hypothesesCache);
+        }
+
         long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> result = new HashSet<Z3Proof>();
         this.getHypothesesRecursion(operationId, result);
         DagOperationManager.endDAGOperation(operationId);
+        hypothesesCache = new HashSet<Z3Proof>(result);
+        this.hypCacheModCount = Z3Proof.hypModCount;
         return result;
     }
 

@@ -656,6 +656,7 @@ public class TransformedZ3Proof extends Z3Proof {
                                 subProof.getHypothesisFormulas(),
                                 newObsoleteLiterals).getConsequent();
                 subProofs.set(count, update);
+                Z3Proof.hypModCount++;
                 this.obsoleteLiterals = this.obsoleteLiterals
                         .addAllToCopy(newObsoleteLiterals);
             }
@@ -753,6 +754,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         // assert (((TransformedZ3Proof) update).isLocal());
 
                         subProofs.set(0, update);
+                        Z3Proof.hypModCount++;
                         recomputeObsoleteLiterals();
                     }
                 }
@@ -784,6 +786,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
                         subProofs.set(1, update);
+                        Z3Proof.hypModCount++;
                         recomputeObsoleteLiterals();
                     }
                 }
@@ -997,6 +1000,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     TransformedZ3Proof newProof = TransformedZ3Proof
                             .createTransitivityProofForTransformedZ3Proofs(proofs);
                     subProofs.set(count, newProof);
+                    Z3Proof.hypModCount++;
                     TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                             new AnnotatedProofNode(newProof));
                 }
@@ -1310,8 +1314,6 @@ public class TransformedZ3Proof extends Z3Proof {
                     SExpressionConstants.SYMMETRY, subProofs,
                     z3Proof.consequent);
 
-            assert (z3Proof.getHypotheses().size() == result.getHypotheses()
-                    .size()); // DEBUG
             return result;
         }
 
