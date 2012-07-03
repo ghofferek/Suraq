@@ -551,10 +551,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
         }
 
         long operationId = DagOperationManager.startDAGOperation();
-        Set<Z3Proof> result = new HashSet<Z3Proof>();
-        this.getHypothesesRecursion(operationId, result);
+        Set<Z3Proof> result = this.getHypothesesRecursion(operationId);
         DagOperationManager.endDAGOperation(operationId);
-        if (!result.equals(hypothesesCache)) {
+        if (!result.equals(hypothesesCache) || hypothesesCache == null
+                || hypothesisFormulasCache == null) {
             hypothesesCache = ImmutableSet.create(result);
             Set<Formula> tmp = new HashSet<Formula>();
             for (Z3Proof hypothesis : result)
@@ -569,29 +569,47 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return hypothesesCache;
     }
 
-    private void getHypothesesRecursion(long operationId, Set<Z3Proof> result) {
+    private Set<Z3Proof> getHypothesesRecursion(long operationId) {
         visitedByDAGOperation(operationId);
 
-        if (proofType.equals(SExpressionConstants.LEMMA))
-            return;
+        if (!this.hypCacheDirty) {
+            return hypothesesCache;
+        }
 
-        assert (result != null);
+        if (proofType.equals(SExpressionConstants.LEMMA)) {
+            this.hypCacheDirty = false;
+            return new HashSet<Z3Proof>();
+        }
 
         if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
             assert (this.subProofs.size() == 0);
-            result.add(this);
+            this.hypothesesCache = ImmutableSet.create(Collections
+                    .singleton(this));
+            this.hypCacheDirty = false;
+            return hypothesesCache;
         }
         if (this instanceof TransformedZ3Proof) {
             if (((TransformedZ3Proof) this).isHypothesis()) {
                 assert (this.subProofs.size() == 0);
-                result.add(this);
+                this.hypothesesCache = ImmutableSet.create(Collections
+                        .singleton(this));
+                this.hypCacheDirty = false;
+                return hypothesesCache;
             }
         }
+
+        Set<Z3Proof> tmp = new HashSet<Z3Proof>();
         for (Z3Proof z3Proofchild : this.subProofs) {
-            if (z3Proofchild.wasVisitedByDAGOperation(operationId))
-                continue;
-            z3Proofchild.getHypothesesRecursion(operationId, result);
+            if (z3Proofchild.wasVisitedByDAGOperation(operationId)) {
+                assert (!z3Proofchild.hypCacheDirty);
+                tmp.addAll(z3Proofchild.hypothesesCache);
+            } else {
+                tmp.addAll(z3Proofchild.getHypothesesRecursion(operationId));
+            }
         }
+        this.hypothesesCache = ImmutableSet.create(tmp);
+        this.hypCacheDirty = false;
+        return hypothesesCache;
     }
 
     public void markHypCacheDirty() {
