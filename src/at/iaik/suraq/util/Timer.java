@@ -80,12 +80,34 @@ public class Timer {
     @Override
     public String toString() {
         long totalTime = getTotalTimeMillis();
-        if (totalTime > 1000) {
-            DecimalFormat myFormatter = new DecimalFormat("###,###,###.###");
-            String output = myFormatter.format(totalTime / 1000.0);
-            return output + "s";
+        String result;
+        if (totalTime < 1000) {
+            DecimalFormat milliSecondsFormatter = new DecimalFormat("000");
+            result = milliSecondsFormatter.format(totalTime) + "ms";
+        } else if (totalTime >= 1000 && totalTime < 60000) {
+            DecimalFormat secondsFormatter = new DecimalFormat("00.00");
+            result = secondsFormatter.format(totalTime / 1000.0) + "s";
+        } else if (totalTime >= 60000 && totalTime < 3600000) {
+            DecimalFormat clockPartFormatter = new DecimalFormat("00");
+            long minutes = (totalTime / 60000);
+            long seconds = (totalTime % 60000);
+            result = clockPartFormatter.format(minutes) + ":"
+                    + clockPartFormatter.format(seconds) + "s";
+
+        } else if (totalTime >= 3600000) {
+            DecimalFormat clockPartFormatter = new DecimalFormat("00");
+            DecimalFormat hourFormatter = new DecimalFormat("###00");
+            long hours = (totalTime / 3600000);
+            long minutes = (totalTime % 3600000);
+            long seconds = (totalTime % 60000);
+
+            result = hourFormatter.format(hours) + ":"
+                    + clockPartFormatter.format(minutes) + ":"
+                    + clockPartFormatter.format(seconds);
         } else {
-            return totalTime + "ms";
+            result = "ERROR IN TIMER!";
+            assert (false);
         }
+        return result;
     }
 }

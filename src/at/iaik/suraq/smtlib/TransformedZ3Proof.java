@@ -332,7 +332,8 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (proof instanceof TransformedZ3Proof);
         super.takeValuesFrom(proof);
         TransformedZ3Proof transformedProof = (TransformedZ3Proof) proof;
-        this.literal = transformedProof.literal;
+        this.literal = transformedProof.literal == null ? null
+                : transformedProof.literal.deepFormulaCopy();
         this.hypothesis = transformedProof.hypothesis;
         this.obsoleteLiterals = transformedProof.obsoleteLiterals;
         this.hasBeenMadeLocal = transformedProof.hasBeenMadeLocal;
@@ -659,6 +660,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 if (subProof != update) {
                     subProofs.set(count, update);
                     Z3Proof.hypModCount++;
+                    this.markHypCacheDirty();
                     this.obsoleteLiterals = this.obsoleteLiterals
                             .addAllToCopy(newObsoleteLiterals);
                 }
@@ -758,6 +760,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         if (subProofs.get(0) != update) {
                             subProofs.set(0, update);
                             Z3Proof.hypModCount++;
+                            this.markHypCacheDirty();
                             recomputeObsoleteLiterals();
                         }
                     }
@@ -792,6 +795,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         if (subProofs.get(1) != update) {
                             subProofs.set(1, update);
                             Z3Proof.hypModCount++;
+                            this.markHypCacheDirty();
                             recomputeObsoleteLiterals();
                         }
                     }
@@ -1007,6 +1011,7 @@ public class TransformedZ3Proof extends Z3Proof {
                             .createTransitivityProofForTransformedZ3Proofs(proofs);
                     subProofs.set(count, newProof);
                     Z3Proof.hypModCount++;
+                    this.markHypCacheDirty();
                     TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
                             new AnnotatedProofNode(newProof));
                 }

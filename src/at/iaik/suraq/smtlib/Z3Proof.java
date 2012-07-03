@@ -71,6 +71,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
     protected List<Z3Proof> subProofs;
 
     /**
+     * The set of parents of this node.
+     */
+    protected ImmutableSet<Z3Proof> parents = null;
+
+    /**
      * This formula is the consequent of this proof. It should either be an
      * <code>OrFormula</code> or the constant formula <code>false</code>.
      */
@@ -98,7 +103,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
     /**
      * A cache for hypotheses on which this node depends.
      */
-    protected Set<Z3Proof> hypothesesCache = null;
+    protected ImmutableSet<Z3Proof> hypothesesCache = null;
 
     /**
      * A cache for hypothesis formulas.
@@ -108,8 +113,16 @@ public class Z3Proof implements SMTLibObject, Serializable {
     /**
      * Store the modification counter at which the hypotheses cache was last
      * updated
+     * 
+     * @deprecated use hypCacheDirty flag instead
      */
+    @Deprecated
     protected long hypCacheModCount = 0;
+
+    /**
+     * Indicated whether the hypotheses cache is dirty or usable.
+     */
+    protected boolean hypCacheDirty = true;
 
     /**
      * Is incremented every time a structural change is made to the proof DAG,
@@ -122,16 +135,24 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     private static long debugGetHypothesesCallCounter = 0;
 
+    private static long debugGetHypothesesCallUsingCacheCounter = 0;
+
     private static long debugLastGetHypothesesStatsTime = 0;
 
     private static final void printDebugGetHypothesesTimerStats() {
         if ((Z3Proof.debugGetHypothesesTimer.getTotalTimeMillis() - Z3Proof.debugLastGetHypothesesStatsTime) > 5000) {
             Z3Proof.debugLastGetHypothesesStatsTime = Z3Proof.debugGetHypothesesTimer
                     .getTotalTimeMillis();
-            System.out.println("INFO: Spent a total of "
-                    + Z3Proof.debugGetHypothesesTimer + " on "
-                    + Z3Proof.debugGetHypothesesCallCounter
-                    + " calls to get hypotheses(formulas).");
+            System.out
+                    .println("INFO: Spent a total of "
+                            + Z3Proof.debugGetHypothesesTimer
+                            + " on "
+                            + Z3Proof.myFormatter
+                                    .format(Z3Proof.debugGetHypothesesCallCounter)
+                            + " calls ("
+                            + Z3Proof.myFormatter
+                                    .format(Z3Proof.debugGetHypothesesCallUsingCacheCounter)
+                            + " calls using cache) to get hypotheses(formulas).");
         }
     }
 
@@ -143,6 +164,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
     public Z3Proof() {
         this.proofType = null;
         this.subProofs = new ArrayList<Z3Proof>();
+        this.parents = ImmutableSet.create(new HashSet<Z3Proof>());
         this.consequent = null;
         this.id = Z3Proof.instanceCounter++;
         if (this.id == 4042373)
@@ -173,6 +195,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
         this.proofType = proofType;
         this.subProofs = new ArrayList<Z3Proof>();
+        this.parents = ImmutableSet.create(new HashSet<Z3Proof>());
         if (subProof1 != null)
             this.subProofs.add(subProof1);
         if (subProof2 != null)
@@ -231,6 +254,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.proofType = proofType;
         assert (subProofs != null);
         this.subProofs = new ArrayList<Z3Proof>();
+        this.parents = ImmutableSet.create(new HashSet<Z3Proof>());
         this.subProofs.addAll(subProofs);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
@@ -280,8 +304,14 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     protected void takeValuesFrom(Z3Proof proof) {
         this.axiom = proof.axiom;
-        this.subProofs = proof.subProofs;
+        this.subProofs = new ArrayList<Z3Proof>(proof.subProofs);
         Z3Proof.hypModCount++;
+        this.hypCacheModCount = proof.hypCacheModCount;
+        this.hypCacheDirty = proof.hypCacheDirty;
+        if (this.hypCacheDirty)
+            this.markHypCacheDirty();
+        this.hypothesesCache = proof.hypothesesCache;
+        this.hypothesisFormulasCache = proof.hypothesisFormulasCache;
         this.proofType = proof.proofType;
         this.consequent = proof.consequent;
         this.assertPartition = proof.assertPartition;
@@ -485,7 +515,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
         Z3Proof.debugGetHypothesesTimer.start();
 
         if (hypothesisFormulasCache != null) {
-            if (this.hypCacheModCount == Z3Proof.hypModCount) {
+            // if (this.hypCacheModCount == Z3Proof.hypModCount) {
+            if (!this.hypCacheDirty) {
+                Z3Proof.debugGetHypothesesCallUsingCacheCounter++;
                 Z3Proof.debugGetHypothesesTimer.stop();
                 Z3Proof.printDebugGetHypothesesTimerStats();
                 return hypothesisFormulasCache;
@@ -509,10 +541,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
         Z3Proof.debugGetHypothesesTimer.start();
 
         if (hypothesesCache != null) {
-            if (this.hypCacheModCount == Z3Proof.hypModCount) {
+            // if (this.hypCacheModCount == Z3Proof.hypModCount) {
+            if (!this.hypCacheDirty) {
+                Z3Proof.debugGetHypothesesCallUsingCacheCounter++;
                 Z3Proof.debugGetHypothesesTimer.stop();
                 Z3Proof.printDebugGetHypothesesTimerStats();
-                return new HashSet<Z3Proof>(hypothesesCache);
+                return hypothesesCache;
             }
         }
 
@@ -520,15 +554,19 @@ public class Z3Proof implements SMTLibObject, Serializable {
         Set<Z3Proof> result = new HashSet<Z3Proof>();
         this.getHypothesesRecursion(operationId, result);
         DagOperationManager.endDAGOperation(operationId);
-        hypothesesCache = new HashSet<Z3Proof>(result);
-        Set<Formula> tmp = new HashSet<Formula>();
-        for (Z3Proof hypothesis : result)
-            tmp.add(hypothesis.getConsequent().transformToConsequentsForm());
-        hypothesisFormulasCache = ImmutableSet.create(tmp);
+        if (!result.equals(hypothesesCache)) {
+            hypothesesCache = ImmutableSet.create(result);
+            Set<Formula> tmp = new HashSet<Formula>();
+            for (Z3Proof hypothesis : result)
+                tmp.add(hypothesis.getConsequent().transformToConsequentsForm());
+            hypothesisFormulasCache = ImmutableSet.create(tmp);
+            this.markHypCacheDirty();
+        }
         this.hypCacheModCount = Z3Proof.hypModCount;
+        this.hypCacheDirty = false;
         Z3Proof.debugGetHypothesesTimer.stop();
         Z3Proof.printDebugGetHypothesesTimerStats();
-        return result;
+        return hypothesesCache;
     }
 
     private void getHypothesesRecursion(long operationId, Set<Z3Proof> result) {
@@ -554,6 +592,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 continue;
             z3Proofchild.getHypothesesRecursion(operationId, result);
         }
+    }
+
+    public void markHypCacheDirty() {
+        this.hypCacheDirty = true;
+        for (Z3Proof ancestor : this.allAncestorNodes())
+            ancestor.hypCacheDirty = true;
     }
 
     @Deprecated
@@ -768,6 +812,27 @@ public class Z3Proof implements SMTLibObject, Serializable {
         for (Z3Proof child : this.subProofs) {
             if (!set.contains(child))
                 child.allNodes(set);
+        }
+    }
+
+    /**
+     * 
+     * @return the set of all ancestor nodes of <code>this</code>.
+     */
+    public Set<Z3Proof> allAncestorNodes() {
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        this.allAncestorNodes(result);
+        result.remove(this);
+        return result;
+    }
+
+    private void allAncestorNodes(Set<Z3Proof> set) {
+        set.add(this);
+        if (parents != null) {
+            for (Z3Proof parent : this.parents) {
+                if (!set.contains(parent))
+                    parent.allAncestorNodes(set);
+            }
         }
     }
 
