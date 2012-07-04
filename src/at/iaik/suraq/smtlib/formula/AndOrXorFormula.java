@@ -206,15 +206,14 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         if (this == obj)
             return true;
 
+        if (this.hashCode() != obj.hashCode())
+            return false;
+
         if (!(this.getClass().isInstance(obj)))
             return false;
-        Set<Formula> set1 = new HashSet<Formula>();
-        Set<Formula> set2 = new HashSet<Formula>();
-        set1.addAll(((AndOrXorFormula) obj).formulas);
-        set2.addAll(this.formulas);
-        if (!set1.equals(set2))
-            return false;
-        return true;
+
+        return this.formulas.equals(((AndOrXorFormula) obj).formulas);
+
     }
 
     /**
@@ -222,9 +221,6 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public int hashCode() {
-        int hashCode = 0;
-        for (Formula formula : formulas)
-            hashCode ^= formula.hashCode();
         return formulas.hashCode();
     }
 

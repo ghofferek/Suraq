@@ -32,6 +32,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     private final String varName;
 
+    private final int hashCode;
+
     /**
      * 
      * Constructs a new <code>DomainVariable</code>.
@@ -41,6 +43,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     public DomainVariable(String varName) {
         this.varName = varName;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -52,6 +55,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     public DomainVariable(Token name) {
         this.varName = name.toString();
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -66,6 +70,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
     public DomainVariable(String name, int assertPartition) {
         this.varName = name;
         this.assertPartition = assertPartition;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -80,6 +85,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
     public DomainVariable(Token name, int assertPartition) {
         this.varName = name.toString();
         this.assertPartition = assertPartition;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -100,6 +106,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
             return true;
         if (!(obj instanceof DomainVariable))
             return false;
+        if (this.hashCode != ((DomainVariable) obj).hashCode)
+            return false;
         return varName.equals(((DomainVariable) obj).varName);
     }
 
@@ -108,7 +116,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     @Override
     public int hashCode() {
-        return varName.hashCode();
+        return hashCode;
     }
 
     /**

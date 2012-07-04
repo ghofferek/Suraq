@@ -208,9 +208,15 @@ public class PropositionalFunctionMacroInstance implements Formula {
             return true;
         if (!(obj instanceof PropositionalFunctionMacroInstance))
             return false;
-        return ((PropositionalFunctionMacroInstance) obj).macro.equals(macro)
-                && ((PropositionalFunctionMacroInstance) obj).paramMap
-                        .equals(paramMap);
+        if (this.hashCode() != obj.hashCode())
+            return false;
+
+        if (!((PropositionalFunctionMacroInstance) obj).macro.equals(macro))
+            return false;
+        if (!((PropositionalFunctionMacroInstance) obj).paramMap
+                .equals(paramMap))
+            return false;
+        return true;
     }
 
     /**
@@ -218,7 +224,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public int hashCode() {
-        return macro.hashCode() ^ paramMap.hashCode();
+        return macro.hashCode() * 31 + paramMap.hashCode();
     }
 
     /**

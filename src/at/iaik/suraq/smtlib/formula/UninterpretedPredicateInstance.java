@@ -94,6 +94,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             return true;
         if (!(obj instanceof UninterpretedPredicateInstance))
             return false;
+        if (this.hashCode() != obj.hashCode())
+            return false;
         UninterpretedPredicateInstance other = (UninterpretedPredicateInstance) obj;
         if (!other.parameters.equals(parameters))
             return false;
@@ -107,7 +109,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     @Override
     public int hashCode() {
-        return function.hashCode() ^ parameters.hashCode();
+        return function.hashCode() * 31 + parameters.hashCode();
     }
 
     /**

@@ -25,6 +25,8 @@ public class Token extends SExpression implements Serializable {
      */
     private final String token;
 
+    private final int hashCode;
+
     /**
      * Constructs a new <code>Token</code>.
      * 
@@ -33,6 +35,7 @@ public class Token extends SExpression implements Serializable {
      */
     public Token(String token) {
         this.token = token;
+        hashCode = token.hashCode();
     }
 
     /**
@@ -43,6 +46,7 @@ public class Token extends SExpression implements Serializable {
      */
     public Token(StringBuffer token) {
         this.token = token.toString();
+        hashCode = token.hashCode();
     }
 
     /**
@@ -55,6 +59,7 @@ public class Token extends SExpression implements Serializable {
         this.token = token.toString();
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
+        hashCode = token.hashCode();
     }
 
     /**
@@ -65,6 +70,7 @@ public class Token extends SExpression implements Serializable {
      */
     public Token(Token original) {
         this.token = new String(original.token);
+        hashCode = token.hashCode();
     }
 
     /**
@@ -131,8 +137,18 @@ public class Token extends SExpression implements Serializable {
      */
     @Override
     public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+
         if (!(obj instanceof Token))
             return false;
+
+        if (this.hashCode != ((Token) obj).hashCode)
+            return false;
+
+        if (token.length() != ((Token) obj).token.length())
+            return false;
+
         return token.equals(((Token) obj).token);
     }
 
@@ -141,7 +157,7 @@ public class Token extends SExpression implements Serializable {
      */
     @Override
     public int hashCode() {
-        return token.hashCode();
+        return hashCode;
     }
 
     /**

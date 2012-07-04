@@ -172,6 +172,10 @@ public class ArrayWrite extends ArrayTerm {
             return true;
         if (!(obj instanceof ArrayWrite))
             return false;
+
+        if (this.hashCode() != obj.hashCode())
+            return false;
+
         return ((ArrayWrite) obj).arrayTerm.equals(arrayTerm)
                 && ((ArrayWrite) obj).indexTerm.equals(indexTerm)
                 && ((ArrayWrite) obj).valueTerm.equals(valueTerm);
@@ -182,8 +186,8 @@ public class ArrayWrite extends ArrayTerm {
      */
     @Override
     public int hashCode() {
-        return arrayTerm.hashCode() ^ indexTerm.hashCode()
-                ^ valueTerm.hashCode();
+        return arrayTerm.hashCode() * 31 * 31 + indexTerm.hashCode() * 31
+                + valueTerm.hashCode();
     }
 
     /**

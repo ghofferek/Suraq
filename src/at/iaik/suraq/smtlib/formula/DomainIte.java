@@ -183,6 +183,10 @@ public class DomainIte extends DomainTerm {
             return true;
         if (!(obj instanceof DomainIte))
             return false;
+
+        if (this.hashCode() != obj.hashCode())
+            return false;
+
         return ((DomainIte) obj).thenBranch.equals(thenBranch)
                 && ((DomainIte) obj).elseBranch.equals(elseBranch)
                 && ((DomainIte) obj).condition.equals(condition);
@@ -194,8 +198,8 @@ public class DomainIte extends DomainTerm {
      */
     @Override
     public int hashCode() {
-        return condition.hashCode() ^ thenBranch.hashCode()
-                ^ elseBranch.hashCode();
+        return condition.hashCode() * 31 * 31 + thenBranch.hashCode() * 31
+                + elseBranch.hashCode();
     }
 
     /**

@@ -31,7 +31,9 @@ public class PropositionalVariable extends PropositionalTerm implements
     /**
      * The name of the variable.
      */
-    protected final String varName;
+    private final String varName;
+
+    private final int hashCode;
 
     /**
      * 
@@ -42,6 +44,7 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     public PropositionalVariable(String varName) {
         this.varName = varName;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -53,6 +56,7 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     public PropositionalVariable(Token name) {
         this.varName = name.toString();
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -67,6 +71,7 @@ public class PropositionalVariable extends PropositionalTerm implements
     public PropositionalVariable(Token name, int assertPartition) {
         this.varName = name.toString();
         this.assertPartition = assertPartition;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -81,6 +86,7 @@ public class PropositionalVariable extends PropositionalTerm implements
     public PropositionalVariable(String name, int assertPartition) {
         this.varName = name.toString();
         this.assertPartition = assertPartition;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -101,6 +107,8 @@ public class PropositionalVariable extends PropositionalTerm implements
             return true;
         if (!(obj instanceof PropositionalVariable))
             return false;
+        if (this.hashCode != ((PropositionalVariable) obj).hashCode)
+            return false;
         return varName.equals(((PropositionalVariable) obj).varName);
     }
 
@@ -109,7 +117,7 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public int hashCode() {
-        return varName.hashCode();
+        return hashCode;
     }
 
     /**

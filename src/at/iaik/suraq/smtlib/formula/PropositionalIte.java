@@ -200,6 +200,8 @@ public class PropositionalIte extends BooleanCombinationFormula {
             return true;
         if (!(obj instanceof PropositionalIte))
             return false;
+        if (this.hashCode() != obj.hashCode())
+            return false;
         return ((PropositionalIte) obj).thenBranch.equals(thenBranch)
                 && ((PropositionalIte) obj).elseBranch.equals(elseBranch)
                 && ((PropositionalIte) obj).condition.equals(condition);
@@ -211,8 +213,8 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public int hashCode() {
-        return condition.hashCode() ^ thenBranch.hashCode()
-                ^ elseBranch.hashCode();
+        return condition.hashCode() * 31 * 31 + thenBranch.hashCode() * 31
+                + elseBranch.hashCode();
     }
 
     /**

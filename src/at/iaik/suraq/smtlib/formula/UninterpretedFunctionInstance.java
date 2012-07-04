@@ -236,11 +236,14 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             return true;
         if (!(obj instanceof UninterpretedFunctionInstance))
             return false;
-        UninterpretedFunctionInstance other = (UninterpretedFunctionInstance) obj;
-        if (!other.parameters.equals(parameters))
+        if (this.hashCode() != obj.hashCode())
             return false;
+        UninterpretedFunctionInstance other = (UninterpretedFunctionInstance) obj;
         if (!other.function.equals(function))
             return false;
+        if (!other.parameters.equals(parameters))
+            return false;
+
         return true;
     }
 
@@ -249,7 +252,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     @Override
     public int hashCode() {
-        return function.hashCode() ^ parameters.hashCode();
+        return function.hashCode() * 31 + parameters.hashCode();
     }
 
     /**

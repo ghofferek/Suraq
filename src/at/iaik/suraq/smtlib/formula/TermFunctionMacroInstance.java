@@ -192,8 +192,13 @@ public class TermFunctionMacroInstance extends DomainTerm {
             return true;
         if (!(obj instanceof PropositionalFunctionMacroInstance))
             return false;
-        return ((TermFunctionMacroInstance) obj).macro.equals(macro)
-                && ((TermFunctionMacroInstance) obj).paramMap.equals(paramMap);
+        if (this.hashCode() != obj.hashCode())
+            return false;
+        if (!((TermFunctionMacroInstance) obj).macro.equals(macro))
+            return false;
+        if (!((TermFunctionMacroInstance) obj).paramMap.equals(paramMap))
+            return false;
+        return true;
     }
 
     /**
@@ -201,7 +206,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
      */
     @Override
     public int hashCode() {
-        return macro.hashCode() ^ paramMap.hashCode();
+        return macro.hashCode() * 31 + paramMap.hashCode();
     }
 
     /**

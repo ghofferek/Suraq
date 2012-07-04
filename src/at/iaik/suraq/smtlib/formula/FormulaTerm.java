@@ -313,6 +313,10 @@ public class FormulaTerm extends PropositionalTerm {
             return true;
         if (!(obj instanceof FormulaTerm))
             return false;
+        if (this.formula == ((FormulaTerm) obj).formula)
+            return true;
+        if (this.hashCode() != obj.hashCode())
+            return false;
 
         return formula.equals(((FormulaTerm) obj).formula);
     }

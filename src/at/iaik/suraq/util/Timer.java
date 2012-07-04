@@ -90,7 +90,7 @@ public class Timer {
         } else if (totalTime >= 60000 && totalTime < 3600000) {
             DecimalFormat clockPartFormatter = new DecimalFormat("00");
             long minutes = (totalTime / 60000);
-            long seconds = (totalTime % 60000);
+            long seconds = (totalTime % 60000) / 1000;
             result = clockPartFormatter.format(minutes) + ":"
                     + clockPartFormatter.format(seconds) + "s";
 
@@ -98,8 +98,8 @@ public class Timer {
             DecimalFormat clockPartFormatter = new DecimalFormat("00");
             DecimalFormat hourFormatter = new DecimalFormat("###00");
             long hours = (totalTime / 3600000);
-            long minutes = (totalTime % 3600000);
-            long seconds = (totalTime % 60000);
+            long minutes = (totalTime % 3600000) / 60000;
+            long seconds = (totalTime % 60000) / 1000;
 
             result = hourFormatter.format(hours) + ":"
                     + clockPartFormatter.format(minutes) + ":"

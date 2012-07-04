@@ -66,9 +66,18 @@ public class TermFunctionMacro extends FunctionMacro {
             return true;
         if (!(obj instanceof TermFunctionMacro))
             return false;
+        if (this.hashCode() != obj.hashCode())
+            return false;
         TermFunctionMacro other = (TermFunctionMacro) obj;
-        return other.name.equals(name) && other.parameters.equals(parameters)
-                && other.paramMap.equals(paramMap) && other.body.equals(body);
+        if (!other.name.equals(name))
+            return false;
+        if (!other.parameters.equals(parameters))
+            return false;
+        if (!other.paramMap.equals(paramMap))
+            return false;
+        if (!other.body.equals(body))
+            return false;
+        return true;
     }
 
     /**
@@ -76,8 +85,8 @@ public class TermFunctionMacro extends FunctionMacro {
      */
     @Override
     public int hashCode() {
-        return name.hashCode() ^ parameters.hashCode() ^ paramMap.hashCode()
-                ^ body.hashCode();
+        return name.hashCode() * 31 * 31 * 31 + parameters.hashCode() * 31 * 31
+                + paramMap.hashCode() * 31 + body.hashCode();
     }
 
     /**

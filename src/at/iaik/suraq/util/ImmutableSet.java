@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.util;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,9 +15,16 @@ import java.util.Set;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class ImmutableSet<E> implements Set<E> {
+public class ImmutableSet<E> implements Set<E>, Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8782268576752007761L;
 
     private Set<E> internalSet;
+
+    private int hashCode;
 
     private static Map<Set<?>, ImmutableSet<?>> instances = new HashMap<Set<?>, ImmutableSet<?>>();
 
@@ -51,6 +59,8 @@ public class ImmutableSet<E> implements Set<E> {
         Set<E> key = new HashSet<E>();
         key.addAll(set);
         ImmutableSet.instances.put(key, this);
+
+        this.hashCode = internalSet.hashCode();
     }
 
     public static <T> ImmutableSet<T> create(Collection<? extends T> set) {
@@ -279,6 +289,29 @@ public class ImmutableSet<E> implements Set<E> {
     @Override
     public String toString() {
         return internalSet.toString();
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof Set))
+            return false;
+        if (this.hashCode != obj.hashCode())
+            return false;
+
+        return internalSet.equals(obj);
     }
 
 }

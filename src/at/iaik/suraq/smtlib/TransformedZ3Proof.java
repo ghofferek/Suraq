@@ -521,7 +521,7 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof transformedHypotheticalProof = TransformedZ3Proof
                     .convertToTransformedZ3Proof(hypotheticalProof);
 
-            List<TransformedZ3Proof> list = new ArrayList<TransformedZ3Proof>(0);
+            List<TransformedZ3Proof> list = new ArrayList<TransformedZ3Proof>(1);
             list.add(transformedHypotheticalProof);
             TransformedZ3Proof result = new TransformedZ3Proof(
                     SExpressionConstants.LEMMA, list,
@@ -2014,7 +2014,7 @@ public class TransformedZ3Proof extends Z3Proof {
             result.add(hypothesis.consequent);
 
             // update the DAG with the negated literal
-            Set<Z3Proof> nodes = nodesOnPathTo(hypothesis);
+            Set<Z3Proof> nodes = nodesOnPathToHypothesisFormula(hypothesis.consequent);
             Formula negatedLiteral = Util.invertLiteral(hypothesis.consequent);
             for (Z3Proof z3ProofNode : nodes) {
                 // update the node.
@@ -2080,10 +2080,16 @@ public class TransformedZ3Proof extends Z3Proof {
                     .get(0);
             assert (hypotheticalProof.consequent
                     .equals((new PropositionalConstant(false))
-                            .transformToConsequentsForm()));
+                            .transformToConsequentsForm()) || hypotheticalProof.consequent
+                    .equals(this.consequent));
 
-            hypotheticalProof.toResolutionProofRecursion(operationId);
-            hypotheticalProof.removeHypotheses();
+            if (hypotheticalProof.consequent.equals(new PropositionalConstant(
+                    false).transformToConsequentsForm())) {
+                hypotheticalProof.toResolutionProofRecursion(operationId);
+                hypotheticalProof.removeHypotheses();
+            } else {
+                assert (hypotheticalProof.consequent.equals(this.consequent));
+            }
 
             this.takeValuesFrom(hypotheticalProof);
             if (!(this.proofType.equals(SExpressionConstants.UNIT_RESOLUTION) || this.proofType

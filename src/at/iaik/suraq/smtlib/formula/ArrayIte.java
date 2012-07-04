@@ -174,6 +174,8 @@ public class ArrayIte extends ArrayTerm {
             return true;
         if (!(obj instanceof ArrayIte))
             return false;
+        if (this.hashCode() != obj.hashCode())
+            return false;
         return ((ArrayIte) obj).thenBranch.equals(thenBranch)
                 && ((ArrayIte) obj).elseBranch.equals(elseBranch)
                 && ((ArrayIte) obj).condition.equals(condition);
@@ -185,8 +187,8 @@ public class ArrayIte extends ArrayTerm {
      */
     @Override
     public int hashCode() {
-        return condition.hashCode() ^ thenBranch.hashCode()
-                ^ elseBranch.hashCode();
+        return condition.hashCode() * 31 * 31 + thenBranch.hashCode() * 31
+                + elseBranch.hashCode();
     }
 
     /**

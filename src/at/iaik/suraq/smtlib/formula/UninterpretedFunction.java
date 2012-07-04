@@ -45,6 +45,8 @@ public class UninterpretedFunction implements Serializable {
      */
     private final Token type;
 
+    private final int hashCode;
+
     /**
      * 
      * Constructs a new <code>UninterpretedFunction</code>.
@@ -61,6 +63,8 @@ public class UninterpretedFunction implements Serializable {
         this.name = new Token(name);
         this.numParams = numParams;
         this.type = type;
+        this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
+                + numParams;
     }
 
     /**
@@ -79,6 +83,8 @@ public class UninterpretedFunction implements Serializable {
         this.name = name;
         this.numParams = numParams;
         this.type = type;
+        this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
+                + numParams;
     }
 
     /**
@@ -94,6 +100,8 @@ public class UninterpretedFunction implements Serializable {
         this.name = new Token(original.name);
         this.type = new Token(original.type);
         this.assertPartition = original.assertPartition;
+        this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
+                + numParams;
     }
 
     /**
@@ -116,6 +124,8 @@ public class UninterpretedFunction implements Serializable {
         this.numParams = numParams;
         this.type = type;
         this.assertPartition = assertPartition;
+        this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
+                + numParams;
     }
 
     /**
@@ -154,8 +164,17 @@ public class UninterpretedFunction implements Serializable {
             return true;
         if (!(obj instanceof UninterpretedFunction))
             return false;
-        return ((UninterpretedFunction) obj).name.equals(name)
-                && ((UninterpretedFunction) obj).numParams == numParams;
+        if (this.hashCode != ((UninterpretedFunction) obj).hashCode)
+            return false;
+
+        if (((UninterpretedFunction) obj).numParams != numParams)
+            return false;
+        if (!((UninterpretedFunction) obj).name.equals(name))
+            return false;
+        if (!(this.type.equals(((UninterpretedFunction) obj).type)))
+            return false;
+
+        return true;
     }
 
     /**
@@ -163,7 +182,7 @@ public class UninterpretedFunction implements Serializable {
      */
     @Override
     public int hashCode() {
-        return name.hashCode() + numParams;
+        return hashCode;
     }
 
     /**

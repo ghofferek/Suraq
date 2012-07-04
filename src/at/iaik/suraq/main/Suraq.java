@@ -188,7 +188,7 @@ public class Suraq implements Runnable {
     }
 
     private String inputTransformations(File sourceFile) {
-
+        System.out.println("Starting to read " + sourceFile.getPath() + " ...");
         SuraqOptions options = SuraqOptions.getInstance();
 
         SExpParser sExpParser = null;

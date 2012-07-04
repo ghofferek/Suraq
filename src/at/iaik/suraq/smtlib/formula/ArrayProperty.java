@@ -378,6 +378,8 @@ public class ArrayProperty implements Formula {
             return true;
         if (!(obj instanceof ArrayProperty))
             return false;
+        if (this.hashCode() != obj.hashCode())
+            return false;
         ArrayProperty other = (ArrayProperty) obj;
         return other.uVars.equals(uVars) && other.indexGuard.equals(indexGuard)
                 && other.valueConstraint.equals(valueConstraint);
@@ -388,8 +390,8 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public int hashCode() {
-        return uVars.hashCode() ^ indexGuard.hashCode()
-                ^ valueConstraint.hashCode();
+        return uVars.hashCode() * 31 * 31 + indexGuard.hashCode() * 31
+                + valueConstraint.hashCode();
     }
 
     /**

@@ -231,6 +231,8 @@ public class NotFormula extends BooleanCombinationFormula {
             return true;
         if (!(obj instanceof NotFormula))
             return false;
+        if (this.hashCode() != obj.hashCode())
+            return false;
         return ((NotFormula) obj).formula.equals(formula);
     }
 

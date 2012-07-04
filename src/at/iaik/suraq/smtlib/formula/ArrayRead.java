@@ -158,6 +158,10 @@ public class ArrayRead extends DomainTerm {
             return true;
         if (!(obj instanceof ArrayRead))
             return false;
+
+        if (this.hashCode() != obj.hashCode())
+            return false;
+
         return arrayTerm.equals(((ArrayRead) obj).arrayTerm)
                 && indexTerm.equals(((ArrayRead) obj).indexTerm);
     }
@@ -167,7 +171,7 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public int hashCode() {
-        return arrayTerm.hashCode() ^ indexTerm.hashCode();
+        return arrayTerm.hashCode() * 31 + indexTerm.hashCode();
     }
 
     /**

@@ -29,6 +29,8 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      */
     private final String varName;
 
+    private final int hashCode;
+
     /**
      * 
      * Constructs a new <code>ArrayVariable</code>.
@@ -38,6 +40,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      */
     public ArrayVariable(String varName) {
         this.varName = varName;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -49,6 +52,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      */
     public ArrayVariable(Token name) {
         this.varName = name.toString();
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -63,6 +67,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
     public ArrayVariable(String name, int assertPartition) {
         this.varName = name;
         this.assertPartition = assertPartition;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -77,6 +82,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
     public ArrayVariable(Token name, int assertPartition) {
         this.varName = name.toString();
         this.assertPartition = assertPartition;
+        hashCode = varName.hashCode();
     }
 
     /**
@@ -97,6 +103,9 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
             return true;
         if (!(obj instanceof ArrayVariable))
             return false;
+        if (this.hashCode != ((ArrayVariable) obj).hashCode)
+            return false;
+
         return varName.equals(((ArrayVariable) obj).varName);
     }
 
@@ -105,7 +114,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      */
     @Override
     public int hashCode() {
-        return varName.hashCode();
+        return hashCode;
     }
 
     /**

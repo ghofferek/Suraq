@@ -243,6 +243,8 @@ public abstract class EqualityFormula implements Formula {
             return false;
         if (((EqualityFormula) obj).equal != equal)
             return false;
+        if (this.hashCode() != obj.hashCode())
+            return false;
         return true;
     }
 
@@ -251,7 +253,7 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public int hashCode() {
-        return terms.hashCode() + (equal ? 1 : 0);
+        return terms.hashCode() * (equal ? 1 : -1);
     }
 
     /**

@@ -175,6 +175,9 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             return true;
         if (!(obj instanceof ImpliesFormula))
             return false;
+
+        if (this.hashCode() != obj.hashCode())
+            return false;
         return ((ImpliesFormula) obj).leftSide.equals(leftSide)
                 && ((ImpliesFormula) obj).rightSide.equals(rightSide);
     }
@@ -184,7 +187,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public int hashCode() {
-        return leftSide.hashCode() ^ rightSide.hashCode();
+        return leftSide.hashCode() * 31 + rightSide.hashCode();
     }
 
     /**

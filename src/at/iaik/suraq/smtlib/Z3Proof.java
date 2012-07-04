@@ -167,7 +167,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.parents = ImmutableSet.create(new HashSet<Z3Proof>());
         this.consequent = null;
         this.id = Z3Proof.instanceCounter++;
-        if (this.id == 4042373)
+        if (this.id == 1063)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);
@@ -202,7 +202,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             this.subProofs.add(subProof2);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
-        if (this.id == 4042373)
+        if (this.id == 1063)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);
@@ -258,7 +258,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.subProofs.addAll(subProofs);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
-        if (this.id == 4042373)
+        if (this.id == 1063)
             assert (this.id != 1468192489);
         if (this.id % 1000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);
@@ -573,12 +573,14 @@ public class Z3Proof implements SMTLibObject, Serializable {
         visitedByDAGOperation(operationId);
 
         if (!this.hypCacheDirty) {
+            assert (hypothesesCache != null);
             return hypothesesCache;
         }
 
         if (proofType.equals(SExpressionConstants.LEMMA)) {
             this.hypCacheDirty = false;
-            return new HashSet<Z3Proof>();
+            this.hypothesesCache = ImmutableSet.create(new HashSet<Z3Proof>());
+            return hypothesesCache;
         }
 
         if (proofType.equals(SExpressionConstants.HYPOTHESIS)) {
@@ -1586,29 +1588,29 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return;
     }
 
-    public Set<Z3Proof> nodesOnPathTo(Z3Proof target) {
-        Set<Z3Proof> result = null;
+    public Set<Z3Proof> nodesOnPathToHypothesisFormula(Formula target) {
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        nodesOnPathToHypothesisFormulaRecursion(target, result);
+        return result;
+    }
 
-        if (this == target)
-            return new HashSet<Z3Proof>();
+    private boolean nodesOnPathToHypothesisFormulaRecursion(Formula target,
+            Set<Z3Proof> result) {
+        assert (result != null);
 
+        if (this.consequent.equals(target))
+            return true;
+
+        boolean flag = false;
         for (Z3Proof child : subProofs) {
-            if (result == null) {
-                result = child.nodesOnPathTo(target);
-                if (result != null)
-                    result.add(this);
-            } else {
-                assert (result != null);
-                if (result.contains(child))
-                    continue;
-                Set<Z3Proof> tmp = child.nodesOnPathTo(target);
-                if (tmp != null) {
-                    result.addAll(tmp);
-                    result.add(this);
-                }
+            if (result.contains(child))
+                continue;
+            if (child.nodesOnPathToHypothesisFormulaRecursion(target, result)) {
+                result.add(this);
+                flag = true;
             }
         }
-        return result;
+        return flag;
     }
 
     /**
