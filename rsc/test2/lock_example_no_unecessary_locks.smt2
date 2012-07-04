@@ -430,7 +430,7 @@ Bool
       (and
         (=> (= pc1 ZERO) (ite c_lock1 
                               (ite (= lock hold_by_t2) 
-                                    false
+                                    (and  (= pc1_n pc1)(= pc2_n pc2)(= tmp11_n tmp11)(= tmp12_n tmp12) (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM) (= lock_n lock))
                                     (and  (= pc1_n ONE)(= pc2_n pc2)(= tmp11_n tmp11)(= tmp12_n tmp12) (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM) (= lock_n hold_by_t1)))
                               (and  (= pc1_n ONE)(= pc2_n pc2)(= tmp11_n tmp11)(= tmp12_n tmp12) (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM) (= lock_n lock))
                           ) 
@@ -443,14 +443,14 @@ Bool
         (=> (= pc1 FIVE) (and  (ite c_unlock1 (= lock_n free) (= lock_n lock)) 
                               (and (= pc1_n SIX)   (= pc2_n pc2)(= tmp11_n tmp11)                 (= tmp12_n tmp12)                 (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM)) ) )
       
-        (=> (= pc1 SIX)  false)
+        (=> (= pc1 SIX)  (and  (= pc1_n pc1)(= pc2_n pc2)(= tmp11_n tmp11)(= tmp12_n tmp12) (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM) (= lock_n lock)))
         ;no unnecessary unlocks
         (=> (= lock free) (not c_unlock1))         
       )                                                                                                                                                   
       (and
         (=> (= pc2 ZERO) (ite c_lock2
                               (ite (= lock hold_by_t1) 
-                                    false
+                                    (and  (= pc1_n pc1)(= pc2_n pc2)(= tmp11_n tmp11)(= tmp12_n tmp12) (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM) (= lock_n lock))
                                     (and  (= pc2_n ONE)(= pc1_n pc1)(= tmp11_n tmp11)(= tmp12_n tmp12) (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM) (= lock_n hold_by_t2)))
                               (and  (= pc2_n ONE)(= pc1_n pc1)(= tmp11_n tmp11)(= tmp12_n tmp12) (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM) (= lock_n lock))
                           ) 
@@ -463,7 +463,7 @@ Bool
         (=> (= pc2 FIVE) (and  (ite c_unlock2 (= lock_n free) (= lock_n lock)) 
                               (and (= pc2_n SIX)   (= pc1_n pc1)(= tmp21_n tmp21)                 (= tmp22_n tmp22)                 (= tmp12_n tmp12) (= tmp11_n tmp11) (= MEM_n MEM)) ) )
       
-        (=> (= pc2 SIX)  false)
+        (=> (= pc2 SIX)  (and  (= pc1_n pc1)(= pc2_n pc2)(= tmp11_n tmp11)(= tmp12_n tmp12) (= tmp21_n tmp21) (= tmp22_n tmp22) (= MEM_n MEM) (= lock_n lock)))
         ;no unnecessary unlocks
         (=> (= lock free) (not c_unlock2))         
       )
