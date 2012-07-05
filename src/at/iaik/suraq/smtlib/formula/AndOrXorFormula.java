@@ -222,9 +222,11 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public int hashCode() {
+        /*
         int hashCode = 0;
         for (Formula formula : formulas)
             hashCode ^= formula.hashCode();
+        */
         return formulas.hashCode();
     }
 

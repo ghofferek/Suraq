@@ -1,6 +1,5 @@
 package at.iaik.suraq.test;
 
-import java.awt.List;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -20,13 +19,10 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
-import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
-import at.iaik.suraq.smtlib.formula.PropositionalEq;
-import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
