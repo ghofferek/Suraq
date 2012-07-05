@@ -43,6 +43,8 @@ public class SaveCache implements Serializable {
     private final Formula mainFormula;
     private final Map<Integer, Formula> assertPartitionFormulas;
     private final Map<PropositionalVariable, Formula> tseitinEncoding;
+    private final Map<Set<?>, ImmutableSet<?>> immutableSetInstances;
+    private final Map<Object, Object> immutableSetUniqueElements;
 
     public SaveCache(Set<PropositionalVariable> propsitionalVars,
             Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
@@ -50,7 +52,8 @@ public class SaveCache implements Serializable {
             List<PropositionalVariable> controlVars, Formula mainFormula,
             Map<Integer, Formula> assertPartitionFormulas,
             Map<PropositionalVariable, Formula> tseitinEncoding, Z3Proof proof,
-            String filename) {
+            Map<Set<?>, ImmutableSet<?>> immutableSetInstances,
+            Map<Object, Object> immutableSetUniqueElements, String filename) {
 
         this.propsitionalVars = propsitionalVars;
         this.domainVars = domainVars;
@@ -62,6 +65,8 @@ public class SaveCache implements Serializable {
         this.mainFormula = mainFormula;
         this.assertPartitionFormulas = assertPartitionFormulas;
         this.tseitinEncoding = tseitinEncoding;
+        this.immutableSetInstances = immutableSetInstances;
+        this.immutableSetUniqueElements = immutableSetUniqueElements;
 
         if (filename != null)
             this.saveToFile(filename);
@@ -87,6 +92,13 @@ public class SaveCache implements Serializable {
                     .println("INFO: RESTORING STATIC Z3PROOF INSTANCE COUNTER! ("
                             + counter + ")");
             Z3Proof.setInstanceCounter(intermediateVars.getInstanceCounter());
+            System.out
+                    .println("INFO: RESTORING STATIC ELEMENTS OF IMMUTABLE SETS!");
+            ImmutableSet.setInstances(intermediateVars
+                    .getImmutableSetInstances());
+            ImmutableSet.setUniqueElements(intermediateVars
+                    .getImmutableSetUniqueElements());
+
         }
         System.out.println();
 
@@ -170,5 +182,19 @@ public class SaveCache implements Serializable {
 
     public Map<PropositionalVariable, Formula> getTseitinEncoding() {
         return this.tseitinEncoding;
+    }
+
+    /**
+     * @return the <code>immutableSetInstances</code>
+     */
+    public Map<Set<?>, ImmutableSet<?>> getImmutableSetInstances() {
+        return immutableSetInstances;
+    }
+
+    /**
+     * @return the <code>immutableSetUniqueElements</code>
+     */
+    public Map<Object, Object> getImmutableSetUniqueElements() {
+        return immutableSetUniqueElements;
     }
 }

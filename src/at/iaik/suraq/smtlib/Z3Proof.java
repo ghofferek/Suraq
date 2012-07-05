@@ -35,6 +35,7 @@ import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.DagOperationManager;
 import at.iaik.suraq.util.ImmutableSet;
+import at.iaik.suraq.util.SoftReferenceWithEquality;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 
@@ -73,7 +74,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
     /**
      * The set of parents of this node.
      */
-    protected ImmutableSet<Z3Proof> parents = null;
+    protected Set<SoftReferenceWithEquality<Z3Proof>> parents = null;
 
     /**
      * This formula is the consequent of this proof. It should either be an
@@ -164,7 +165,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
     public Z3Proof() {
         this.proofType = null;
         this.subProofs = new ArrayList<Z3Proof>();
-        this.parents = ImmutableSet.create(new HashSet<Z3Proof>());
+        this.parents = new HashSet<SoftReferenceWithEquality<Z3Proof>>();
         this.consequent = null;
         this.id = Z3Proof.instanceCounter++;
         if (this.id == 1063)
@@ -195,7 +196,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
         this.proofType = proofType;
         this.subProofs = new ArrayList<Z3Proof>();
-        this.parents = ImmutableSet.create(new HashSet<Z3Proof>());
+        this.parents = new HashSet<SoftReferenceWithEquality<Z3Proof>>();
         if (subProof1 != null)
             this.subProofs.add(subProof1);
         if (subProof2 != null)
@@ -254,7 +255,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.proofType = proofType;
         assert (subProofs != null);
         this.subProofs = new ArrayList<Z3Proof>();
-        this.parents = ImmutableSet.create(new HashSet<Z3Proof>());
+        this.parents = new HashSet<SoftReferenceWithEquality<Z3Proof>>();
         this.subProofs.addAll(subProofs);
         this.consequent = consequent;
         this.id = Z3Proof.instanceCounter++;
@@ -325,17 +326,17 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public void addParent(Z3Proof parent) {
-        if (!parents.contains(parent))
-            parents = parents.addToCopy(parent);
+        SoftReferenceWithEquality<Z3Proof> ref = new SoftReferenceWithEquality<Z3Proof>(
+                parent);
+        if (parents == null)
+            parents = new HashSet<SoftReferenceWithEquality<Z3Proof>>();
+        if (!parents.contains(ref))
+            parents.add(ref);
     }
 
     public void removeParent(Z3Proof parent) {
-        if (parents.contains(parent))
-            parents = parents.removeFromCopy(parent);
-    }
-
-    public ImmutableSet<Z3Proof> getParents() {
-        return parents;
+        assert (parents != null);
+        parents.remove(new SoftReferenceWithEquality<Z3Proof>(parent));
     }
 
     /**
@@ -869,7 +870,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
     private void allAncestorNodes(Set<Z3Proof> set) {
         set.add(this);
         if (parents != null) {
-            for (Z3Proof parent : this.parents) {
+            for (SoftReferenceWithEquality<Z3Proof> parentRef : this.parents) {
+                Z3Proof parent = parentRef.get();
+                assert (parent != null);
                 if (!set.contains(parent))
                     parent.allAncestorNodes(set);
             }

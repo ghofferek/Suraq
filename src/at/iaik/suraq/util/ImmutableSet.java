@@ -5,11 +5,11 @@ package at.iaik.suraq.util;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -22,13 +22,13 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      */
     private static final long serialVersionUID = 8782268576752007761L;
 
-    private Set<E> internalSet;
+    private final Set<E> internalSet;
 
     private int hashCode;
 
-    private static Map<Set<?>, ImmutableSet<?>> instances = new HashMap<Set<?>, ImmutableSet<?>>();
+    private static Map<Set<?>, ImmutableSet<?>> instances = new WeakHashMap<Set<?>, ImmutableSet<?>>();
 
-    private static Map<Object, Object> uniqueElements = new HashMap<Object, Object>();
+    private static Map<Object, Object> uniqueElements = new WeakHashMap<Object, Object>();
 
     /**
      * Constructs a new <code>ImmutableSet</code>.
@@ -312,6 +312,41 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
             return false;
 
         return internalSet.equals(obj);
+    }
+
+    /**
+     * @return the <code>instances</code>
+     */
+    public static Map<Set<?>, ImmutableSet<?>> getInstances() {
+        return ImmutableSet.instances;
+    }
+
+    /**
+     * Necessary for restore after load from cache. Do not tamper with the
+     * instances otherwise!
+     * 
+     * @param <code>instances</code> the new value for <code>instances</code>
+     */
+    public static void setInstances(Map<Set<?>, ImmutableSet<?>> instances) {
+        ImmutableSet.instances = instances;
+    }
+
+    /**
+     * @return the <code>uniqueElements</code>
+     */
+    public static Map<Object, Object> getUniqueElements() {
+        return ImmutableSet.uniqueElements;
+    }
+
+    /**
+     * Necessary for restore after load from cache. Do not tamper with the
+     * unique elements otherwise!
+     * 
+     * @param <code>uniqueElements</code> the new value for
+     *        <code>uniqueElements</code>
+     */
+    public static void setUniqueElements(Map<Object, Object> uniqueElements) {
+        ImmutableSet.uniqueElements = uniqueElements;
     }
 
 }

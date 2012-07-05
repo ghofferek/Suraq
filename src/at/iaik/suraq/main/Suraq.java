@@ -47,6 +47,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.DagOperationManager;
+import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.SaveCache;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
@@ -725,19 +726,23 @@ public class Suraq implements Runnable {
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
                         assertPartitionFormulas, tseitinEncoding, null,
-                        filename);
+                        ImmutableSet.getInstances(),
+                        ImmutableSet.getUniqueElements(), filename);
             } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
                 filename = saveCacheSerial.getPath();
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
                         assertPartitionFormulas, tseitinEncoding, rootProof,
-                        filename);
+                        ImmutableSet.getInstances(),
+                        ImmutableSet.getUniqueElements(), filename);
             } else {
                 intermediateVars = new SaveCache(propsitionalVars, domainVars,
                         arrayVars, uninterpretedFunctions,
                         logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, tseitinEncoding, null, null);
+                        assertPartitionFormulas, tseitinEncoding, null,
+                        ImmutableSet.getInstances(),
+                        ImmutableSet.getUniqueElements(), null);
             }
 
         } else { // use cached files

@@ -177,8 +177,8 @@ public class ProofParser extends SMTLibParser {
         Formula consequent = parseFormulaBody(consequentExpr);
 
         Z3Proof proof = new Z3Proof(proofType, subProofs, consequent);
-        for (Z3Proof subProof : subProofs)
-            subProof.addParent(proof);
+        // for (Z3Proof subProof : subProofs)
+        // subProof.addParent(proof);
 
         if (rootProof == null)
             rootProof = proof;
@@ -371,8 +371,8 @@ public class ProofParser extends SMTLibParser {
             Formula consequent = parseFormulaBody(consequentExpr);
 
             Z3Proof result = new Z3Proof(proofType, subProofs, consequent);
-            for (Z3Proof subProof : subProofs)
-                subProof.addParent(result);
+            // for (Z3Proof subProof : subProofs)
+            // subProof.addParent(result);
             return result;
         }
 
