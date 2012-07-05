@@ -223,6 +223,8 @@ public class Suraq implements Runnable {
 
         logicParser = new LogicParser(sExpParser.getRootExpr());
 
+        sExpParser = null; // Allow this to be garbage collected
+
         Timer logicParseTimer = new Timer();
         try {
             logicParseTimer.start();
@@ -419,7 +421,7 @@ public class Suraq implements Runnable {
     }
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
-            Z3Proof rootProof, SaveCache intermediateVars) {
+            Z3Proof rootProof, List<PropositionalVariable> controlVars) {
 
         Timer timer = new Timer();
         // assert (rootProof.checkZ3ProofNodeRecursive);
@@ -490,6 +492,7 @@ public class Suraq implements Runnable {
         timer.start();
         TransformedZ3Proof transformedZ3Proof = TransformedZ3Proof
                 .convertToTransformedZ3Proof(rootProof);
+        rootProof = null; // Allow this to be garbage collected
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
@@ -537,6 +540,7 @@ public class Suraq implements Runnable {
         timer.start();
         ResProof resolutionProof = Util
                 .createResolutionProof(transformedZ3Proof);
+        transformedZ3Proof = null; // Allow this to be garbage collected
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
@@ -560,6 +564,7 @@ public class Suraq implements Runnable {
         timer.start();
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
                 resolutionProof.getRoot(), Util.getLiteralMap());
+        resolutionProof = null; // Allow this to be garbage collected
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
@@ -573,8 +578,7 @@ public class Suraq implements Runnable {
         System.out.println("  Compute interpolants...");
         timer.start();
         Map<PropositionalVariable, Formula> iteTrees = recoveredProof
-                .createITETrees(intermediateVars.getControlVars(),
-                        tseitinEncoding);
+                .createITETrees(controlVars, tseitinEncoding);
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
@@ -774,6 +778,7 @@ public class Suraq implements Runnable {
             SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                     SuraqOptions.getZ3Path());
             z3.solve(z3InputStr);
+            z3InputStr = null; // Allow this to be garbage collected
 
             switch (z3.getState()) {
             case SMTSolver.UNSAT:
@@ -810,9 +815,12 @@ public class Suraq implements Runnable {
                     noErrors = false;
                 }
             }
+            z3 = null; // Allow this to be garbage collected
 
             rootProof = parseProof(proof, propsitionalVars, domainVars,
                     arrayVars, uninterpretedFunctions);
+
+            proof = null; // Allow this to be garbage collected
 
             assert (rootProof != null);
 
@@ -843,6 +851,10 @@ public class Suraq implements Runnable {
                         ImmutableSet.getUniqueElements(), null);
             }
 
+            logicParser = null; // Allow this to be garbage collected
+            assertPartitionFormulas = null; // Allow this to be garbage
+                                            // collected
+
         } else { // use cached files
             try {
 
@@ -871,8 +883,8 @@ public class Suraq implements Runnable {
                             .loadSaveCacheFromFile(saveCacheFile.getPath());
 
                     mainFormula = intermediateVars.getMainFormula();
-                    assertPartitionFormulas = intermediateVars
-                            .getAssertPartitionFormulas();
+                    // assertPartitionFormulas = intermediateVars
+                    // .getAssertPartitionFormulas();
                     tseitinEncoding = intermediateVars.getTseitinEncoding();
 
                     rootProof = parseProof(proof,
@@ -892,8 +904,8 @@ public class Suraq implements Runnable {
                             .loadSaveCacheFromFile(saveCacheSerial.getPath());
 
                     mainFormula = intermediateVars.getMainFormula();
-                    assertPartitionFormulas = intermediateVars
-                            .getAssertPartitionFormulas();
+                    // assertPartitionFormulas = intermediateVars
+                    // .getAssertPartitionFormulas();
                     tseitinEncoding = intermediateVars.getTseitinEncoding();
 
                     loadTimer.stop();
@@ -917,15 +929,18 @@ public class Suraq implements Runnable {
         Timer interpolationTimer = new Timer();
         interpolationTimer.start();
 
+        List<PropositionalVariable> controlVars = intermediateVars
+                .getControlVars();
+        intermediateVars = null; // Allow this to be garbage collected
         Map<PropositionalVariable, Formula> iteTrees = proofTransformationAndInterpolation(
-                rootProof, intermediateVars);
-
+                rootProof, controlVars);
+        rootProof = null; // Allow this to be garbage collected
         interpolationTimer.stop();
         System.out
                 .println("finished proof transformations and interpolation calculations in "
                         + interpolationTimer + ".\n");
 
-        String outputStr = CreateOutputString(sourceFile, iteTrees);
+        String outputStr = createOutputString(sourceFile, iteTrees);
 
         if (options.isCheckResult()) {
             System.out.println("Starting to check results with z3...");
@@ -987,7 +1002,7 @@ public class Suraq implements Runnable {
      *         control-signal-interpolations.
      * 
      */
-    private String CreateOutputString(File sourceFile,
+    private String createOutputString(File sourceFile,
             Map<PropositionalVariable, Formula> inpterpolations) {
 
         SExpParser sExpParser = null;

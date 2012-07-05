@@ -32,12 +32,11 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
  */
 public class LogicParser extends SMTLibParser {
 
-    
     /**
      * The formula that results from parsing.
      */
     protected Formula mainFormula = null;
-	
+
     /**
      * 
      * Constructs a new <code>FormulaParser</code>.
@@ -49,13 +48,13 @@ public class LogicParser extends SMTLibParser {
         rootExpr = root;
     }
 
-    /**
-     * 
-     * @return a (deep) copy of the root expression of this parser.
-     */
-    public SExpression getRootExpr() {
-        return rootExpr.deepCopy();
-    }
+    // /**
+    // *
+    // * @return a (deep) copy of the root expression of this parser.
+    // */
+    // public SExpression getRootExpr() {
+    // return rootExpr.deepCopy();
+    // }
 
     /**
      * Parses the root s-expression into a formula, which can then be retrieved
@@ -116,6 +115,7 @@ public class LogicParser extends SMTLibParser {
         }
 
         parsingSuccessfull = true;
+        rootExpr = null; // Allow this to be garbage collected
     }
 
     /**
@@ -478,7 +478,7 @@ public class LogicParser extends SMTLibParser {
                     child.getColumnNumber(), child.toString(),
                     "Expected '(set-logic Suraq)'.");
     }
-    
+
     /**
      * Returns the formula that resulted from parsing, or <code>null</code> if
      * parsing was not successful.
