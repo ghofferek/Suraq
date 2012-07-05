@@ -23,7 +23,7 @@ public class Ackermann {
 	
 	public Formula performAckermann(Formula formula, Set<Token> noDependenceVars)
 	{
-		HashSet constraints = new HashSet<Formula>();
+		HashSet<Formula> constraints = new HashSet<Formula>();
 		List<Formula> constraintsList = new ArrayList<Formula>();
 
 		//noDependenceVars.remove(lambdaToken);  //remove lambda from list???
@@ -84,7 +84,7 @@ public class Ackermann {
 	 *            the main formula to expand
 	 * @param constraints
 	 *            the formula's constraints.
-	 * @param predicateInstances
+	 * @param predicatPropositionalVariableeInstances
 	 *            map containing mapping from predicate names to auxiliary
 	 *            variables.
 	 * @param instanceParameters
@@ -96,18 +96,15 @@ public class Ackermann {
 			Map<String, List<PropositionalVariable>> predicateInstances,
 			Map<PropositionalVariable, List<DomainTerm>> instanceParameters) {
 
-		for (Map.Entry<String, List<PropositionalVariable>> entry : predicateInstances
-				.entrySet()) {
+		for (Map.Entry<String, List<PropositionalVariable>> entry : predicateInstances.entrySet()) {
 
 			List<PropositionalVariable> instances = entry.getValue();
 
 			for (int i = 0; i < instances.size(); i++)
 				for (int j = (i + 1); j < instances.size(); j++) {
 
-					List<DomainTerm> params1 = instanceParameters.get(instances
-							.get(i));
-					List<DomainTerm> params2 = instanceParameters.get(instances
-							.get(j));
+					List<DomainTerm> params1 = instanceParameters.get(instances.get(i));
+					List<DomainTerm> params2 = instanceParameters.get(instances.get(j));
 
 					List<Formula> parametersEq = new ArrayList<Formula>();
 					for (int k = 0; k < params1.size(); k++) {
@@ -165,10 +162,8 @@ public class Ackermann {
 				for (int j = (i + 1); j < instances.size(); j++) {
 					// System.out.println(""+instances.get(i).getVarName()+" with "+instances.get(j).getVarName());
 
-					List<DomainTerm> params1 = instanceParameters.get(instances
-							.get(i));
-					List<DomainTerm> params2 = instanceParameters.get(instances
-							.get(j));
+					List<DomainTerm> params1 = instanceParameters.get(instances.get(i));
+					List<DomainTerm> params2 = instanceParameters.get(instances.get(j));
 
 					List<Formula> parametersEq = new ArrayList<Formula>();
 					for (int k = 0; k < params1.size(); k++) {
@@ -181,17 +176,21 @@ public class Ackermann {
 						parametersEq.add(new DomainEq(list, true));
 
 					}
-					Formula parametersEquivalities;
-					if (parametersEq.size() > 1)
-						parametersEquivalities = new AndFormula(parametersEq);
-					else
-						parametersEquivalities = parametersEq.iterator().next();
+					Formula parametersEquivalities = (parametersEq.size() > 1)
+					        ? new AndFormula(parametersEq)
+					        : parametersEq.iterator().next();
+					
+//					if (parametersEq.size() > 1)
+//						parametersEquivalities = new AndFormula(parametersEq);
+//					else
+//						parametersEquivalities = parametersEq.iterator().next();
 
 					List<DomainTerm> functionEq = new ArrayList<DomainTerm>();
 					functionEq.add(instances.get(i));
 					functionEq.add(instances.get(j));
-					constraints.add(new ImpliesFormula(parametersEquivalities,
-							new DomainEq(functionEq, true)));
+					constraints.add(
+					        new ImpliesFormula(parametersEquivalities,
+					                new DomainEq(functionEq, true)));
 
 				}
 		}
