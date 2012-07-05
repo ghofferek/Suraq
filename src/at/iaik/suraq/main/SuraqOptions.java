@@ -182,18 +182,21 @@ public final class SuraqOptions {
         cacheValue = (Integer) cmdLineParser.getOptionValue(cacheOption);
         tseitinValue = (Integer) cmdLineParser.getOptionValue(tseitinOption);
 
-        int end = inputValue.lastIndexOf(".");
-
-        SuraqOptions.z3InputDefault = inputValue.substring(0, end) + '_'
-                + SuraqOptions.z3InputDefault;
-        SuraqOptions.z3ProofDefault = inputValue.substring(0, end) + '_'
-                + SuraqOptions.z3ProofDefault;
-        SuraqOptions.outputDefault = inputValue.substring(0, end) + '_'
-                + SuraqOptions.outputDefault;
-        SuraqOptions.cacheFile = inputValue.substring(0, end) + '_'
-                + SuraqOptions.cacheFile;
-        SuraqOptions.cacheFileSerial = inputValue.substring(0, end) + '_'
-                + SuraqOptions.cacheFileSerial;
+        if(inputValue != null) // ch
+        {
+	        int end = inputValue.lastIndexOf(".");
+	
+	        SuraqOptions.z3InputDefault = inputValue.substring(0, end) + '_'
+	                + SuraqOptions.z3InputDefault;
+	        SuraqOptions.z3ProofDefault = inputValue.substring(0, end) + '_'
+	                + SuraqOptions.z3ProofDefault;
+	        SuraqOptions.outputDefault = inputValue.substring(0, end) + '_'
+	                + SuraqOptions.outputDefault;
+	        SuraqOptions.cacheFile = inputValue.substring(0, end) + '_'
+	                + SuraqOptions.cacheFile;
+	        SuraqOptions.cacheFileSerial = inputValue.substring(0, end) + '_'
+	                + SuraqOptions.cacheFileSerial;
+        }
     }
 
     /**

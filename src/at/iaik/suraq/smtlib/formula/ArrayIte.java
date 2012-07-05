@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -359,7 +360,7 @@ public class ArrayIte extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public ArrayIte uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -370,7 +371,7 @@ public class ArrayIte extends ArrayTerm {
                         topLeveFormula, constraints, noDependenceVars),
                 elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -386,4 +387,54 @@ public class ArrayIte extends ArrayTerm {
         return partitions;
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+       	
+    		throw new RuntimeException(
+                "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayIte.");
+    	
+    	    /*
+    		if (condition instanceof UninterpretedPredicateInstance)
+    		  condition = ((UninterpretedPredicateInstance) condition).applyReplaceUninterpretedPredicates(topLeveFormula,
+					      predicateInstances, instanceParameters,noDependenceVars);
+			else
+			  condition.uninterpretedPredicatesToAuxiliaryVariables(
+						  topLeveFormula, predicateInstances, instanceParameters, noDependenceVars); 
+    		
+    		thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    		
+            elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+            */
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars){
+    	
+    		throw new RuntimeException(
+                "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayIte.");
+    		
+    	/* condition.uninterpretedFunctionsToAuxiliaryVariables(
+                 topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+         thenBranch.uninterpretedFunctionsToAuxiliaryVariables(
+                 topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+         elseBranch.uninterpretedFunctionsToAuxiliaryVariables(
+                 topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+                 */
+    }
+    
 }

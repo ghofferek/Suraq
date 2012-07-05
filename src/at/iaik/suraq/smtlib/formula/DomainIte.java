@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,7 +30,7 @@ public class DomainIte extends DomainTerm {
     /**
      * The condition.
      */
-    private final Formula condition;
+    private Formula condition;
 
     /**
      * The then-branch.
@@ -367,7 +368,7 @@ public class DomainIte extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -378,7 +379,7 @@ public class DomainIte extends DomainTerm {
                         topLeveFormula, constraints, noDependenceVars),
                 elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -393,4 +394,59 @@ public class DomainIte extends DomainTerm {
 
         return partitions;
     }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(t)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  	
+    	
+	    	if (condition instanceof UninterpretedPredicateInstance) 
+	    		condition= ((UninterpretedPredicateInstance) condition).applyReplaceUninterpretedPredicates(topLeveFormula,
+	    				predicateInstances, instanceParameters, noDependenceVars);
+			else
+				condition.uninterpretedPredicatesToAuxiliaryVariables(
+						topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+		
+				
+			thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+		
+			elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    }
+    
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public  void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+    			condition.uninterpretedFunctionsToAuxiliaryVariables(
+    					topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    		
+    			if (thenBranch instanceof UninterpretedFunctionInstance) 
+    				thenBranch= ((UninterpretedFunctionInstance) thenBranch).applyReplaceUninterpretedFunctions(topLeveFormula,
+    					 	functionInstances, instanceParameters, noDependenceVars);
+    			else	
+    				thenBranch.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    			
+    			if (elseBranch instanceof UninterpretedFunctionInstance) 
+    				elseBranch= ((UninterpretedFunctionInstance) elseBranch).applyReplaceUninterpretedFunctions(topLeveFormula,
+    					 	functionInstances, instanceParameters, noDependenceVars);
+    			else	
+    				elseBranch.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+ 
+    }
+    
 }

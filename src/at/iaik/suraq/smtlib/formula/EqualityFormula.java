@@ -448,7 +448,7 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+/*    @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -463,7 +463,7 @@ public abstract class EqualityFormula implements Formula {
         } catch (IncomparableTermsException exc) {
             throw new RuntimeException("Unexpectedly incomparable terms.", exc);
         }
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -530,4 +530,33 @@ public abstract class EqualityFormula implements Formula {
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
     }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	 for (Term term : terms)
+             term.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula, predicateInstances,
+            		 instanceParameters, noDependenceVars);
+    }
+
+     
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	 for (Term term : terms)
+             term.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula, functionInstances,
+            		 instanceParameters, noDependenceVars);
+    }
+
 }

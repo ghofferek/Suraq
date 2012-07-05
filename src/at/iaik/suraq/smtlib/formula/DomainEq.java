@@ -132,5 +132,33 @@ public class DomainEq extends EqualityFormula {
         return tseitinVar;
 
     }
+    
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars){
+    	
+    		
+    	
+	        for (DomainTerm term : getDomainTerms()) {
+	            if (term instanceof UninterpretedFunctionInstance) {
+	            	
+	            	 
+	            	 DomainVariable auxiliaryVariable =  ((UninterpretedFunctionInstance) term)
+				            			 .applyReplaceUninterpretedFunctions(topLeveFormula,
+				            					 	functionInstances, instanceParameters, noDependenceVars);
+	            	 terms.remove(term);
+	                 terms.add(auxiliaryVariable);
+	
+	            } else
+	                 term.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,functionInstances, 
+	                		 instanceParameters, noDependenceVars);
+	        }
+    }    
 
 }

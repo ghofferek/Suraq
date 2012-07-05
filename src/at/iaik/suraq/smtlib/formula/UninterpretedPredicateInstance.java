@@ -380,7 +380,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -395,7 +395,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             noDependenceVars.add(new Token(newVar.getVarName()));
 
         return newVar;
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -487,5 +487,176 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
 
         return tseitinVar;
     }
+    
+    /**
+     * Searches predicate-instance and instance-parameter mappings for match of 
+     * current UninterpretedPredicateInstance's function and parameter valuation.
+     * 
+      * @param predicateInstances
+     *            map containing mapping from function names to auxiliary variables.
+     *               
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function instance 
+     *            parameters.  
+     *                                       
+     * @return the found auxiliary PropositionalVariable. If no match exists NULL is returned.
+     */
+    private PropositionalVariable matchPredicateInstance(Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters) {
+    
+    	String predicateName = function.getName().toString();
+    	List<PropositionalVariable> instances = predicateInstances.get(predicateName);
+    	
+    	if(instances!=null)
+	    	for (PropositionalVariable instance : instances){
+	    		List<DomainTerm> instParameters = instanceParameters.get(instance);
+	    		
+	    		boolean found=true;	    		
 
+	    		for (int x=0; x < instParameters.size(); x++){
+	    			DomainTerm a = parameters.get(x);
+	    			DomainTerm b = instParameters.get(x);
+	    		    
+	    			if(!(a.equals(b))){
+		    			found=false;
+	    				break;
+	    			}
+	    		}    		
+	    		
+	    		if(found)
+	    			return instance;
+	    	}
+    	
+    	return null;
+    }
+    
+    /**
+     * Add the current UninterpretedPredicateInstance as new entry into the predicate-instance
+     * and instance-parameter mappings.
+     * 
+      * @param predicateInstances
+     *            map containing mapping from function names to auxiliary variables.
+     *               
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function instance 
+     *            parameters.  
+     *                                       
+     * @return newly created auxiliary DomainVariable as substitute for the current UninterpretedFunctionInstace.
+     */
+    private PropositionalVariable addPredicateInstance(Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters) {
+    	
+    	PropositionalVariable result = null;
+    	
+		Set<String> instancesStr = new HashSet<String>();
+		for (PropositionalVariable pv : instanceParameters.keySet())
+			  instancesStr.add(pv.getVarName());
+		
+    	String varName = Util.freshVarName(topLeveFormula,function.getName().toString(),instancesStr);
+    	
+    	result = new PropositionalVariable(varName);
+       
+    	String predicateName = function.getName().toString();
+    	List<PropositionalVariable> instances = predicateInstances.get(predicateName);
+    	if(instances==null)
+    		instances = new ArrayList<PropositionalVariable>();	
+    	instances.add(result);
+    	predicateInstances.put(predicateName, instances);
+    	
+    	instanceParameters.put(result, parameters);
+    	
+    	return result;
+    }
+    
+
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters,  Set<Token> noDependenceVars) {
+    	
+    	  throw new RuntimeException(
+                  "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an UninterpretedPredicateInstance.\nUse applyReplaceUninterpretedPredicates instead.");
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public  void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+	    	for (DomainTerm term : parameters) {
+	            if (term instanceof UninterpretedFunctionInstance) {
+	            	 DomainVariable auxiliaryVariable =  ((UninterpretedFunctionInstance) term)
+	            			 .applyReplaceUninterpretedFunctions(topLeveFormula,
+	            					 	functionInstances, instanceParameters, noDependenceVars);
+	            	
+	            	parameters.remove(term);
+	            	parameters.add(auxiliaryVariable);
+	
+	            } else
+	                term.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,functionInstances, instanceParameters,noDependenceVars);
+	        } 	
+    }
+
+    /**
+     * Performs a substitution of UninterpretedPredicateInstances with auxiliary PropositionalVariables.
+     *
+     * @param topLeveFormula
+     *            the top level formula (for finding fresh variable names). 
+     * 
+     * @param predicateInstances
+     *            map containing mapping from predicate names to auxiliary variables.
+     *               
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function instance 
+     *            parameters.  
+     *                                       
+     * @return auxiliary PropositionalVariable as substitute for the current UninterpretedPredicateInstace.
+     */
+	public PropositionalVariable applyReplaceUninterpretedPredicates(Formula topLeveFormula,
+			Map<String, List<PropositionalVariable>> predicateInstances,
+			Map<PropositionalVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+	
+	        PropositionalVariable result = matchPredicateInstance(predicateInstances,instanceParameters);
+	        
+	        if(result==null)
+	        	result = addPredicateInstance(topLeveFormula, predicateInstances, instanceParameters);
+	        
+	        
+	        // Check if the function is noDependence or at least one parameter of the function is noDependence
+	        // This might be conservative and might not be complete (i.e., may
+	        // result unnecessary unrealizability)		
+	        
+	        boolean insert = false;
+	        for (DomainTerm term : parameters) {
+	        	if (Util.termContainsAny(term, noDependenceVars))  
+	        		insert=true;		        				    		        		
+	        }
+	        	        
+	        String funcName = function.getName().toString();
+	        for (Token t : noDependenceVars) {
+	        	if(funcName.equals(t.toString())){
+	        		insert = true;
+	        		break;
+	        	}
+	        }
+	        
+	        if (insert==true)
+	        {
+	        	noDependenceVars.add(new Token(result.getVarName())); 
+	        }
+	        return result;		
+	}
+    
+    
+    
+	
 }

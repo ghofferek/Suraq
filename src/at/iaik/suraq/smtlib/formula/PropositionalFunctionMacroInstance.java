@@ -390,7 +390,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -416,7 +416,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
                     "Unexpectedly unable to create PropositionalFunctionMacroInstance.",
                     exc);
         }
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -472,6 +472,43 @@ public class PropositionalFunctionMacroInstance implements Formula {
             Map<PropositionalVariable, Formula> encoding) {
         throw new RuntimeException(
                 "Macros should have been flattened before Tseitin encoding!");
+    }
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+        
+		        macro.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+		        		predicateInstances, instanceParameters, noDependenceVars);
+		      
+		        for (Token token : paramMap.keySet())
+		                    paramMap.get(token)
+		                            .uninterpretedPredicatesToAuxiliaryVariables(
+		                                    topLeveFormula, predicateInstances,
+		                                    instanceParameters, noDependenceVars);
+    }
+      
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+		       macro.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,
+		                		functionInstances, instanceParameters, noDependenceVars);
+		      
+		        for (Token token : paramMap.keySet())
+		                    paramMap.get(token)
+		                            .uninterpretedFunctionsToAuxiliaryVariables(
+		                                    topLeveFormula, functionInstances,
+		                                    instanceParameters, noDependenceVars);
     }
 
 }

@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -253,24 +254,6 @@ public abstract class Term implements Serializable {
     public abstract void makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars);
 
-    /**
-     * Creates a copy of this term in which instances of uninterpreted
-     * predicates (functions of return type Bool) are replaced with auxiliary
-     * variables and generates corresponding constraints.
-     * 
-     * @param topLeveFormula
-     *            the top level formula (for finding fresh variable names).
-     * @param constraints
-     *            the set to add new constraints to.
-     * @param noDependenceVars
-     *            the set of variables on which the controller may not depend.
-     *            New variables might be added to this set.
-     * @return a new term with uninterpreted predicates replaced by auxiliary
-     *         variables.
-     */
-    public abstract Term uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars);
 
     /**
      * Returns the elements assert-partition.
@@ -278,5 +261,54 @@ public abstract class Term implements Serializable {
      * @return assert-partition of the element.
      */
     public abstract Set<Integer> getPartitionsFromSymbols();
+    
+    
+    
+    /**
+     * Replaces instances of uninterpreted predicates in formula with auxiliary 
+     * boolean variables.
+	 * 
+     * @param topLeveFormula
+     *            the top level formula (for finding fresh variable names).
+     *          
+     * @param predicateInstances
+     *            map containing mapping from predicate names to boolean auxiliary 
+     *            variables.
+     *               
+     * @param instanceParameters
+     *            map containing mapping from boolean auxiliary variables to predicate 
+     *            instance parameters.  
+     *                 
+     * @return a new formula with uninterpreted predicates replaced by boolean auxiliary
+     *         variables.
+     */
+    
+    public abstract void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);      
+    
+    
+    /**
+     * Replaces instances of uninterpreted functions in formula with auxiliary 
+     * variables.
+	 * 
+     * 
+     * @param topLeveFormula
+     *            the top level formula (for finding fresh variable names).
+     *          
+     * @param functionInstances
+     *            map containing mapping from function names to auxiliary variables.
+     *               
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function instance 
+     *            parameters.  
+     *                 
+     * @return a new formula with uninterpreted predicates replaced by auxiliary
+     *         variables.
+     */
+     public abstract void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
+    
 
 }

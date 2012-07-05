@@ -5,6 +5,8 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
@@ -45,14 +47,7 @@ public abstract class DomainTerm extends Term implements Serializable {
         return SExpressionConstants.VALUE_TYPE;
     }
 
-    /**
-     * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
-     *      java.util.Set, java.util.Set)
-     */
-    @Override
-    public abstract DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars);
+
 
     /**
      * Returns a deep copy of this term.
@@ -61,5 +56,26 @@ public abstract class DomainTerm extends Term implements Serializable {
      */
     @Override
     public abstract DomainTerm deepTermCopy();
+    
+    
+
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(t)
+     */
+    @Override
+    public abstract void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public abstract void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
 
 }

@@ -394,14 +394,14 @@ public class NotFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new NotFormula(
                 formula.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -519,4 +519,33 @@ public class NotFormula extends BooleanCombinationFormula {
 
         return tseitinVar;
     }
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {	
+		    	if (formula instanceof UninterpretedPredicateInstance)
+		    		formula = ((UninterpretedPredicateInstance) formula).applyReplaceUninterpretedPredicates(topLeveFormula,
+							      predicateInstances, instanceParameters, noDependenceVars);
+				else
+					formula.uninterpretedPredicatesToAuxiliaryVariables(
+			                      topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    }
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+                formula.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    }
+   
 }

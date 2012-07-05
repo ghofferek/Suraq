@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * An instance of an uninterpreted function.
@@ -403,7 +404,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -423,7 +424,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         }
 
         return result;
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -439,5 +440,189 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 
         return partitions;
     }
+    
+    
+    
+    
+    
+    
+    /**
+     * Searches function-instance and instance-parameter mappings for match of 
+     * current UninterpretedFunctionInstance's function and parameter valuation.
+     * 
+      * @param functionInstances
+     *            map containing mapping from function names to auxiliary variables.
+     *               
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function instance 
+     *            parameters.  
+     *                                       
+     * @return the found auxiliary DomainVariable. If no match exists NULL is returned.
+     */
+    private DomainVariable matchFunctionInstance(Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters) {
+    
+    	String functionName = function.getName().toString();
+    	List<DomainVariable> instances = functionInstances.get(functionName);
+    	
+    	if(instances!=null)
+	    	for (DomainVariable instance : instances){
+	    		List<DomainTerm> instParameters = instanceParameters.get(instance);
+	    		
+	    		boolean found=true;
+	    		
+	    		
+	    		for (int x=0; x < instParameters.size(); x++){
+	    			DomainTerm a = parameters.get(x);
+	    			DomainTerm b = instParameters.get(x);
+	    		    
+	    			if(!(a.equals(b))){
+		    			found=false;
+	    				break;
+	    			}
+	    		}
+	    		
+	    		if(found)
+	    			return instance;
+	    	}
+    	
+    	return null;
+    }
+    
+    /**
+     * Add the current UninterpretedFunctionInstance as new entry into the function-instance
+     * and instance-parameter mappings.
+     * 
+      * @param functionInstances
+     *            map containing mapping from function names to auxiliary variables.
+     *               
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function instance 
+     *            parameters.  
+     *                                       
+     * @return newly created auxiliary DomainVariable as substitute for the current UninterpretedFunctionInstace.
+     */
+    private DomainVariable addFunctionInstance(Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters) {
+    	
+    	DomainVariable result = null;
+    				
+		Set<String> instancesStr = new HashSet<String>();
+		for (DomainVariable dv : instanceParameters.keySet())
+			  instancesStr.add(dv.getVarName());
+		  
+    	String varName = Util.freshVarName(topLeveFormula,function.getName().toString(),instancesStr);
+    	result = new DomainVariable(varName);
+       
+    	String functionName = function.getName().toString();
+    	List<DomainVariable> instances = functionInstances.get(functionName);
+    	if(instances==null)
+    		instances = new ArrayList<DomainVariable>();	
+    	instances.add(result);
+    	functionInstances.put(functionName, instances);
+    	
+    	instanceParameters.put(result, parameters);
+    	
+    	return result;
+    }
+ 
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters,  Set<Token> noDependenceVars) {  	
+    	return; //functions are not allowed to have predicates as parameters.
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	  throw new RuntimeException(
+                  "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an UninterpretedFunctionInstance.\nUse applyReplaceUninterpretedFunctions instead.");
+    }
+    
+    
+    /**
+     * Performs a substitution of UninterpretedFunctionInstances with auxiliary DomainVariables.
+     *
+     * @param topLeveFormula
+     *            the top level formula (for finding fresh variable names). 
+     * 
+     * @param functionInstances
+     *            map containing mapping from function names to auxiliary variables.
+     *               
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function instance 
+     *            parameters.  
+     *                                       
+     * @return auxiliary DomainVariable as substitute for the current UninterpretedFunctionInstace.
+     */
+    public DomainVariable applyReplaceUninterpretedFunctions(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+
+		    	List<DomainTerm> newParameters = new ArrayList<DomainTerm>(parameters); 
+		    	
+		    	for (DomainTerm term : newParameters) {
+		            if (term instanceof UninterpretedFunctionInstance) {
+		            	
+		            	 DomainVariable auxiliaryVariable =  ((UninterpretedFunctionInstance) term)
+		            			 .applyReplaceUninterpretedFunctions(topLeveFormula,
+		            					 	functionInstances, instanceParameters, noDependenceVars);
+		            	 
+		            	 
+		            	 // added by chille 03.07.2012
+		            	 parameters.set(parameters.indexOf(term), auxiliaryVariable); 
+		            	 
+		            	 // removed by chille 03.07.2012
+		            	 // parameters.remove(term);
+		            	 // parameters.add(auxiliaryVariable);
+		
+		            } else {
+		                term.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,functionInstances, instanceParameters, noDependenceVars);
+		            }
+		        }
+		    	
+		        DomainVariable result = matchFunctionInstance(functionInstances,instanceParameters);
+		        
+		        if(result==null)
+		        	result = addFunctionInstance(topLeveFormula, functionInstances, instanceParameters);
+		        
+		        // Check if the function is noDependence or at least one parameter of the function is noDependence
+		        // This might be conservative and might not be complete (i.e., may
+		        // result unnecessary unrealizability)		
+		        
+		        boolean insert = false;
+		        
+		        for (DomainTerm term : parameters) {
+		        	if (Util.termContainsAny(term, noDependenceVars))  {	
+		        		insert=true;	
+		        		break; //exit immediately.
+		        	}
+		        }
+		      
+		        String funcName = function.getName().toString();
+		        for (Token t : noDependenceVars) {
+		        	if(funcName.equals(t.toString())){
+		        		insert = true;
+		        		break;
+		        	}
+		        }
+		        
+		        if (insert==true)
+		        {
+		        	noDependenceVars.add(new Token(result.getVarName())); 
+		        }	        	      
+		        return result;            
+    }            
 
 }

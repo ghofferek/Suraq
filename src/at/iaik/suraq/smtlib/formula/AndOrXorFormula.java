@@ -379,7 +379,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+   /* @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -390,7 +390,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
                             topLeveFormula, constraints, noDependenceVars));
 
         return this.create(newFormulas);
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -412,6 +412,51 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     @Override
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+    	  List<Formula> subformulas = new ArrayList<Formula>(this.getSubFormulas());
+    	  
+    	  for (Formula formula : subformulas)
+    		  if (formula instanceof UninterpretedPredicateInstance){ 
+    			  
+    			  Formula auxVar = ((UninterpretedPredicateInstance) formula).applyReplaceUninterpretedPredicates(topLeveFormula,
+    					  predicateInstances, instanceParameters, noDependenceVars);
+    			  
+    			  // added by chille: 03.07.2012
+    			  formulas.set(formulas.indexOf(formula), auxVar);
+    			  
+    			  // removed by chille:
+    			  // formulas.remove(formula);
+    			  // formulas.add(auxVar);
+    		  }
+    		  else
+    			  formula.uninterpretedPredicatesToAuxiliaryVariables(
+                      topLeveFormula, predicateInstances, instanceParameters, noDependenceVars); 
+
+    }
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	  for (Formula formula : this.getSubFormulas())
+              formula.uninterpretedFunctionsToAuxiliaryVariables(
+                      topLeveFormula, functionInstances, instanceParameters, noDependenceVars); 
+
     }
 
 }

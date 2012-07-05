@@ -174,7 +174,7 @@ public class TermFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    public TermFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
+    /*public TermFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
 
@@ -187,7 +187,7 @@ public class TermFunctionMacro extends FunctionMacro {
                     "Unexpectedly unable to create TermFunctionMacro.", exc);
         }
 
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -197,5 +197,32 @@ public class TermFunctionMacro extends FunctionMacro {
     @Override
     public Set<Integer> getAssertPartition() {
         return body.getPartitionsFromSymbols();
+    }
+    
+    
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+		        body.uninterpretedPredicatesToAuxiliaryVariables(
+		                 topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+		
+		       body.uninterpretedFunctionsToAuxiliaryVariables(
+		                topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
     }
 }

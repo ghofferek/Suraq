@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -270,12 +271,12 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.ArrayTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+   /*@Override
     public ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new ArrayVariable(varName);
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -287,6 +288,37 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
         Set<Integer> partitions = new TreeSet<Integer>();
         partitions.add(assertPartition);
         return partitions;
+    }
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  
+    	
+    	throw new RuntimeException(
+                "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayVariable.");
+ 
+    	//return;
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+       	throw new RuntimeException(
+                "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayVariable.");
+
+        //return;
     }
 
 }
