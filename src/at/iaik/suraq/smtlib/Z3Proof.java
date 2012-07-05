@@ -126,6 +126,19 @@ public class Z3Proof implements SMTLibObject, Serializable {
     protected boolean hypCacheDirty = true;
 
     /**
+     * The set of literals that have become obsolete by proof rewriting.
+     * Resolutions with these literals are no longer necessary. Literals are
+     * added in the reverse polarity of that in which they would originally have
+     * occurred in this node. I.e., the polarity is the same as that of the
+     * corresponding hypothesis (that is no longer present), and also the same
+     * of the one that is supposed to occur in another node with which this one
+     * will be resolved. I.e., the clause that contains the literal in the same
+     * polarity as in this set is the obsolete clause. The set should contain
+     * the literals directly, not their unit clauses.
+     */
+    protected ImmutableSet<Formula> obsoleteLiterals = null;
+
+    /**
      * Is incremented every time a structural change is made to the proof DAG,
      * which might affect the hypotheses cache.
      * 
@@ -339,6 +352,15 @@ public class Z3Proof implements SMTLibObject, Serializable {
         parents.remove(new SoftReferenceWithEquality<Z3Proof>(parent));
     }
 
+    public Set<Z3Proof> getParents() {
+        if (parents == null)
+            return new HashSet<Z3Proof>(0);
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        for (SoftReferenceWithEquality<Z3Proof> ref : parents)
+            result.add(ref.get());
+        return result;
+    }
+
     /**
      * Creates a new <code>Z3Proof</code> which is of the same type as
      * <code>this</code> object and has the given subProofs and consequent.
@@ -377,7 +399,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
     /**
      * Returns the list of sub proofs
      * 
-     * @return the <code>thenBranch</code>
+     * @return the <code>subProofs</code> (live list!)
      */
     public List<Z3Proof> getSubProofs() {
         return this.subProofs;
@@ -390,6 +412,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     public Formula getConsequent() {
         return this.consequent;
+    }
+
+    public void addObsoleteLiteral(Formula literal) {
+        assert (Util.isLiteral(literal));
+        obsoleteLiterals = obsoleteLiterals.addToCopy(literal);
     }
 
     /**
@@ -507,6 +534,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     public int getID() {
         return this.id;
+    }
+
+    public String getIdString() {
+        return Z3Proof.myFormatter.format(id);
     }
 
     public Set<Z3Proof> getLemmas() {

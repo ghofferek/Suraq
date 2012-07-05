@@ -83,16 +83,16 @@ public class Timer {
         String result;
         if (totalTime < 1000) {
             DecimalFormat milliSecondsFormatter = new DecimalFormat("000");
-            result = milliSecondsFormatter.format(totalTime) + "ms";
+            result = milliSecondsFormatter.format(totalTime) + " ms";
         } else if (totalTime >= 1000 && totalTime < 60000) {
             DecimalFormat secondsFormatter = new DecimalFormat("00.00");
-            result = secondsFormatter.format(totalTime / 1000.0) + "s";
+            result = secondsFormatter.format(totalTime / 1000.0);
         } else if (totalTime >= 60000 && totalTime < 3600000) {
             DecimalFormat clockPartFormatter = new DecimalFormat("00");
             long minutes = (totalTime / 60000);
             long seconds = (totalTime % 60000) / 1000;
             result = clockPartFormatter.format(minutes) + ":"
-                    + clockPartFormatter.format(seconds) + "s";
+                    + clockPartFormatter.format(seconds);
 
         } else if (totalTime >= 3600000) {
             DecimalFormat clockPartFormatter = new DecimalFormat("00");

@@ -98,19 +98,6 @@ public class TransformedZ3Proof extends Z3Proof {
     private boolean hypothesis = false;
 
     /**
-     * The set of literals that have become obsolete by proof rewriting.
-     * Resolutions with these literals are no longer necessary. Literals are
-     * added in the reverse polarity of that in which they would originally have
-     * occurred in this node. I.e., the polarity is the same as that of the
-     * corresponding hypothesis (that is no longer present), and also the same
-     * of the one that is supposed to occur in another node with which this one
-     * will be resolved. I.e., the clause that contains the literal in the same
-     * polarity as in this set is the obsolete clause. The set should contain
-     * the literals directly, not their unit clauses.
-     */
-    private ImmutableSet<Formula> obsoleteLiterals = null;
-
-    /**
      * This flag stores whether this node has already been made local, at some
      * point in time.
      * 
@@ -399,6 +386,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     new ArrayList<TransformedZ3Proof>(), z3Proof
                             .getConsequent().transformToConsequentsForm());
             result.hypothesis = true;
+            result.obsoleteLiterals = result.obsoleteLiterals
+                    .addAllToCopy(z3Proof.obsoleteLiterals);
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
@@ -416,6 +405,8 @@ public class TransformedZ3Proof extends Z3Proof {
             if (z3Proof.assertPartition > 0)
                 result.assertPartition = z3Proof.assertPartition;
             result.axiom = true;
+            result.obsoleteLiterals = result.obsoleteLiterals
+                    .addAllToCopy(z3Proof.obsoleteLiterals);
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
@@ -429,6 +420,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     .convertModusPonens(z3Proof);
             assert (result.getConsequent().equals(z3Proof.getConsequent()
                     .transformToConsequentsForm()));
+            result.obsoleteLiterals = result.obsoleteLiterals
+                    .addAllToCopy(z3Proof.obsoleteLiterals);
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
 
@@ -501,6 +494,8 @@ public class TransformedZ3Proof extends Z3Proof {
             result.consequent = z3Proof.getConsequent()
                     .transformToConsequentsForm();
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
+            result.obsoleteLiterals = result.obsoleteLiterals
+                    .addAllToCopy(z3Proof.obsoleteLiterals);
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
 
@@ -526,6 +521,8 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof result = new TransformedZ3Proof(
                     SExpressionConstants.LEMMA, list,
                     z3Proof.consequent.deepFormulaCopy());
+            result.obsoleteLiterals = result.obsoleteLiterals
+                    .addAllToCopy(z3Proof.obsoleteLiterals);
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
@@ -548,6 +545,8 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (current1.subProofs.size() == 2);
             }
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
+            current1.obsoleteLiterals = current1.obsoleteLiterals
+                    .addAllToCopy(z3Proof.obsoleteLiterals);
             TransformedZ3Proof.proofMap.put(z3Proof.id, current1);
             return current1;
 
@@ -562,6 +561,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     subProofs, z3Proof.getConsequent()
                             .transformToConsequentsForm());
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
+            result.obsoleteLiterals = result.obsoleteLiterals
+                    .addAllToCopy(z3Proof.obsoleteLiterals);
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
         } else if (proofType.equals(SExpressionConstants.MONOTONICITY)) {
@@ -578,6 +579,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     subProofs, z3Proof.getConsequent()
                             .transformToConsequentsForm());
             assert (!TransformedZ3Proof.proofMap.containsKey(z3Proof.id));
+            result.obsoleteLiterals = result.obsoleteLiterals
+                    .addAllToCopy(z3Proof.obsoleteLiterals);
             TransformedZ3Proof.proofMap.put(z3Proof.id, result);
             return result;
         } else {
@@ -1740,7 +1743,7 @@ public class TransformedZ3Proof extends Z3Proof {
      * 
      * @return A list of all leafs of this proof.
      */
-
+    @Deprecated
     public List<TransformedZ3Proof> getLeafs() {
 
         long operationId = DagOperationManager.startDAGOperation();
@@ -1750,6 +1753,7 @@ public class TransformedZ3Proof extends Z3Proof {
         return result;
     }
 
+    @Deprecated
     private List<TransformedZ3Proof> getLeafsRecursion(long operationId) {
         visitedByDAGOperation(operationId);
 
