@@ -658,7 +658,9 @@ public class TransformedZ3Proof extends Z3Proof {
                                 newObsoleteLiterals).getConsequent();
 
                 if (subProof != update) {
-                    subProofs.set(count, update);
+                    subProof.removeParent(this);
+                    this.subProofs.set(count, update);
+                    update.addParent(this);
                     Z3Proof.hypModCount++;
                     this.markHypCacheDirty();
                     this.obsoleteLiterals = this.obsoleteLiterals
@@ -758,7 +760,9 @@ public class TransformedZ3Proof extends Z3Proof {
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
                         if (subProofs.get(0) != update) {
+                            subProofs.get(0).removeParent(this);
                             subProofs.set(0, update);
+                            update.addParent(this);
                             Z3Proof.hypModCount++;
                             this.markHypCacheDirty();
                             recomputeObsoleteLiterals();
@@ -793,7 +797,9 @@ public class TransformedZ3Proof extends Z3Proof {
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
                         if (subProofs.get(1) != update) {
+                            subProofs.get(1).removeParent(this);
                             subProofs.set(1, update);
+                            update.addParent(this);
                             Z3Proof.hypModCount++;
                             this.markHypCacheDirty();
                             recomputeObsoleteLiterals();
@@ -1009,7 +1015,9 @@ public class TransformedZ3Proof extends Z3Proof {
                     proofs.add(currentAnnotatedNode.getPremise3());
                     TransformedZ3Proof newProof = TransformedZ3Proof
                             .createTransitivityProofForTransformedZ3Proofs(proofs);
-                    subProofs.set(count, newProof);
+                    this.subProofs.set(count, newProof);
+                    newProof.addParent(this);
+                    newProof.setHasBeenMadeLocal();
                     Z3Proof.hypModCount++;
                     this.markHypCacheDirty();
                     TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
@@ -1584,6 +1592,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getConsequent());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        newProofNode.setHasBeenMadeLocal();
         AnnotatedProofNode newAnnotatedNode = new AnnotatedProofNode(
                 newProofNode);
         TransformedZ3Proof.annotatedNodesStack.peekFirst()
@@ -1614,6 +1623,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getPremise1());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        newProofNode.setHasBeenMadeLocal();
         AnnotatedProofNode newAnnotatedNode = new AnnotatedProofNode(
                 newProofNode);
         TransformedZ3Proof.annotatedNodesStack.peekFirst()
@@ -1645,6 +1655,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(firstAnnotatedNode.getPremise3());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        newProofNode.setHasBeenMadeLocal();
         AnnotatedProofNode newAnnotatedNode = new AnnotatedProofNode(
                 newProofNode);
         TransformedZ3Proof.annotatedNodesStack.peekFirst()
@@ -1675,6 +1686,7 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs.add(secondAnnotatedNode.getPremise2());
         TransformedZ3Proof newProofNode = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs);
+        newProofNode.setHasBeenMadeLocal();
         AnnotatedProofNode newAnnotatedNode = new AnnotatedProofNode(
                 newProofNode);
         TransformedZ3Proof.annotatedNodesStack.peekFirst()
@@ -1699,13 +1711,14 @@ public class TransformedZ3Proof extends Z3Proof {
         newSubProofs1.add(secondAnnotatedNode.getPremise1());
         TransformedZ3Proof newProofNode1 = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs1);
-
+        newProofNode1.setHasBeenMadeLocal();
         List<TransformedZ3Proof> newSubProofs2 = new ArrayList<TransformedZ3Proof>();
         newSubProofs2.add(firstAnnotatedNode.getPremise2());
         newSubProofs2.add(newProofNode1);
         newSubProofs2.add(secondAnnotatedNode.getPremise2());
         TransformedZ3Proof newProofNode2 = TransformedZ3Proof
                 .createTransitivityProofForTransformedZ3Proofs(newSubProofs2);
+        newProofNode2.setHasBeenMadeLocal();
         AnnotatedProofNode newAnnotatedNode1 = new AnnotatedProofNode(
                 newProofNode1);
         TransformedZ3Proof.annotatedNodesStack.peekFirst().add(

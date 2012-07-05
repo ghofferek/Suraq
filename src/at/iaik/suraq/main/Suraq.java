@@ -466,7 +466,15 @@ public class Suraq implements Runnable {
         System.out.println("  Remove local sub-proofs...");
         timer.start();
         rootProof.removeLocalSubProofs();
+        timer.stop();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+        // assert (rootProof.checkZ3ProofNodeRecursive());
+        printProofStats(rootProof);
 
+        System.out.println("  Computing parent nodes...");
+        timer.start();
+        rootProof.computeParents();
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();

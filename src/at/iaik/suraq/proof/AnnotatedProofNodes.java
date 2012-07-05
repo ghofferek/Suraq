@@ -70,6 +70,24 @@ public final class AnnotatedProofNodes {
         return result;
     }
 
+    /**
+     * Returns an annotated node with a consequent that has the given id. If no
+     * such node exists, <code>null</code> is returned. This method iterated
+     * through the internal map(s) and is thus very inefficient!
+     * 
+     * @param id
+     * @return an annotated node whose consequent has the given <code>id</code>,
+     *         or <code>null</code> if no such node exists.
+     */
+    public AnnotatedProofNode getNodeWithId(int id) {
+        for (Map<Set<Formula>, AnnotatedProofNode> currentMap : map.values()) {
+            for (AnnotatedProofNode node : currentMap.values())
+                if (node.getConsequent().getID() == id)
+                    return node;
+        }
+        return null;
+    }
+
     public void add(AnnotatedProofNode node) {
         assert (node != null);
         assert (node.getConsequent() != null);

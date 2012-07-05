@@ -305,6 +305,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
     protected void takeValuesFrom(Z3Proof proof) {
         this.axiom = proof.axiom;
         this.subProofs = new ArrayList<Z3Proof>(proof.subProofs);
+
+        // parents are not copied.
+        // This node only takes the "values" of the other node.
+        // its position in the DAG stays the same.
+
         Z3Proof.hypModCount++;
         this.hypCacheModCount = proof.hypCacheModCount;
         this.hypCacheDirty = proof.hypCacheDirty;
@@ -319,6 +324,20 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 .equals(SExpressionConstants.ASSERTED));
     }
 
+    public void addParent(Z3Proof parent) {
+        if (!parents.contains(parent))
+            parents = parents.addToCopy(parent);
+    }
+
+    public void removeParent(Z3Proof parent) {
+        if (parents.contains(parent))
+            parents = parents.removeFromCopy(parent);
+    }
+
+    public ImmutableSet<Z3Proof> getParents() {
+        return parents;
+    }
+
     /**
      * Creates a new <code>Z3Proof</code> which is of the same type as
      * <code>this</code> object and has the given subProofs and consequent.
@@ -330,6 +349,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @return a new <code>Z3Proof</code> with the same type as
      *         <code>this</code>.
      */
+    @Deprecated
     protected Z3Proof create(List<Z3Proof> subProofs, Formula consequent) {
 
         List<Z3Proof> newSubProofs = new ArrayList<Z3Proof>();
@@ -1550,40 +1570,22 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * Recursively computes the parents in the proof, starting from
      * <code>this</code> downwards.
      * 
-     * @return the map from children to parents. Note that in a DAG, a child may
-     *         have several parents.
+     * 
      */
-    @Deprecated
-    public Map<Z3Proof, Set<Z3Proof>> computeParents() {
+    public void computeParents() {
         long operationId = DagOperationManager.startDAGOperation();
-        Map<Z3Proof, Set<Z3Proof>> result = new HashMap<Z3Proof, Set<Z3Proof>>();
-        this.computeParentsRecursion(operationId, result);
+        this.computeParentsRecursion(operationId);
         DagOperationManager.endDAGOperation(operationId);
-        return result;
     }
 
-    /**
-     * 
-     * @param map
-     *            call-by-reference parameter to be updated during recursion
-     */
-    @Deprecated
-    private void computeParentsRecursion(long operationId,
-            Map<Z3Proof, Set<Z3Proof>> map) {
+    private void computeParentsRecursion(long operationId) {
         if (this.wasVisitedByDAGOperation(operationId))
             return;
         visitedByDAGOperation(operationId);
 
         for (Z3Proof child : subProofs) {
-            Set<Z3Proof> set = map.get(child);
-            if (set == null)
-                set = new HashSet<Z3Proof>();
-            assert (set != null);
-            set.add(this);
-            map.put(child, set);
-
-            if (!child.wasVisitedByDAGOperation(operationId))
-                child.computeParentsRecursion(operationId, map);
+            child.addParent(this);
+            child.computeParentsRecursion(operationId);
         }
         return;
     }

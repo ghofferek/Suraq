@@ -177,6 +177,8 @@ public class ProofParser extends SMTLibParser {
         Formula consequent = parseFormulaBody(consequentExpr);
 
         Z3Proof proof = new Z3Proof(proofType, subProofs, consequent);
+        for (Z3Proof subProof : subProofs)
+            subProof.addParent(proof);
 
         if (rootProof == null)
             rootProof = proof;
@@ -343,13 +345,13 @@ public class ProofParser extends SMTLibParser {
             // resolve reference with LUT
             assert (expression instanceof Token);
             Token pureKey = new Token(expression.toString().substring(1));
-            Z3Proof formula = this.proofs.get(pureKey);
+            Z3Proof proof = this.proofs.get(pureKey);
 
-            if (formula == null)
+            if (proof == null)
                 throw new ParseError(expression,
                         "could not find a matching proof-LUT-entry!");
 
-            return formula;
+            return proof;
         } else {
             assert (expression.getChildren().get(0) instanceof Token);
             Token proofType = (Token) expression.getChildren().get(0);
@@ -368,7 +370,10 @@ public class ProofParser extends SMTLibParser {
                     numChildren - 1);
             Formula consequent = parseFormulaBody(consequentExpr);
 
-            return new Z3Proof(proofType, subProofs, consequent);
+            Z3Proof result = new Z3Proof(proofType, subProofs, consequent);
+            for (Z3Proof subProof : subProofs)
+                subProof.addParent(result);
+            return result;
         }
 
     }

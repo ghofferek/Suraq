@@ -228,7 +228,7 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * @param element
      * @return <code>this</code> union <code>element</code>.
      */
-    public ImmutableSet<? extends E> addToCopy(E element) {
+    public ImmutableSet<E> addToCopy(E element) {
         Set<E> tmp = new HashSet<E>();
         tmp.addAll(internalSet);
         tmp.add(element);
