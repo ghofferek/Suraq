@@ -1379,7 +1379,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     /**
-     * Returns all asserted nodes (leafs) of the <code>Z3Proof</code>.
+     * Returns all leafs of the <code>Z3Proof</code>. A leaf is everything with
+     * 0 subProofs.
      * 
      * @return all leafs of a <code>Z3Proof</code>
      */

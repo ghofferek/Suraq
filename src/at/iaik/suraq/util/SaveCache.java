@@ -9,9 +9,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -65,8 +67,10 @@ public class SaveCache implements Serializable {
         this.mainFormula = mainFormula;
         this.assertPartitionFormulas = assertPartitionFormulas;
         this.tseitinEncoding = tseitinEncoding;
-        this.immutableSetInstances = immutableSetInstances;
-        this.immutableSetUniqueElements = immutableSetUniqueElements;
+        this.immutableSetInstances = new HashMap<Set<?>, ImmutableSet<?>>();
+        this.immutableSetInstances.putAll(immutableSetInstances);
+        this.immutableSetUniqueElements = new HashMap<Object, Object>();
+        this.immutableSetUniqueElements.putAll(immutableSetUniqueElements);
 
         if (filename != null)
             this.saveToFile(filename);
@@ -188,13 +192,17 @@ public class SaveCache implements Serializable {
      * @return the <code>immutableSetInstances</code>
      */
     public Map<Set<?>, ImmutableSet<?>> getImmutableSetInstances() {
-        return immutableSetInstances;
+        WeakHashMap<Set<?>, ImmutableSet<?>> tmp = new WeakHashMap<Set<?>, ImmutableSet<?>>();
+        tmp.putAll(immutableSetInstances);
+        return tmp;
     }
 
     /**
      * @return the <code>immutableSetUniqueElements</code>
      */
     public Map<Object, Object> getImmutableSetUniqueElements() {
-        return immutableSetUniqueElements;
+        WeakHashMap<Object, Object> tmp = new WeakHashMap<Object, Object>();
+        tmp.putAll(immutableSetUniqueElements);
+        return tmp;
     }
 }

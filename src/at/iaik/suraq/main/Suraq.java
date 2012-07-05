@@ -438,6 +438,16 @@ public class Suraq implements Runnable {
 
         printProofStats(rootProof);
 
+        System.out.println("  Computing parent nodes...");
+        timer.start();
+        rootProof.computeParents();
+        timer.stop();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+        // assert (rootProof.checkZ3ProofNodeRecursive());
+
+        dealWithBadLiteralHypotheses(rootProof);
+
         // timer.start();
         // int all_nodes_size = rootProof.allNodes().size();
         // timer.end();
@@ -467,15 +477,6 @@ public class Suraq implements Runnable {
         System.out.println("  Remove local sub-proofs...");
         timer.start();
         rootProof.removeLocalSubProofs();
-        timer.stop();
-        System.out.println("    Done. (" + timer + ")");
-        timer.reset();
-        // assert (rootProof.checkZ3ProofNodeRecursive());
-        printProofStats(rootProof);
-
-        System.out.println("  Computing parent nodes...");
-        timer.start();
-        rootProof.computeParents();
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
@@ -578,6 +579,29 @@ public class Suraq implements Runnable {
         timer.reset();
 
         return iteTrees;
+    }
+
+    /**
+     * @param rootProof
+     */
+    private void dealWithBadLiteralHypotheses(Z3Proof rootProof) {
+        Timer timer = new Timer();
+        timer.start();
+
+        Set<Z3Proof> leafs = rootProof.allLeafs();
+        Set<Z3Proof> badLiteralHypotheses = new HashSet<Z3Proof>(leafs.size());
+        for (Z3Proof leaf : leafs) {
+            if (leaf.getProofType().equals(SExpressionConstants.ASSERTED))
+                continue;
+            assert (leaf.getProofType().equals(SExpressionConstants.HYPOTHESIS));
+            assert (Util.isLiteral(leaf.getConsequent()));
+            if (Util.containsBadLiteral(leaf.getConsequent()
+                    .transformToConsequentsForm()))
+                badLiteralHypotheses.add(leaf);
+        }
+
+        timer.stop();
+
     }
 
     /**
