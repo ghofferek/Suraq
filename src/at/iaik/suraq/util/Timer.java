@@ -86,7 +86,7 @@ public class Timer {
             result = milliSecondsFormatter.format(totalTime) + " ms";
         } else if (totalTime >= 1000 && totalTime < 60000) {
             DecimalFormat secondsFormatter = new DecimalFormat("00.00");
-            result = secondsFormatter.format(totalTime / 1000.0);
+            result = secondsFormatter.format(totalTime / 1000.0) + " s";
         } else if (totalTime >= 60000 && totalTime < 3600000) {
             DecimalFormat clockPartFormatter = new DecimalFormat("00");
             long minutes = (totalTime / 60000);

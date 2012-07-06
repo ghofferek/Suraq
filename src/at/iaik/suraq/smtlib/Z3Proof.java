@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -347,6 +348,11 @@ public class Z3Proof implements SMTLibObject, Serializable {
             parents.add(ref);
     }
 
+    public void addParents(Collection<? extends Z3Proof> parents) {
+        for (Z3Proof parent : parents)
+            this.addParent(parent);
+    }
+
     public void removeParent(Z3Proof parent) {
         assert (parents != null);
         parents.remove(new SoftReferenceWithEquality<Z3Proof>(parent));
@@ -540,6 +546,43 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return Z3Proof.myFormatter.format(id);
     }
 
+    /**
+     * Gets all the lemmas that "close" any hypothesis that <code>this</code>
+     * node depends on.
+     * 
+     * @return lemmas found <code>this</code> node "upwards" (towards parents).
+     */
+    public Set<Z3Proof> getClosingLemmas() {
+        long operationId = DagOperationManager.startDAGOperation();
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        this.getClosingLemmasRecursion(operationId, result);
+        DagOperationManager.endDAGOperation(operationId);
+        return result;
+    }
+
+    private void getClosingLemmasRecursion(long operationId, Set<Z3Proof> result) {
+        if (wasVisitedByDAGOperation(operationId))
+            return;
+        visitedByDAGOperation(operationId);
+        if (this.proofType.equals(SExpressionConstants.LEMMA)) {
+            result.add(this);
+            return;
+        }
+        if (parents != null) {
+            for (SoftReferenceWithEquality<Z3Proof> parentRef : parents) {
+                Z3Proof parent = parentRef.get();
+                if (parent != null)
+                    parent.getClosingLemmasRecursion(operationId, result);
+            }
+        }
+    }
+
+    /**
+     * Gets all the lemmas that occur in subproofs.
+     * 
+     * @return lemmas found from <code>this</code> node "downwards" (towards
+     *         children).
+     */
     public Set<Z3Proof> getLemmas() {
         long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> result = this.getLemmasRecursion(operationId);
@@ -666,6 +709,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return hypothesesCache;
     }
 
+    /**
+     * Marks the hypothesis cache of this node and all its ancestors as dirty.
+     */
     public void markHypCacheDirty() {
         this.hypCacheDirty = true;
         for (Z3Proof ancestor : this.allAncestorNodes())
