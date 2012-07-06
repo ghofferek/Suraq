@@ -1671,6 +1671,90 @@ public class Z3Proof implements SMTLibObject, Serializable {
         return;
     }
 
+    /**
+     * Duplicates this node, and all of its descendants that are contained int
+     * <code>toDuplicate</code>. All other descendants are used by reference.
+     * 
+     * @param toDuplicate
+     * @return a new node, where all descendants that are also contained in
+     *         <code>toDuplicate</code> have been duplicated.
+     */
+    public Z3Proof duplicate(Set<Z3Proof> toDuplicate) {
+        Map<Z3Proof, Z3Proof> duplicates = new HashMap<Z3Proof, Z3Proof>();
+        duplicate(toDuplicate, duplicates);
+        assert (duplicates.containsKey(this));
+        return duplicates.get(this);
+    }
+
+    public void duplicate(Set<Z3Proof> toDuplicate,
+            Map<Z3Proof, Z3Proof> duplicates) {
+        assert (toDuplicate != null);
+        assert (duplicates != null);
+        assert (duplicates.size() == 0);
+
+        if (duplicates.containsKey(this))
+            return;
+
+        List<Z3Proof> duplicateSubProofs = new ArrayList<Z3Proof>(
+                this.subProofs.size());
+        for (Z3Proof subProof : this.subProofs) {
+            if (!toDuplicate.contains(subProof))
+                duplicateSubProofs.add(subProof);
+            else {
+                subProof.duplicate(toDuplicate, duplicates);
+                assert (duplicates.containsKey(subProof));
+                duplicateSubProofs.add(duplicates.get(subProof));
+            }
+        }
+        Z3Proof duplicate = new Z3Proof(this.proofType, duplicateSubProofs,
+                this.consequent.deepFormulaCopy());
+        duplicate.takeValuesFrom(this);
+        duplicate.subProofs = duplicateSubProofs; // must be overwritten after
+                                                  // takeValuesFrom
+        duplicate.parents = new HashSet<SoftReferenceWithEquality<Z3Proof>>(
+                this.parents); // not considered by takeValuesFrom
+
+        duplicates.put(this, duplicate);
+    }
+
+    /**
+     * 
+     * @param target
+     * @return all the nodes on paths to the target, including the target
+     *         itself.
+     */
+    public Set<Z3Proof> nodesOnPathTo(Z3Proof target) {
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        nodesOnPathToRecursion(target, result);
+        return result;
+    }
+
+    private boolean nodesOnPathToRecursion(Z3Proof target, Set<Z3Proof> result) {
+        assert (result != null);
+
+        if (this == target) {
+            result.add(this);
+            return true;
+        }
+
+        boolean flag = false;
+        for (Z3Proof child : subProofs) {
+            if (result.contains(child))
+                continue;
+            if (child.nodesOnPathToRecursion(target, result)) {
+                result.add(this);
+                flag = true;
+            }
+        }
+        return flag;
+    }
+
+    /**
+     * 
+     * @param target
+     * @return all the nodes on paths to a hypothesis with the given formula,
+     *         excluding the actual hypothesis.
+     */
     public Set<Z3Proof> nodesOnPathToHypothesisFormula(Formula target) {
         Set<Z3Proof> result = new HashSet<Z3Proof>();
         nodesOnPathToHypothesisFormulaRecursion(target, result);
