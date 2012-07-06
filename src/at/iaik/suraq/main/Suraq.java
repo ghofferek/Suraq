@@ -609,10 +609,10 @@ public class Suraq implements Runnable {
                     .transformToConsequentsForm()))
                 badLiteralHypotheses.add(leaf);
         }
+        leafs = null; // Allow this to be garbage collected
 
         System.out.println("    Found " + badLiteralHypotheses.size()
-                + " bad-literal hypotheses. (Current timer value: " + timer
-                + ")");
+                + " bad-literal hypotheses. Current timer: " + timer);
 
         // Deal with each bad literal hypothesis
         for (Z3Proof badLiteralHypothesis : badLiteralHypotheses) {
@@ -628,46 +628,50 @@ public class Suraq implements Runnable {
 
             // Find candidates
             Set<Z3Proof> candidates = rootProof.getNodesWithConsequent(literal);
-            System.out.println("      Checking " + candidates.size()
+            System.out.print("      Checking " + candidates.size()
                     + " candidates.");
-            System.out.println("        Current timer value for this literal: "
-                    + oneHypTimer);
+            System.out.println(" Current timer: " + oneHypTimer);
 
             // Find the hypotheses on which a candidate may depend
             Set<Z3Proof> lemmas = badLiteralHypothesis.getClosingLemmas();
-            System.out.println("      Found " + lemmas.size()
+            System.out.print("      Found " + lemmas.size()
                     + " closing lemmas.");
-            System.out.println("        Current timer value for this literal: "
-                    + oneHypTimer);
+            System.out.println(" Current timer: " + oneHypTimer);
             Set<Z3Proof> allowedHypotheses = null;
+            int count = 0;
             for (Z3Proof lemma : lemmas) {
                 assert (lemma.getProofType().equals(SExpressionConstants.LEMMA));
                 assert (lemma.getSubProofs().size() == 1);
                 Z3Proof hypotheticalProof = lemma.getSubProofs().get(0);
                 Set<Z3Proof> currentHypotheses = hypotheticalProof
                         .getHypotheses();
+                assert (currentHypotheses.contains(badLiteralHypothesis));
+                System.out.println("      Lemma " + ++count + " has "
+                        + currentHypotheses.size() + " hypotheses.");
                 if (allowedHypotheses == null)
                     allowedHypotheses = new HashSet<Z3Proof>(currentHypotheses);
                 else
                     allowedHypotheses.retainAll(currentHypotheses);
+                System.out.println("      Now at  " + allowedHypotheses.size()
+                        + " allowed hypotheses.");
             }
-            System.out.println("      Identified " + allowedHypotheses.size()
+            boolean wasStillPresent = allowedHypotheses
+                    .remove(badLiteralHypothesis);
+            assert (wasStillPresent);
+            System.out.print("      Identified " + allowedHypotheses.size()
                     + " allowed hypotheses.");
 
-            System.out.println("        Current timer value for this literal: "
-                    + oneHypTimer);
+            System.out.println(" Current timer: " + oneHypTimer);
 
             // Search for update candidate
             Z3Proof update = null;
-            int count = 0;
+            count = 0;
             for (Z3Proof candidate : candidates) {
                 if (candidate.getProofType().equals(
                         SExpressionConstants.HYPOTHESIS)) {
-                    System.out.println("      Candidate " + ++count
+                    System.out.print("      Candidate " + ++count
                             + " is an hypothesis. --> Rejected.");
-                    System.out
-                            .println("        Current timer value for this literal: "
-                                    + oneHypTimer);
+                    System.out.println(" Current timer: " + oneHypTimer);
                     continue;
                 }
                 Set<Z3Proof> candidateHypotheses = candidate.getHypotheses();
@@ -676,20 +680,22 @@ public class Suraq implements Runnable {
                             + " depends on " + candidateHypotheses.size()
                             + " hypotheses.");
 
+                    if (candidateHypotheses.size() > allowedHypotheses.size()) {
+                        System.out
+                                .print("      More candidate hypotheses than allowed hypotheses. --> Rejected.");
+                        System.out.println(" Current timer: " + oneHypTimer);
+                        continue;
+                    }
                     if (!allowedHypotheses.containsAll(candidateHypotheses)) {
                         System.out
-                                .println("      Candidate hypotheses are not a subset of allowed hypotheses. --> Rejected.");
-                        System.out
-                                .println("        Current timer value for this literal: "
-                                        + oneHypTimer);
+                                .print("      Candidate hypotheses are not a subset of allowed hypotheses. --> Rejected.");
+                        System.out.println(" Current timer: " + oneHypTimer);
                         continue;
                     }
                 }
-                System.out.println("      Possible replacement found. (ID "
+                System.out.print("      Possible replacement found. (ID "
                         + candidate.getIdString() + ")");
-                System.out
-                        .println("        Current timer value for this literal: "
-                                + oneHypTimer);
+                System.out.println(" Current timer: " + oneHypTimer);
                 update = candidate;
                 break;
             }
@@ -716,11 +722,13 @@ public class Suraq implements Runnable {
             }
             oneHypTimer.stop();
             System.out.println("    Update complete. (" + oneHypTimer + ")");
+            System.out.println();
         }
 
         timer.stop();
-        System.out.println("  Done with all bad-literal hypotheses. (" + timer
-                + ")");
+        System.out
+                .println("  Done with all bad-literal hypotheses. (Overall time: "
+                        + timer + ")");
     }
 
     /**
