@@ -9,6 +9,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -92,9 +93,30 @@ public class ProofParser extends SMTLibParser {
             // at this point, we expect a proof expression or an let expression
 
             if (!(expression.getChildren().get(0) instanceof Token))
-                throw new ParseError(expression.getLineNumber(),
-                        expression.getColumnNumber(), expression.toString(),
-                        "Expected 'proof' or 'let' expression.");
+            {
+                if(expression.getChildren().get(0).equals(SExpressionConstants.SET_LOGIC_QF_UF))
+                {
+                    System.out.println("Expected 'proof' or 'let' expression. Got: "+
+                        expression.getChildren().get(0).getClass().getName()+
+                        " \nwith value: "+expression.getChildren().get(0).toString());
+                    System.out.println("use next: "+expression.getChildren().get(1).getClass().getName());
+                    
+                    expression = expression.getChildren().get(1); // this is now a (PROOF
+                    // also leave out the PROOF...
+                    expression = expression.getChildren().get(1); // this is now the first LET
+                    
+                   
+                }
+                else
+                {
+                    System.err.println("Expected 'proof' or 'let' expression. Got: "+
+                            expression.getChildren().get(0).getClass().getName()+
+                            " \nwith value: "+expression.getChildren().get(0).toString());
+                    throw new ParseError(expression.getLineNumber(),
+                            expression.getColumnNumber(), expression.toString(),
+                            "Expected 'proof' or 'let' expression.");
+                }
+            }
 
             if (isLet(expression)) {
                 handleLet(expression);
@@ -174,8 +196,16 @@ public class ProofParser extends SMTLibParser {
 
         SExpression consequentExpr = expression.getChildren().get(
                 numChildren - 1);
-        Formula consequent = parseFormulaBody(consequentExpr);
-
+        Formula consequent = null;
+        try{
+            consequent = parseFormulaBody(consequentExpr);
+        }catch(ParseError ex)
+        {
+            System.err.println("Exception in ProofParser:handleProof on parseFormulaBody: "+ex.getMessage());
+            ex.printStackTrace();
+            System.exit(0); // TODO: remove
+            throw ex;            
+        }
         Z3Proof proof = new Z3Proof(proofType, subProofs, consequent);
 
         if (rootProof == null)

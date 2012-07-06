@@ -413,7 +413,12 @@ public abstract class SMTLibParser extends Parser {
             throw new ParseError(expression, "Undeclared identifier: "
                     + expression.toString());
         else
+        {
+            System.err.println("We could not handle an Expression and it was no Token.");
+            System.err.println("It was a:"+expression.getClass().getName()+" and its content was: "+expression.toString().substring(0, 30)+"...");
+            System.err.println("Full Exception coming soon...");
             throw new ParseError(expression, "Error parsing formula body.");
+        }
     }
 
     /**

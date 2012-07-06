@@ -189,6 +189,11 @@ public class SExpressionConstants {
             .fromString("modus-pones-oeq");
     public static final Token TH_LEMMA = (Token) SExpression
             .fromString("th-lemma");
+    
+    // added by chillebold on 06.07.2012
+    public static final Token SIMPLEPROOF = (Token) SExpression
+            .fromString("proof");
+    
     public static final Token TRANS = (Token) SExpression.fromString("trans");
     public static final Token MP = (Token) SExpression.fromString("mp");
     public static final Token[] PROOF_TYPES = SExpressionConstants
@@ -202,7 +207,8 @@ public class SExpressionConstants {
 
     public static Token[] createProofTypes() {
 
-        Token[] proofTypes = new Token[39];
+        // number modified by chillebold on 06.07.2012
+        Token[] proofTypes = new Token[40];
 
         // see: z3_api.h
         proofTypes[0] = SExpressionConstants.UNDEF;
@@ -244,6 +250,10 @@ public class SExpressionConstants {
         proofTypes[36] = SExpressionConstants.SKOLEMIZE;
         proofTypes[37] = SExpressionConstants.MODUS_PONENS_OEQ;
         proofTypes[38] = SExpressionConstants.TH_LEMMA;
+        
+
+        // added by chillebold on 06.07.2012
+        proofTypes[39] = SExpressionConstants.SIMPLEPROOF;
         return proofTypes;
     }
 }

@@ -52,7 +52,7 @@ public final class SuraqOptions {
     /**
      * Default value for input option.
      */
-    private static final String inputDefault = "suraq_input.smt2";
+    private static String inputDefault = "suraq_input.smt2";
 
     /**
      * Default prefix value for z3input option.
@@ -139,6 +139,16 @@ public final class SuraqOptions {
      */
     private static final String z3_4Path = "lib/z3-4.0/bin/z3";
 
+    public static void reset()
+    {   
+        SuraqOptions.inputDefault = "suraq_input.smt2";
+        SuraqOptions.z3InputDefault = "suraq_z3_input.smt2";
+        SuraqOptions.z3ProofDefault = "suraq_z3_proof.smt2";
+        SuraqOptions.outputDefault = "suraq_output.smt2";
+        SuraqOptions.cacheFile = "savecache.db";
+        SuraqOptions.cacheFileSerial = "savecache.serial.db";
+    }
+    
     /**
      * 
      * Constructs the singleton <code>SuraqOptions</code> instance.

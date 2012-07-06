@@ -688,13 +688,15 @@ public class Suraq implements Runnable {
             System.out.println("finished proof calculation in "
                     + proofcalculationTimer + ".\n");
 
+            
             // write z3Proof to file
             if (z3.getState() == SMTSolver.UNSAT) {
-
+                System.out.println("UNSAT");
                 proof = z3.getProof();
 
                 try {
 
+                    System.out.println("writing proof to: "+z3ProofFile);
                     FileWriter fstream = new FileWriter(z3ProofFile);
                     fstream.write(z3.getProof());
                     fstream.close();
@@ -705,7 +707,31 @@ public class Suraq implements Runnable {
                     noErrors = false;
                 }
             }
+            else
+            {
+                // ADDED by chillebold for testing
+                System.out.println("SAT");
+                proof = z3.getProof();
 
+                try {
+                    System.out.println("writing proof to: "+z3ProofFile);
+                    FileWriter fstream = new FileWriter(z3ProofFile);
+                    fstream.write(z3.getProof());
+                    fstream.close();
+                } catch (IOException exc) {
+                    System.err.println("Error while writing to z3ProofFile: "
+                            + options.getZ3Proof());
+                    exc.printStackTrace();
+                    noErrors = false;
+                }
+            }
+            int ii=2;
+            if(ii>1)
+            {
+              //  if (z3.getState() == SMTSolver.UNSAT)
+              //      noErrors = false;
+                return;
+            }
             rootProof = parseProof(proof, propsitionalVars, domainVars,
                     arrayVars, uninterpretedFunctions);
 
@@ -1211,59 +1237,14 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
 
         ///////////////////////////////////////////////////
-        // Bettina's Ackermann
-		constraints = new HashSet<Formula>();
-		List<Formula> constraintsList = new ArrayList<Formula>();
-
-		//noDependenceVars.remove(lambdaToken);  //remove lambda from list???
-		
-		Set<Token> currentUninterpretedFunctions = new HashSet<Token>();
-		for (String var : formula.getUninterpretedFunctionNames())
-			currentUninterpretedFunctions.add(new Token(var));
-		
-		System.out
-				.println("Applying Ackermann reduction to remove uninterpreted-functions...");
-		Map<String, List<DomainVariable>> functionInstances = new HashMap<String, List<DomainVariable>>();
-		Map<DomainVariable, List<DomainTerm>> instanceParameters = new HashMap<DomainVariable, List<DomainTerm>>();
-		formula.uninterpretedFunctionsToAuxiliaryVariables(formula,
-				functionInstances, instanceParameters, noDependenceVars);
-
-		addAckermannFunctionConstraints(formula, constraintsList,
-				functionInstances, instanceParameters);
-		Formula ackermannConstraints;
-		if (constraintsList.size() > 0) {
-			if (constraintsList.size() == 1)
-				ackermannConstraints = constraintsList.iterator().next();
-			else
-			{
-				ackermannConstraints = new AndFormula(constraintsList);
-			}
-			formula = new ImpliesFormula(ackermannConstraints, formula);
-		}
-		
-		constraintsList = new ArrayList<Formula>();
-
-		System.out
-				.println("Applying Ackermann reduction to remove uninterpreted-predicates...");
-		Map<String, List<PropositionalVariable>> predicateInstances = new HashMap<String, List<PropositionalVariable>>();
-		Map<PropositionalVariable, List<DomainTerm>> instanceParametersPredicates = new HashMap<PropositionalVariable, List<DomainTerm>>();
-		formula.uninterpretedPredicatesToAuxiliaryVariables(formula,
-				predicateInstances, instanceParametersPredicates, noDependenceVars);
-
-		addAckermannPredicateConstraints(formula, constraints,
-				predicateInstances, instanceParametersPredicates);
-		if (constraintsList.size() > 0) {
-			if (constraintsList.size() == 1)
-				ackermannConstraints = constraintsList.iterator().next();
-			else
-				ackermannConstraints = new AndFormula(constraintsList);
-			formula = new ImpliesFormula(ackermannConstraints, formula);
-		}
-		
-		noDependenceVars.removeAll(currentDependenceArrayVariables); // parameter changed (?)
-		noDependenceVars.removeAll(currentUninterpretedFunctions);		
-	
-        
+        // Perform Ackermann
+        System.out.println("  Perform Ackermann's Reduction...");
+        timer.reset();
+        timer.start();
+        Ackermann ackermann = new Ackermann();
+        formula = ackermann.performAckermann(formula, noDependenceVars);
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
         
         ///////////////////////////////////////////////////
         List<PropositionalVariable> controlSignals = logicParser
@@ -1321,128 +1302,6 @@ public class Suraq implements Runnable {
 
         return formula;
     }
-    
-    
-	/**
-	 * Adds Ackermann constraints according to predicate-instance and
-	 * instance-parameter mappings to the constraints.
-	 * 
-	 * @param formula
-	 *            the main formula to expand
-	 * @param constraints
-	 *            the formula's constraints.
-	 * @param predicateInstances
-	 *            map containing mapping from predicate names to auxiliary
-	 *            variables.
-	 * @param instanceParameters
-	 *            map containing mapping from auxiliary variables to predicate
-	 *            instance parameters.
-	 */
-	private void addAckermannPredicateConstraints(Formula formula,
-			Set<Formula> constraints,
-			Map<String, List<PropositionalVariable>> predicateInstances,
-			Map<PropositionalVariable, List<DomainTerm>> instanceParameters) {
-
-		for (Map.Entry<String, List<PropositionalVariable>> entry : predicateInstances
-				.entrySet()) {
-
-			List<PropositionalVariable> instances = entry.getValue();
-
-			for (int i = 0; i < instances.size(); i++)
-				for (int j = (i + 1); j < instances.size(); j++) {
-
-					List<DomainTerm> params1 = instanceParameters.get(instances
-							.get(i));
-					List<DomainTerm> params2 = instanceParameters.get(instances
-							.get(j));
-
-					List<Formula> parametersEq = new ArrayList<Formula>();
-					for (int k = 0; k < params1.size(); k++) {
-
-						// Compute functional consistency constraints
-						List<DomainTerm> list = new ArrayList<DomainTerm>();
-						list.add(params1.get(k));
-						list.add(params2.get(k));
-						parametersEq.add(new DomainEq(list, true));
-
-					}
-					Formula parametersEquivalities;
-					if (parametersEq.size() > 1)
-						parametersEquivalities = new AndFormula(parametersEq);
-					else
-						parametersEquivalities = parametersEq.iterator().next();
-
-					List<PropositionalTerm> predicateEq = new ArrayList<PropositionalTerm>();
-					predicateEq.add(instances.get(i));
-					predicateEq.add(instances.get(j));
-					constraints.add(new ImpliesFormula(parametersEquivalities,
-							new PropositionalEq(predicateEq, true)));
-
-				}
-		}
-	}
-    
-    
-	/**
-	 * Adds Ackermann constraints according to function-instance and
-	 * instance-parameter mappings to the constraints.
-	 * 
-	 * @param formula
-	 *            the main formula to expand
-	 * @param constraints
-	 *            the formula's constraints.
-	 * @param functionInstances
-	 *            map containing mapping from function names to auxiliary
-	 *            variables.
-	 * @param instanceParameters
-	 *            map containing mapping from auxiliary variables to function
-	 *            instance parameters.
-	 */
-	private void addAckermannFunctionConstraints(Formula formula,
-			List<Formula> constraints,
-			Map<String, List<DomainVariable>> functionInstances,
-			Map<DomainVariable, List<DomainTerm>> instanceParameters) {
-
-		for (Map.Entry<String, List<DomainVariable>> entry : functionInstances
-				.entrySet()) {
-
-			List<DomainVariable> instances = entry.getValue();
-
-			for (int i = 0; i < instances.size(); i++)
-				for (int j = (i + 1); j < instances.size(); j++) {
-					// System.out.println(""+instances.get(i).getVarName()+" with "+instances.get(j).getVarName());
-
-					List<DomainTerm> params1 = instanceParameters.get(instances
-							.get(i));
-					List<DomainTerm> params2 = instanceParameters.get(instances
-							.get(j));
-
-					List<Formula> parametersEq = new ArrayList<Formula>();
-					for (int k = 0; k < params1.size(); k++) {
-						// System.out.println("   "+t1.get(k)+"^"+t2.get(k));
-
-						// Compute functional consistency constraints
-						List<DomainTerm> list = new ArrayList<DomainTerm>();
-						list.add(params1.get(k));
-						list.add(params2.get(k));
-						parametersEq.add(new DomainEq(list, true));
-
-					}
-					Formula parametersEquivalities;
-					if (parametersEq.size() > 1)
-						parametersEquivalities = new AndFormula(parametersEq);
-					else
-						parametersEquivalities = parametersEq.iterator().next();
-
-					List<DomainTerm> functionEq = new ArrayList<DomainTerm>();
-					functionEq.add(instances.get(i));
-					functionEq.add(instances.get(j));
-					constraints.add(new ImpliesFormula(parametersEquivalities,
-							new DomainEq(functionEq, true)));
-
-				}
-		}
-	}
     
 
     /**
@@ -1526,6 +1385,7 @@ public class Suraq implements Runnable {
             Set<Token> noDependenceVars, int numControlSignals)
             throws SuraqException {
 
+        System.out.println("   step 0");
         if (outputExpressions == null)
             throw new SuraqException("outputExpressions not initialized!");
 
@@ -1534,6 +1394,7 @@ public class Suraq implements Runnable {
                 SExpressionConstants.VALUE_TYPE);
         Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
 
+        System.out.println("   step 1: prop. vars");
         for (PropositionalVariable var : formula.getPropositionalVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(new Token(var.getVarName()),
@@ -1545,6 +1406,7 @@ public class Suraq implements Runnable {
                             SExpressionConstants.BOOL_TYPE, 0));
         }
 
+        System.out.println("   step 2: domain vars");
         for (DomainVariable var : formula.getDomainVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(new Token(var.getVarName()),
@@ -1556,6 +1418,7 @@ public class Suraq implements Runnable {
                     0));
         }
 
+        System.out.println("   step 3: debug / Array Vars");
         // DEBUG
         // For debugging purposes, also handle array variables
         // (so that performing only some of the reductions can be tested)
@@ -1570,6 +1433,7 @@ public class Suraq implements Runnable {
                     0));
         } // end debug
 
+        System.out.println("   step 4: UF");
         for (UninterpretedFunction function : formula
                 .getUninterpretedFunctions()) {
             if (noDependenceVars.contains(function.getName())) {
@@ -1583,10 +1447,12 @@ public class Suraq implements Runnable {
                     function.getNumParams()));
         }
 
+        System.out.println("   step 5: no dep vars");
         // Now dealing with noDependenceVars
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
         noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();
         for (Token var : noDependenceVars) {
+            System.out.print('.');
             SExpression type = varTypes.get(var);
             assert (type != null);
             int numParams = 0;
@@ -1632,6 +1498,7 @@ public class Suraq implements Runnable {
             }
         }
 
+        System.out.println("   step 6: macro");
         for (FunctionMacro macro : formula.getFunctionMacros())
             outputExpressions.add(macro.toSmtlibV2());
     }

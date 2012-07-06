@@ -23,24 +23,30 @@ public class Ackermann {
 	
 	public Formula performAckermann(Formula formula, Set<Token> noDependenceVars)
 	{
+	    System.out.println("   Ackermann start");
 		HashSet<Formula> constraints = new HashSet<Formula>();
 		List<Formula> constraintsList = new ArrayList<Formula>();
 
 		//noDependenceVars.remove(lambdaToken);  //remove lambda from list???
-		
+
+        System.out.println("   Ackermann: getUninterpretedFunctionNames");
 		Set<Token> currentUninterpretedFunctions = new HashSet<Token>();
 		for (String var : formula.getUninterpretedFunctionNames())
 			currentUninterpretedFunctions.add(new Token(var));
-		
+
+        System.out.println("   Ackermann: uninterpretedFunctionsToAuxiliaryVariables");
 		//System.out.println("Applying Ackermann reduction to remove uninterpreted-functions...");
 		Map<String, List<DomainVariable>> functionInstances = new HashMap<String, List<DomainVariable>>();
 		Map<DomainVariable, List<DomainTerm>> instanceParameters = new HashMap<DomainVariable, List<DomainTerm>>();
 		formula.uninterpretedFunctionsToAuxiliaryVariables(formula,
 				functionInstances, instanceParameters, noDependenceVars);
 
+        System.out.println("   Ackermann: add UF-constraints");
 		addAckermannFunctionConstraints(formula, constraintsList,
 				functionInstances, instanceParameters);
 		Formula ackermannConstraints;
+
+        System.out.println("   Ackermann: ImpliesFormula");
 		if (constraintsList.size() > 0) {
 			if (constraintsList.size() == 1)
 				ackermannConstraints = constraintsList.iterator().next();
@@ -50,7 +56,8 @@ public class Ackermann {
 			}
 			formula = new ImpliesFormula(ackermannConstraints, formula);
 		}
-		
+
+        System.out.println("   Ackermann: uninterpretedPredicatesToAuxiliaryVariables");
 		constraintsList = new ArrayList<Formula>();
 
 		// System.out.println("Applying Ackermann reduction to remove uninterpreted-predicates...");
@@ -59,6 +66,7 @@ public class Ackermann {
 		formula.uninterpretedPredicatesToAuxiliaryVariables(formula,
 				predicateInstances, instanceParametersPredicates, noDependenceVars);
 
+        System.out.println("   Ackermann: addAckermannPredicateConstraints");
 		addAckermannPredicateConstraints(formula, constraints,
 				predicateInstances, instanceParametersPredicates);
 		if (constraintsList.size() > 0) {
@@ -69,6 +77,8 @@ public class Ackermann {
 			formula = new ImpliesFormula(ackermannConstraints, formula);
 		}
 		
+
+        System.out.println("   Ackermann: removeall at last");
 		//noDependenceVars.removeAll(currentDependenceArrayVariables); // parameter changed (?)
 		noDependenceVars.removeAll(currentUninterpretedFunctions);		
 	

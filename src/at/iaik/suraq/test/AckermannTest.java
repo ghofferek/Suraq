@@ -7,16 +7,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.main.Ackermann;
+import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -36,12 +39,20 @@ import at.iaik.suraq.smtsolver.SMTSolver;
  *
  */
 public class AckermannTest {
-	SuraqOptions options;
+	//SuraqOptions options;
 	protected Formula consequent;
 	public AckermannTest()
 	{
-		options = SuraqOptions.getInstance();
+		//options = SuraqOptions.getInstance();
 	}
+	
+	@Before
+	public void setUp() {
+	    SuraqOptions.kill();
+	    SuraqOptions.reset();
+	    Z3Proof.setInstanceCounter(0);
+	}
+
 	
 	// Live: Ständig zum Herumprobieren
 	@Test
@@ -137,6 +148,9 @@ public class AckermannTest {
         System.out.println("  testing correct order of parameters: " + (result?"Success :-)":"Failed :-("));
         Assert.assertTrue(result);
     }
+    
+
+    
     
 	///////////////////////////////////////////////////////////////////////////////
 	

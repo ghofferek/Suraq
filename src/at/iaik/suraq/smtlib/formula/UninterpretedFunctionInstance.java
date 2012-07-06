@@ -569,7 +569,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     public DomainVariable applyReplaceUninterpretedFunctions(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-
+            System.out.print('.');
 		    	List<DomainTerm> newParameters = new ArrayList<DomainTerm>(parameters); 
 		    	
 		    	for (DomainTerm term : newParameters) {
