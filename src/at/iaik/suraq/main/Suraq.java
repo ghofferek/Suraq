@@ -634,9 +634,13 @@ public class Suraq implements Runnable {
 
             // Find the closing lemmas and the hypotheses on which a candidate
             // may depend
-            Set<Z3Proof> lemmas = badLiteralHypothesis.getClosingLemmas();
+            List<Z3Proof> lemmas = new ArrayList<Z3Proof>(
+                    badLiteralHypothesis.getClosingLemmas());
             System.out.print("      Found " + lemmas.size()
                     + " closing lemmas.");
+            for (Z3Proof lemma : lemmas) {
+                System.out.println("        ID " + lemma.getIdString());
+            }
             System.out.println(" Current timer: " + oneHypTimer);
             Set<Z3Proof> allowedHypotheses = null;
             Map<Z3Proof, Set<Z3Proof>> hypothesesOfLemmas = new HashMap<Z3Proof, Set<Z3Proof>>();
@@ -735,13 +739,22 @@ public class Suraq implements Runnable {
 
                 // Computing paths from lemmas to bad literal hypothesis
                 Map<Z3Proof, Set<Z3Proof>> nodesOnPathFromLemmaToBadLitHyp = new HashMap<Z3Proof, Set<Z3Proof>>();
-                for (Z3Proof lemma : lemmas) {
-                    Set<Z3Proof> currentNodes = lemma
-                            .nodesOnPathTo(badLiteralHypothesis);
-                    nodesOnPathFromLemmaToBadLitHyp.put(lemma, currentNodes);
-                }
+                System.out
+                        .println("      Computing paths from lemmas to bad literal hypothesis.");
 
                 int lemmaCount = 0;
+                for (Z3Proof lemma : lemmas) {
+                    System.out.println("        Lemma " + ++lemmaCount);
+                    Set<Z3Proof> currentNodes = lemma
+                            .nodesOnPathTo(badLiteralHypothesis);
+                    System.out.println("          Found " + currentNodes.size()
+                            + " nodes.");
+                    assert (currentNodes.contains(badLiteralHypothesis));
+                    nodesOnPathFromLemmaToBadLitHyp.put(lemma, currentNodes);
+                }
+                System.out
+                        .println("      Compute sets of nodes to be duplicated.");
+                lemmaCount = 0;
                 for (Z3Proof lemma : lemmas) {
                     System.out.println("      Lemma " + ++lemmaCount);
                     // Compute the set to be duplicated
@@ -755,15 +768,18 @@ public class Suraq implements Runnable {
                         localNodes.removeAll(nodesOnPathFromLemmaToBadLitHyp
                                 .get(otherLemma));
                     }
+                    assert (pathForThisLemma.contains(badLiteralHypothesis));
+                    assert (!localNodes.contains(badLiteralHypothesis));
                     Set<Z3Proof> toDuplicate = new HashSet<Z3Proof>(
                             pathForThisLemma);
                     toDuplicate.removeAll(localNodes);
+                    assert (toDuplicate.contains(badLiteralHypothesis));
                     System.out.println("        Computed " + toDuplicate.size()
                             + " nodes to duplicate. Current timer: "
                             + oneHypTimer);
-                    Map<Z3Proof, Z3Proof> duplicates = new HashMap<Z3Proof, Z3Proof>();
-                    lemma.getSubProofs().get(0)
-                            .duplicate(toDuplicate, duplicates);
+                    Map<Z3Proof, Z3Proof> duplicates = lemma.getSubProofs()
+                            .get(0).duplicate(toDuplicate, localNodes);
+
                     Z3Proof duplicateHypotheticalProof = duplicates.get(lemma
                             .getSubProofs().get(0));
                     lemma.getSubProofs().set(0, duplicateHypotheticalProof);

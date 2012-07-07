@@ -1672,28 +1672,58 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     /**
-     * Duplicates this node, and all of its descendants that are contained int
-     * <code>toDuplicate</code>. All other descendants are used by reference.
+     * Walks through the set <code>localNodes</code> starting from
+     * <code>this</code> and duplicates all descendants that are contained in
+     * <code>toDuplicate</code>.
      * 
      * @param toDuplicate
-     * @return a new node, where all descendants that are also contained in
-     *         <code>toDuplicate</code> have been duplicated.
+     *            nodes that should be duplicated
+     * @param localNodes
+     *            nodes making up the paths we care about.
+     * @return a map from old to new nodes
      */
-    public Z3Proof duplicate(Set<Z3Proof> toDuplicate) {
+    public Map<Z3Proof, Z3Proof> duplicate(Set<Z3Proof> toDuplicate,
+            Set<Z3Proof> localNodes) {
+        long operationId = DagOperationManager.startDAGOperation();
         Map<Z3Proof, Z3Proof> duplicates = new HashMap<Z3Proof, Z3Proof>();
-        duplicate(toDuplicate, duplicates);
-        assert (duplicates.containsKey(this));
-        return duplicates.get(this);
+        duplicate(operationId, toDuplicate, duplicates, localNodes);
+        DagOperationManager.endDAGOperation(operationId);
+        assert (duplicates.size() == toDuplicate.size());
+        return duplicates;
     }
 
-    public void duplicate(Set<Z3Proof> toDuplicate,
-            Map<Z3Proof, Z3Proof> duplicates) {
+    private void duplicate(long operationId, Set<Z3Proof> toDuplicate,
+            Map<Z3Proof, Z3Proof> duplicates, Set<Z3Proof> localNodes) {
         assert (toDuplicate != null);
         assert (duplicates != null);
-        assert (duplicates.size() == 0);
+        assert (Collections.disjoint(toDuplicate, localNodes));
+
+        if (this.wasVisitedByDAGOperation(operationId))
+            return;
+        visitedByDAGOperation(operationId);
 
         if (duplicates.containsKey(this))
             return;
+
+        if (localNodes.contains(this)) {
+            for (Z3Proof child : this.subProofs)
+                child.duplicate(operationId, toDuplicate, duplicates,
+                        localNodes);
+            return;
+        }
+
+        if (!toDuplicate.contains(this))
+            // neither a local node, nor one to duplicate.
+            // this is not on the path that we are interested in.
+            // ignoring it
+            return;
+
+        assert (toDuplicate.contains(this));
+
+        Z3Proof duplicate = new Z3Proof(this.proofType, new ArrayList<Z3Proof>(
+                0), this.consequent.deepFormulaCopy());
+        duplicate.takeValuesFrom(this);
+        duplicates.put(this, duplicate);
 
         List<Z3Proof> duplicateSubProofs = new ArrayList<Z3Proof>(
                 this.subProofs.size());
@@ -1701,20 +1731,37 @@ public class Z3Proof implements SMTLibObject, Serializable {
             if (!toDuplicate.contains(subProof))
                 duplicateSubProofs.add(subProof);
             else {
-                subProof.duplicate(toDuplicate, duplicates);
+                subProof.duplicate(operationId, toDuplicate, duplicates,
+                        localNodes);
                 assert (duplicates.containsKey(subProof));
                 duplicateSubProofs.add(duplicates.get(subProof));
             }
         }
-        Z3Proof duplicate = new Z3Proof(this.proofType, duplicateSubProofs,
-                this.consequent.deepFormulaCopy());
-        duplicate.takeValuesFrom(this);
-        duplicate.subProofs = duplicateSubProofs; // must be overwritten after
-                                                  // takeValuesFrom
-        duplicate.parents = new HashSet<SoftReferenceWithEquality<Z3Proof>>(
-                this.parents); // not considered by takeValuesFrom
+        duplicate.subProofs = duplicateSubProofs; // must be overwritten now
 
-        duplicates.put(this, duplicate);
+        duplicate.parents = new HashSet<SoftReferenceWithEquality<Z3Proof>>();
+        for (SoftReferenceWithEquality<Z3Proof> parentRef : this.parents) {
+            Z3Proof parent = parentRef.get();
+            assert (parent != null);
+            SoftReferenceWithEquality<Z3Proof> newParentRef = null;
+            if (toDuplicate.contains(parent)) {
+                if (!duplicates.containsKey(parent))
+                    parent.duplicate(operationId, toDuplicate, duplicates,
+                            localNodes);
+                assert (duplicates.containsKey(parent));
+                assert (duplicates.get(parent) != null);
+                newParentRef = new SoftReferenceWithEquality<Z3Proof>(
+                        duplicates.get(parent));
+            } else {
+                if (localNodes.contains(parent))
+                    newParentRef = new SoftReferenceWithEquality<Z3Proof>(
+                            parent);
+            }
+            if (newParentRef != null) {
+                assert (newParentRef.get() != null);
+                duplicate.parents.add(newParentRef);
+            }
+        }
     }
 
     /**
@@ -1724,24 +1771,33 @@ public class Z3Proof implements SMTLibObject, Serializable {
      *         itself.
      */
     public Set<Z3Proof> nodesOnPathTo(Z3Proof target) {
+        long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> result = new HashSet<Z3Proof>();
-        nodesOnPathToRecursion(target, result);
+        nodesOnPathToRecursion(operationId, target, result);
+        DagOperationManager.endDAGOperation(operationId);
         return result;
     }
 
-    private boolean nodesOnPathToRecursion(Z3Proof target, Set<Z3Proof> result) {
+    private boolean nodesOnPathToRecursion(long operationId, Z3Proof target,
+            Set<Z3Proof> result) {
         assert (result != null);
 
         if (this == target) {
             result.add(this);
             return true;
         }
+        if (wasVisitedByDAGOperation(operationId))
+            return false;
+        visitedByDAGOperation(operationId);
 
         boolean flag = false;
         for (Z3Proof child : subProofs) {
-            if (result.contains(child))
+            if (result.contains(child)) {
+                result.add(this);
+                flag = true;
                 continue;
-            if (child.nodesOnPathToRecursion(target, result)) {
+            }
+            if (child.nodesOnPathToRecursion(operationId, target, result)) {
                 result.add(this);
                 flag = true;
             }
@@ -1756,23 +1812,34 @@ public class Z3Proof implements SMTLibObject, Serializable {
      *         excluding the actual hypothesis.
      */
     public Set<Z3Proof> nodesOnPathToHypothesisFormula(Formula target) {
+        long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> result = new HashSet<Z3Proof>();
-        nodesOnPathToHypothesisFormulaRecursion(target, result);
+        nodesOnPathToHypothesisFormulaRecursion(operationId, target, result);
+        DagOperationManager.endDAGOperation(operationId);
         return result;
     }
 
-    private boolean nodesOnPathToHypothesisFormulaRecursion(Formula target,
-            Set<Z3Proof> result) {
+    private boolean nodesOnPathToHypothesisFormulaRecursion(long operationId,
+            Formula target, Set<Z3Proof> result) {
         assert (result != null);
 
         if (this.consequent.equals(target))
             return true;
 
+        if (this.wasVisitedByDAGOperation(operationId))
+            return false;
+
+        visitedByDAGOperation(operationId);
+
         boolean flag = false;
         for (Z3Proof child : subProofs) {
-            if (result.contains(child))
+            if (result.contains(child)) {
+                result.add(this);
+                flag = true;
                 continue;
-            if (child.nodesOnPathToHypothesisFormulaRecursion(target, result)) {
+            }
+            if (child.nodesOnPathToHypothesisFormulaRecursion(operationId,
+                    target, result)) {
                 result.add(this);
                 flag = true;
             }
