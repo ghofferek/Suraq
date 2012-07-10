@@ -569,7 +569,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     public DomainVariable applyReplaceUninterpretedFunctions(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-            System.out.print('.');
+            //System.out.print('.');
 		    	List<DomainTerm> newParameters = new ArrayList<DomainTerm>(parameters); 
 		    	
 		    	for (DomainTerm term : newParameters) {
@@ -592,16 +592,26 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		            }
 		        }
 		    	
-		        DomainVariable result = matchFunctionInstance(functionInstances,instanceParameters);
+		        DomainVariable result = matchFunctionInstance(functionInstances, instanceParameters);
 		        
 		        if(result==null)
+		        {
 		        	result = addFunctionInstance(topLeveFormula, functionInstances, instanceParameters);
-		        
-		        // Check if the function is noDependence or at least one parameter of the function is noDependence
-		        // This might be conservative and might not be complete (i.e., may
-		        // result unnecessary unrealizability)		
-		        
+		        	System.out.print('*');
+    		        // Check if the function is noDependence or at least one parameter of the function is noDependence
+    		        // This might be conservative and might not be complete (i.e., may
+    		        // result unnecessary unrealizability)
+    		        
+		        }
+		        else
+		        {
+		            System.out.print('_');
+		        }
+		        	
+		        	
+	        	
 		        boolean insert = false;
+		        
 		        
 		        for (DomainTerm term : parameters) {
 		        	if (Util.termContainsAny(term, noDependenceVars))  {	
@@ -620,9 +630,14 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		        
 		        if (insert==true)
 		        {
-		        	noDependenceVars.add(new Token(result.getVarName())); 
-		        }	        	      
-		        return result;            
+		            // chillebold 2012-07-09
+		            // this is called several times per noDependenceVar, but it does not matter,
+		            // because it is added to a Set 
+		            // http://docs.oracle.com/javase/1.4.2/docs/api/java/util/Set.html#add%28java.lang.Object%29
+		        	noDependenceVars.add(new Token(result.getVarName()));
+		        	System.out.print('+');
+		        }
+		        return result;
     }            
 
 }

@@ -1236,6 +1236,10 @@ public class Suraq implements Runnable {
         timer.end();
         System.out.println("    Done. (" + timer + ")");
 
+
+        // additional in bettinas version:
+        //noDependenceVars.remove(lambdaToken);  //remove lambda from list???
+        
         ///////////////////////////////////////////////////
         // Perform Ackermann
         System.out.println("  Perform Ackermann's Reduction...");
@@ -1245,8 +1249,11 @@ public class Suraq implements Runnable {
         formula = ackermann.performAckermann(formula, noDependenceVars);
         timer.end();
         System.out.println("    Done. (" + timer + ")");
-        
+    
         ///////////////////////////////////////////////////
+        
+
+        
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
 
@@ -1447,12 +1454,16 @@ public class Suraq implements Runnable {
                     function.getNumParams()));
         }
 
-        System.out.println("   step 5: no dep vars");
+        long _cnt = noDependenceVars.size();
+        long stepsize = _cnt/100;
+        System.out.println("   step 5: no dep vars: there are #"+_cnt);
         // Now dealing with noDependenceVars
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
         noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();
+        long cnt = 0;
         for (Token var : noDependenceVars) {
-            System.out.print('.');
+            if(cnt++ % stepsize == 0 )
+                System.out.print((100*cnt) / _cnt + "%");
             SExpression type = varTypes.get(var);
             assert (type != null);
             int numParams = 0;

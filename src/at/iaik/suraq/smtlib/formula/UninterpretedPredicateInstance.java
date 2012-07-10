@@ -598,11 +598,11 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
 	            			 .applyReplaceUninterpretedFunctions(topLeveFormula,
 	            					 	functionInstances, instanceParameters, noDependenceVars);
 	            	
-	            	 // TODO: chillebold: imho: the order of these terms may be important!
+	            	 // chillebold: imho: the order of these terms may be important!
 	            	 //parameters.remove(term);
 	            	 //parameters.add(auxiliaryVariable);
 	            	 
-	            	 // TODO: verify if still working - need a testcase for this
+	            	 // verify if still working - need a testcase for this
 	            	 // Let's try this instead.
 	            	 // I don't know how the for-loop is implemented. 
 	            	 // In some programming languages the following action throws an exception, because the for-loop does not know how to continue.

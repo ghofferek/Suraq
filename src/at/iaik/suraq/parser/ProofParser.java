@@ -203,7 +203,7 @@ public class ProofParser extends SMTLibParser {
         {
             System.err.println("Exception in ProofParser:handleProof on parseFormulaBody: "+ex.getMessage());
             ex.printStackTrace();
-            System.exit(0); // TODO: remove
+            System.exit(0); // TODO: remove System.exit(0)
             throw ex;            
         }
         Z3Proof proof = new Z3Proof(proofType, subProofs, consequent);

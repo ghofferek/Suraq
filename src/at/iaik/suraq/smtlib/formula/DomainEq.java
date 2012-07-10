@@ -152,7 +152,7 @@ public class DomainEq extends EqualityFormula {
 	            	 DomainVariable auxiliaryVariable =  ((UninterpretedFunctionInstance) term)
 				            			 .applyReplaceUninterpretedFunctions(topLeveFormula,
 				            					 	functionInstances, instanceParameters, noDependenceVars);
-                     // TODO: chillebold: imho: here the order of the variables is not important
+                     // chillebold: imho: here the order of the variables is not important
 	            	 // terms.remove(term);
 	                 // terms.add(auxiliaryVariable);
 	                 terms.set(terms.indexOf(term),auxiliaryVariable);
