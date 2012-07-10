@@ -109,6 +109,35 @@ public final class Util {
         throw new RuntimeException("Could not create fresh variable name.");
     }
 
+    static Formula lastFormula = null;
+    static Set<Object> lostNames = new HashSet<Object>();
+    public static final String freshVarNameCached(Formula formula, String prefix)
+    {
+        if(lastFormula != formula)
+        {
+            System.err.println("*** New Formula detected. Building lostNames.");
+            lastFormula = formula;
+            lostNames.clear();
+            // hashcode must be varname.hashcode() !!!
+            lostNames.addAll(formula.getArrayVariables());
+            lostNames.addAll(formula.getDomainVariables());
+            lostNames.addAll(formula.getPropositionalVariables());
+            lostNames.addAll(formula.getUninterpretedFunctionNames());
+            lostNames.addAll(formula.getFunctionMacroNames());
+        }
+
+        int count = -1;
+        while (++count >= 0) {
+            String name = prefix + (count > 0 ? ("_fresh" + count) : "");
+            
+            if (lostNames.contains(name))
+                continue;
+            lostNames.add(name);
+            return name;
+        }
+        throw new RuntimeException("Could not create fresh variable name.");
+    }
+
     /**
      * Checks whether the given formula contains any of the given tokens as
      * identifiers.

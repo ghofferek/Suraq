@@ -42,8 +42,6 @@ import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
-import at.iaik.suraq.smtlib.formula.PropositionalEq;
-import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -243,6 +241,7 @@ public class Suraq implements Runnable {
 
         try {
             mainFormula = doMainWork();
+            System.out.println("  </doMainWork>");
         } catch (SuraqException exc) {
             noErrors = false;
             if (exc.getMessage() != null)
@@ -250,6 +249,8 @@ public class Suraq implements Runnable {
         }
 
         // build function and variable lists for parser
+
+        System.out.println("  build function and variable lists for parser");
         propsitionalVars = mainFormula.getPropositionalVariables();
         domainVars = mainFormula.getDomainVariables();
         arrayVars = mainFormula.getArrayVariables();
@@ -279,6 +280,23 @@ public class Suraq implements Runnable {
                 .entrySet())
             uninterpretedFunctions.addAll(functionList.getValue());
 
+        
+
+        // debug
+        try{
+            System.out.println("  Saving Debugfile ./debug_nodepvar.txt");
+            File debugFile1 = new File("./debug_nodepvar.txt");
+            FileWriter fstream = new FileWriter(debugFile1);
+            fstream.write(mainFormula.toString());
+            fstream.close();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        
+        
+        
         System.out
                 .println("  Simplifying assert-partitions and tseitin-cnf encoding...");
 
@@ -317,6 +335,7 @@ public class Suraq implements Runnable {
 
         int count = 1;
         Timer onePartitionTimer = new Timer();
+        Timer timer2 = new Timer();
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3_4Path());
 
@@ -326,24 +345,33 @@ public class Suraq implements Runnable {
 
             onePartitionTimer.reset();
             onePartitionTimer.start();
+            
             System.out.println("    Encoding partition " + count + "...");
-
+            
+            timer2.end(); System.out.println("T1: "+timer2); timer2.reset(); timer2.start();
             String smtStr = buildSMTDescriptionForTseitinEncoding(
                     declarationStr, assertPartition.toString());
+            timer2.end(); System.out.println("T2: "+timer2); timer2.reset(); timer2.start();
             String tseitingStr = z3.solve2(smtStr);
+            timer2.end(); System.out.println("T3: "+timer2); timer2.reset(); timer2.start();
 
             TseitinParser parser = parseTseitinStr(tseitingStr, count);
+            timer2.end(); System.out.println("T4: "+timer2); timer2.reset(); timer2.start();
             Formula partitionFormula = parser.getRootFormula();
+            timer2.end(); System.out.println("T5: "+timer2); timer2.reset(); timer2.start();
 
             tseitinPartitions.add(partitionFormula.toString());
+            timer2.end(); System.out.println("T6: "+timer2); timer2.reset(); timer2.start();
 
             System.out.println("      test if tseitin encoding is correct...");
             assert (TseitinParser.checkFormulaImplication(partitionFormula,
                     assertPartitionFormulas.get(count)));
             System.out.println("      ...test finished");
+            timer2.end(); System.out.println("T7: "+timer2); timer2.reset(); timer2.start();
 
             onePartitionTimer.end();
             System.out.println(" Done. (" + onePartitionTimer + ")");
+            // FIXME: improve this! ~212 sec
             count++;
 
         }
@@ -1003,7 +1031,12 @@ public class Suraq implements Runnable {
      */
     private TseitinParser parseTseitinStr(String tseitinStr, int partition) {
 
+        // FIXME - improve performance - this is ~110s per call!!!!
+        Timer timer = new Timer();
+        
+        timer.end(); System.out.println("TSEIT1: "+timer); timer.reset(); timer.start();
         SExpParser sExpParser = new SExpParser(tseitinStr);
+        timer.end(); System.out.println("TSEIT2: "+timer); timer.reset(); timer.start();
         try {
             sExpParser.parse();
             assert (sExpParser.wasParsingSuccessfull());
@@ -1012,11 +1045,15 @@ public class Suraq implements Runnable {
             throw new RuntimeException(
                     "S-Expression parse error. Cannot continue.", exc);
         }
+        timer.end(); System.out.println("TSEIT3: "+timer); timer.reset(); timer.start();
 
         SExpression rootExp = sExpParser.getRootExpr();
 
+        timer.end(); System.out.println("TSEIT4: "+timer); timer.reset(); timer.start();
         TseitinParser tseitinParser = new TseitinParser(rootExp, domainVars,
                 propsitionalVars, arrayVars, uninterpretedFunctions, partition);
+
+        timer.end(); System.out.println("TSEIT5: "+timer); timer.reset(); timer.start();
         try {
             tseitinParser.parse();
             assert (tseitinParser.wasParsingSuccessfull());
@@ -1025,7 +1062,9 @@ public class Suraq implements Runnable {
             throw new RuntimeException(
                     "Tseitin encoding parse error. Cannot continue.", exc);
         }
+        timer.end(); System.out.println("TSEIT6: "+timer); timer.reset(); timer.start();
         tseitinEncoding.putAll(tseitinParser.getTseitinEncoding());
+        timer.end(); System.out.println("TSEIT7: "+timer); timer.reset(); timer.start();
 
         return tseitinParser;
     }
@@ -1212,8 +1251,7 @@ public class Suraq implements Runnable {
         indexSet.add(lambda);
         noDependenceVars.add(new Token(lambda.getVarName()));
 
-        System.out
-                .println("  Converting array properties to finite conjunctions...");
+        System.out.println("  Converting array properties to finite conjunctions...");
         timer.reset();
         timer.start();
         formula.arrayPropertiesToFiniteConjunctions(indexSet);
@@ -1252,6 +1290,18 @@ public class Suraq implements Runnable {
     
         ///////////////////////////////////////////////////
         
+        // debug
+        try{
+            File debugFile1 = new File("./debug_ackermann.txt");
+            FileWriter fstream = new FileWriter(debugFile1);
+            fstream.write(formula.toString());
+            fstream.close();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        
 
         
         List<PropositionalVariable> controlSignals = logicParser
@@ -1262,6 +1312,10 @@ public class Suraq implements Runnable {
                     "Current implementation cannot handle more than 30 control signals.");
         }
 
+        // ??????
+        // FIXME: where is the multiplication of nodep-vars implemented?
+        // ??????
+        
         outputExpressions = new ArrayList<SExpression>();
         // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
 
@@ -1300,13 +1354,16 @@ public class Suraq implements Runnable {
         while (beginAssert.hasNext()) {
             SExpression expr = beginAssert.next().deepCopy();
             // expr.replaceChild(new Token("simplify"), 0);
-            assertPartitionList.add(expr);
+            assertPartitionList.add(expr); // FIXME here should the multiple copies be
         }
 
+        // FIXME how is this added, when outputExpressions is not used any more.
         outputExpressions.add(SExpressionConstants.CHECK_SAT);
         outputExpressions.add(SExpressionConstants.GET_PROOF);
         outputExpressions.add(SExpressionConstants.EXIT);
 
+
+        
         return formula;
     }
     
@@ -1342,9 +1399,12 @@ public class Suraq implements Runnable {
                     variableSubstitutions.put(var,
                             noDependenceVarsCopies.get(var).get(count));
                 else if (noDependenceFunctionsCopies.containsKey(var))
+                {
                     // it's an uninterpreted function
+                    System.err.println("There was a function (Ackerman didn't perform?)");
                     tempFormula.substituteUninterpretedFunction(var,
                             noDependenceFunctionsCopies.get(var).get(count));
+                }
                 else
                     throw new SuraqException(
                             "noDependenceVar "
@@ -1455,21 +1515,34 @@ public class Suraq implements Runnable {
         }
 
         long _cnt = noDependenceVars.size();
-        long stepsize = _cnt/100;
-        System.out.println("   step 5: no dep vars: there are #"+_cnt);
+        long stepsize = _cnt/100+1;
+        System.out.println("   step 5: no dep vars: there are #"+_cnt+"; numControlSignals="+numControlSignals);
         // Now dealing with noDependenceVars
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
         noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();
         long cnt = 0;
+        int numCopies = (1 << numControlSignals);
+        
+        
+        // FIXME info: Performance improved by factor #noDependenceVars
+        //Timer timer = new Timer();
+        //timer.reset(); timer.start();
+        
+        
         for (Token var : noDependenceVars) {
+            
+            // debug output:
             if(cnt++ % stepsize == 0 )
-                System.out.print((100*cnt) / _cnt + "%");
+                System.out.print((100*cnt) / _cnt + "% ");
+            
+            //timer.end(); System.out.println("A "+timer); timer.reset(); timer.start();
             SExpression type = varTypes.get(var);
             assert (type != null);
             int numParams = 0;
             if (functionArity.containsKey(var))
                 numParams = functionArity.get(var);
 
+            //timer.end(); System.out.println("B "+timer); timer.reset(); timer.start();
             List<Term> listOfVarCopies = null;
             if (noDependenceVarsCopies.containsKey(var))
                 listOfVarCopies = noDependenceVarsCopies.get(var);
@@ -1478,6 +1551,7 @@ public class Suraq implements Runnable {
             if (numParams == 0)
                 noDependenceVarsCopies.put(var, listOfVarCopies);
 
+            //timer.end(); System.out.println("C "+timer); timer.reset(); timer.start();
             List<UninterpretedFunction> listOfFunctionCopies = null;
             if (noDependenceFunctionsCopies.containsKey(var))
                 listOfFunctionCopies = noDependenceFunctionsCopies.get(var);
@@ -1486,29 +1560,38 @@ public class Suraq implements Runnable {
             if (numParams > 0)
                 noDependenceFunctionsCopies.put(var, listOfFunctionCopies);
 
-            for (int count = 1; count <= (1 << numControlSignals); count++) {
-                String name = Util.freshVarName(formula, var.toString()
-                        + "_copy_" + count);
-                outputExpressions.add(SExpression.makeDeclareFun(
-                        new Token(name), type, numParams));
-                if (numParams == 0) {
+            //timer.end(); System.out.println("D "+timer); timer.reset(); timer.start();
+            for (int count = 1; count <= numCopies; count++)
+            {
+                //timer.end(); System.out.println("Di "+timer); timer.reset(); timer.start();
+                
+                String name = Util.freshVarNameCached(formula, var.toString() + "_copy_" + count);
+                //timer.end(); System.out.println("Di1 "+timer); timer.reset(); timer.start();
+                outputExpressions.add(SExpression.makeDeclareFun(new Token(name), type, numParams));
+                //timer.end(); System.out.println("Di2 "+timer); timer.reset(); timer.start();
+                if (numParams == 0)
+                {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))
-                        listOfVarCopies.add(new PropositionalVariable(name,
-                                count));
+                        listOfVarCopies.add(new PropositionalVariable(name, count));
                     else if (type.equals(SExpressionConstants.VALUE_TYPE))
                         listOfVarCopies.add(new DomainVariable(name, count));
-                    else {
+                    else
+                    {
                         assert (type.equals(SExpressionConstants.ARRAY_TYPE));
                         listOfVarCopies.add(new ArrayVariable(name, count));
                     }
-                } else {
+                    //timer.end(); System.out.println("Di3a "+timer); timer.reset(); timer.start();
+                } 
+                else
+                {
                     assert (type instanceof Token);
-                    listOfFunctionCopies.add(new UninterpretedFunction(name,
-                            numParams, (Token) type, count));
+                    listOfFunctionCopies.add(new UninterpretedFunction(name, numParams, (Token) type, count));
+                    //timer.end(); System.out.println("Di3b "+timer); timer.reset(); timer.start();
                 }
             }
+            //timer.end(); System.out.println("E "+timer); timer.reset(); timer.start();
         }
-
+        System.out.print('\n');
         System.out.println("   step 6: macro");
         for (FunctionMacro macro : formula.getFunctionMacros())
             outputExpressions.add(macro.toSmtlibV2());

@@ -240,11 +240,12 @@ public class TseitinParser extends SMTLibParser {
                         Collections.sort(tseitinIndices);
                         if (tseitinIndices.get(numTseitinVars - 1) <= currTseitinIndex) {
                             if (currClauses.size() == 0) {
-                                System.out
+                               /* System.out
                                         .println("INFO: Encoding Tseitin variable "
                                                 + this.tseitinVariables.get(
                                                         currTseitinIndex)
                                                         .getVarName());
+                                                        */
                                 currClauses.add(clause);
                             } else
                                 finishCurrTseitinDef = true;
@@ -306,7 +307,7 @@ public class TseitinParser extends SMTLibParser {
     private Formula buildTseitinFormula(List<Formula> CurrClauses,
             PropositionalVariable tseitinVar) {
 
-        System.out.println("start build tseitin formula.");
+        //System.out.println("start build tseitin formula.");
         Timer buildTseitinFormulaTimer = new Timer();
         buildTseitinFormulaTimer.start();
 
@@ -325,8 +326,8 @@ public class TseitinParser extends SMTLibParser {
         }
 
         buildTseitinFormulaTimer.end();
-        System.out.println("finished build tseitin formula in "
-                + buildTseitinFormulaTimer + ".\n");
+        //System.out.println("finished build tseitin formula in "
+        //        + buildTseitinFormulaTimer + ".\n");
 
         return posFormula;
     }

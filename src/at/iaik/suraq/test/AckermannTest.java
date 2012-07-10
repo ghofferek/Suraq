@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.main.Ackermann;
-import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;

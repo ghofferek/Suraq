@@ -597,7 +597,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		        if(result==null)
 		        {
 		        	result = addFunctionInstance(topLeveFormula, functionInstances, instanceParameters);
-		        	System.out.print('*');
+		        	//System.out.print('*');
     		        // Check if the function is noDependence or at least one parameter of the function is noDependence
     		        // This might be conservative and might not be complete (i.e., may
     		        // result unnecessary unrealizability)
@@ -605,7 +605,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		        }
 		        else
 		        {
-		            System.out.print('_');
+		            //System.out.print('_');
 		        }
 		        	
 		        	
@@ -635,7 +635,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		            // because it is added to a Set 
 		            // http://docs.oracle.com/javase/1.4.2/docs/api/java/util/Set.html#add%28java.lang.Object%29
 		        	noDependenceVars.add(new Token(result.getVarName()));
-		        	System.out.print('+');
+		        	//System.out.print('+');
 		        }
 		        return result;
     }            
