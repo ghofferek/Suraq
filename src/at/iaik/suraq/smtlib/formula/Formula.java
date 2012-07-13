@@ -327,5 +327,8 @@ public interface Formula extends SMTLibObject, Serializable {
     public void uninterpretedFunctionsToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
+    
+    
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars);
 
 }

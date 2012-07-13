@@ -372,4 +372,10 @@ public class PropositionalVariable extends PropositionalTerm implements
         return;
     }
 
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        return this;
+    }
+    
 }

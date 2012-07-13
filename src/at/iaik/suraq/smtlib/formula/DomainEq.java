@@ -161,6 +161,6 @@ public class DomainEq extends EqualityFormula {
 	                 term.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,functionInstances, 
 	                		 instanceParameters, noDependenceVars);
 	        }
-    }    
+    } 
 
 }

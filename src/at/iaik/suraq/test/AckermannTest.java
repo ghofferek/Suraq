@@ -45,6 +45,8 @@ public class AckermannTest {
 		//options = SuraqOptions.getInstance();
 	}
 	
+	// TODO: AckermannPredicatesTest has better testfunction. use this later!!!
+	
 	@Before
 	public void setUp() {
 	    SuraqOptions.kill();
@@ -58,7 +60,7 @@ public class AckermannTest {
 	public void liveTest() {  
         System.out.println("****************************************************");
         System.out.println("Testcase: Live: "+"./rsc/test/live.smt2");
-		boolean result = testFile("./rsc/test/live.smt2", "./rsc/test/live-acker.smt2", "./rsc/test/live-unsat.smt2");
+		boolean result = testFile("./rsc/test/live.smt2", "./rsc/test/~live-acker.smt2", "./rsc/test/~live-unsat.smt2");
 		System.out.println("  live: " + (result?"Success :-)":"Failed :-("));
 	    Assert.assertTrue(result);
 	}
@@ -69,7 +71,7 @@ public class AckermannTest {
 	public void example0Test() {
         System.out.println("****************************************************");
         System.out.println("Testcase: Example 3.4 (pg. 66): "+"./rsc/test/ex34.smt2");
-		boolean result = testFile("./rsc/test/ex34.smt2", "./rsc/test/ex34-acker.smt2", "./rsc/test/ex34-unsat.smt2");
+		boolean result = testFile("./rsc/test/ex34.smt2", "./rsc/test/~ex34-acker.smt2", "./rsc/test/~ex34-unsat.smt2");
 		System.out.println("  Example 3.4 (pg. 66): " + (result?"Success :-)":"Failed :-("));
 	    Assert.assertTrue(result);
 	}
@@ -80,7 +82,7 @@ public class AckermannTest {
 	public void example1Test() {  
         System.out.println("****************************************************");
         System.out.println("Testcase: Unsatisfiable with one function: "+"./rsc/test/a01.smt2");
-		boolean result = testFile("./rsc/test/a01.smt2", "./rsc/test/a01-acker.smt2", "./rsc/test/a01-unsat.smt2");
+		boolean result = testFile("./rsc/test/a01.smt2", "./rsc/test/~a01-acker.smt2", "./rsc/test/~a01-unsat.smt2");
 		System.out.println("  Example 3.4 (pg. 66) mit AND statt OR: " + (result?"Success :-)":"Failed :-("));
 	    Assert.assertTrue(result);
 	}
@@ -90,7 +92,7 @@ public class AckermannTest {
 	public void twoFunctions() { 
 	    System.out.println("****************************************************");
         System.out.println("Testcase: 2 different Functions, unsatisfiable: "+ "./rsc/test/a02.smt2");
-		boolean result = testFile("./rsc/test/a02.smt2", "./rsc/test/a02-acker.smt2", "./rsc/test/a02-unsat.smt2");
+		boolean result = testFile("./rsc/test/a02.smt2", "./rsc/test/~a02-acker.smt2", "./rsc/test/~a02-unsat.smt2");
 		System.out.println("  2 Functions: " + (result?"Success :-)":"Failed :-("));
 	    Assert.assertTrue(result);
 	}
@@ -101,7 +103,7 @@ public class AckermannTest {
     public void recursiveFunctions() { 
         System.out.println("****************************************************");
         System.out.println("Testcase: 2 different Functions, recursively, valid: "+ "./rsc/test/a03.smt2");
-        boolean result = testFile("./rsc/test/a03.smt2", "./rsc/test/a03-acker.smt2", "./rsc/test/a03-unsat.smt2");
+        boolean result = testFile("./rsc/test/a03.smt2", "./rsc/test/~a03-acker.smt2", "./rsc/test/~a03-unsat.smt2");
         System.out.println("  2 Functions recursively: " + (result?"Success :-)":"Failed :-("));
         Assert.assertTrue(result);
     }
@@ -112,7 +114,7 @@ public class AckermannTest {
     public void largerRecursiveFunctions() { 
         System.out.println("****************************************************");
         System.out.println("Testcase: larger recursive functions, valid: "+ "./rsc/test/a04.smt2");
-        boolean result = testFile("./rsc/test/a04.smt2", "./rsc/test/a04-acker.smt2", "./rsc/test/a04-unsat.smt2");
+        boolean result = testFile("./rsc/test/a04.smt2", "./rsc/test/~a04-acker.smt2", "./rsc/test/~a04-unsat.smt2");
         System.out.println("  larger recursive functions: " + (result?"Success :-)":"Failed :-("));
         Assert.assertTrue(result);
     }
@@ -122,7 +124,7 @@ public class AckermannTest {
     public void twoParameters() { 
         System.out.println("****************************************************");
         System.out.println("Testcase: two Parameters, valid: "+ "./rsc/test/a05.smt2");
-        boolean result = testFile("./rsc/test/a05.smt2", "./rsc/test/a05-acker.smt2", "./rsc/test/a05-unsat.smt2");
+        boolean result = testFile("./rsc/test/a05.smt2", "./rsc/test/~a05-acker.smt2", "./rsc/test/~a05-unsat.smt2");
         System.out.println("  2 Parameters: " + (result?"Success :-)":"Failed :-("));
         Assert.assertTrue(result);
     }
@@ -133,7 +135,7 @@ public class AckermannTest {
     public void threeParametersWithInnerFunction() { 
         System.out.println("****************************************************");
         System.out.println("Testcase: three Parameters with inner function, valid: "+ "./rsc/test/a06.smt2");
-        boolean result = testFile("./rsc/test/a06.smt2", "./rsc/test/a06-acker.smt2", "./rsc/test/a06-unsat.smt2");
+        boolean result = testFile("./rsc/test/a06.smt2", "./rsc/test/~a06-acker.smt2", "./rsc/test/~a06-unsat.smt2");
         System.out.println("  three Parameters with inner function: " + (result?"Success :-)":"Failed :-("));
         Assert.assertTrue(result);
     }
@@ -143,7 +145,7 @@ public class AckermannTest {
     public void functionParameterOrderTest() { 
         System.out.println("****************************************************");
         System.out.println("Testcase: testing correct order of parameters, valid: "+ "./rsc/test/a07.smt2");
-        boolean result = testFile("./rsc/test/a07.smt2", "./rsc/test/a07-acker.smt2", "./rsc/test/a07-unsat.smt2");
+        boolean result = testFile("./rsc/test/a07.smt2", "./rsc/test/~a07-acker.smt2", "./rsc/test/~a07-unsat.smt2");
         System.out.println("  testing correct order of parameters: " + (result?"Success :-)":"Failed :-("));
         Assert.assertTrue(result);
     }

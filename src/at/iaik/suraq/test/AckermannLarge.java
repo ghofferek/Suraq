@@ -31,10 +31,14 @@ public class AckermannLarge {
         
         String testfilename = null;
         if(ackermannActive)
+            //testfilename = "./rsc/dlx/dlx_small.smt2";
             testfilename = "./rsc/dlx/dlx_no_domainITE_2_controllers.smt2";
         else
-            testfilename = "./rsc/dlx/dlx_no_domainITE_2_controllers-noackermann.smt2";
+            testfilename = "./rsc/dlx/dlx_small.smt2";
+            //testfilename = "./rsc/dlx/dlx_no_domainITE_2_controllers-noackermann.smt2";
         Ackermann.setActive(ackermannActive);
+        Ackermann.setFunctionActive(true);
+        Ackermann.setPredicateActive(true);
         
         String[] args = { "-i", testfilename }; //, "-v", "--check-result"
         Suraq suraq = new Suraq(args);

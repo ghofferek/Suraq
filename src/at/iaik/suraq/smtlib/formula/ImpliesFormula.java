@@ -557,4 +557,14 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 rightSide.uninterpretedFunctionsToAuxiliaryVariables(
                         topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
     }
+    
+
+    
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        leftSide = leftSide.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        rightSide = rightSide.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        return this;
+    }
 }

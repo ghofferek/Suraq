@@ -735,4 +735,16 @@ public class ArrayProperty implements Formula {
         
     }
     
+    
+    
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        throw new RuntimeException("Arrays must be replaced on performing graph-based reduction to propositional logic.");
+        /*
+        indexGuard = indexGuard.replaceEquivalences(topLeveFormula, replacements);
+        valueConstraint = valueConstraint.replaceEquivalences(topLeveFormula, replacements);
+        return this;
+        */
+    }
 }

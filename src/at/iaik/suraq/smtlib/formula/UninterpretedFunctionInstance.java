@@ -26,6 +26,8 @@ import at.iaik.suraq.util.Util;
  */
 public class UninterpretedFunctionInstance extends DomainTerm {
 
+    public static boolean method = true; // TODO remove this
+
     /**
      * 
      */
@@ -348,7 +350,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     @Override
     public Set<UninterpretedFunction> getUninterpretedFunctions() {
         Set<UninterpretedFunction> result = new HashSet<UninterpretedFunction>();
-        result.add(function);
+        if(method)
+            result.add(function);
         for (Term term : parameters)
             result.addAll(term.getUninterpretedFunctions());
         return result;

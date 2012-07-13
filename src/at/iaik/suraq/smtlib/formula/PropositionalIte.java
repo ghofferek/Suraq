@@ -537,4 +537,15 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 elseBranch.uninterpretedFunctionsToAuxiliaryVariables(
                         topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
     }  
+    
+    
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        condition = condition.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        thenBranch = thenBranch.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        elseBranch = elseBranch.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        return this;
+    }
 }

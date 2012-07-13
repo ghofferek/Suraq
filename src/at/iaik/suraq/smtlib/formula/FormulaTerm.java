@@ -358,4 +358,12 @@ public class FormulaTerm extends PropositionalTerm {
 		                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
     }  
     
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        formula = formula.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        return this;
+    }
+    
 }

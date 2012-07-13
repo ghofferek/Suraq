@@ -47,6 +47,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.DagOperationManager;
+import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.SaveCache;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
@@ -118,7 +119,7 @@ public class Suraq implements Runnable {
     // TODO: REMOVE, use assertPartitionFormulas
     @Deprecated
     private List<SExpression> assertPartitionList = new ArrayList<SExpression>();
-    /**
+    /**true
      * stores the main formula
      */
     private Formula mainFormula = null;
@@ -303,22 +304,33 @@ public class Suraq implements Runnable {
         Timer allPartitionsTimer = new Timer();
         allPartitionsTimer.start();
 
-        List<String> tseitinPartitions = new ArrayList<String>();
-
-        if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
-            System.out.println("  Performing tseitin encoding without Z3...");
-            tseitinPartitions = performTseitinEncodingWithoutZ3();
-        } else {
-            System.out.println("  Performing tseitin encoding with Z3...");
-            tseitinPartitions = performTseitinEncodingWithZ3();
+        boolean activetseitin = true;
+        String z3InputStr = null;
+        if(activetseitin)
+        {
+            List<String> tseitinPartitions = new ArrayList<String>();
+            
+            
+            if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
+                System.out.println("  Performing tseitin encoding without Z3...");
+                tseitinPartitions = performTseitinEncodingWithoutZ3();
+            } else {
+                System.out.println("  Performing tseitin encoding with Z3...");
+                tseitinPartitions = performTseitinEncodingWithZ3();
+            }
+    
+            allPartitionsTimer.end();
+            System.out.println("  All partitions done. (" + allPartitionsTimer
+                    + ")");
+    
+            // make asserts out of tseitinPartitions (returns the inputstring for the z3)
+            z3InputStr = buildSMTDescriptionFromTseitinPartitions(
+                    declarationStr, tseitinPartitions);
         }
-
-        allPartitionsTimer.end();
-        System.out.println("  All partitions done. (" + allPartitionsTimer
-                + ")");
-
-        String z3InputStr = buildSMTDescriptionFromTseitinPartitions(
-                declarationStr, tseitinPartitions);
+        else
+        {
+            z3InputStr = buildSMTDescriptionWithoutTsetin(declarationStr);
+        }
 
         return z3InputStr;
     }
@@ -1108,12 +1120,44 @@ public class Suraq implements Runnable {
         }
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
-        smtStr.append(SExpressionConstants.GET_PROOF.toString());
+        // smtStr.append(SExpressionConstants.GET_PROOF.toString()); // TODO: comment in to get proof
         smtStr.append(SExpressionConstants.EXIT.toString());
+        // FIXME: used!!! building asserts here
 
         return smtStr.toString();
     }
 
+    private String buildSMTDescriptionWithoutTsetin(
+            String declarationStr) {
+
+        StringBuffer smtStr = new StringBuffer();
+
+        smtStr.append(SExpressionConstants.SET_LOGIC_QF_UF.toString());
+        smtStr.append(SExpressionConstants.AUTO_CONFIG_FALSE.toString());
+        smtStr.append(SExpressionConstants.PROOF_MODE_2.toString());
+        smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+                .toString());
+        smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
+                .toString());
+        smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
+
+        smtStr.append(declarationStr);
+
+       
+
+        for (SExpression assertPartition : assertPartitionList) {
+            //smtStr.append("(assert " + assertPartition + ")");
+            smtStr.append(assertPartition);
+        }
+
+        smtStr.append(SExpressionConstants.CHECK_SAT.toString());
+       // smtStr.append(SExpressionConstants.GET_PROOF.toString());
+        smtStr.append(SExpressionConstants.EXIT.toString());
+
+        return smtStr.toString();
+    }
+    
+    
     /**
      * Creates an SMT Description from the simplified assert partitions.
      * 
@@ -1289,18 +1333,20 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
     
         ///////////////////////////////////////////////////
-        
+
+        ///////////////////////////////////////////////////
+        // Perform Graph Based Reduction
+        System.out.println("  Perform Graph-Based Reduction...");
+        timer.reset();
+        timer.start();
+        GraphReduction graphReduction = new GraphReduction();
+        formula = graphReduction.perform(formula, noDependenceVars);
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+    
+        ///////////////////////////////////////////////////
         // debug
-        try{
-            File debugFile1 = new File("./debug_ackermann.txt");
-            FileWriter fstream = new FileWriter(debugFile1);
-            fstream.write(formula.toString());
-            fstream.close();
-        }
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-        }
+        DebugHelper.getInstance().formulaToFile(formula, "./debug_ackermann.txt");
         
 
         
@@ -1311,10 +1357,6 @@ public class Suraq implements Runnable {
             throw new SuraqException(
                     "Current implementation cannot handle more than 30 control signals.");
         }
-
-        // ??????
-        // FIXME: where is the multiplication of nodep-vars implemented?
-        // ??????
         
         outputExpressions = new ArrayList<SExpression>();
         // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
@@ -1351,6 +1393,7 @@ public class Suraq implements Runnable {
         // get assert partitions and transform to simplifies.
         ListIterator<SExpression> beginAssert = outputExpressions
                 .listIterator(beginAssertPartitionIdx);
+        
         while (beginAssert.hasNext()) {
             SExpression expr = beginAssert.next().deepCopy();
             // expr.replaceChild(new Token("simplify"), 0);
@@ -1363,6 +1406,22 @@ public class Suraq implements Runnable {
         outputExpressions.add(SExpressionConstants.EXIT);
 
 
+        // debug:
+        try{
+            File debugFile1 = new File("./debug_assertPartitionList.txt");
+            FileWriter fstream = new FileWriter(debugFile1);
+            ListIterator<SExpression> tmp =  assertPartitionList.listIterator();
+            while (tmp.hasNext())
+            {
+                fstream.write(tmp.next().toString());
+            }
+            fstream.close();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+                
         
         return formula;
     }
@@ -1424,12 +1483,15 @@ public class Suraq implements Runnable {
 
             tempFormula = tempFormula.substituteFormula(variableSubstitutions);
             tempFormula = new NotFormula(tempFormula);
+
+            // assertPartitionFormulas = new one
             this.assertPartitionFormulas.put(count + 1, tempFormula);
             SExpression assertPartitionExpression = new SExpression();
             assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
             // .addChild(SExpressionConstants.ASSERT_PARTITION);
             assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
             outputExpressions.add(assertPartitionExpression);
+            // outputExpressions = usages?
         }
     }
 
@@ -1537,6 +1599,7 @@ public class Suraq implements Runnable {
             
             //timer.end(); System.out.println("A "+timer); timer.reset(); timer.start();
             SExpression type = varTypes.get(var);
+            if(type==null) continue; // TODO remove this line
             assert (type != null);
             int numParams = 0;
             if (functionArity.containsKey(var))

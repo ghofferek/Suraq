@@ -461,4 +461,15 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
 
     }
 
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        //for (Formula formula : this.getSubFormulas())
+        for(int i=0;i<formulas.size();i++)
+            formulas.set(i,formulas.get(i).replaceEquivalences(topLeveFormula, replacements, noDependenceVars));
+        return this;
+    }
+    
+    
 }

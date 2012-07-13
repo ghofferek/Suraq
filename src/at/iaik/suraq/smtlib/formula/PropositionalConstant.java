@@ -328,5 +328,12 @@ public class PropositionalConstant extends PropositionalTerm {
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
         return ;
-    }  
+    } 
+    
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        return this;
+    }
 }

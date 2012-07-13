@@ -47,7 +47,7 @@ public class AckermannMedium {
     @Test
     public void performFullSuraq3_no_readonly_pipeline_ex_suraq() { 
         System.out.println("****************************************************");
-        
+        //Ackermann.setPredicateActive(false);
         String[] args = { "-i",
         "./rsc/test/no_readonly_pipeline_example_suraq.smt2"}; //, "-v", "--check-result"
         Suraq suraq = new Suraq(args);

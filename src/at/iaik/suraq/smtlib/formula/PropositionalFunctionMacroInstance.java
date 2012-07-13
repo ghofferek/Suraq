@@ -511,4 +511,11 @@ public class PropositionalFunctionMacroInstance implements Formula {
 		                                    instanceParameters, noDependenceVars);
     }
 
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        throw new RuntimeException(
+                "replaceEquivalences cannot be called on an PropositionalFunctionMacroInstance.\n"
+                        + "PropositionalFunctionMacroInstance should be removed by now.");
+    }
 }

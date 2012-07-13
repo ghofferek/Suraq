@@ -178,4 +178,15 @@ public class ArrayEq extends EqualityFormula {
         throw new RuntimeException(
                 "Array equalities should have been removed before Tseitin encoding!");
     }
+    
+    
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        throw new RuntimeException(
+                "ArrayEq cannot be called on an UninterpretedFunctions.\n"
+                        + "ArrayEq should be removed by now.");
+    }
+    
 }

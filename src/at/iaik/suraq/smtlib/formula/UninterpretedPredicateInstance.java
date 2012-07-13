@@ -15,6 +15,7 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -185,7 +186,9 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     @Override
     public Set<String> getUninterpretedFunctionNames() {
         Set<String> result = new HashSet<String>();
-        result.add(function.getName().toString());
+        DebugHelper.predicates.add(function.getName());
+        if(method)
+            result.add(function.getName().toString());
         for (Term term : parameters)
             result.addAll(term.getUninterpretedFunctionNames());
         return result;
@@ -351,6 +354,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             } else
                 term.arrayReadsToUninterpretedFunctions(noDependenceVars);
     }
+    
+    public static boolean method = true; // TODO remove this
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
@@ -358,7 +363,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     @Override
     public Set<UninterpretedFunction> getUninterpretedFunctions() {
         Set<UninterpretedFunction> result = new HashSet<UninterpretedFunction>();
-        result.add(function);
+        if(method) // TODO: remove IF
+            result.add(function);
         for (Term term : parameters)
             result.addAll(term.getUninterpretedFunctions());
         return result;
@@ -663,7 +669,14 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
 	        return result;		
 	}
     
-    
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        throw new RuntimeException(
+                "replaceEquivalences cannot be called on an UninterpretedFunctions.\n"
+                        + "UninterpretedFunctions should be removed by now.");
+    }
     
 	
 }
