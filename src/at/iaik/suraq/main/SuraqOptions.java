@@ -182,17 +182,17 @@ public final class SuraqOptions {
         cacheValue = (Integer) cmdLineParser.getOptionValue(cacheOption);
         tseitinValue = (Integer) cmdLineParser.getOptionValue(tseitinOption);
 
-        int end = inputValue.lastIndexOf(".");
+        int end = getInput().lastIndexOf(".");
 
-        SuraqOptions.z3InputDefault = inputValue.substring(0, end) + '_'
+        SuraqOptions.z3InputDefault = getInput().substring(0, end) + '_'
                 + SuraqOptions.z3InputDefault;
-        SuraqOptions.z3ProofDefault = inputValue.substring(0, end) + '_'
+        SuraqOptions.z3ProofDefault = getInput().substring(0, end) + '_'
                 + SuraqOptions.z3ProofDefault;
-        SuraqOptions.outputDefault = inputValue.substring(0, end) + '_'
+        SuraqOptions.outputDefault = getInput().substring(0, end) + '_'
                 + SuraqOptions.outputDefault;
-        SuraqOptions.cacheFile = inputValue.substring(0, end) + '_'
+        SuraqOptions.cacheFile = getInput().substring(0, end) + '_'
                 + SuraqOptions.cacheFile;
-        SuraqOptions.cacheFileSerial = inputValue.substring(0, end) + '_'
+        SuraqOptions.cacheFileSerial = getInput().substring(0, end) + '_'
                 + SuraqOptions.cacheFileSerial;
     }
 

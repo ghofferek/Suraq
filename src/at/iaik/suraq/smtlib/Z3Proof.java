@@ -27,6 +27,7 @@ import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
@@ -155,7 +156,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
     private static long debugLastGetHypothesesStatsTime = 0;
 
     private static final void printDebugGetHypothesesTimerStats() {
-        if ((Z3Proof.debugGetHypothesesTimer.getTotalTimeMillis() - Z3Proof.debugLastGetHypothesesStatsTime) > 5000) {
+        if ((Z3Proof.debugGetHypothesesTimer.getTotalTimeMillis() - Z3Proof.debugLastGetHypothesesStatsTime) > 60000) {
             Z3Proof.debugLastGetHypothesesStatsTime = Z3Proof.debugGetHypothesesTimer
                     .getTotalTimeMillis();
             System.out
@@ -2017,6 +2018,56 @@ public class Z3Proof implements SMTLibObject, Serializable {
             }
         }
 
+    }
+
+    /**
+     * 
+     * @param formula
+     *            the formula to look for
+     * @return the set of all proof nodes in this proof (and transitive
+     *         subproofs) which have an IFF node as their consequent where one
+     *         of the sides of the IFF equals the given formula.
+     */
+    public Set<Z3Proof> findIffNodes(Formula formula) {
+        Set<Z3Proof> result = new HashSet<Z3Proof>();
+        long operationId = DagOperationManager.startDAGOperation();
+        findIffNodesRecursion(operationId, formula, result);
+        DagOperationManager.endDAGOperation(operationId);
+        return result;
+    }
+
+    private void findIffNodesRecursion(long operationId, Formula formula,
+            Set<Z3Proof> result) {
+        if (this.wasVisitedByDAGOperation(operationId))
+            return;
+        this.visitedByDAGOperation(operationId);
+
+        if (this.consequent instanceof PropositionalEq) {
+            PropositionalEq consequentEq = (PropositionalEq) this.consequent;
+            if (consequentEq.getTerms().size() == 2) {
+                assert (consequentEq.getTerms().get(0) instanceof PropositionalTerm);
+                assert (consequentEq.getTerms().get(1) instanceof PropositionalTerm);
+                PropositionalTerm term1 = (PropositionalTerm) consequentEq
+                        .getTerms().get(0);
+                PropositionalTerm term2 = (PropositionalTerm) consequentEq
+                        .getTerms().get(1);
+                PropositionalTerm positiveTerm = FormulaTerm.create((Util
+                        .makeLiteralPositive(formula)));
+                PropositionalTerm negativeTerm = FormulaTerm
+                        .create(new NotFormula(Util
+                                .makeLiteralPositive(formula)));
+                if (term1.equals(formula) || term2.equals(formula)
+                        || term1.equals(positiveTerm)
+                        || term1.equals(negativeTerm)
+                        || term2.equals(positiveTerm)
+                        || term2.equals(negativeTerm))
+                    result.add(this);
+            }
+        }
+
+        for (Z3Proof child : subProofs) {
+            child.findIffNodesRecursion(operationId, formula, result);
+        }
     }
 
 }

@@ -14,8 +14,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.junit.Assert;
-
 public class ResProof {
 
     public static final int MAX_PROOF_SIZE = 100000;
@@ -65,8 +63,7 @@ public class ResProof {
     private void incNodeCount(ResNode n) {
         // nodeRef[nodeCount] = n;
         nodeCount++;
-        Assert.assertTrue("Maximum capacity of proof size reached!",
-                nodeCount < ResProof.MAX_PROOF_SIZE);
+        assert (nodeCount < ResProof.MAX_PROOF_SIZE);
     }
 
     public void setRoot(ResNode n) {
@@ -191,8 +188,8 @@ public class ResProof {
                 int v = Integer.parseInt(is[0]);
                 if (v == 0)
                     break;
-                Assert.assertTrue("var and only parts should be there",
-                        is.length == 2);
+                // "var and only parts should be there"
+                assert (is.length == 2);
                 var_part[v] = Integer.parseInt(is[1]);
             }
             ResNode n = null;
@@ -236,30 +233,24 @@ public class ResProof {
             System.out.println(n);
         // Todo: Check double lits issue if disabled globally
         if (n.isLeaf) {
-            Assert.assertTrue("Pivot at leaf!", n.pivot == 0);
-            Assert.assertTrue("Parent of a leaf!", n.left == null
-                    && n.right == null);
+            assert (n.pivot == 0); // "Pivot at leaf!",
+            assert (n.left == null && n.right == null); // "Parent of a leaf!",
             Iterator<Lit> iter = n.cl.iterator();
             while (iter.hasNext()) {
                 Lit l = iter.next();
-                Assert.assertTrue("a local with uninitialized partition",
-                        var_part[l.var()] != -1);
+                assert (var_part[l.var()] != -1);// "a local with uninitialized partition",
 
                 if (var_part[l.var()] != 0)
-                    Assert.assertTrue("a local is in wrong partition!",
-                            var_part[l.var()] == n.part);
+                    assert (var_part[l.var()] == n.part);// "a local is in wrong partition!",
             }
         } else {
-            Assert.assertTrue("A parent missing!", n.left != null
-                    && n.right != null);
-            Assert.assertTrue(
-                    "pivot literals are not present in parents!",
-                    n.left.cl.contains(n.pivot, true)
-                            && n.right.cl.contains(n.pivot, false));
+            assert (n.left != null && n.right != null); // "A parent missing!",
+            assert (n.left.cl.contains(n.pivot, true) && n.right.cl.contains(
+                    n.pivot, false)); // "pivot literals are not present in parents!",
             Clause c = new Clause(n.left.cl, n.right.cl, n.pivot);
-            Assert.assertTrue(
-                    "node is not the result of resolution of parents",
-                    n.cl.equals(c));
+            assert (
+
+            n.cl.equals(c)); // "node is not the result of resolution of parents",
             recCheckProof(n.left);
             recCheckProof(n.right);
         }
@@ -405,8 +396,8 @@ public class ResProof {
         int goRight = n.right.checkMovable(nl);
         // System.out.println("Moving a node!"+n);
 
-        Assert.assertTrue(n + ":Both unmovable parents is not possible!",
-                goLeft != -1 || goRight != -1);
+        assert (goLeft != -1 || goRight != -1);// n +
+                                               // ":Both unmovable parents is not possible!",
 
         // L = Res(LL, LR), R = Res(RL, RR), N = Res(L,R)
         ResNode L = n.left, R = n.right, n1 = null, n2 = null;

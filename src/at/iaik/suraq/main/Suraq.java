@@ -199,12 +199,12 @@ public class Suraq implements Runnable {
             System.err.println("ERROR: File " + sourceFile.getPath()
                     + " not found!");
             noErrors = false;
-            return null;
+            throw new RuntimeException(exc);
         } catch (IOException exc) {
             System.err.println("ERROR: Could not read from file "
                     + sourceFile.getPath());
             noErrors = false;
-            return null;
+            throw new RuntimeException(exc);
         }
 
         Timer sExpParseTimer = new Timer();
@@ -614,267 +614,65 @@ public class Suraq implements Runnable {
         System.out.println("    Found " + badLiteralHypotheses.size()
                 + " bad-literal hypotheses. Current timer: " + timer);
 
+        Set<Formula> badLiterals = new HashSet<Formula>();
+        for (Z3Proof badLiteralHypothesis : badLiteralHypotheses)
+            badLiterals.add(badLiteralHypothesis.getConsequent());
+
+        System.out.println("    These consist of " + badLiterals.size()
+                + " different bad literals.");
+        System.out
+                .println("    Now looking for IFF nodes for all these formulas. Current timer: "
+                        + timer);
+
+        int foundCounter = 0;
+        int literalCount = 0;
+        for (Formula badLiteral : badLiterals) {
+            Set<Z3Proof> iffNodes = rootProof.findIffNodes(badLiteral);
+            System.out.println("      Literal " + ++literalCount + ": "
+                    + Util.formulaToStringWithoutNewlines(badLiteral));
+            System.out.println("      Found " + iffNodes.size()
+                    + " IFF nodes. Current timer: " + timer);
+            Set<Z3Proof> unconditionalIffNodes = new HashSet<Z3Proof>(
+                    iffNodes.size());
+            boolean found = false;
+            for (Z3Proof iffNode : iffNodes) {
+                Set<Z3Proof> iffNodeHypotheses = iffNode.getHypotheses();
+                if (iffNodeHypotheses.isEmpty()) {
+                    unconditionalIffNodes.add(iffNode);
+                    found = true;
+                    break;
+                } else {
+                    System.out.println("        Found "
+                            + iffNodeHypotheses.size()
+                            + " hypotheses for IFF node. Size: "
+                            + iffNode.size());
+                    if (iffNodeHypotheses.size() == 3)
+                        assert (iffNodeHypotheses.size() == 3);
+                }
+
+            }
+            if (found) {
+                System.out
+                        .println("      Unconditional node found. Current timer: "
+                                + timer);
+                foundCounter++;
+            } else {
+                System.out
+                        .println("      NO unconditional node found. Current timer: "
+                                + timer);
+            }
+
+        }
+        System.out.println("      Found unconditional nodes for "
+                + foundCounter + " literals, out of " + badLiterals.size()
+                + " literals in total. Current timer: " + timer);
+        assert (foundCounter == badLiterals.size());
+
         // Deal with each bad literal hypothesis
         for (Z3Proof badLiteralHypothesis : badLiteralHypotheses) {
             Timer oneHypTimer = new Timer();
             oneHypTimer.start();
-            assert (badLiteralHypothesis.getProofType()
-                    .equals(SExpressionConstants.HYPOTHESIS));
-            Formula literal = badLiteralHypothesis.getConsequent();
-            assert (Util.isLiteral(literal));
-            System.out.println("    Literal "
-                    + literal.toString().replaceAll("\\s{2,}", " ")
-                            .replace("\n", ""));
-
-            // Find candidates
-            Set<Z3Proof> candidates = rootProof.getNodesWithConsequent(literal);
-            System.out.print("      Found " + candidates.size()
-                    + " candidates for replacement.");
-            System.out.println(" Current timer: " + oneHypTimer);
-
-            // Find the closing lemmas and the hypotheses on which a candidate
-            // may depend
-            List<Z3Proof> lemmas = new ArrayList<Z3Proof>(
-                    badLiteralHypothesis.getClosingLemmas());
-            System.out.print("      Found " + lemmas.size()
-                    + " closing lemmas.");
-            for (Z3Proof lemma : lemmas) {
-                System.out.println("        ID " + lemma.getIdString());
-            }
-            System.out.println(" Current timer: " + oneHypTimer);
-            Set<Z3Proof> allowedHypotheses = null;
-            Map<Z3Proof, Set<Z3Proof>> hypothesesOfLemmas = new HashMap<Z3Proof, Set<Z3Proof>>();
-            int count = 0;
-            for (Z3Proof lemma : lemmas) {
-                assert (lemma.getProofType().equals(SExpressionConstants.LEMMA));
-                assert (lemma.getSubProofs().size() == 1);
-                Z3Proof hypotheticalProof = lemma.getSubProofs().get(0);
-                Set<Z3Proof> currentHypotheses = hypotheticalProof
-                        .getHypotheses();
-                hypothesesOfLemmas.put(lemma, currentHypotheses);
-                assert (currentHypotheses.contains(badLiteralHypothesis));
-                System.out.println("      Lemma " + ++count + " has "
-                        + currentHypotheses.size() + " hypotheses.");
-                if (allowedHypotheses == null)
-                    allowedHypotheses = new HashSet<Z3Proof>(currentHypotheses);
-                else
-                    allowedHypotheses.retainAll(currentHypotheses);
-                System.out.println("      Now at  " + allowedHypotheses.size()
-                        + " allowed hypotheses.");
-            }
-            boolean wasStillPresent = allowedHypotheses
-                    .remove(badLiteralHypothesis);
-            assert (wasStillPresent);
-            System.out.print("      Identified " + allowedHypotheses.size()
-                    + " allowed hypotheses.");
-
-            System.out.println(" Current timer: " + oneHypTimer);
-
-            // Search for update candidate
-            Z3Proof update = null;
-            count = 0;
-            for (Z3Proof candidate : candidates) {
-                if (candidate.getProofType().equals(
-                        SExpressionConstants.HYPOTHESIS)) {
-                    System.out.print("      Candidate " + ++count
-                            + " is an hypothesis. --> Rejected.");
-                    System.out.println(" Current timer: " + oneHypTimer);
-                    continue;
-                }
-                Set<Z3Proof> candidateHypotheses = candidate.getHypotheses();
-                if (!candidateHypotheses.isEmpty()) {
-                    System.out.println("      Candidate " + ++count
-                            + " depends on " + candidateHypotheses.size()
-                            + " hypotheses.");
-
-                    if (candidateHypotheses.size() > allowedHypotheses.size()) {
-                        System.out
-                                .print("      More candidate hypotheses than allowed hypotheses. --> Rejected.");
-                        System.out.println(" Current timer: " + oneHypTimer);
-                        continue;
-                    }
-                    if (!allowedHypotheses.containsAll(candidateHypotheses)) {
-                        System.out
-                                .print("      Candidate hypotheses are not a subset of allowed hypotheses. --> Rejected.");
-                        System.out.println(" Current timer: " + oneHypTimer);
-                        continue;
-                    }
-                    if (candidate.allNodes().removeAll(
-                            badLiteralHypothesis.allAncestorNodes())) {
-                        System.out
-                                .print("      Descendants of candidate intersect with ancestors of bad-literal hypothesis.");
-                        System.out
-                                .print("      This would cause a loop in the DAG. --> Rejected.");
-                        System.out.println(" Current timer: " + oneHypTimer);
-                        continue;
-                    }
-                }
-                System.out.print("      Possible replacement found. (ID "
-                        + candidate.getIdString() + ")");
-                System.out.println(" Current timer: " + oneHypTimer);
-                update = candidate;
-                break;
-            }
-
-            if (update != null) {
-                // Do the update
-                System.out.println("    Updating "
-                        + badLiteralHypothesis.getParents().size()
-                        + " parents...");
-                for (Z3Proof parent : badLiteralHypothesis.getParents()) {
-                    assert (parent.getSubProofs()
-                            .contains(badLiteralHypothesis));
-                    parent.getSubProofs()
-                            .set(parent.getSubProofs().indexOf(
-                                    badLiteralHypothesis), update);
-                    parent.addObsoleteLiteral(literal);
-                }
-                update.addParents(badLiteralHypothesis.getParents());
-                badLiteralHypothesis.markHypCacheDirty();
-            } else {
-
-                System.out.println();
-                System.out
-                        .println("      No simple replacement found! Starting to try it with splitting nodes.");
-
-                // Computing paths from lemmas to bad literal hypothesis
-                Map<Z3Proof, Set<Z3Proof>> nodesOnPathFromLemmaToBadLitHyp = new HashMap<Z3Proof, Set<Z3Proof>>();
-                System.out
-                        .println("      Computing paths from lemmas to bad literal hypothesis.");
-
-                int lemmaCount = 0;
-                for (Z3Proof lemma : lemmas) {
-                    System.out.println("        Lemma " + ++lemmaCount);
-                    Set<Z3Proof> currentNodes = lemma
-                            .nodesOnPathTo(badLiteralHypothesis);
-                    System.out.println("          Found " + currentNodes.size()
-                            + " nodes.");
-                    assert (currentNodes.contains(badLiteralHypothesis));
-                    nodesOnPathFromLemmaToBadLitHyp.put(lemma, currentNodes);
-                }
-                System.out
-                        .println("      Compute sets of nodes to be duplicated.");
-                lemmaCount = 0;
-                for (Z3Proof lemma : lemmas) {
-                    System.out.println("      Lemma " + ++lemmaCount);
-                    // Compute the set to be duplicated
-                    Set<Z3Proof> pathForThisLemma = nodesOnPathFromLemmaToBadLitHyp
-                            .get(lemma);
-                    Set<Z3Proof> localNodes = new HashSet<Z3Proof>(
-                            pathForThisLemma);
-                    for (Z3Proof otherLemma : lemmas) {
-                        if (otherLemma == lemma)
-                            continue;
-                        localNodes.removeAll(nodesOnPathFromLemmaToBadLitHyp
-                                .get(otherLemma));
-                    }
-                    assert (pathForThisLemma.contains(badLiteralHypothesis));
-                    assert (!localNodes.contains(badLiteralHypothesis));
-                    Set<Z3Proof> toDuplicate = new HashSet<Z3Proof>(
-                            pathForThisLemma);
-                    toDuplicate.removeAll(localNodes);
-                    assert (toDuplicate.contains(badLiteralHypothesis));
-                    System.out.println("        Computed " + toDuplicate.size()
-                            + " nodes to duplicate. Current timer: "
-                            + oneHypTimer);
-                    Map<Z3Proof, Z3Proof> duplicates = lemma.getSubProofs()
-                            .get(0).duplicate(toDuplicate, localNodes);
-
-                    Z3Proof duplicateHypotheticalProof = duplicates.get(lemma
-                            .getSubProofs().get(0));
-                    lemma.getSubProofs().set(0, duplicateHypotheticalProof);
-
-                    // Search for replacement candidate
-                    Z3Proof badLiteralHypothesisDuplicate = duplicates
-                            .get(badLiteralHypothesis);
-                    assert (badLiteralHypothesisDuplicate != null);
-                    int candidateCount = 0;
-                    Set<Z3Proof> lemmaHypotheses = hypothesesOfLemmas
-                            .get(lemma);
-                    assert (lemmaHypotheses != null);
-                    assert (update == null);
-                    for (Z3Proof candidate : candidates) {
-                        if (candidate.getProofType().equals(
-                                SExpressionConstants.HYPOTHESIS)) {
-                            System.out.print("      Candidate "
-                                    + ++candidateCount
-                                    + " is an hypothesis. --> Rejected.");
-                            System.out
-                                    .println(" Current timer: " + oneHypTimer);
-                            continue;
-                        }
-                        Set<Z3Proof> candidateHypotheses = candidate
-                                .getHypotheses();
-                        if (!candidateHypotheses.isEmpty()) {
-                            System.out.println("      Candidate "
-                                    + ++candidateCount + " depends on "
-                                    + candidateHypotheses.size()
-                                    + " hypotheses.");
-
-                            if (candidateHypotheses.size() > lemmaHypotheses
-                                    .size()) {
-                                System.out
-                                        .print("      More candidate hypotheses than lemma hypotheses. --> Rejected.");
-                                System.out.println(" Current timer: "
-                                        + oneHypTimer);
-                                continue;
-                            }
-                            if (!lemmaHypotheses
-                                    .containsAll(candidateHypotheses)) {
-                                System.out
-                                        .print("      Candidate hypotheses are not a subset of lemma hypotheses. --> Rejected.");
-                                System.out.println(" Current timer: "
-                                        + oneHypTimer);
-                                continue;
-                            }
-                            if (candidate.allNodes().removeAll(
-                                    badLiteralHypothesisDuplicate
-                                            .allAncestorNodes())) {
-                                System.out
-                                        .print("      Descendants of candidate intersect with ancestors of bad-literal hypothesis.");
-                                System.out
-                                        .print("      This would cause a loop in the DAG. --> Rejected.");
-                                System.out.println(" Current timer: "
-                                        + oneHypTimer);
-                                continue;
-                            }
-                        }
-                        System.out
-                                .print("      Possible replacement found. (ID "
-                                        + candidate.getIdString() + ")");
-                        System.out.println(" Current timer: " + oneHypTimer);
-                        update = candidate;
-                        break;
-                    }
-                    if (update != null) {
-                        // Do the update
-                        System.out.println("    Updating "
-                                + badLiteralHypothesis.getParents().size()
-                                + " parents...");
-                        for (Z3Proof parent : badLiteralHypothesisDuplicate
-                                .getParents()) {
-                            assert (parent.getSubProofs()
-                                    .contains(badLiteralHypothesisDuplicate));
-                            parent.getSubProofs().set(
-                                    parent.getSubProofs().indexOf(
-                                            badLiteralHypothesisDuplicate),
-                                    update);
-                            parent.addObsoleteLiteral(literal);
-                        }
-                        update.addParents(badLiteralHypothesis.getParents());
-                        badLiteralHypothesis.markHypCacheDirty();
-                    } else {
-                        System.out.println();
-                        System.out
-                                .println("      ERROR: No replacement found!");
-                        throw new RuntimeException(
-                                "No replacement found for bad-literal hypothesis.;");
-                    }
-                    System.out.println("      Done with lemma " + lemmaCount
-                            + ".");
-                    System.out.println();
-                }
-            }
+            assert (badLiteralHypothesis != null);
             oneHypTimer.stop();
             System.out.println("    Update complete. (" + oneHypTimer + ")");
             System.out.println();

@@ -1017,4 +1017,11 @@ public final class Util {
         return partitions.iterator().next();
     }
 
+    /**
+     * @param badLiteral
+     * @return
+     */
+    public static String formulaToStringWithoutNewlines(Formula formula) {
+        return formula.toString().replaceAll("\\s{2,}", " ").replace("\n", "");
+    }
 }

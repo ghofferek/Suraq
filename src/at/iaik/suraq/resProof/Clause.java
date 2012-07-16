@@ -7,8 +7,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.junit.Assert;
-
 public class Clause extends HashSet<Lit> {
 
     /**
@@ -29,12 +27,12 @@ public class Clause extends HashSet<Lit> {
 
     public Clause(Collection<Lit> clLeft, Collection<Lit> clRight, int pivot) {
         super();
-        addAllLit( clLeft );
+        addAllLit(clLeft);
         rmLit(pivot, true);
-        if( contains(pivot, false) ){
-            addAllLit( clRight );
-        }else{
-            addAllLit( clRight );
+        if (contains(pivot, false)) {
+            addAllLit(clRight);
+        } else {
+            addAllLit(clRight);
             rmLit(pivot, false);
         }
     }
@@ -46,8 +44,8 @@ public class Clause extends HashSet<Lit> {
     }
 
     public void addLit(Lit l) {
-        if(chkNegLit) 
-            Assert.assertTrue("~l and l in a clause", !this.contains(l.negLit()));
+        if (Clause.chkNegLit)
+            assert (!this.contains(l.negLit()));// "~l and l in a clause",
         this.add(l);
     }
 

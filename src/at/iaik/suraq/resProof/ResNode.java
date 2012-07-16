@@ -7,8 +7,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.junit.Assert;
-
 public class ResNode {
 
     public int id = 0;
@@ -39,32 +37,30 @@ public class ResNode {
             return;
         }
 
-        Assert.assertTrue("At least a parent is missing!", 
-                          pLeft != null && pRight != null );
-        
+        assert (pLeft != null && pRight != null); // "At least a parent is missing!",
+
         boolean isLeftPos = true;
 
         if (pPivot == 0) {
             Iterator<Lit> itr = pLeft.cl.iterator();
             while (itr.hasNext()) {
                 Lit l = itr.next();
-                if( pRight.cl.contains( l.negLit() ) ) {
+                if (pRight.cl.contains(l.negLit())) {
                     pPivot = l.var();
                     isLeftPos = l.isPos();
                     break;
                 }
             }
-            Assert.assertTrue("pivot not found!", pPivot != 0);
-        }else{
-            if( pLeft.cl.contains( pPivot, true ) 
-                && pRight.cl.contains( pPivot, false) ){
+            assert (pPivot != 0); // "pivot not found!",
+        } else {
+            if (pLeft.cl.contains(pPivot, true)
+                    && pRight.cl.contains(pPivot, false)) {
                 isLeftPos = true;
-            }else if( pRight.cl.contains( pPivot, true ) 
-                      && pLeft.cl.contains( pPivot, false) ) {
+            } else if (pRight.cl.contains(pPivot, true)
+                    && pLeft.cl.contains(pPivot, false)) {
                 isLeftPos = false;
-            }else{
-                Assert.assertTrue( "Parents do not contain lietrals of pivot!", 
-                                   pPivot != 0);                
+            } else {
+                assert (pPivot != 0);// "Parents do not contain lietrals of pivot!",
             }
         }
         pivot = pPivot;
@@ -88,8 +84,8 @@ public class ResNode {
         right.addChild(this);
     }
 
-    public void cleanUP(){        
-        if( !isLeaf && children.isEmpty() ){
+    public void cleanUP() {
+        if (!isLeaf && children.isEmpty()) {
             left.rmChild(this);
             left.cleanUP();
             left = null;
@@ -100,8 +96,9 @@ public class ResNode {
             // this is ready for garbage collection.
         }
     }
+
     public void rmChild(ResNode n) {
-        Assert.assertTrue("Removing non-existant child", children.contains(n));
+        assert (children.contains(n));// "Removing non-existant child",
         children.remove(n);
     }
 
@@ -110,9 +107,8 @@ public class ResNode {
         cleanUP();
     }
 
-    
     public void addChild(ResNode n) {
-        Assert.assertTrue("Adding existing child", !children.contains(n));
+        assert (!children.contains(n));// "Adding existing child",
         children.add(n);
     }
 
@@ -127,7 +123,8 @@ public class ResNode {
     }
 
     public int checkMovable(Lit l) {
-        if (isLeaf || part != -1) return -1; // move disallowed
+        if (isLeaf || part != -1)
+            return -1; // move disallowed
         boolean ll = left.cl.contains(l);
         boolean lr = right.cl.contains(l);
         if (ll && lr)
@@ -136,7 +133,7 @@ public class ResNode {
             return 2; // left parent have l
         if (lr)
             return 3; // right parent have l
-        Assert.assertTrue("l is not in any parent", false);
+        assert (false);// "l is not in any parent",
         return 0;
     }
 
@@ -161,18 +158,18 @@ public class ResNode {
         gainer.addChild(this);
         looser.rmChildWithCleanUP(this);
     }
-    
-    public void moveChidren( boolean toLeftParent ){
+
+    public void moveChidren(boolean toLeftParent) {
         ResNode gainer = null;
-        if(toLeftParent) 
-            gainer = left; 
-        else 
+        if (toLeftParent)
+            gainer = left;
+        else
             gainer = right;
 
         Iterator<ResNode> itr = children.iterator();
-        while( itr.hasNext() ){
+        while (itr.hasNext()) {
             ResNode n = itr.next();
-            if( n.left == this)
+            if (n.left == this)
                 n.left = gainer;
             else
                 n.right = gainer;
@@ -182,47 +179,47 @@ public class ResNode {
         children.clear();
         cleanUP();
     }
-    
+
     public boolean refresh() {
-        
-        if( !left.cl.contains( pivot, true ) ){
+
+        if (!left.cl.contains(pivot, true)) {
             moveChidren(true);
             return false; // Node is dead
         }
-        if( !right.cl.contains( pivot, false ) ){
+        if (!right.cl.contains(pivot, false)) {
             moveChidren(false);
             return false; // Node is dead
         }
-        cl = new Clause(left.cl,right.cl,pivot);
+        cl = new Clause(left.cl, right.cl, pivot);
         return true; // Node is still valid
     }
-    
-    public void print(){
+
+    public void print() {
         System.out.println("------------------------------------");
-        if(isLeaf)
-            System.out.println( id+"> (leaf) part:"+part);
+        if (isLeaf)
+            System.out.println(id + "> (leaf) part:" + part);
         else
-            System.out.println( id+"> left:"+left.id+" right:"+right.id
-                                +" pivot:"+pivot);
-        System.out.println("Clause: "+cl);
+            System.out.println(id + "> left:" + left.id + " right:" + right.id
+                    + " pivot:" + pivot);
+        System.out.println("Clause: " + cl);
         Iterator<ResNode> itr = children.iterator();
         System.out.print("Chidren: [");
-        while( itr.hasNext() ){
+        while (itr.hasNext()) {
             ResNode n = itr.next();
-            System.out.print(n.id+",");
+            System.out.print(n.id + ",");
         }
         System.out.println("]");
     }
 
     @Override
-    public String toString(){
-        if(isLeaf)
-            return id+":"+cl+" (p"+part+")";
-        else if(part != -1)
-            return id+":"+cl+" l:"+left.id+" r:"+right.id
-                +" piv:"+pivot+" (p"+part+")";
+    public String toString() {
+        if (isLeaf)
+            return id + ":" + cl + " (p" + part + ")";
+        else if (part != -1)
+            return id + ":" + cl + " l:" + left.id + " r:" + right.id + " piv:"
+                    + pivot + " (p" + part + ")";
         else
-            return id+":"+cl+" l:"+left.id+" r:"+right.id
-                +" piv:"+pivot;
+            return id + ":" + cl + " l:" + left.id + " r:" + right.id + " piv:"
+                    + pivot;
     }
 }
