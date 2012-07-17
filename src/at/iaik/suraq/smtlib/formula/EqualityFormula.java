@@ -11,13 +11,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.xml.ws.Holder;
+
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
-import at.iaik.suraq.util.Util;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -566,7 +568,7 @@ public abstract class EqualityFormula implements Formula {
     @Override
     public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars) 
     {
-        System.out.println("Equivalence found: "+this.numTerms());
+        //System.out.println("Equivalence found: "+this.numTerms());
         List<Formula> newTerms = new ArrayList<Formula>();
         try {
             // Iterate through all terms of the Equality, because there could be more than two.
@@ -587,6 +589,14 @@ public abstract class EqualityFormula implements Formula {
                     Collection<Term> terms = new HashSet<Term>();
                     terms.add(ti);
                     terms.add(tj);
+                    
+                    if(terms.size() < 2) // this means ti = tj
+                    {
+                        //System.out.println("Propably there was an equality like x=x");
+                        newTerms.add(new PropositionalConstant(true));
+                        continue;
+                    }
+                    
                     EqualityFormula ef = create(terms, true);
                     
                     
@@ -601,10 +611,11 @@ public abstract class EqualityFormula implements Formula {
                     else
                     {
                         // add a new replacement -> get a new Varname and add to the list
-                        newName = "eq_"+ti.toString()+"_"+tj.toString();
-                        newName = Util.freshVarNameCached(topLeveFormula, newName);
+                        //newName = "eq_"+ti.toString()+"_"+tj.toString();
+                        //newName = Util.freshVarNameCached(topLeveFormula, newName);
+                        newName = GraphReduction.getVarName(topLeveFormula, ti.toString(), tj.toString());
                         replacements.put(ef, newName);
-                        if(noDependenceVars.contains(ti) || noDependenceVars.contains(tj) )
+                        if(noDependenceVars.contains(new Token(ti.toString())) || noDependenceVars.contains(new Token(tj.toString())) )
                         {
                             noDependenceVars.add(new Token(newName));
                         }
@@ -642,5 +653,34 @@ public abstract class EqualityFormula implements Formula {
             // But it is nessasary to suppress warnings.
             throw new RuntimeException("Incomparable Terms in Equality Formula");
         }
+        // TODO recursivley
+    }
+    
+
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    {
+        List<Formula> _andlist = new ArrayList<Formula>();
+        for(int i=0;i<terms.size();i++)
+        {
+            if(terms.get(i) instanceof DomainIte)
+            {
+                DomainIte domainITE = (DomainIte) terms.get(i);
+                
+                // replace the ITE with a new variable
+                // the ITE-constraint is added on the end of the topLevelFormula by this function
+                Holder<Term> newVarName = new Holder<Term>();
+                _andlist.add(domainITE.removeDomainITE(topLevelFormula, noDependenceVars, newVarName));
+                terms.set(i, newVarName.value);
+            }
+        }
+        
+        if(_andlist.size()>0)
+        {
+            // FIXME: not shure which i shall use
+            //return new ImpliesFormula(new AndFormula(_andlist), this);
+            _andlist.add(this);
+            return new AndFormula(_andlist);
+        }
+        return this;
     }
 }

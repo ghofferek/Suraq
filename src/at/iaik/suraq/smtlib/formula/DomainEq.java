@@ -162,5 +162,7 @@ public class DomainEq extends EqualityFormula {
 	                		 instanceParameters, noDependenceVars);
 	        }
     } 
+    
+
 
 }

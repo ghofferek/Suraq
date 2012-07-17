@@ -152,7 +152,8 @@ public class Ackermann {
 		
 		// remove all UF and UP (?)
         System.out.println("   Ackermann: noDependenceVars.removeall(UF)");
-
+        // DEBUG:
+        /*
         System.err.flush();
         System.out.flush();
         System.out.println("   The following UF are noDependenceVars and can be deleted of that list:");
@@ -170,7 +171,7 @@ public class Ackermann {
         }
         System.err.flush();
         System.out.flush();
-        
+        */
         System.out.println("    Anzahl der Variablen bevor dem Entfernen: "+noDependenceVars.size());
         System.out.println("    Entfernt werden sollten "+ currentUninterpretedFunctions.size() + "Variablen");
 		noDependenceVars.removeAll(currentUninterpretedFunctions);

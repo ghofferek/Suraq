@@ -747,4 +747,10 @@ public class ArrayProperty implements Formula {
         return this;
         */
     }
+    
+
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    {
+        throw new RuntimeException("Arrays must be replaced removing DomainITE.");
+    }
 }

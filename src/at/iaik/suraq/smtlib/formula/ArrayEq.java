@@ -188,5 +188,9 @@ public class ArrayEq extends EqualityFormula {
                 "ArrayEq cannot be called on an UninterpretedFunctions.\n"
                         + "ArrayEq should be removed by now.");
     }
-    
+
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    {
+        throw new RuntimeException("Arrays must be replaced removing DomainITE.");
+    }
 }

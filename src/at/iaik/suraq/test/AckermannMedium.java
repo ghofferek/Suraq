@@ -44,6 +44,7 @@ public class AckermannMedium {
         Assert.assertTrue(suraq.success());
     }
     
+    // Interessanter Fall
     @Test
     public void performFullSuraq3_no_readonly_pipeline_ex_suraq() { 
         System.out.println("****************************************************");

@@ -518,4 +518,13 @@ public class PropositionalFunctionMacroInstance implements Formula {
                 "replaceEquivalences cannot be called on an PropositionalFunctionMacroInstance.\n"
                         + "PropositionalFunctionMacroInstance should be removed by now.");
     }
+    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    {
+        throw new RuntimeException(
+                "removeDomainITE cannot be called on an PropositionalFunctionMacroInstance.\n"
+                        + "PropositionalFunctionMacroInstance should be removed by now.");
+    }
 }

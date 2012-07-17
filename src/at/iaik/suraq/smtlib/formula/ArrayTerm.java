@@ -64,4 +64,5 @@ public abstract class ArrayTerm extends Term implements Serializable {
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
 
+    
 }

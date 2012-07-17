@@ -336,4 +336,10 @@ public class PropositionalConstant extends PropositionalTerm {
     {
         return this;
     }
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    {
+        return this;
+    }
 }

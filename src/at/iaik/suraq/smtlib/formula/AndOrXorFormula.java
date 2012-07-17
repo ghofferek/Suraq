@@ -33,6 +33,12 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     protected final List<Formula> formulas;
 
+    // added by chillebold 2012-07-16
+    public void addFormula(Formula formula)
+    {
+        formulas.add(formula);
+    }
+    
     /**
      * 
      * Constructs a new <code>AndOrXorFormula</code>. Initializes the list of
@@ -463,13 +469,19 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
 
 
     @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    public Formula replaceEquivalences(Formula topLevelFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
     {
         //for (Formula formula : this.getSubFormulas())
         for(int i=0;i<formulas.size();i++)
-            formulas.set(i,formulas.get(i).replaceEquivalences(topLeveFormula, replacements, noDependenceVars));
+            formulas.set(i,formulas.get(i).replaceEquivalences(topLevelFormula, replacements, noDependenceVars));
         return this;
     }
-    
-    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    {
+        for(int i=0;i<formulas.size();i++)
+            formulas.set(i,formulas.get(i).removeDomainITE(topLevelFormula, noDependenceVars));
+        return this;
+    }
 }

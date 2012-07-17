@@ -3,16 +3,20 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.ws.Holder;
+
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * An if-then-else-style domain term.
@@ -449,4 +453,68 @@ public class DomainIte extends DomainTerm {
  
     }
     
+
+    // DO NOT USE WITH UF yet!!!
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, Holder<Term> newToken)
+    {
+        // generate a new Var that shall replace the original one
+        Token newDomainToken = new Token(Util.freshVarNameCached(topLevelFormula, "ite"));
+        DomainVariable newDomainVar = new DomainVariable(newDomainToken);
+        newToken.value = newDomainVar;
+        
+        // FIXME: remove DomainITE recusively -> also condition, then, else
+        condition = condition.removeDomainITE(topLevelFormula, noDependenceVars);
+        
+
+        // Check if this formula contains any noDependenceVars
+        Set<DomainVariable> dv = this.getDomainVariables();
+        for(Token noDepVar : noDependenceVars)
+        {
+            if(dv.contains(noDepVar))
+            {
+                noDependenceVars.add(newDomainToken);
+                break;
+            }
+        }
+        
+        // generate a new Formula out of: ITE(condition, then, else)
+        // make:      itevar
+        // later do:  ITE(condition, itevar=then, itevar=else)
+        try{
+            List<Term> _thenlist = new ArrayList<Term>();
+            _thenlist.add(thenBranch);
+            _thenlist.add(newDomainVar);
+            Formula _then = EqualityFormula.create(_thenlist, true);
+            
+    
+            List<Term> _elselist = new ArrayList<Term>();
+            _elselist.add(elseBranch);
+            _elselist.add(newDomainVar);
+            Formula _else = EqualityFormula.create(_elselist, true);
+    
+            Formula newPropFormula = new PropositionalIte(condition, _then, _else);
+            
+            // if the toplevelFormula is an AndFormula, we can reuse it.
+            /*if(topLevelFormula instanceof AndFormula)
+            {
+                ((AndFormula)topLevelFormula).addFormula(newPropFormula);
+            }
+            else
+            {
+                // append the ITE to the end of the formula
+                List<Formula> _andlist = new ArrayList<Formula>();
+                _andlist.add(topLevelFormula);
+                _andlist.add(newPropFormula);
+                topLevelFormula = new AndFormula(_andlist);
+            }*/
+            return newPropFormula;
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+            throw new RuntimeException("Unexpected Exception.");
+        }
+        
+    }
 }
+ 

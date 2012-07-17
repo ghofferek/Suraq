@@ -360,9 +360,18 @@ public class FormulaTerm extends PropositionalTerm {
     
 
     @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    public Formula replaceEquivalences(Formula topLevelFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
     {
-        formula = formula.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        formula = formula.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        return this;
+    }
+    
+    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    {
+        formula = formula.removeDomainITE(topLevelFormula, noDependenceVars);
         return this;
     }
     

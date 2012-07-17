@@ -567,4 +567,12 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         rightSide = rightSide.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
         return this;
     }
+    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)    {
+        leftSide = leftSide.removeDomainITE(topLevelFormula, noDependenceVars);
+        rightSide = rightSide.removeDomainITE(topLevelFormula, noDependenceVars);
+        return this;
+    }
 }

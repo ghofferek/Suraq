@@ -310,5 +310,10 @@ public abstract class Term implements Serializable {
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
     
+     
+
+     
+     
+     
 
 }

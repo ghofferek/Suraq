@@ -541,11 +541,25 @@ public class PropositionalIte extends BooleanCombinationFormula {
     
 
     @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    public Formula replaceEquivalences(Formula topLevelFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
     {
-        condition = condition.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
-        thenBranch = thenBranch.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
-        elseBranch = elseBranch.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        condition = condition.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        thenBranch = thenBranch.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        elseBranch = elseBranch.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        return this;
+    }
+    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)    {
+        condition = condition.removeDomainITE(topLevelFormula, noDependenceVars);
+        thenBranch = thenBranch.removeDomainITE(topLevelFormula, noDependenceVars);
+        elseBranch = elseBranch.removeDomainITE(topLevelFormula, noDependenceVars);
+        
+        // FIXME more!!!
+        
+        
+        
         return this;
     }
 }

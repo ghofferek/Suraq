@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import at.iaik.suraq.main.Ackermann;
 import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.sexp.Token;
@@ -50,7 +51,16 @@ public class GraphReductionTest {
 		System.out.println("  live: " + (result?"Success :-)":"Failed :-("));
 	    Assert.assertTrue(result);
 	}
-	
+
+    // Live: Ständig zum Herumprobieren
+    @Test
+    public void graphReductionMedium() {  
+        System.out.println("****************************************************");
+        System.out.println("Testcase: Live: "+"./rsc/test/a07.smt2");
+        boolean result = testFile("./rsc/test/a07.smt2","./rsc/test/~a07-reduced.smt2", "./rsc/test/~a07-valid.smt2");
+        System.out.println("  live: " + (result?"Success :-)":"Failed :-("));
+        Assert.assertTrue(result);
+    }
     
 	///////////////////////////////////////////////////////////////////////////////
 	
@@ -68,13 +78,19 @@ public class GraphReductionTest {
         HashSet<Token> t = new HashSet<Token>();
 		
 		// Ackermann
-		//Ackermann ack = new Ackermann();
-		//formula = ack.performAckermann(formula, t);
+		Ackermann ack = new Ackermann();
+		formula = ack.performAckermann(formula, t);
 		
         // Graph Reduction
 		GraphReduction gr = new GraphReduction();
-		formula = gr.perform(formula, t);
-		
+		try{
+		    formula = gr.perform(formula, t);
+		}
+		catch(Exception ex)
+		{
+		    ex.printStackTrace();
+		    return false;
+		}
 				
 		// Debug output of Ackermann's result to Filesystem
 		String ackermannstr = th.transformFormulaToString(formula);

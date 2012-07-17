@@ -246,7 +246,7 @@ public class Suraq implements Runnable {
         } catch (SuraqException exc) {
             noErrors = false;
             if (exc.getMessage() != null)
-                System.out.println(exc.getMessage());
+                System.err.println(exc.getMessage());
         }
 
         // build function and variable lists for parser
@@ -715,6 +715,7 @@ public class Suraq implements Runnable {
                 break;
             case SMTSolver.SAT:
                 noErrors = false;
+                System.err.println("Z3 tells us SAT.");
                 throw (new RuntimeException("Z3 tells us SAT."));
             default:
                 noErrors = false;
@@ -1331,22 +1332,34 @@ public class Suraq implements Runnable {
         formula = ackermann.performAckermann(formula, noDependenceVars);
         timer.end();
         System.out.println("    Done. (" + timer + ")");
+        DebugHelper.getInstance().formulaToFile(formula, "./debug_ackermann.txt");
     
         ///////////////////////////////////////////////////
 
+        // Reduction of var1 = ITE(cond, var2, var3) 
+        //           to var1 = itevar & ITE(cond, itevar=var2, itevar=var3)
+        ITEEquationReduction itered = new ITEEquationReduction();
+        formula = itered.performReduction(formula, noDependenceVars);
+        DebugHelper.getInstance().formulaToFile(formula, "./debug_ite.txt");
+        
         ///////////////////////////////////////////////////
         // Perform Graph Based Reduction
         System.out.println("  Perform Graph-Based Reduction...");
         timer.reset();
         timer.start();
         GraphReduction graphReduction = new GraphReduction();
-        formula = graphReduction.perform(formula, noDependenceVars);
+        try{
+            formula = graphReduction.perform(formula, noDependenceVars);
+        }catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
         timer.end();
         System.out.println("    Done. (" + timer + ")");
     
         ///////////////////////////////////////////////////
         // debug
-        DebugHelper.getInstance().formulaToFile(formula, "./debug_ackermann.txt");
+        DebugHelper.getInstance().formulaToFile(formula, "./debug_graph.txt");
         
 
         
@@ -1407,7 +1420,7 @@ public class Suraq implements Runnable {
 
 
         // debug:
-        try{
+        /*try{
             File debugFile1 = new File("./debug_assertPartitionList.txt");
             FileWriter fstream = new FileWriter(debugFile1);
             ListIterator<SExpression> tmp =  assertPartitionList.listIterator();
@@ -1420,7 +1433,7 @@ public class Suraq implements Runnable {
         catch(Exception ex)
         {
             ex.printStackTrace();
-        }
+        }*/
                 
         
         return formula;
@@ -1465,7 +1478,8 @@ public class Suraq implements Runnable {
                             noDependenceFunctionsCopies.get(var).get(count));
                 }
                 else
-                    throw new SuraqException(
+                    System.err.println( " This could be an exception: "+
+                   // throw new SuraqException(
                             "noDependenceVar "
                                     + var.toString()
                                     + " is neither a variable nor an uninterpreted function.");
@@ -1693,6 +1707,9 @@ public class Suraq implements Runnable {
      * 
      */
     private void printWelcome() {
+        int i=0;
+        if(i==0)
+            return;
         System.out
                 .println("################################################################################");
         System.out.println("                                  Welcome to");

@@ -63,6 +63,9 @@ public class DebugHelper
     public void stringtoFile(String text, String filename)
     {
         try{
+            // TODO for cluster:
+            //filename = "/workstore/"+filename; // "/workstore/"
+            
             File debugFile1 = new File(filename);
             FileWriter fstream = new FileWriter(debugFile1);
             fstream.write(text);

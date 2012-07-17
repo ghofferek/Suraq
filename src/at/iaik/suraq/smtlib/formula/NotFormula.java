@@ -555,5 +555,10 @@ public class NotFormula extends BooleanCombinationFormula {
         formula = formula.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
         return this;
     }
-   
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)    {
+        formula = formula.removeDomainITE(topLevelFormula, noDependenceVars);
+        return this;
+    }
 }
