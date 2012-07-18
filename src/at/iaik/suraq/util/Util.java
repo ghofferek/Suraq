@@ -115,7 +115,7 @@ public final class Util {
     {
         if(lastFormula != formula)
         {
-            System.err.println("*** New Formula detected. Building lostNames.");
+            System.out.println("*** New Formula detected. Building lostNames.");
             lastFormula = formula;
             lostNames.clear();
             // hashcode must be varname.hashcode() !!!

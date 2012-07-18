@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.Vector;
 
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
@@ -24,12 +26,21 @@ import at.iaik.suraq.util.Util;
 public class GraphReduction {
 
     private static boolean _isActive = true;
+    private static boolean _additionalCircles = false; // TODO: activate this for extended circle algorithm
     private static boolean _debug = false;
+    private static boolean _supportMultithreading = false;
+    private static int _maxThreads = 2;
     protected Map<Token, PropositionalVariable> prop_cache = new HashMap<Token, PropositionalVariable>();
     protected Map<EqualityFormula, String> replacements = null;
     protected Stack<GraphElement> visitedDFS = null;
     protected long circlecounter = 0;
-    protected List<List<PropositionalVariable>> circles = null;
+    protected final List<List<PropositionalVariable>> circles = new Vector<List<PropositionalVariable>>();
+    protected final List<List<PropositionalVariable>> circles2 = new Vector<List<PropositionalVariable>>();
+    
+
+    // Hash of Hashset is the sum of the Hashes
+    protected final HashSet<HashSet<PropositionalVariable>> hashCircles = new HashSet<HashSet<PropositionalVariable>>();
+    protected List<GraphReductionThread> threads = null;
     
     
     /****************************************************************************************
@@ -198,29 +209,105 @@ public class GraphReduction {
         return new ImpliesFormula(and, generatePropositionalVariable(c));
     }
     
-    
     protected Formula generateBtransCircles(Formula topLevelFormula, Collection<GraphElement> vertices)
     {
         // search for circles with DFS
         circlecounter = 0; // reset the counter
         visitedDFS = new Stack<GraphElement>();
         visitedDFS.ensureCapacity(vertices.size());
-        circles = new ArrayList<List<PropositionalVariable>>();
+
+        circles.clear();
+        circles2.clear();
         
         for(GraphElement vertex : vertices)
         {
-            //if(!vertex.isVisited())
+            if(!vertex.isVisitedOnce())
             {
-                System.out.print("\n next: ");
                 vertex.setVisited(true);
-                depthFirstSearch(vertex, vertex, null);
+                this.resetVisited(vertex);
+                //depthFirstSearch(vertex, vertex, null); // TODO
+                depthFirstSearchHash(vertex, vertex, null);
             }
         }
+        circles.addAll(circles2);
+        circles2.clear();
+        System.out.println("\nThere are "+ circlecounter+ " circles");
         
-        System.out.println("\nFinally there are "+ circlecounter+ " circles");
+        // may one iteration be enough?
+        // Runtime: O(circles^2 * elementspercircle^2)
+        // Memory: O(circles^2 * elementspercircle)
+        int circlesize = circles.size();
+        if(_additionalCircles)
+        {
+            if(_supportMultithreading)
+            {
+                int cpus = Runtime.getRuntime().availableProcessors();
+                if(cpus > _maxThreads)
+                    _maxThreads = cpus-1;
+                // FIXME working here
+                int singleSize = circlesize / _maxThreads;
+                int last_index = 0;
+                threads = new ArrayList<GraphReductionThread>();
+                for(int i=1; i<=_maxThreads; i++)
+                {
+                    int index = singleSize * i;
+                    if(i == _maxThreads) // the last Thread takes the rest
+                        index = circlesize;
+                    threads.add(new GraphReductionThread(this, last_index, index));
+                    last_index = index;
+                }
+                for(int i=0; i<_maxThreads; i++)
+                {
+                    System.out.println("Starting Thread...");
+                    threads.get(i).start();
+                }
+                for(int i=0; i<_maxThreads; i++)
+                {
+                    try
+                    {
+                        threads.get(i).join();
+                        System.out.println("Thread joined");
+                    }
+                    catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                threads.clear();
+            }
+            else
+            {
+                for(int i=0; i<circlesize; i++)
+                {
+                    System.out.println("Search Circles #"+i+"/"+circlesize+" Circles: "+circlecounter); 
+                    for(int j=i+1; j<circlesize; j++)
+                    {
+                        getSubFormula(circles.get(i), circles.get(j));
+                    }
+                }
+            }
+            circles.addAll(circles2);
+            circles2.clear();
+            
+            System.out.println("\nFinally there are "+ circlecounter+ " circles");
+        }
         
+        // generate Btrans
         List<Formula> btransList = new ArrayList<Formula>();
+        System.out.println("#circles: " + circles.size());
         for(List<PropositionalVariable> circle : circles)
+        {
+            int size = circle.size();
+            for(int i=0; i<size; i++)
+            {
+                List<PropositionalVariable> newList = new ArrayList<PropositionalVariable>(circle);
+                PropositionalVariable c = newList.remove(i);
+                btransList.add(new ImpliesFormula(new AndFormula(newList), c));
+            }
+        }
+
+        System.out.println("#hashCircles: " + hashCircles.size());
+        for(HashSet<PropositionalVariable> circle : hashCircles)
         {
             int size = circle.size();
             for(int i=0; i<size; i++)
@@ -246,6 +333,132 @@ public class GraphReduction {
         }
     }
     
+    protected List<PropositionalVariable> getSubFormula(List<PropositionalVariable> circle1, List<PropositionalVariable> circle2)
+    {
+        int csize1 = circle1.size();
+        int csize2 = circle2.size();
+
+        // Annahmen durch vorhergehende Algorithmen:
+        // jedes element im circle kommt max. 1x vor!!!
+        // daher kann bei gemeinsamkeiten i und j erhöht werden!!!
+        // auch sind nie zwei circles vollständig identisch (while-endlosschleife)
+        for(int forward = -1; forward <2; forward+=2) // {-1,+1}
+        {
+            for(int i=0; i<csize1; i++)
+            {
+                for(int j=i; j<csize2; j++)
+                {
+                    // interessant sind nur teilfolgen größer gleich 3...
+                    if(circle1.get(i).equals(circle2.get(j)))
+                    if(circle1.get((i+1)%csize1).equals(circle2.get((j+1*forward+csize2)%csize2)))
+                    if(circle1.get((i+2)%csize1).equals(circle2.get((j+2*forward+csize2)%csize2))) 
+                    {
+                        int i_start = i;
+                        int j_start = j;
+                        int circle_size=0;
+                        while(circle1.get((i)%csize1).equals(circle2.get((j+csize2)%csize2)))
+                        {
+                            circle_size++;
+                            i++;
+                            j+=forward;
+                        }
+                        if(_debug)
+                            System.out.println("Found duplicate circle of size " + circle_size);
+                        List<PropositionalVariable> new_circle = new ArrayList<PropositionalVariable>(circle_size);
+                        // copy everything from the end of the common term (incl. the last common term)
+                        // to the first common term (incl.)
+                        for(int copy_i=i-csize1-1; copy_i<=i_start; copy_i++)
+                        {
+                            new_circle.add(circle1.get((copy_i+csize1) % csize1));
+                        }
+                        
+                        // now copy from the second circle everything from the last common term (excl.)
+                        // to the first common term (excl.)
+                        if(forward == 1)
+                        {
+                            for(int copy_j=j-csize2; j<j_start; j++)
+                            {
+                                new_circle.add(circle2.get((copy_j+csize2) % csize2));
+                            }
+                        }
+                        else // if(foward == -1)
+                        {
+                            for(int copy_j=j+csize2; j>j_start; j--)
+                            {
+                                new_circle.add(circle2.get((copy_j+csize2) % csize2));
+                            }
+                        }
+                        this.addCircle(new_circle);
+                        // TODO: evtl. return hier?
+                        //return null; // seems to work for median tests
+                    }
+                }
+            }
+        }
+        
+        
+        return null;
+    }
+    
+    //protected int depthFirstSearch(GraphElement current, GraphElement last, int remainingDepth)
+    protected void depthFirstSearchHash(GraphElement start, GraphElement current, GraphElement last)
+    {
+        // TODO: improve here!!!
+        //int minRemainingDepth = remainingDepth;
+        current.setVisited(true);
+        visitedDFS.push(current);
+        for(GraphElement neighbour : current.getNeighbours())
+        {
+            if(neighbour != last)
+            {
+                if(visitedDFS.contains(neighbour))
+                {
+                    //if(remainingDepth == 0)
+                    {
+                        // we have had this neighbour - this is a circle
+                        
+                        int circle_start = visitedDFS.indexOf(neighbour);
+                        int circle_end   = visitedDFS.size();
+                        HashSet<PropositionalVariable> circle = new HashSet<PropositionalVariable>(circle_end-circle_start+1);
+                        for(int i=circle_start; i<circle_end; i++)
+                        {
+                            int j = i + 1;
+                            if(j==circle_end)
+                                j = circle_start;
+                            
+                            GraphElement circle_elem = visitedDFS.get(i);
+                            GraphElement next_elem = visitedDFS.get(j);
+                            Token token =  circle_elem.getToken(next_elem);
+                            PropositionalVariable pv = generatePropositionalVariable(token);
+                            circle.add(pv);
+                        }
+          
+                        this.addHashCircle(circle);
+                    }
+                }
+                else
+                //else if(!neighbour.isVisited())
+                //else if(!visitedDFS.contains(neighbour) && !neighbour.isVisited())
+                {
+                    //if(remainingDepth > 0 && !neighbour.isVisited())
+                    //if(!neighbour.isVisited())
+                    {
+                        // this is a new neighbor that was not visited until now
+                        depthFirstSearchHash(start, neighbour, current);
+                        //int tmp = depthFirstSearch(neighbour, current, remainingDepth-1);
+                        //if(tmp < minRemainingDepth)
+                         //   minRemainingDepth = tmp;
+                    }
+                }
+            }
+        }
+        if(visitedDFS.pop()!=current)
+        {
+            throw new RuntimeException("DFS Search failed.");
+        }
+       // return minRemainingDepth;
+    }
+    
     //protected int depthFirstSearch(GraphElement current, GraphElement last, int remainingDepth)
     protected void depthFirstSearch(GraphElement start, GraphElement current, GraphElement last)
     {
@@ -261,7 +474,6 @@ public class GraphReduction {
                     //if(remainingDepth == 0)
                     {
                         // we have had this neighbour - this is a circle
-                        circlecounter++;
                         
                         if(circlecounter%10000==0)
                             System.out.print(" " + circlecounter);
@@ -280,12 +492,12 @@ public class GraphReduction {
                             PropositionalVariable pv = generatePropositionalVariable(token);
                             circle.add(pv);
                         }
-      
-                        circles.add(circle);
+          
+                        this.addCircle(circle);
                     }
                 }
-                //else if(!neighbour.isVisited())
-                else if(!visitedDFS.contains(neighbour) && !neighbour.isVisited())
+                else if(!neighbour.isVisited())
+                //else if(!visitedDFS.contains(neighbour) && !neighbour.isVisited())
                 {
                     //if(remainingDepth > 0 && !neighbour.isVisited())
                     //if(!neighbour.isVisited())
@@ -406,7 +618,6 @@ public class GraphReduction {
     
     
     /** GETTER AND SETTER **/
-
     public static void setDebug(boolean isDebug)
     {
         _debug = isDebug;
@@ -423,10 +634,34 @@ public class GraphReduction {
     {
         return _isActive;
     }
-    
     public Map<EqualityFormula, String> getReplacements()
     {
         return replacements;
+    }
+    public synchronized List<List<PropositionalVariable>> getCircles()
+    {
+        return circles;
+    }
+    public synchronized void addCircle(List<PropositionalVariable> circle)
+    {
+        circlecounter++;
+        circles2.add(circle);
+        if(circlecounter%10000==0)
+            System.out.print(" " + circlecounter);
+    }   
+    public synchronized void addHashCircle(HashSet<PropositionalVariable> circle)
+    {
+        if(!hashCircles.contains(circle))
+        {
+            circlecounter++;
+            hashCircles.add(circle);
+            if(circlecounter%10000==0)
+                System.out.print(" " + circlecounter);
+        }
+    }
+    public synchronized List<GraphReductionThread> getThreads()
+    {
+        return threads;
     }
     
 }

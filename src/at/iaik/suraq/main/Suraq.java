@@ -1045,11 +1045,11 @@ public class Suraq implements Runnable {
     private TseitinParser parseTseitinStr(String tseitinStr, int partition) {
 
         // FIXME - improve performance - this is ~110s per call!!!!
-        Timer timer = new Timer();
+        //Timer timer = new Timer();
         
-        timer.end(); System.out.println("TSEIT1: "+timer); timer.reset(); timer.start();
+        //timer.end(); System.out.println("TSEIT1: "+timer); timer.reset(); timer.start();
         SExpParser sExpParser = new SExpParser(tseitinStr);
-        timer.end(); System.out.println("TSEIT2: "+timer); timer.reset(); timer.start();
+        //timer.end(); System.out.println("TSEIT2: "+timer); timer.reset(); timer.start();
         try {
             sExpParser.parse();
             assert (sExpParser.wasParsingSuccessfull());
@@ -1058,15 +1058,15 @@ public class Suraq implements Runnable {
             throw new RuntimeException(
                     "S-Expression parse error. Cannot continue.", exc);
         }
-        timer.end(); System.out.println("TSEIT3: "+timer); timer.reset(); timer.start();
+        //timer.end(); System.out.println("TSEIT3: "+timer); timer.reset(); timer.start();
 
         SExpression rootExp = sExpParser.getRootExpr();
 
-        timer.end(); System.out.println("TSEIT4: "+timer); timer.reset(); timer.start();
+        //timer.end(); System.out.println("TSEIT4: "+timer); timer.reset(); timer.start();
         TseitinParser tseitinParser = new TseitinParser(rootExp, domainVars,
                 propsitionalVars, arrayVars, uninterpretedFunctions, partition);
 
-        timer.end(); System.out.println("TSEIT5: "+timer); timer.reset(); timer.start();
+        //timer.end(); System.out.println("TSEIT5: "+timer); timer.reset(); timer.start();
         try {
             tseitinParser.parse();
             assert (tseitinParser.wasParsingSuccessfull());
@@ -1075,9 +1075,9 @@ public class Suraq implements Runnable {
             throw new RuntimeException(
                     "Tseitin encoding parse error. Cannot continue.", exc);
         }
-        timer.end(); System.out.println("TSEIT6: "+timer); timer.reset(); timer.start();
+        //timer.end(); System.out.println("TSEIT6: "+timer); timer.reset(); timer.start();
         tseitinEncoding.putAll(tseitinParser.getTseitinEncoding());
-        timer.end(); System.out.println("TSEIT7: "+timer); timer.reset(); timer.start();
+        //timer.end(); System.out.println("TSEIT7: "+timer); timer.reset(); timer.start();
 
         return tseitinParser;
     }
@@ -1477,12 +1477,13 @@ public class Suraq implements Runnable {
                     tempFormula.substituteUninterpretedFunction(var,
                             noDependenceFunctionsCopies.get(var).get(count));
                 }
-                else
-                    System.err.println( " This could be an exception: "+
+                // TODO: activate this
+                //else
+                    //System.out.println( " This could be an exception: "+
                    // throw new SuraqException(
-                            "noDependenceVar "
-                                    + var.toString()
-                                    + " is neither a variable nor an uninterpreted function.");
+                    //        "noDependenceVar "
+                      //              + var.toString()
+                        //            + " is neither a variable nor an uninterpreted function.");
             }
 
             int currentCount = count;

@@ -77,14 +77,22 @@ public class GraphElement{
     }
     
     @Override
+    public int hashCode()
+    {
+        return varname.hashCode();
+    }
+    
+    @Override
     public String toString()
     {
         String ret = varname + " {";
-        /*for(GraphElement neighbor : neighbours.keySet().iterator())
+        Object[] _neighbours = neighbours.keySet().toArray();
+        int cnt = neighbours.keySet().size();
+        for(int i=0;i < cnt; i++)
         {
+            GraphElement neighbor = (GraphElement)_neighbours[i];
             ret += neighbor.getVarname() + " ";
         }
-        */ // TODO repair
         return ret + "}";
     }
 
