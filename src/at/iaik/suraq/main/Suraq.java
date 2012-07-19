@@ -311,6 +311,7 @@ public class Suraq implements Runnable {
             List<String> tseitinPartitions = new ArrayList<String>();
             
             
+            // FIXME: TSEITIN HERE
             if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
                 System.out.println("  Performing tseitin encoding without Z3...");
                 tseitinPartitions = performTseitinEncodingWithoutZ3();
@@ -383,7 +384,6 @@ public class Suraq implements Runnable {
 
             onePartitionTimer.end();
             System.out.println(" Done. (" + onePartitionTimer + ")");
-            // FIXME: improve this! ~212 sec
             count++;
 
         }
@@ -1044,7 +1044,6 @@ public class Suraq implements Runnable {
      */
     private TseitinParser parseTseitinStr(String tseitinStr, int partition) {
 
-        // FIXME - improve performance - this is ~110s per call!!!!
         //Timer timer = new Timer();
         
         //timer.end(); System.out.println("TSEIT1: "+timer); timer.reset(); timer.start();
@@ -1123,7 +1122,7 @@ public class Suraq implements Runnable {
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
         // smtStr.append(SExpressionConstants.GET_PROOF.toString()); // TODO: comment in to get proof
         smtStr.append(SExpressionConstants.EXIT.toString());
-        // FIXME: used!!! building asserts here
+        
 
         return smtStr.toString();
     }
@@ -1410,7 +1409,7 @@ public class Suraq implements Runnable {
         while (beginAssert.hasNext()) {
             SExpression expr = beginAssert.next().deepCopy();
             // expr.replaceChild(new Token("simplify"), 0);
-            assertPartitionList.add(expr); // FIXME here should the multiple copies be
+            assertPartitionList.add(expr);
         }
 
         // FIXME how is this added, when outputExpressions is not used any more.
@@ -1601,7 +1600,7 @@ public class Suraq implements Runnable {
         int numCopies = (1 << numControlSignals);
         
         
-        // FIXME info: Performance improved by factor #noDependenceVars
+        // info: Performance improved by factor #noDependenceVars
         //Timer timer = new Timer();
         //timer.reset(); timer.start();
         

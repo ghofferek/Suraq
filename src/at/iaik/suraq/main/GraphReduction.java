@@ -1,5 +1,7 @@
 package at.iaik.suraq.main;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +29,7 @@ public class GraphReduction {
 
     private static boolean _isActive = true;
     private static boolean _additionalCircles = false; // TODO: activate this for extended circle algorithm
-    private static boolean _debug = false;
+    private static boolean _debug = true;
     private static boolean _supportMultithreading = false;
     private static int _maxThreads = 2;
     protected Map<Token, PropositionalVariable> prop_cache = new HashMap<Token, PropositionalVariable>();
@@ -53,6 +55,7 @@ public class GraphReduction {
      ****************************************************************************************/
     
     
+    
     private PropositionalVariable generatePropositionalVariable(Token token)
     {
         if(prop_cache.containsKey(token))
@@ -62,6 +65,47 @@ public class GraphReduction {
         PropositionalVariable p = new PropositionalVariable(token);
         prop_cache.put(token, p);
         return p;
+    }
+    
+    /**
+     * computes stats in O(vertices.size()) time and prints to System.out
+     * @param vertices
+     */
+    public void writeStats(Collection<GraphElement> vertices)
+    {
+        int count = vertices.size();
+        int sum_neighbours = 0;
+        int min_neighbours = Integer.MAX_VALUE;
+        int max_neighbours = Integer.MIN_VALUE;
+        for(GraphElement vertex : vertices)
+        {
+            int neighbours = vertex.getNeighbours().size();
+            sum_neighbours += neighbours;
+            if(neighbours > max_neighbours)
+                max_neighbours = neighbours;
+            if(neighbours < min_neighbours)
+                min_neighbours = neighbours;
+        }
+        int edges = sum_neighbours / 2;
+        float average_neighbours = ((float)sum_neighbours) / ((float)count);
+        
+        
+        System.out.println("***************************************************");
+        System.out.println("* Statistic of Graph-based reduction to prop. logic");
+        System.out.println("* - Count of vertices:  "+count);
+        System.out.println("* - Count of edges:     "+edges);
+        System.out.println("* - Average Neighbours: "+average_neighbours);
+        System.out.println("* - Min. Neighbours:    "+min_neighbours);
+        System.out.println("* - Max. Neighbours:    "+max_neighbours);
+        System.out.println("***************************************************");
+        
+        if(_debug)
+        {
+            for(GraphElement vertex : vertices)
+            {
+                System.out.println("Vertex: "+ vertex);
+            }
+        }
     }
     
     public Formula perform(Formula formula, Set<Token> noDependenceVars) throws IOException
@@ -84,41 +128,75 @@ public class GraphReduction {
         
         // 2.1 Build Graph
         Collection<GraphElement> vertices = generateGraph(replacements);
-
+        
         System.out.println("GR: Built "+vertices.size()+" vertices out of "+replacements.keySet().size()+" replacements.");
-        if(_debug)
-        {
-            for(GraphElement vertex : vertices)
-            {
-                System.out.println("Vertex: "+ vertex);
-            }
-        }
-        if(vertices.size()==0)
-        {
-            System.out.println("GR: There were no equivalences in the Formula.");
-            return formula;
-        }
+        writeStats(vertices);
 
         Formula btrans = null;
         
-        int method = 1;
+        int method = 2; // FIXME: define method here, 2 is the only one working
         if(method == 1) // Try to find circles without making chord-free
         {
             System.out.println("GR: Try to find circles without making chord-free... ");
             btrans = generateBtransCircles(formula, vertices);
         }
-        else if(method == 2) // make graph chord-free and find all triangles
+        else if(method == 2 || method == 3) // make graph chord-free and find all triangles
         {
             System.out.println("GR: Make the Graph chord-free... ");
             makeChordFreeGraph(formula, vertices); // TODO: noDependenceVars setzen?
+            writeStats(vertices);
+            
+
+            int countTriangles = countTriangles(vertices);
+            System.out.println("GR: There are " + countTriangles + " triangles.");
             
             System.out.println("GR: Find all triangles and generate Btrans... ");
-            btrans = generateBtrans(vertices);
+            if(method == 2)
+            {
+                btrans = generateBtrans(vertices);
+            }
+            else if(method == 3)
+            {
+                btrans = this.generateBtransToFile(vertices, "./btrans.txt");
+            }
         }
 
         return new ImpliesFormula(btrans, formula);
     }
-    
+
+    public int countTriangles(Collection<GraphElement> vertices) //throws IOException
+    {
+        for(GraphElement vertex : vertices)
+        {
+            resetVisited(vertex);
+        }
+   
+        int count = 0;
+        for(GraphElement vertex : vertices)
+        {
+            vertex.setVisited(true);
+            
+            int size = vertex.getNeighbours().size();
+            Object[] neighbours = vertex.getNeighbours().toArray();
+            
+            for(int i=0;i<size;i++)
+            {
+                GraphElement ni = (GraphElement)neighbours[i];
+                if(!ni.isVisited())
+                for(int j=i+1;j<size;j++)
+                {
+                    GraphElement nj = (GraphElement)neighbours[j];
+                    if(!nj.isVisited())
+                    if(ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
+                    {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
     public Formula generateBtrans(Collection<GraphElement> vertices) //throws IOException
     {
         long step = vertices.size() / 100;
@@ -189,7 +267,93 @@ public class GraphReduction {
         
         // for large examples
         //return new PropositionalVariable("Btrans");
-    }
+        
+    } // generateBtrans
+    
+    public PropositionalVariable generateBtransToFile(Collection<GraphElement> vertices, String filename)
+    {
+        long step = vertices.size() / 1000;
+        if(step==0) step=1;
+        long cnt = 0;
+        ArrayList<Formula> btransparts = new ArrayList<Formula>(3*vertices.size());
+
+        File file = new File(filename);
+        FileWriter fstream = null;
+        try
+        {
+            fstream = new FileWriter(file);
+            fstream.write("and\n");
+    
+            for(GraphElement vertex : vertices)
+            {
+                if(cnt++ % step == 0)
+                {
+                    System.out.println("GR: generateBtrans... (cur:" +btransparts.size() + ")" + 
+                            (float)cnt / (float)step / 10.0 + "% von vertices#: "+vertices.size());
+                }
+                vertex.setVisited(false);
+                //Set<GraphElement> neighbours = vertex.getNeighbours();
+                int size = vertex.getNeighbours().size();
+                Object[] neighbours = vertex.getNeighbours().toArray();
+                
+                for(int i=0;i<size;i++)
+                {
+                    GraphElement ni = (GraphElement)neighbours[i];
+                    if(ni.isVisited())
+                    for(int j=i+1;j<size;j++)
+                    {
+                        GraphElement nj = (GraphElement)neighbours[j];
+                        if(nj.isVisited())
+                        if(ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
+                        {
+                            // found a triangle: vertex - ni - nj
+                            Token t1 = vertex.getToken(ni);
+                            Token t2 = vertex.getToken(nj);
+                            Token t3 = ni.getToken(nj);
+                            btransparts.add(generateBtransElemCNF(t1, t2, t3));
+                            btransparts.add(generateBtransElemCNF(t2, t3, t1));
+                            btransparts.add(generateBtransElemCNF(t3, t1, t2));
+                        }
+                    }
+                }
+                
+                // save to file because we have too less memory
+                try
+                {
+                    // debug message
+                    System.out.println("* btrans #"+cnt+"/"+vertices.size()+": "+btransparts.size()+", neighbors: "+size);
+                    for(Formula formula : btransparts)
+                    {
+                        fstream.write(formula.toString());
+                    }
+                    btransparts.clear();
+                }
+                catch(Exception ex)
+                {
+                    ex.printStackTrace();
+                    throw new RuntimeException("FileError");
+                }
+            }
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            try{
+                if(fstream != null)
+                    fstream.close();
+            }
+            catch(IOException ex2)
+            {   
+                ex2.printStackTrace();
+            }
+        }
+        vertices = null;
+        btransparts = null;
+        return new PropositionalVariable("Btrans");
+    } // generateBtransToFile
     
     protected OrFormula generateBtransElemCNF(Token a, Token b, Token c)
     {
@@ -221,10 +385,11 @@ public class GraphReduction {
         
         for(GraphElement vertex : vertices)
         {
-            if(!vertex.isVisitedOnce())
+            //if(!vertex.isVisitedOnce())
             {
-                vertex.setVisited(true);
+                System.out.print("\n next:");
                 this.resetVisited(vertex);
+                vertex.setVisited(true);
                 //depthFirstSearch(vertex, vertex, null); // TODO
                 depthFirstSearchHash(vertex, vertex, null);
             }
@@ -319,7 +484,7 @@ public class GraphReduction {
         }
         
         return new AndFormula(btransList);
-    }
+    } // generateBtransCircles
 
     protected void resetVisited(GraphElement current)
     {
@@ -333,6 +498,16 @@ public class GraphReduction {
         }
     }
     
+    /**
+     * The idea of this Method is to compare each two circles found and find common strings.
+     * By doing so, additional circles can be found and added to the circlelist.
+     * I assume, that this is not finding all circles either, but it found most nessasary circles.
+     * This algorithm defenitely fails if the datastructure of the circles is a HashList, because it needs to be sorted.
+     * At least it requires the elements in the same order
+     * @param circle1
+     * @param circle2
+     * @return
+     */
     protected List<PropositionalVariable> getSubFormula(List<PropositionalVariable> circle1, List<PropositionalVariable> circle2)
     {
         int csize1 = circle1.size();
@@ -398,7 +573,7 @@ public class GraphReduction {
         
         
         return null;
-    }
+    } // getSubFormula
     
     //protected int depthFirstSearch(GraphElement current, GraphElement last, int remainingDepth)
     protected void depthFirstSearchHash(GraphElement start, GraphElement current, GraphElement last)
@@ -436,8 +611,8 @@ public class GraphReduction {
                         this.addHashCircle(circle);
                     }
                 }
-                else
-                //else if(!neighbour.isVisited())
+                //else
+                else if(!neighbour.isVisited())
                 //else if(!visitedDFS.contains(neighbour) && !neighbour.isVisited())
                 {
                     //if(remainingDepth > 0 && !neighbour.isVisited())
@@ -457,7 +632,8 @@ public class GraphReduction {
             throw new RuntimeException("DFS Search failed.");
         }
        // return minRemainingDepth;
-    }
+        
+    } // depthFirstSearchHash
     
     //protected int depthFirstSearch(GraphElement current, GraphElement last, int remainingDepth)
     protected void depthFirstSearch(GraphElement start, GraphElement current, GraphElement last)
@@ -516,7 +692,8 @@ public class GraphReduction {
             throw new RuntimeException("DFS Search failed.");
         }
        // return minRemainingDepth;
-    }
+        
+    } // depthFirstSearch
     
     public void makeChordFreeGraph(Formula topLevelFormula, Collection<GraphElement> vertices)
     {
@@ -553,7 +730,7 @@ public class GraphReduction {
                 }
             }
         }
-    }
+    } // makeChordFreeGraph
     
     public static String getVarName(Formula topLevelFormula, String ti, String tj)
     {
@@ -614,7 +791,7 @@ public class GraphReduction {
             g2.addNeighbour(g1, token);
         }
         return vertices.values();
-    }
+    } // generateGraph
     
     
     /** GETTER AND SETTER **/
@@ -649,6 +826,8 @@ public class GraphReduction {
         if(circlecounter%10000==0)
             System.out.print(" " + circlecounter);
     }   
+    
+    int stat_failed = 0;
     public synchronized void addHashCircle(HashSet<PropositionalVariable> circle)
     {
         if(!hashCircles.contains(circle))
@@ -657,6 +836,12 @@ public class GraphReduction {
             hashCircles.add(circle);
             if(circlecounter%10000==0)
                 System.out.print(" " + circlecounter);
+        }
+        else
+        {
+            stat_failed++;
+            if(stat_failed%10000==0)
+                System.out.print(" [" + stat_failed+"]");
         }
     }
     public synchronized List<GraphReductionThread> getThreads()
