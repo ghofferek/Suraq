@@ -29,6 +29,7 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.Timer;
 
 /**
@@ -438,6 +439,7 @@ public class TseitinParser extends SMTLibParser {
 
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3Path());
+        DebugHelper.getInstance().stringtoFile(smtstr, "debug-tseitin-check.txt");
         z3.solve(smtstr);
 
         switch (z3.getState()) {

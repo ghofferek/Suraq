@@ -568,65 +568,70 @@ public abstract class EqualityFormula implements Formula {
     @Override
     public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars) 
     {
+        // FormulaTerm
+        
         //System.out.println("Equivalence found: "+this.numTerms());
         List<Formula> newTerms = new ArrayList<Formula>();
         try {
             // Iterate through all terms of the Equality, because there could be more than two.
             for(int i=0; i<terms.size(); i++) {
+                Term ti = terms.get(i);
+                //if(!(ti instanceof PropositionalVariable || ti instanceof FormulaTerm)) // do not handle propositional variables
                 for(int j=i+1; j<terms.size();j++) {
-                    Term ti = terms.get(i);
                     Term tj = terms.get(j);
-                    
-                    // fix to a static order
-                    if(ti.toString().compareTo(tj.toString())>0)
+                    //if(!(tj instanceof PropositionalVariable || tj instanceof FormulaTerm)) // do not handle propositional variables
                     {
-                        Term help = tj;
-                        tj = ti;
-                        ti = help;
-                    }
-                    
-                    // Build EqualityFormula for the Map
-                    Collection<Term> terms = new HashSet<Term>();
-                    terms.add(ti);
-                    terms.add(tj);
-                    
-                    if(terms.size() < 2) // this means ti = tj
-                    {
-                        //System.out.println("Propably there was an equality like x=x");
-                        newTerms.add(new PropositionalConstant(true));
-                        continue;
-                    }
-                    
-                    EqualityFormula ef = create(terms, true);
-                    
-                    
-                    
-                    // Find a name for the Equality
-                    String newName;
-                    if(replacements.containsKey(ef))
-                    {
-                        // take an existent replacement because it's the same
-                        newName = replacements.get(ef);
-                    }
-                    else
-                    {
-                        // add a new replacement -> get a new Varname and add to the list
-                        //newName = "eq_"+ti.toString()+"_"+tj.toString();
-                        //newName = Util.freshVarNameCached(topLeveFormula, newName);
-                        newName = GraphReduction.getVarName(topLeveFormula, ti.toString(), tj.toString());
-                        replacements.put(ef, newName);
-                        if(noDependenceVars.contains(new Token(ti.toString())) || noDependenceVars.contains(new Token(tj.toString())) )
+                        // fix to a static order
+                        if(ti.toString().compareTo(tj.toString())>0)
                         {
-                            noDependenceVars.add(new Token(newName));
+                            Term help = tj;
+                            tj = ti;
+                            ti = help;
                         }
+                        
+                        // Build EqualityFormula for the Map
+                        Collection<Term> terms = new HashSet<Term>();
+                        terms.add(ti);
+                        terms.add(tj);
+                        
+                        if(terms.size() < 2) // this means ti = tj
+                        {
+                            //System.out.println("Propably there was an equality like x=x");
+                            newTerms.add(new PropositionalConstant(true));
+                            continue;
+                        }
+                        
+                        EqualityFormula ef = create(terms, true);
+                        
+                        
+                        
+                        // Find a name for the Equality
+                        String newName;
+                        if(replacements.containsKey(ef))
+                        {
+                            // take an existent replacement because it's the same
+                            newName = replacements.get(ef);
+                        }
+                        else
+                        {
+                            // add a new replacement -> get a new Varname and add to the list
+                            //newName = "eq_"+ti.toString()+"_"+tj.toString();
+                            //newName = Util.freshVarNameCached(topLeveFormula, newName);
+                            newName = GraphReduction.getVarName(topLeveFormula, ti.toString(), tj.toString());
+                            replacements.put(ef, newName);
+                            if(noDependenceVars.contains(new Token(ti.toString())) || noDependenceVars.contains(new Token(tj.toString())) )
+                            {
+                                noDependenceVars.add(new Token(newName));
+                            }
+                        }
+                        
+                        // we must take care of inequalities, so we add a NOT around single terms
+                        // x != y != z <=> x!=y && x!=z && y!=z <=> e12 && e13 && e23
+                        if(this.equal)
+                            newTerms.add(new PropositionalVariable(newName));
+                        else
+                            newTerms.add(new NotFormula(new PropositionalVariable(newName)));
                     }
-                    
-                    // we must take care of inequalities, so we add a NOT around single terms
-                    // x != y != z <=> x!=y && x!=z && y!=z <=> e12 && e13 && e23
-                    if(this.equal)
-                        newTerms.add(new PropositionalVariable(newName));
-                    else
-                        newTerms.add(new NotFormula(new PropositionalVariable(newName)));
                 }
             }
             
@@ -657,7 +662,7 @@ public abstract class EqualityFormula implements Formula {
     }
     
 
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
         List<Formula> _andlist = new ArrayList<Formula>();
         for(int i=0;i<terms.size();i++)
@@ -669,17 +674,35 @@ public abstract class EqualityFormula implements Formula {
                 // replace the ITE with a new variable
                 // the ITE-constraint is added on the end of the topLevelFormula by this function
                 Holder<Term> newVarName = new Holder<Term>();
-                _andlist.add(domainITE.removeDomainITE(topLevelFormula, noDependenceVars, newVarName));
+                _andlist.add(domainITE.removeDomainITE(topLevelFormula, noDependenceVars, newVarName, andPreList));
                 terms.set(i, newVarName.value);
             }
         }
         
         if(_andlist.size()>0)
         {
-            // FIXME: not shure which i shall use
-            //return new ImpliesFormula(new AndFormula(_andlist), this);
-            _andlist.add(this);
-            return new AndFormula(_andlist);
+            // FIXME: not sure which i shall use
+            // pretty sure the ImpliesFormula is correct
+            // else it is too easy to make it unsat
+            
+            int method = 3;
+            if(method == 1)
+            {
+                if(_andlist.size()==1)
+                    return new ImpliesFormula(_andlist.get(0), this);
+                return new ImpliesFormula(new AndFormula(_andlist), this);
+            }
+            else if(method == 2)
+            {
+                _andlist.add(this);
+                return new AndFormula(_andlist);
+            }
+            else if(method == 3)
+            {
+                // TODO:add to global list
+                andPreList.addAll(_andlist);
+                return this;
+            }
         }
         return this;
     }

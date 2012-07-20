@@ -679,7 +679,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     }
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
         throw new RuntimeException(
                 "removeDomainITE cannot be called on an UninterpretedFunctions.\n"

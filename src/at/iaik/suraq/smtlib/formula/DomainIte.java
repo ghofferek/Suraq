@@ -455,16 +455,47 @@ public class DomainIte extends DomainTerm {
     
 
     // DO NOT USE WITH UF yet!!!
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, Holder<Term> newToken)
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, Holder<Term> newToken, List<Formula> andPreList)
     {
+        List<Formula> _andlist = new ArrayList<Formula>();
         // generate a new Var that shall replace the original one
-        Token newDomainToken = new Token(Util.freshVarNameCached(topLevelFormula, "ite"));
+        
+        // remember that "ite" is a reserved word!
+        // Hence I used "itev" instead for ite variable
+        Token newDomainToken = new Token(Util.freshVarNameCached(topLevelFormula, "itev"));
         DomainVariable newDomainVar = new DomainVariable(newDomainToken);
         newToken.value = newDomainVar;
         
-        // FIXME: remove DomainITE recusively -> also condition, then, else
-        condition = condition.removeDomainITE(topLevelFormula, noDependenceVars);
+        // remove DomainITE recusively -> also condition, then, else
+        condition = condition.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        if(elseBranch instanceof DomainIte)
+        {
+            Holder<Term> newToken2 = new Holder<Term>();
+            _andlist.add(((DomainIte)elseBranch).removeDomainITE(topLevelFormula, noDependenceVars, newToken2, andPreList));
+            elseBranch = (DomainVariable) newToken2.value;
+        }
+        if(thenBranch instanceof DomainIte)
+        {
+            Holder<Term> newToken2 = new Holder<Term>();
+            _andlist.add(((DomainIte)thenBranch).removeDomainITE(topLevelFormula, noDependenceVars, newToken2, andPreList));
+            thenBranch = (DomainVariable) newToken2.value;
+        }
         
+        // TODO: the if is not sufficient enough
+        HashSet<DomainVariable> innerVariables = new HashSet<DomainVariable>();
+        innerVariables.addAll(elseBranch.getDomainVariables());
+        innerVariables.addAll(thenBranch.getDomainVariables());
+        innerVariables.addAll(condition.getDomainVariables());
+        for(DomainVariable dv : innerVariables)
+        {
+            if(noDependenceVars.contains(dv))
+            {
+                System.err.println("new nodependencyvar: "+ newDomainToken);
+                noDependenceVars.add(newDomainToken);
+                break;
+            }
+        }
+        System.err.println(".");
 
         // Check if this formula contains any noDependenceVars
         Set<DomainVariable> dv = this.getDomainVariables();
@@ -507,7 +538,18 @@ public class DomainIte extends DomainTerm {
                 _andlist.add(newPropFormula);
                 topLevelFormula = new AndFormula(_andlist);
             }*/
-            return newPropFormula;
+            
+            if(_andlist.size() == 0)
+            {
+                return newPropFormula;
+            }
+            else
+            {
+                //return new ImpliesFormula(new AndFormula(_andlist),newPropFormula);
+                _andlist.add(newPropFormula);
+                
+                return new AndFormula(_andlist);
+            }
         }
         catch(Exception ex)
         {

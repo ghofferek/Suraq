@@ -62,6 +62,7 @@ public class DebugHelper
     
     public void stringtoFile(String text, String filename)
     {
+        System.out.println("* File written to '" + filename + "'");
         try{
             // TODO for cluster:
             //filename = "/workstore/"+filename; // "/workstore/"

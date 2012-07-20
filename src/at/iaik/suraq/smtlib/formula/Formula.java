@@ -332,6 +332,6 @@ public interface Formula extends SMTLibObject, Serializable {
     public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars);
 
     
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars);
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList);
     
 }

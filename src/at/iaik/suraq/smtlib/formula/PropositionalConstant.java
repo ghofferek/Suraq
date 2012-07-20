@@ -338,7 +338,7 @@ public class PropositionalConstant extends PropositionalTerm {
     }
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
         return this;
     }

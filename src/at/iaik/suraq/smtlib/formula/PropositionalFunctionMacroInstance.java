@@ -521,7 +521,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
         throw new RuntimeException(
                 "removeDomainITE cannot be called on an PropositionalFunctionMacroInstance.\n"

@@ -4,6 +4,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import at.iaik.suraq.main.Ackermann;
+import at.iaik.suraq.main.GraphReduction;
+import at.iaik.suraq.main.ITEEquationReduction;
 import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.smtlib.Z3Proof;
@@ -15,12 +18,16 @@ public class AckermannMedium {
         SuraqOptions.kill();
         SuraqOptions.reset();
         Z3Proof.setInstanceCounter(0);
+        
+        Ackermann.setActive(true);
+        ITEEquationReduction.setActive(true);
+        GraphReduction.setActive(false);
     }
     
     ///////////////////////////////////////////////////////////////////////////////
     // Here are the tests that call the full Suraq.run() Method
     
-    
+    // contains PropITE containing DomainEq with DomainITE
     @Test
     public void performFullSuraq2_simple_3_input_dependent_2_controllers() { 
         System.out.println("****************************************************");
@@ -33,6 +40,7 @@ public class AckermannMedium {
     }
     
     
+    // contains simple ITE, UF, control signals, nodependence
     @Test
     public void performFullSuraq1_simple_2_controllers() { 
         System.out.println("****************************************************");

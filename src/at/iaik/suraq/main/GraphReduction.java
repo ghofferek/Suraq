@@ -28,8 +28,9 @@ import at.iaik.suraq.util.Util;
 public class GraphReduction {
 
     private static boolean _isActive = true;
+    
     private static boolean _additionalCircles = false; // TODO: activate this for extended circle algorithm
-    private static boolean _debug = true;
+    private static boolean _debug = false;
     private static boolean _supportMultithreading = false;
     private static int _maxThreads = 2;
     protected Map<Token, PropositionalVariable> prop_cache = new HashMap<Token, PropositionalVariable>();

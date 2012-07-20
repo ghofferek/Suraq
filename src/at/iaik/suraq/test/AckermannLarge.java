@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import at.iaik.suraq.main.Ackermann;
+import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.smtlib.Z3Proof;
@@ -39,6 +40,8 @@ public class AckermannLarge {
         Ackermann.setActive(ackermannActive);
         Ackermann.setFunctionActive(true);
         Ackermann.setPredicateActive(true);
+        
+        GraphReduction.setActive(false);
         
         String[] args = { "-i", testfilename }; //, "-v", "--check-result"
         Suraq suraq = new Suraq(args);

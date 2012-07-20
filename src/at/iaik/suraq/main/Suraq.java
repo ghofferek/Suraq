@@ -311,7 +311,6 @@ public class Suraq implements Runnable {
             List<String> tseitinPartitions = new ArrayList<String>();
             
             
-            // FIXME: TSEITIN HERE
             if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
                 System.out.println("  Performing tseitin encoding without Z3...");
                 tseitinPartitions = performTseitinEncodingWithoutZ3();
@@ -399,23 +398,27 @@ public class Suraq implements Runnable {
      * 
      */
     private List<String> performTseitinEncodingWithoutZ3() {
-
+        // FIXME: without z3
         Timer onePartitionTimer = new Timer();
         List<String> tseitinPartitions = new ArrayList<String>();
 
-        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
-                SuraqOptions.getZ3_4Path());
+        // FIXME
+        //SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+        //        SuraqOptions.getZ3_4Path());
 
+        // FIXME
         for (int count = 1; count <= assertPartitionFormulas.size(); count++) {
             onePartitionTimer.reset();
             onePartitionTimer.start();
+            // FIXME
             System.out.println("    Encoding partition " + count + "...");
 
             Formula partitionFormula = assertPartitionFormulas.get(count);
 
             // simplify assert partition
+            // FIXME
 
-            String smtStr = "";
+            /*String smtStr = "";
             smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
             smtStr += SExpressionConstants.SET_OPTION_PRODUCE_MODELS_TRUE
                     .toString();
@@ -424,32 +427,39 @@ public class Suraq implements Runnable {
             smtStr += "(assert " + partitionFormula.toString() + " )";
             smtStr += "(apply (then (! simplify :elim-and true) skip))";
             smtStr += SExpressionConstants.EXIT.toString();
+            */
+            //String simpleSmtStr = z3.solve2(smtStr);
+            // FIXME
 
-            String simpleSmtStr = z3.solve2(smtStr);
+            //TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
+            //assert (parser.getTseitinVariables().size() == 0);
 
-            TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
-            assert (parser.getTseitinVariables().size() == 0);
-
-            partitionFormula = parser.getRootFormula();
+            //partitionFormula = parser.getRootFormula();
 
             // apply tseitin encoding
 
+            // FIXME
             List<OrFormula> clauses = new ArrayList<OrFormula>();
             Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
             PropositionalVariable tseitinVar = partitionFormula.tseitinEncode(
                     clauses, encoding);
             tseitinEncoding.putAll(encoding);
             tseitinEncoding.put(tseitinVar, partitionFormula);
+            // FIXME
 
             List<Formula> disjuncts = new ArrayList<Formula>();
             disjuncts.add(tseitinVar);
             clauses.add(new OrFormula(disjuncts));
             Formula encodedPartitionFormula = new AndFormula(clauses);
+            // FIXME
+            
+            DebugHelper.getInstance().formulaToFile(encodedPartitionFormula, "debug-tseitin-encoding.txt");
 
             System.out.println("      test if tseitin encoding is correct...");
             assert (TseitinParser.checkFormulaImplication(partitionFormula,
                     assertPartitionFormulas.get(count)));
             System.out.println("      ...test finished");
+            // FIXME
 
             onePartitionTimer.end();
             System.out.println(" Done. (" + onePartitionTimer + ")");
@@ -457,6 +467,7 @@ public class Suraq implements Runnable {
 
         }
         return tseitinPartitions;
+        // FIXME
     }
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
@@ -1386,6 +1397,7 @@ public class Suraq implements Runnable {
 
         timer.reset();
         timer.start();
+        // NoDependenceVars werden hier drin vervielfältigt:
         writeDeclarationsAndDefinitions(formula, noDependenceVars,
                 controlSignals.size());
         timer.end();

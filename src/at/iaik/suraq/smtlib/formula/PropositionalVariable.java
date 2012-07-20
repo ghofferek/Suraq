@@ -380,7 +380,7 @@ public class PropositionalVariable extends PropositionalTerm implements
     
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
         return this;
     }

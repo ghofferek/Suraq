@@ -478,10 +478,10 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     }
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
         for(int i=0;i<formulas.size();i++)
-            formulas.set(i,formulas.get(i).removeDomainITE(topLevelFormula, noDependenceVars));
+            formulas.set(i,formulas.get(i).removeDomainITE(topLevelFormula, noDependenceVars, andPreList));
         return this;
     }
 }
