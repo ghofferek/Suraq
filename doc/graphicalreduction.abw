@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE abiword PUBLIC "-//ABISOURCE//DTD AWML 1.0 Strict//EN" "http://www.abisource.com/awml.dtd">
+<abiword template="false" xmlns:ct="http://www.abisource.com/changetracking.dtd" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:math="http://www.w3.org/1998/Math/MathML" xid-max="174" xmlns:dc="http://purl.org/dc/elements/1.1/" styles="unlocked" fileformat="1.0" xmlns:svg="http://www.w3.org/2000/svg" xmlns:awml="http://www.abisource.com/awml.dtd" xmlns="http://www.abisource.com/awml.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" version="0.99.2" xml:space="preserve" props="dom-dir:ltr; document-footnote-restart-section:0; document-endnote-type:numeric; document-endnote-place-enddoc:1; document-endnote-initial:1; lang:en-US; document-endnote-restart-section:0; document-footnote-restart-page:0; document-footnote-type:numeric; document-footnote-initial:1; document-endnote-place-endsection:0">
+<!-- ======================================================================== -->
+<!-- This file is an AbiWord document.                                        -->
+<!-- AbiWord is a free, Open Source word processor.                           -->
+<!-- More information about AbiWord is available at http://www.abisource.com/ -->
+<!-- You should not edit this file by hand.                                   -->
+<!-- ======================================================================== -->
+
+<metadata>
+<m key="abiword.generator">AbiWord</m>
+<m key="dc.creator">Christoph Hillebold</m>
+<m key="dc.format">application/x-abiword</m>
+</metadata>
+<rdf>
+</rdf>
+<history version="43" edit-time="36545" last-saved="1342786027" uid="809e5554-d178-11e1-9611-80c127fcbeba">
+<version id="34" started="1342685174" uid="5371612a-d19b-11e1-9611-80c127fcbeba" auto="0" top-xid="1"/>
+<version id="35" started="1342764442" uid="2bacdd36-d231-11e1-8f37-ed06322d0a67" auto="0" top-xid="163"/>
+<version id="43" started="1342764581" uid="6d044f30-d263-11e1-8598-bc2caddc9303" auto="0" top-xid="168"/>
+</history>
+<styles>
+<s type="P" name="Normal" followedby="Current Settings" props="font-family:Times New Roman; margin-top:0pt; color:000000; margin-left:0pt; widows:2; font-style:normal; text-indent:0in; text-position:normal; margin-right:0pt; text-decoration:none; bgcolor:transparent; line-height:1.0; font-size:12pt; margin-bottom:0pt; font-variant:normal; font-weight:normal; text-align:left; font-stretch:normal"/>
+</styles>
+<pagesize pagetype="Letter" orientation="portrait" width="8.500000" height="11.000000" units="in" page-scale="1.000000"/>
+<section xid="9" props="page-margin-footer:0.5in; page-margin-header:0.5in">
+<p style="Normal" xid="10"><c props="font-weight:bold; font-size:10pt">Graphical Reduction to Propositional Logic</c><c props="font-weight:bold; font-size:10pt"></c></p>
+<p style="Normal" xid="1"><c props="font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="2" props="text-align:left; dom-dir:ltr"><c props="text-decoration:none; font-size:10pt">Every Algorithm used in this section first builds a graph, where each variable is assigned to a vertex. Equivalences or anti-equivalences are modeled by connecting these </c><c props="text-decoration:none; font-size:10pt"></c><c props="font-size:10pt">vertices (GraphElement)</c><c props="text-decoration:none; font-size:10pt">.</c></p>
+<p style="Normal" xid="8" props="text-align:left; dom-dir:ltr"><c props="text-decoration:none; font-size:10pt">The algorithm holds a List of all vertices and each vertex knows it’s neighbours. </c><c props="text-decoration:none; font-size:10pt"></c></p>
+<p style="Normal" xid="18" props="text-align:left; dom-dir:ltr"><c props="text-decoration:none; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="7"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">For the biggest example (dlx_no_domainITE_2_controllers.smt2) I’ve made a statistic:</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="19"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c><c></c></p>
+<table xid="20" props="table-column-props:1.3125in/0.7500in/">
+<cell xid="21" props="bot-attach:1; left-attach:0; right-attach:1; top-attach:0">
+<p style="Normal" xid="22"><c props="font-size:10pt">Vertices</c><c props="font-size:10pt"></c></p>
+</cell>
+<cell xid="24" props="bot-attach:1; left-attach:1; right-attach:2; top-attach:0">
+<p style="Normal" xid="25" props="text-align:right"><c props="font-size:10pt">2.212</c></p>
+</cell>
+<cell xid="27" props="bot-attach:2; left-attach:0; right-attach:1; top-attach:1">
+<p style="Normal" xid="28"><c props="font-size:10pt">Edges</c><c props="font-size:10pt"></c></p>
+</cell>
+<cell xid="30" props="bot-attach:2; left-attach:1; right-attach:2; top-attach:1">
+<p style="Normal" xid="31" props="text-align:right"><c props="font-size:10pt">48.</c><c props="font-size:10pt">234</c></p>
+</cell>
+<cell xid="33" props="bot-attach:3; left-attach:0; right-attach:1; top-attach:2">
+<p style="Normal" xid="34"><c props="font-size:10pt">avg. neighbours</c><c props="font-size:10pt"></c></p>
+</cell>
+<cell xid="36" props="bot-attach:3; left-attach:1; right-attach:2; top-attach:2">
+<p style="Normal" xid="37" props="text-align:right"><c props="font-size:10pt">43,6</c></p>
+</cell>
+<cell xid="39" props="bot-attach:4; left-attach:0; right-attach:1; top-attach:3">
+<p style="Normal" xid="40"><c props="font-size:10pt">min. neighbours</c><c props="font-size:10pt"></c></p>
+</cell>
+<cell xid="42" props="bot-attach:4; left-attach:1; right-attach:2; top-attach:3">
+<p style="Normal" xid="43" props="text-align:right"><c props="font-size:10pt">3</c></p>
+</cell>
+<cell xid="45" props="bot-attach:5; left-attach:0; right-attach:1; top-attach:4">
+<p style="Normal" xid="46"><c props="font-size:10pt">max neighbours</c><c props="font-size:10pt"></c></p>
+</cell>
+<cell xid="48" props="bot-attach:5; left-attach:1; right-attach:2; top-attach:4">
+<p style="Normal" xid="49" props="text-align:right"><c props="font-size:10pt">67</c><c props="font-size:10pt"></c></p>
+</cell>
+</table>
+<p style="Normal" xid="6" props="font-family:Times New Roman; font-size:12pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"><c props="text-decoration:none; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="5"><c props="text-decoration:underline; font-size:10pt"></c><c props="text-decoration:underline; font-size:10pt">Standard Algorithm:</c></p>
+<p style="Normal" xid="4"><c props="font-size:10pt">The standard algorithm first makes the graph chordal. This is working fine but it generates many new variables where some may be </c><c props="font-size:10pt"></c><c props="text-decoration:underline; font-size:10pt">unnecessary</c><c props="font-size:10pt">. After making the graph chordal, it contains out of many triangles (that may be </c><c props="text-decoration:underline; font-size:10pt">crossed-over!</c><c props="font-size:10pt">).</c></p>
+<p style="Normal" xid="14"><c props="font-size:10pt">Then we search for all triangles, that contain out of 3 vertieces and 3 edges. </c><c props="font-size:10pt"></c><c props="font-family:Times New Roman; text-decoration:none; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US">The edges’ names (that are stored with the neighbours of each vertex) are the propositional variables of the equivalence between the variables (e.g. A=B --&gt; eq_A_B). The variables in the names are </c><c props="font-family:Times New Roman; text-decoration:underline; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US">alphabetically sorted</c><c props="font-family:Times New Roman; text-decoration:none; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US"> and </c><c props="font-family:Times New Roman; text-decoration:underline; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US">cached</c><c props="font-family:Times New Roman; text-decoration:none; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US"> to prevent multiple generation. For each 3 edges, 3 constraints are generated (Notation: eq_A_B = AB): (AB ^ BC =&gt; AC)^(BC ^ AC =&gt; AB)^(AB ^ AC =&gt; BC).</c></p>
+<p style="Normal" xid="52"><c props="font-family:Times New Roman; text-decoration:none; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US"></c><c></c></p>
+<p style="Normal" xid="53"><c props="font-family:Times New Roman; text-decoration:none; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US">After this transformation, the statistic of the biggest example (dlx_no_domainITE_2_controllers.smt2) changed:</c><c props="font-family:Times New Roman; text-decoration:none; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US"></c></p>
+<table xid="56" props="table-column-props:1.3125in/1.5000in/; table-row-heights:0.1875in/0.1875in/0.1875in/0.1875in/0.1875in/0.1875in/; list-tag:1">
+<cell xid="57" props="bot-attach:1; left-attach:0; right-attach:1; top-attach:0">
+<p xid="58"><c props="font-family:Times New Roman; text-decoration:none; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US">Vertices</c><c props="font-family:Times New Roman; text-decoration:none; color:000000; font-size:10pt; text-position:normal; font-weight:normal; font-style:normal; lang:en-US"></c></p>
+</cell>
+<cell xid="60" props="bot-attach:1; left-attach:1; right-attach:2; top-attach:0">
+<p style="Normal" xid="61" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:right; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">2.2</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">12</c></p>
+</cell>
+<cell xid="63" props="bot-attach:2; left-attach:0; right-attach:1; top-attach:1">
+<p style="Normal" xid="64" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">Edges</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+</cell>
+<cell xid="66" props="bot-attach:2; left-attach:1; right-attach:2; top-attach:1">
+<p style="Normal" xid="67" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:right; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">891.342</c></p>
+</cell>
+<cell xid="69" props="bot-attach:3; left-attach:0; right-attach:1; top-attach:2">
+<p style="Normal" xid="70" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">avg. neighbours</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+</cell>
+<cell xid="72" props="bot-attach:3; left-attach:1; right-attach:2; top-attach:2">
+<p style="Normal" xid="73" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:right; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">806</c></p>
+</cell>
+<cell xid="75" props="bot-attach:4; left-attach:0; right-attach:1; top-attach:3">
+<p style="Normal" xid="76" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">min. neighbours</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+</cell>
+<cell xid="78" props="bot-attach:4; left-attach:1; right-attach:2; top-attach:3">
+<p style="Normal" xid="79" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:right; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">3</c></p>
+</cell>
+<cell xid="81" props="bot-attach:5; left-attach:0; right-attach:1; top-attach:4">
+<p style="Normal" xid="82" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">max neighbours</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+</cell>
+<cell xid="84" props="bot-attach:5; left-attach:1; right-attach:2; top-attach:4">
+<p style="Normal" xid="85" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:right; margin-right:0.0000in"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">1.609</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+</cell>
+<cell xid="110" props="bot-attach:6; left-attach:0; right-attach:1; top-attach:5">
+<p style="Normal" xid="111"><c props="font-size:10pt">Triangles</c><c props="font-size:10pt"></c></p>
+</cell>
+<cell xid="113" props="bot-attach:6; left-attach:1; right-attach:2; top-attach:5">
+<p xid="114" props="text-align:right"><c props="font-size:10pt">299.289.046</c></p>
+</cell>
+</table>
+<p style="Normal" xid="88" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:10pt; color:000000; text-decoration:none; text-position:normal; font-weight:normal; font-style:normal"></c><c></c></p>
+<p style="Normal" xid="89" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-size:10pt">This is a huge increase of circles. </c><c props="font-size:10pt"></c></p>
+<p style="Normal" xid="124" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">Here is the statistic of a smaller example (</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c><c props="font-family:Monospace; font-size:8pt; text-position:normal; text-decoration:none; bgcolor:e8f2fe; font-weight:normal; font-style:normal; lang:en-US">no_readonly_pipeline_example_suraq.smt2</c><c props="font-family:Times New Roman; font-size:10pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">):</c></p>
+<p style="Normal" xid="125" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">***************************************************</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="126" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">* Statistic of Graph-based reduction to prop. logic</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="127" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">* - Count of vertices:  46</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="128" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">* - Count of edges:     327</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="129" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">* - Average Neighbours: 14.217391</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="130" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">* - Min. Neighbours:    3</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="131" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">* - Max. Neighbours:    29</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="132" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">***************************************************</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="133" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none">GR: There are 1357 triangles.</c><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c></p>
+<p style="Normal" xid="134" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-family:Monospace; font-size:8pt; lang:en-US; text-position:normal; font-weight:normal; font-style:normal; text-decoration:none"></c><c></c></p>
+<p style="Normal" xid="121" props="font-family:Times New Roman; dom-dir:ltr; font-style:normal; margin-left:0.0000in; lang:en-US; text-align:left; text-indent:0.0000in; text-position:normal; margin-top:0.0000in; font-weight:normal; margin-right:0.0000in; margin-bottom:0.0000in; font-size:12pt; line-height:1.000000; text-decoration:none"><c props="font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="122" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="text-decoration:underline; font-size:10pt">Finding Circles</c><c props="text-decoration:underline; font-size:10pt"></c></p>
+<p style="Normal" xid="120" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-size:10pt"></c><c props="font-family:Times New Roman; font-size:10pt">I think, that it would be enough to find all circles. I tried to find all circles on the cluster by saving circles in a HashMap datastructure (the hashValue of the HashMap is the sum of all hashes contained) and saved these circles in a single HashMap while checking if they already exist. I aborted the search after 81/2287 vertices and I have found 1.180.000 circles and there were 2.540.000 duplicate circles until then. The count of new circles are decreasing but I estimate at least 20 Mio. circles of unknown size (up to 2287). This would result in max. 50 Mrd. constraints.</c></p>
+<p style="Normal" xid="135" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="136" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt">I also tried to find the minimum nessasary circles, but it turned out, that this is not sufficient in complex cases.</c><c props="font-family:Times New Roman; font-size:10pt"></c></p>
+<p style="Normal" xid="137" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="138" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="139" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="140" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; margin-right:0.0000in; text-decoration:none; font-size:10pt; line-height:1.000000; text-align:left"><image dataid="a1ba82d8-d184-11e1-9611-80c127fcbeba" xid="148" props="height:2.5153in; width:6.5000in"/></p>
+<p style="Normal" xid="146" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; margin-right:0.0000in; text-decoration:none; font-size:10pt; line-height:1.000000; text-align:left"><c></c><c></c></p>
+<p style="Normal" xid="141" props="font-family:Times New Roman; dom-dir:ltr; font-style:normal; margin-left:0.0000in; lang:en-US; text-align:left; text-indent:0.0000in; text-position:normal; margin-top:0.0000in; font-weight:normal; margin-right:0.0000in; margin-bottom:0.0000in; font-size:10pt; line-height:1.000000; text-decoration:none"><c props="font-family:Times New Roman">This figure shows some examples of what circles could be found. The first two are found with DFS-search and single-visiting each vertex - They are found really fast and even on the biggest example are not that much - only a few thousand. But the second example shows the problem: If the two equalities on the “roof” (of the house) are inequal, then both circles will not match and there is no valid constraint for the “body” of the house. To have no problems in any complex case, we either must find all circles or make triangles.</c><c props="font-family:Times New Roman"></c></p>
+<p style="Normal" xid="142" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="150" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt">Then i tried to find the “missing” circles, by comparing each circle with each other and generating the needed missing circle.</c><c props="font-family:Times New Roman; font-size:10pt"></c></p>
+<p style="Normal" xid="152" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt">For example if the circles were:</c><c props="font-family:Times New Roman; font-size:10pt"></c></p>
+<p style="Normal" xid="153" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt">* </c><c props="font-family:Times New Roman; font-size:10pt"></c><c props="font-size:10pt; font-weight:bold; font-family:Times New Roman; color:ff0000">A</c><c props="font-size:10pt; font-family:Times New Roman; color:ff0000">B</c><c props="font-size:10pt; font-weight:bold; font-family:Times New Roman; color:ff0000">C</c><c props="font-weight:bold; font-family:Times New Roman; font-size:10pt">EF</c></p>
+<p style="Normal" xid="154" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt">* </c><c props="font-family:Times New Roman; font-size:10pt"></c><c props="font-weight:bold; font-family:Times New Roman; font-size:10pt">A</c><c props="font-size:10pt; font-family:Times New Roman; color:ff0000">D</c><c props="font-weight:bold; font-family:Times New Roman; font-size:10pt">CEF</c></p>
+<p style="Normal" xid="151" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt">then i recognized, that </c><c props="font-family:Times New Roman; font-size:10pt"></c><c props="font-weight:bold; font-family:Times New Roman; font-size:10pt">C</c><c props="font-family:Times New Roman; font-size:10pt">EF</c><c props="font-weight:bold; font-family:Times New Roman; font-size:10pt">A</c><c props="font-family:Times New Roman; font-size:10pt"> was a common sequence. Then I took the rest of the first sequence (incl. 1st and last common, CEFAB) and the rest of the second sequence (D) and generated a new circle: </c><c props="font-weight:bold; font-family:Times New Roman; font-size:10pt">ABCD</c><c props="font-family:Times New Roman; font-size:10pt">. This is rather slow, so I used multithreading to be faster on the cluster. It worked really well, but unfortunately it is not enough to run this only once in complex cases. </c></p>
+<p style="Normal" xid="155" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="156" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt">All in all, the point is that it is a really good idea to make the graph chordal.</c><c props="font-family:Times New Roman; font-size:10pt"></c></p>
+<p style="Normal" xid="157" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="143" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt">Our biggest example (</c><c props="font-family:Times New Roman; font-size:10pt"></c><c props="font-family:Times New Roman; font-size:10pt; color:000000; text-decoration:none; text-position:normal; font-weight:normal; font-style:normal; lang:en-US">dlx_no_domainITE_2_controllers.smt2</c><c props="font-family:Times New Roman; font-size:10pt">) returns 299</c><c props="font-family:Times New Roman; font-size:10pt; color:000000; text-decoration:none; text-position:normal; font-weight:normal; font-style:normal; lang:en-US">.289.263</c><c props="font-family:Times New Roman; font-size:10pt"> triangles (counted). That are in text-format approx. 150 Byte/constraint (HD-space). In RAM this would be less, because the variables would not be generated more than once. We would need 299.289.263*3 constraints, that are 150 * 3 * 299.289.263 = </c>134680168350 bytes = 135 GB.</p>
+<p style="Normal" xid="158" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c><c></c></p>
+<p style="Normal" xid="159" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left">Therefore I will assume smaller examples for further algorithms. [19.07.2012, 14:15]</p>
+<p style="Normal" xid="160" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c><c></c></p>
+<p style="Normal" xid="161" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c><c></c></p>
+<p style="Normal" xid="162" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman">I found a </c><c props="font-family:Times New Roman; font-weight:bold">bug</c><c props="font-family:Times New Roman"> in </c><c props="font-family:Times New Roman; font-weight:bold">GraphicalReduction</c><c props="font-family:Times New Roman">. Equivalences should only work for DomainVariables and not for </c><c props="font-family:Times New Roman; font-weight:bold">PropositionalVariables</c><c props="font-family:Times New Roman"> - e.g.: (A=B) =&gt; A =&gt; (B v C) could not be resolved if A=B is substituted. Although we could replace the equivalence with two implications &lt;=  =&gt;.</c></p>
+<p style="Normal" xid="165" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman">The bug was corrected - PropositionalEq is no longer handled, but it handles inner formulas. </c><c props="font-family:Times New Roman; font-weight:bold">Equivalences are not yet substituted to implications!</c></p>
+<p style="Normal" xid="171" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman"></c></p>
+<p style="Normal" xid="172" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman">Searching for the bug in </c><c props="font-family:Times New Roman; font-weight:bold">Tsetinencoding</c><c props="font-family:Times New Roman"> I found </c><c props="font-family:Times New Roman; font-weight:bold">incomplete</c><c props="font-family:Times New Roman"> function for </c><c props="font-family:Times New Roman; font-weight:bold">PropositionalEq</c><c props="font-family:Times New Roman">, but it seems never to be used for more than two parameters.</c></p>
+<p style="Normal" xid="173" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman"></c></p>
+<p style="Normal" xid="174" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman">There was another </c><c props="font-family:Times New Roman; font-weight:bold">bug</c><c props="font-family:Times New Roman"> on removing the EqualityFormula(DomainITE) thing. The extracted </c><c props="font-family:Times New Roman; font-weight:bold">ITE</c><c props="font-family:Times New Roman">-constraints have to be added at the beginning of the whole formula. Also it needs an implication. This bug was very complicated to solve, because I tried to do the transformation in-place with AND/implication.</c></p>
+<p style="Normal" xid="169" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c></p>
+<p style="Normal" xid="170" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c></p>
+<p style="Normal" xid="166" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c></p>
+<p style="Normal" xid="167" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c></p>
+<p style="Normal" xid="168" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c></p>
+<p style="Normal" xid="163" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c></c><c></c></p>
+<p style="Normal" xid="123" props="font-family:Monospace; margin-top:0.0000in; font-style:normal; margin-left:0.0000in; dom-dir:ltr; text-position:normal; text-indent:0.0000in; margin-bottom:0.0000in; font-weight:normal; line-height:1.000000; text-decoration:none; font-size:10pt; margin-right:0.0000in; text-align:left"><c props="font-family:Times New Roman; font-size:10pt"></c><c></c></p>
+<p style="Normal" xid="90" props="margin-top:0.0000in; margin-left:0.0000in; text-indent:0.0000in; dom-dir:ltr; margin-bottom:0.0000in; line-height:1.000000; text-align:left; margin-right:0.0000in"><c props="font-size:10pt"></c></p>
+</section>
+<data>
+<d name="a1ba82d8-d184-11e1-9611-80c127fcbeba" mime-type="image/png" base64="yes">
+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
+</d>
+</data>
+</abiword>
