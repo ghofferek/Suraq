@@ -251,6 +251,12 @@ public class Suraq implements Runnable {
 
         // build function and variable lists for parser
 
+        if(mainFormula == null)
+        {
+            // abort
+            return null;
+        }
+        
         System.out.println("  build function and variable lists for parser");
         propsitionalVars = mainFormula.getPropositionalVariables();
         domainVars = mainFormula.getDomainVariables();
@@ -389,6 +395,8 @@ public class Suraq implements Runnable {
         return tseitinPartitions;
     }
 
+    
+   
     /**
      * Performs the tseitin encoding for each partition. This method does not
      * use the Z3 solver. Adds the encoding for each tseitin variable in the
@@ -441,6 +449,7 @@ public class Suraq implements Runnable {
             // FIXME
             List<OrFormula> clauses = new ArrayList<OrFormula>();
             Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
+            // also changes the partitionFormula
             PropositionalVariable tseitinVar = partitionFormula.tseitinEncode(
                     clauses, encoding);
             tseitinEncoding.putAll(encoding);
@@ -696,6 +705,8 @@ public class Suraq implements Runnable {
             inputTransformationTimer.start();
 
             String z3InputStr = inputTransformations(sourceFile);
+            if(z3InputStr == null) // abort
+                return;
 
             inputTransformationTimer.end();
             System.out.println("finished input transformations in "
@@ -1330,11 +1341,10 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
 
 
-        // additional in bettinas version:
-        //noDependenceVars.remove(lambdaToken);  //remove lambda from list???
         
         ///////////////////////////////////////////////////
         // Perform Ackermann
+        ///////////////////////////////////////////////////
         System.out.println("  Perform Ackermann's Reduction...");
         timer.reset();
         timer.start();
@@ -1354,6 +1364,7 @@ public class Suraq implements Runnable {
         
         ///////////////////////////////////////////////////
         // Perform Graph Based Reduction
+        ///////////////////////////////////////////////////
         System.out.println("  Perform Graph-Based Reduction...");
         timer.reset();
         timer.start();
@@ -1368,13 +1379,46 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
     
         ///////////////////////////////////////////////////
-        // debug
         DebugHelper.getInstance().formulaToFile(formula, "./debug_graph.txt");
-        
-
         
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
+
+
+        ///////////////////////////////////////////////////
+        // TSEITIN-Encoding + QBF Encoding
+        ///////////////////////////////////////////////////
+        boolean qbfsolver = true;
+        if(qbfsolver)
+        {
+            // debug:
+            //formula = new NotFormula(formula);
+            
+            TseitinEncoding tseitin = new TseitinEncoding();
+            formula = tseitin.performTseitinEncodingWithoutZ3(formula);
+            DebugHelper.getInstance().formulaToFile(formula, "./debug_tseitin.txt");
+            
+            QBFEncoder qbfEncoder = new QBFEncoder();
+            String qbf = qbfEncoder.encode(
+                    formula, 
+                    noDependenceVars, 
+                    controlSignals, 
+                    tseitin.getPropositionalVariables());
+            DebugHelper.getInstance().stringtoFile(qbf, "./debug_qbf.txt");
+            
+            
+            QBFSolver qbfSolver = new QBFSolver();
+            qbfSolver.solve(qbf);
+            int state = qbfSolver.getState();
+            //if(state == QBFSolver.SAT)
+                
+            return null;
+        }
+
+
+        ///////////////////////////////////////////////////
+        ///////////////////////////////////////////////////
+        ///////////////////////////////////////////////////
 
         if (controlSignals.size() > 30) {
             throw new SuraqException(

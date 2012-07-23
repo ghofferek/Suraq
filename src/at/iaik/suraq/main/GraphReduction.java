@@ -806,6 +806,11 @@ public class GraphReduction {
     }
     public static void setActive(boolean isActive)
     {
+        if(isActive == false)
+            System.err.println("GraphReduction was set inactive.");
+        else
+            System.err.println("GraphReduction was set active.");
+            
         _isActive = isActive;
     }
     public static boolean isActive()

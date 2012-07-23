@@ -41,7 +41,7 @@ public class AckermannLarge {
         Ackermann.setFunctionActive(true);
         Ackermann.setPredicateActive(true);
         
-        GraphReduction.setActive(false);
+        GraphReduction.setActive(true);
         
         String[] args = { "-i", testfilename }; //, "-v", "--check-result"
         Suraq suraq = new Suraq(args);

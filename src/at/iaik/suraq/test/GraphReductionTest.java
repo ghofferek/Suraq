@@ -16,6 +16,7 @@ import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.util.DebugHelper;
 
 /**
@@ -38,9 +39,9 @@ public class GraphReductionTest {
 	
 	@Before
 	public void setUp() {
+        Ackermann.setActive(true);
+        ITEEquationReduction.setActive(true);
 	    GraphReduction.setActive(true);
-	    Ackermann.setActive(true);
-	    ITEEquationReduction.setActive(true);
 	    
 	    SuraqOptions.kill();
 	    SuraqOptions.reset();
@@ -104,17 +105,14 @@ public class GraphReductionTest {
 	
 	protected boolean testFile(String filename, String outputFileName1, String outputFileName2)
 	{
-	    GraphReduction.setActive(true);
 		Formula formula = th.getFormulaOfFile(filename);
 		
-		if(formula == null)
-		{
-			System.err.println("formula == null");
-			return false;
-		}
 		Formula old_formula = formula.deepFormulaCopy();
         HashSet<Token> t = new HashSet<Token>();
 		
+        
+
+        
 		// Ackermann
 		Ackermann ack = new Ackermann();
 		formula = ack.performAckermann(formula, t);

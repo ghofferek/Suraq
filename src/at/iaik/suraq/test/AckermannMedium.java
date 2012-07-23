@@ -21,7 +21,7 @@ public class AckermannMedium {
         
         Ackermann.setActive(true);
         ITEEquationReduction.setActive(true);
-        GraphReduction.setActive(false);
+        GraphReduction.setActive(true);
     }
     
     ///////////////////////////////////////////////////////////////////////////////
