@@ -1499,7 +1499,7 @@ public class Suraq implements Runnable {
         ///////////////////////////////////////////////////
         // TSEITIN-Encoding + QBF Encoding
         ///////////////////////////////////////////////////
-        boolean qbfsolver = true;
+        boolean qbfsolver = QBFSolver.isActive();
         if(qbfsolver)
         {
             // debug:
@@ -1520,7 +1520,7 @@ public class Suraq implements Runnable {
             
             QBFSolver qbfSolver = new QBFSolver();
             qbfSolver.solve(qbf);
-            int state = qbfSolver.getState();
+            //int state = qbfSolver.getState();
             //if(state == QBFSolver.SAT)
                 
             return null;

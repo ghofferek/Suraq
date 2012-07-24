@@ -37,6 +37,12 @@ public class Timer {
         if (startTime == 0)
             this.startTime = System.currentTimeMillis();
     }
+    
+    // for backward compatibility
+    public void end()
+    {
+    	stop();
+    }
 
     /**
      * Stops the timing

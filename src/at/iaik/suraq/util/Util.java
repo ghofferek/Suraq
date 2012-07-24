@@ -108,6 +108,34 @@ public final class Util {
         }
         throw new RuntimeException("Could not create fresh variable name.");
     }
+    
+    public static final String freshVarName(Formula formula, String prefix, Set<String> instances) {
+        Set<ArrayVariable> arrayVars = formula.getArrayVariables();
+        Set<DomainVariable> domainVars = formula.getDomainVariables();
+        Set<PropositionalVariable> propVars = formula
+                .getPropositionalVariables();
+        Set<String> functionNames = formula.getUninterpretedFunctionNames();
+        Set<String> macroNames = formula.getFunctionMacroNames();
+
+        int count = -1;
+        while (++count >= 0) {
+            String name = prefix + (count > 0 ? ("_fresh" + count) : "");
+            if (arrayVars.contains(new ArrayVariable(name)))
+                continue;
+            if (domainVars.contains(new DomainVariable(name)))
+                continue;
+            if (propVars.contains(new PropositionalVariable(name)))
+                continue;
+            if (functionNames.contains(name))
+                continue;
+            if (macroNames.contains(name))
+                continue;
+            if(instances.contains(name))
+            	continue;
+            return name;
+        }
+        throw new RuntimeException("Could not create fresh variable name.");
+    }
 
     static Formula lastFormula = null;
     static Set<Object> lostNames = new HashSet<Object>();

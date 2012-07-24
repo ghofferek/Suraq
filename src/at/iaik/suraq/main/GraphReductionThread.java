@@ -64,7 +64,8 @@ public class GraphReductionThread extends Thread
         return 100*(i-from)/(to-from);
     }
     
-    private synchronized boolean getWork()
+    @SuppressWarnings("unused")
+	private synchronized boolean getWork()
     {
         List<GraphReductionThread> threads = gr.getThreads();
         for(GraphReductionThread thread : threads)

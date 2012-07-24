@@ -4,6 +4,8 @@ import at.iaik.suraq.util.ProcessResult;
 import at.iaik.suraq.util.ProcessUtil;
 
 public class QBFSolver {
+	private static boolean isActive = false;
+	
     public static final int NOT_RUN = 0;
     public static final int UNSAT = 1;
     public static final int SAT = 2;
@@ -72,5 +74,13 @@ public class QBFSolver {
     {
         return state;
     }
+
+	public static boolean isActive() {
+		return isActive;
+	}
+
+	public static void setActive(boolean _isActive) {
+		QBFSolver.isActive = _isActive;
+	}
     
 }

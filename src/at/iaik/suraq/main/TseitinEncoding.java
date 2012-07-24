@@ -6,16 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import at.iaik.suraq.exceptions.ParseError;
-import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.parser.TseitinParser;
-import at.iaik.suraq.sexp.SExpression;
-import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
-import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.Timer;
 
