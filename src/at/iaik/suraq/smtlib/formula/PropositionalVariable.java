@@ -302,12 +302,12 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @see at.iaik.suraq.smtlib.formula.PropositionalTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new PropositionalVariable(varName);
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -357,5 +357,39 @@ public class PropositionalVariable extends PropositionalTerm implements
             Map<PropositionalVariable, Formula> encoding) {
         return new PropositionalVariable(varName, assertPartition);
     }
+    
 
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	return;
+    }
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+        return;
+    }
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        return this;
+    }
+    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
+    {
+        return this;
+    }
 }

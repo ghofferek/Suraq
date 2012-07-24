@@ -411,7 +411,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -422,7 +422,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
                         topLeveFormula, constraints, noDependenceVars),
                 elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -490,5 +490,74 @@ public class PropositionalIte extends BooleanCombinationFormula {
 
         return (new OrFormula(disjuncts)).tseitinEncode(clauses, encoding);
 
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  	
+    	
+	    	if (condition instanceof UninterpretedPredicateInstance) 
+	    		condition= ((UninterpretedPredicateInstance) condition).applyReplaceUninterpretedPredicates(topLeveFormula,
+	    				predicateInstances, instanceParameters, noDependenceVars);
+			else
+				condition.uninterpretedPredicatesToAuxiliaryVariables(
+						topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+	    	
+	    	if (thenBranch instanceof UninterpretedPredicateInstance) 
+	    		thenBranch= ((UninterpretedPredicateInstance) thenBranch).applyReplaceUninterpretedPredicates(topLeveFormula,
+	    				predicateInstances, instanceParameters, noDependenceVars);
+			else
+				thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
+						topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+	    	
+	    	if (elseBranch instanceof UninterpretedPredicateInstance) 
+	    		elseBranch= ((UninterpretedPredicateInstance) elseBranch).applyReplaceUninterpretedPredicates(topLeveFormula,
+	    				predicateInstances, instanceParameters, noDependenceVars);
+			else
+				elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
+						topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    }
+      
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars){
+                condition.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+                thenBranch.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+                elseBranch.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    }  
+    
+    
+
+    @Override
+    public Formula replaceEquivalences(Formula topLevelFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        condition = condition.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        thenBranch = thenBranch.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        elseBranch = elseBranch.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        return this;
+    }
+    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)    {
+        condition = condition.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        thenBranch = thenBranch.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        elseBranch = elseBranch.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        
+        return this;
     }
 }

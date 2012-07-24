@@ -243,12 +243,12 @@ public class PropositionalConstant extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.PropositionalTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new PropositionalConstant(constant);
-    }
+    }*/
 
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
@@ -305,5 +305,41 @@ public class PropositionalConstant extends PropositionalTerm {
         clauses.add(new OrFormula(disjuncts));
 
         return tseitinVar;
+    }
+    
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	return;
+    }
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+        return ;
+    } 
+    
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        return this;
+    }
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
+    {
+        return this;
     }
 }

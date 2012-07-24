@@ -419,7 +419,7 @@ public class ArrayWrite extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.ArrayTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -430,7 +430,7 @@ public class ArrayWrite extends ArrayTerm {
                         topLeveFormula, constraints, noDependenceVars),
                 valueTerm.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -445,4 +445,47 @@ public class ArrayWrite extends ArrayTerm {
 
         return partitions;
     }
+    
+
+
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  	
+    	
+       	throw new RuntimeException(
+                "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayWrite.");
+       	
+       	/*
+		        arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
+		                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+		        indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
+		                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+		        valueTerm.uninterpretedPredicatesToAuxiliaryVariables(
+		                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);*/
+    }
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	  	
+       	throw new RuntimeException(
+                "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayWrite.");
+       	
+                /*arrayTerm.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+                indexTerm.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters,noDependenceVars);
+                valueTerm.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);*/
+    }  
 }

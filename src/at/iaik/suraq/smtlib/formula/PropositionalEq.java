@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import at.iaik.suraq.sexp.Token;
 
 /**
  * A formula consisting of the (in)equality of propositional terms.
@@ -55,7 +58,27 @@ public class PropositionalEq extends EqualityFormula {
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
             Map<PropositionalVariable, Formula> encoding) {
+        List<ImpliesFormula> conjuncts = new ArrayList<ImpliesFormula>(2);
+        
+        // A circle is enough:
+        // A = B = C
+        // A => B ^ B => C ^ C => A
 
+        PropositionalTerm term1 = (PropositionalTerm) terms.get(0);
+        for(int i=1; i < terms.size(); i++)
+        {
+            PropositionalTerm termi = (PropositionalTerm) terms.get(i);
+            conjuncts.add(new ImpliesFormula(term1, termi));
+        }
+
+        PropositionalTerm termlast = (PropositionalTerm) terms.get(terms.size()-1);
+        conjuncts.add(new ImpliesFormula(termlast, term1));
+        
+        if(terms.size() != 2)
+            System.err.println("PropositionalVariable:tseitinEncode: Was not implemented correctly, but is now.");
+        
+        // old version:
+        /*
         assert (terms.size() == 2);
         PropositionalTerm term1 = (PropositionalTerm) terms.get(0);
         PropositionalTerm term2 = (PropositionalTerm) terms.get(1);
@@ -64,10 +87,22 @@ public class PropositionalEq extends EqualityFormula {
         assert (clauses != null);
         assert (encoding != null);
 
-        List<ImpliesFormula> conjuncts = new ArrayList<ImpliesFormula>(2);
         conjuncts.add(new ImpliesFormula(term1, term2));
         conjuncts.add(new ImpliesFormula(term2, term1));
+        */
 
         return (new AndFormula(conjuncts).tseitinEncode(clauses, encoding));
+    }
+    
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars) 
+    {
+        for(int i=0; i<terms.size(); i++)
+        {
+            PropositionalTerm term = (PropositionalTerm) terms.get(i);
+            Formula newterm = term.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+            terms.set(i, (PropositionalTerm)newterm);
+        }
+        return this;
     }
 }

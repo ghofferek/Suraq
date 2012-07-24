@@ -4,11 +4,9 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
-import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
-import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
@@ -60,10 +58,10 @@ public abstract class PropositionalTerm extends Term implements Formula,
      * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public abstract PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars);
+            Set<Token> noDependenceVars);*/
 
     /**
      * @see java.lang.Comparable#compareTo(java.lang.Object)

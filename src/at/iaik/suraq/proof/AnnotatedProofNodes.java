@@ -18,7 +18,7 @@ public final class AnnotatedProofNodes {
     /**
      * 
      */
-    private static final long serialVersionUID = 1L;
+    //private static final long serialVersionUID = 1L;
 
     private Map<Formula, Map<Set<Formula>, AnnotatedProofNode>> map = new HashMap<Formula, Map<Set<Formula>, AnnotatedProofNode>>();
 

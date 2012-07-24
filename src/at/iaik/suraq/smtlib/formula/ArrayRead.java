@@ -353,7 +353,7 @@ public class ArrayRead extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -364,7 +364,7 @@ public class ArrayRead extends DomainTerm {
                 indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
 
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -378,4 +378,43 @@ public class ArrayRead extends DomainTerm {
 
         return partitions;
     }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {     	
+       
+    	throw new RuntimeException(
+                "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayRead.");
+    	
+    	/*arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+        indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);*/
+    }
+    
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {     
+    	
+    	throw new RuntimeException(
+                "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayRead.");
+               /* arrayTerm.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+                indexTerm.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);*/
+    }
+    
 }

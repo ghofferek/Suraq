@@ -608,7 +608,7 @@ public class ArrayProperty implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -624,7 +624,7 @@ public class ArrayProperty implements Formula {
             throw new RuntimeException(
                     "Unexpectedly unable to create ArrayProperty.", exc);
         }
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -678,5 +678,81 @@ public class ArrayProperty implements Formula {
             Map<PropositionalVariable, Formula> encoding) {
         throw new RuntimeException(
                 "Array properties should have been removed before Tseitin encoding!");
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+    	  throw new RuntimeException(
+                  "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayProperty.");
+       	
+    	/*
+    	if (indexGuard instanceof UninterpretedPredicateInstance)
+    		indexGuard = ((UninterpretedPredicateInstance) indexGuard).applyReplaceUninterpretedPredicates(topLeveFormula,
+				    predicateInstances, instanceParameters, noDependenceVars);		
+    	else
+	        indexGuard.uninterpretedPredicatesToAuxiliaryVariables(
+	                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+	        
+     	if (valueConstraint instanceof UninterpretedPredicateInstance)
+     		valueConstraint = ((UninterpretedPredicateInstance) valueConstraint).applyReplaceUninterpretedPredicates(topLeveFormula,
+				    predicateInstances, instanceParameters, noDependenceVars);		
+    	else
+    		valueConstraint.uninterpretedPredicatesToAuxiliaryVariables(
+                    topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);   
+        */    
+    }
+    
+
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+        
+  	  throw new RuntimeException(
+              "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayProperty.");
+   	
+    	
+    	
+    	/*
+                    indexGuard.uninterpretedFunctionsToAuxiliaryVariables(
+                            topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+                    valueConstraint
+                            .uninterpretedFunctionsToAuxiliaryVariables(
+                                    topLeveFormula, functionInstances,
+                                    instanceParameters, noDependenceVars);
+                                    
+       */
+        
+    }
+    
+    
+    
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        throw new RuntimeException("Arrays must be replaced on performing graph-based reduction to propositional logic.");
+        /*
+        indexGuard = indexGuard.replaceEquivalences(topLeveFormula, replacements);
+        valueConstraint = valueConstraint.replaceEquivalences(topLeveFormula, replacements);
+        return this;
+        */
+    }
+    
+
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
+    {
+        throw new RuntimeException("Arrays must be replaced removing DomainITE.");
     }
 }

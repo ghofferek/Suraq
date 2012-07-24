@@ -3,15 +3,20 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.ws.Holder;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.Util;
 
 /**
  * An if-then-else-style domain term.
@@ -29,7 +34,7 @@ public class DomainIte extends DomainTerm {
     /**
      * The condition.
      */
-    private final Formula condition;
+    private Formula condition;
 
     /**
      * The then-branch.
@@ -371,7 +376,7 @@ public class DomainIte extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -382,7 +387,7 @@ public class DomainIte extends DomainTerm {
                         topLeveFormula, constraints, noDependenceVars),
                 elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -397,4 +402,165 @@ public class DomainIte extends DomainTerm {
 
         return partitions;
     }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(t)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  	
+    	
+	    	if (condition instanceof UninterpretedPredicateInstance) 
+	    		condition= ((UninterpretedPredicateInstance) condition).applyReplaceUninterpretedPredicates(topLeveFormula,
+	    				predicateInstances, instanceParameters, noDependenceVars);
+			else
+				condition.uninterpretedPredicatesToAuxiliaryVariables(
+						topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+		
+				
+			thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+		
+			elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
+                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    }
+    
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.DomainTerm#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public  void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+    			condition.uninterpretedFunctionsToAuxiliaryVariables(
+    					topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    		
+    			if (thenBranch instanceof UninterpretedFunctionInstance) 
+    				thenBranch= ((UninterpretedFunctionInstance) thenBranch).applyReplaceUninterpretedFunctions(topLeveFormula,
+    					 	functionInstances, instanceParameters, noDependenceVars);
+    			else	
+    				thenBranch.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    			
+    			if (elseBranch instanceof UninterpretedFunctionInstance) 
+    				elseBranch= ((UninterpretedFunctionInstance) elseBranch).applyReplaceUninterpretedFunctions(topLeveFormula,
+    					 	functionInstances, instanceParameters, noDependenceVars);
+    			else	
+    				elseBranch.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+ 
+    }
+    
+
+    // DO NOT USE WITH UF yet!!!
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, Holder<Term> newToken, List<Formula> andPreList)
+    {
+        List<Formula> _andlist = new ArrayList<Formula>();
+        // generate a new Var that shall replace the original one
+        
+        // remember that "ite" is a reserved word!
+        // Hence I used "itev" instead for ite variable
+        Token newDomainToken = new Token(Util.freshVarNameCached(topLevelFormula, "itev"));
+        DomainVariable newDomainVar = new DomainVariable(newDomainToken);
+        newToken.value = newDomainVar;
+        
+        // remove DomainITE recusively -> also condition, then, else
+        condition = condition.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        if(elseBranch instanceof DomainIte)
+        {
+            Holder<Term> newToken2 = new Holder<Term>();
+            _andlist.add(((DomainIte)elseBranch).removeDomainITE(topLevelFormula, noDependenceVars, newToken2, andPreList));
+            elseBranch = (DomainVariable) newToken2.value;
+        }
+        if(thenBranch instanceof DomainIte)
+        {
+            Holder<Term> newToken2 = new Holder<Term>();
+            _andlist.add(((DomainIte)thenBranch).removeDomainITE(topLevelFormula, noDependenceVars, newToken2, andPreList));
+            thenBranch = (DomainVariable) newToken2.value;
+        }
+        
+        // TODO: the if is not sufficient enough
+        HashSet<DomainVariable> innerVariables = new HashSet<DomainVariable>();
+        innerVariables.addAll(elseBranch.getDomainVariables());
+        innerVariables.addAll(thenBranch.getDomainVariables());
+        innerVariables.addAll(condition.getDomainVariables());
+        for(DomainVariable dv : innerVariables)
+        {
+            if(noDependenceVars.contains(dv))
+            {
+                System.err.println("new nodependencyvar: "+ newDomainToken);
+                noDependenceVars.add(newDomainToken);
+                break;
+            }
+        }
+        System.err.println(".");
+
+        // Check if this formula contains any noDependenceVars
+        Set<DomainVariable> dv = this.getDomainVariables();
+        for(Token noDepVar : noDependenceVars)
+        {
+            if(dv.contains(noDepVar))
+            {
+                noDependenceVars.add(newDomainToken);
+                break;
+            }
+        }
+        
+        // generate a new Formula out of: ITE(condition, then, else)
+        // make:      itevar
+        // later do:  ITE(condition, itevar=then, itevar=else)
+        try{
+            List<Term> _thenlist = new ArrayList<Term>();
+            _thenlist.add(thenBranch);
+            _thenlist.add(newDomainVar);
+            Formula _then = EqualityFormula.create(_thenlist, true);
+            
+    
+            List<Term> _elselist = new ArrayList<Term>();
+            _elselist.add(elseBranch);
+            _elselist.add(newDomainVar);
+            Formula _else = EqualityFormula.create(_elselist, true);
+    
+            Formula newPropFormula = new PropositionalIte(condition, _then, _else);
+            
+            // if the toplevelFormula is an AndFormula, we can reuse it.
+            /*if(topLevelFormula instanceof AndFormula)
+            {
+                ((AndFormula)topLevelFormula).addFormula(newPropFormula);
+            }
+            else
+            {
+                // append the ITE to the end of the formula
+                List<Formula> _andlist = new ArrayList<Formula>();
+                _andlist.add(topLevelFormula);
+                _andlist.add(newPropFormula);
+                topLevelFormula = new AndFormula(_andlist);
+            }*/
+            
+            if(_andlist.size() == 0)
+            {
+                return newPropFormula;
+            }
+            else
+            {
+                //return new ImpliesFormula(new AndFormula(_andlist),newPropFormula);
+                _andlist.add(newPropFormula);
+                
+                return new AndFormula(_andlist);
+            }
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+            throw new RuntimeException("Unexpected Exception.");
+        }
+        
+    }
 }
+ 

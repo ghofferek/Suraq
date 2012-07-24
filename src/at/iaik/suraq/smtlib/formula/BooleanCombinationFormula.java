@@ -4,6 +4,9 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.util.Collection;
+import java.util.Set;
+
+import at.iaik.suraq.sexp.Token;
 
 /**
  * A class for Boolean combination of formulas.
@@ -36,5 +39,6 @@ public abstract class BooleanCombinationFormula implements Formula {
     public String toString() {
         return this.toSmtlibV2().toString();
     }
+
 
 }

@@ -11,8 +11,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.xml.ws.Holder;
+
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -450,7 +453,7 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+/*    @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -465,7 +468,7 @@ public abstract class EqualityFormula implements Formula {
         } catch (IncomparableTermsException exc) {
             throw new RuntimeException("Unexpectedly incomparable terms.", exc);
         }
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -531,5 +534,178 @@ public abstract class EqualityFormula implements Formula {
     @Override
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
+    }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	 for (Term term : terms)
+             term.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula, predicateInstances,
+            		 instanceParameters, noDependenceVars);
+    }
+
+     
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Set, java.util.Set)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	 for (Term term : terms)
+             term.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula, functionInstances,
+            		 instanceParameters, noDependenceVars);
+    }
+
+    
+    
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars) 
+    {
+        // FormulaTerm
+        
+        //System.out.println("Equivalence found: "+this.numTerms());
+        List<Formula> newTerms = new ArrayList<Formula>();
+        try {
+            // Iterate through all terms of the Equality, because there could be more than two.
+            for(int i=0; i<terms.size(); i++) {
+                Term ti = terms.get(i);
+                //if(!(ti instanceof PropositionalVariable || ti instanceof FormulaTerm)) // do not handle propositional variables
+                for(int j=i+1; j<terms.size();j++) {
+                    Term tj = terms.get(j);
+                    //if(!(tj instanceof PropositionalVariable || tj instanceof FormulaTerm)) // do not handle propositional variables
+                    {
+                        // fix to a static order
+                        if(ti.toString().compareTo(tj.toString())>0)
+                        {
+                            Term help = tj;
+                            tj = ti;
+                            ti = help;
+                        }
+                        
+                        // Build EqualityFormula for the Map
+                        Collection<Term> terms = new HashSet<Term>();
+                        terms.add(ti);
+                        terms.add(tj);
+                        
+                        if(terms.size() < 2) // this means ti = tj
+                        {
+                            //System.out.println("Propably there was an equality like x=x");
+                            newTerms.add(new PropositionalConstant(true));
+                            continue;
+                        }
+                        
+                        EqualityFormula ef = create(terms, true);
+                        
+                        
+                        
+                        // Find a name for the Equality
+                        String newName;
+                        if(replacements.containsKey(ef))
+                        {
+                            // take an existent replacement because it's the same
+                            newName = replacements.get(ef);
+                        }
+                        else
+                        {
+                            // add a new replacement -> get a new Varname and add to the list
+                            //newName = "eq_"+ti.toString()+"_"+tj.toString();
+                            //newName = Util.freshVarNameCached(topLeveFormula, newName);
+                            newName = GraphReduction.getVarName(topLeveFormula, ti.toString(), tj.toString());
+                            replacements.put(ef, newName);
+                            if(noDependenceVars.contains(new Token(ti.toString())) || noDependenceVars.contains(new Token(tj.toString())) )
+                            {
+                                noDependenceVars.add(new Token(newName));
+                            }
+                        }
+                        
+                        // we must take care of inequalities, so we add a NOT around single terms
+                        // x != y != z <=> x!=y && x!=z && y!=z <=> e12 && e13 && e23
+                        if(this.equal)
+                            newTerms.add(new PropositionalVariable(newName));
+                        else
+                            newTerms.add(new NotFormula(new PropositionalVariable(newName)));
+                    }
+                }
+            }
+            
+            // Concat the Terms with an AND-Formula, if there are more terms than two. e.g.:
+            //  x=y  <=> e_xy
+            // x=y=z <=> e_xy && e_xz && e_yz
+            if(newTerms.size()==0)
+            {
+                // This should never happen.
+                throw new RuntimeException("??? Don't know what happened here ???");
+            }
+            else if(newTerms.size()==1)
+            {
+                return newTerms.iterator().next();
+            }
+            else
+            {
+                return new AndFormula(newTerms);
+            }
+            
+        }catch(IncomparableTermsException ex)
+        {
+            // This Exception should not be possible.
+            // But it is nessasary to suppress warnings.
+            throw new RuntimeException("Incomparable Terms in Equality Formula");
+        }
+        // TODO recursivley
+    }
+    
+
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
+    {
+        List<Formula> _andlist = new ArrayList<Formula>();
+        for(int i=0;i<terms.size();i++)
+        {
+            if(terms.get(i) instanceof DomainIte)
+            {
+                DomainIte domainITE = (DomainIte) terms.get(i);
+                
+                // replace the ITE with a new variable
+                // the ITE-constraint is added on the end of the topLevelFormula by this function
+                Holder<Term> newVarName = new Holder<Term>();
+                _andlist.add(domainITE.removeDomainITE(topLevelFormula, noDependenceVars, newVarName, andPreList));
+                terms.set(i, newVarName.value);
+            }
+        }
+        
+        if(_andlist.size()>0)
+        {
+            // FIXME: not sure which i shall use
+            // pretty sure the ImpliesFormula is correct
+            // else it is too easy to make it unsat
+            
+            int method = 3;
+            if(method == 1)
+            {
+                if(_andlist.size()==1)
+                    return new ImpliesFormula(_andlist.get(0), this);
+                return new ImpliesFormula(new AndFormula(_andlist), this);
+            }
+            else if(method == 2)
+            {
+                _andlist.add(this);
+                return new AndFormula(_andlist);
+            }
+            else if(method == 3)
+            {
+                // TODO:add to global list
+                andPreList.addAll(_andlist);
+                return this;
+            }
+        }
+        return this;
     }
 }

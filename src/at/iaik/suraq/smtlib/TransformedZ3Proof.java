@@ -659,7 +659,8 @@ public class TransformedZ3Proof extends Z3Proof {
                         .getNodeWithConsequent(subProof.consequent,
                                 subProof.getHypothesisFormulas(),
                                 newObsoleteLiterals).getConsequent();
-
+                
+                // FIXME: merging -> added:
                 if (subProof != update) {
                     subProof.removeParent(this);
                     this.subProofs.set(count, update);
@@ -669,6 +670,11 @@ public class TransformedZ3Proof extends Z3Proof {
                     this.obsoleteLiterals = this.obsoleteLiterals
                             .addAllToCopy(newObsoleteLiterals);
                 }
+            	// FIXME: merging: replaced:
+                //subProofs.set(count, update);
+                //this.obsoleteLiterals = this.obsoleteLiterals
+                //        .addAllToCopy(newObsoleteLiterals);
+                // END
             }
 
             assert (obsoleteLiterals != null);
@@ -762,6 +768,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         }
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
+                        // FIXME: merging -> added
                         if (subProofs.get(0) != update) {
                             subProofs.get(0).removeParent(this);
                             subProofs.set(0, update);
@@ -770,6 +777,11 @@ public class TransformedZ3Proof extends Z3Proof {
                             this.markHypCacheDirty();
                             recomputeObsoleteLiterals();
                         }
+
+						// FIXME: merging -> replaced
+                        //subProofs.set(0, update);
+                        //recomputeObsoleteLiterals();
+						// END
                     }
                 }
 
@@ -799,6 +811,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         }
                         // Too expensive?
                         // assert (((TransformedZ3Proof) update).isLocal());
+                        // FIXME: merging -> added
                         if (subProofs.get(1) != update) {
                             subProofs.get(1).removeParent(this);
                             subProofs.set(1, update);
@@ -807,6 +820,10 @@ public class TransformedZ3Proof extends Z3Proof {
                             this.markHypCacheDirty();
                             recomputeObsoleteLiterals();
                         }
+                        // FIXME: merging -> replaced
+                        //subProofs.set(1, update);
+                        //recomputeObsoleteLiterals();
+                        // FIXME: end
                     }
                 }
 
@@ -1021,6 +1038,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     this.subProofs.set(count, newProof);
                     newProof.addParent(this);
                     newProof.setHasBeenMadeLocal();
+                    // FIXME: merging: following line added or removed?
                     Z3Proof.hypModCount++;
                     this.markHypCacheDirty();
                     TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
@@ -1336,6 +1354,9 @@ public class TransformedZ3Proof extends Z3Proof {
                     SExpressionConstants.SYMMETRY, subProofs,
                     z3Proof.consequent);
 
+            // FIXME: merging: line was probably removed
+            assert (z3Proof.getHypotheses().size() == result.getHypotheses()
+                    .size()); // DEBUG
             return result;
         }
 

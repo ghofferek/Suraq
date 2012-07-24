@@ -273,7 +273,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    public PropositionalFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
+    /*public PropositionalFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
 
@@ -288,7 +288,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                     exc);
         }
 
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -299,4 +299,32 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     public Set<Integer> getAssertPartition() {
         return body.getPartitionsFromSymbols();
     }
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+    	if (body instanceof UninterpretedPredicateInstance) 
+    		body= ((UninterpretedPredicateInstance) body).applyReplaceUninterpretedPredicates(topLeveFormula,
+    				predicateInstances, instanceParameters, noDependenceVars);
+		else
+			body.uninterpretedPredicatesToAuxiliaryVariables(
+                 topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    }
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+		       body.uninterpretedFunctionsToAuxiliaryVariables(
+		                topLeveFormula, functionInstances, instanceParameters, noDependenceVars);      
+    }  
 }

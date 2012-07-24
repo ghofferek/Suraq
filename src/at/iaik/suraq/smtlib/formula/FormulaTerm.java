@@ -259,14 +259,14 @@ public class FormulaTerm extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public FormulaTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
         return new FormulaTerm(
                 formula.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -332,4 +332,51 @@ public class FormulaTerm extends PropositionalTerm {
         return formula.tseitinEncode(clauses, encoding);
     }
 
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    	
+		    	if (formula instanceof UninterpretedPredicateInstance)
+		    		formula = ((UninterpretedPredicateInstance) formula).applyReplaceUninterpretedPredicates(topLeveFormula,
+							      predicateInstances, instanceParameters, noDependenceVars);
+				else
+					formula.uninterpretedPredicatesToAuxiliaryVariables(
+								  topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    }
+
+    
+    /**
+     * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+		       formula.uninterpretedFunctionsToAuxiliaryVariables(
+		                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    }  
+    
+
+    @Override
+    public Formula replaceEquivalences(Formula topLevelFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        formula = formula.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        return this;
+    }
+    
+    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
+    {
+        formula = formula.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        return this;
+    }
+    
 }

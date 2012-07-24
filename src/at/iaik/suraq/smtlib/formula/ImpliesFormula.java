@@ -356,7 +356,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    @Override
+    /*@Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
@@ -365,7 +365,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                         topLeveFormula, constraints, noDependenceVars),
                 rightSide.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
-    }
+    }*/
 
     /**
      * Returns the elements assert-partition.
@@ -520,5 +520,62 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         disjuncts.add(rightSide);
         OrFormula implication = new OrFormula(disjuncts);
         return implication.tseitinEncode(clauses, encoding);
+    }
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) { 	
+		    	if (leftSide instanceof UninterpretedPredicateInstance)
+		    		leftSide = ((UninterpretedPredicateInstance) leftSide).applyReplaceUninterpretedPredicates(topLeveFormula,
+							      predicateInstances, instanceParameters, noDependenceVars);
+				else
+					leftSide.uninterpretedPredicatesToAuxiliaryVariables(
+			                      topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+		    	
+		    	if (rightSide instanceof UninterpretedPredicateInstance)
+		    		rightSide = ((UninterpretedPredicateInstance) rightSide).applyReplaceUninterpretedPredicates(topLeveFormula,
+							      predicateInstances, instanceParameters, noDependenceVars);
+				else
+					rightSide.uninterpretedPredicatesToAuxiliaryVariables(
+			                      topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    }
+
+    
+    
+    /**
+     * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {    
+                leftSide.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+                rightSide.uninterpretedFunctionsToAuxiliaryVariables(
+                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    }
+    
+
+    
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
+    {
+        leftSide = leftSide.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        rightSide = rightSide.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
+        return this;
+    }
+    
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)    {
+        leftSide = leftSide.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        rightSide = rightSide.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        return this;
     }
 }

@@ -29,6 +29,7 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.Timer;
 
 /**
@@ -240,11 +241,12 @@ public class TseitinParser extends SMTLibParser {
                         Collections.sort(tseitinIndices);
                         if (tseitinIndices.get(numTseitinVars - 1) <= currTseitinIndex) {
                             if (currClauses.size() == 0) {
-                                System.out
+                               /* System.out
                                         .println("INFO: Encoding Tseitin variable "
                                                 + this.tseitinVariables.get(
                                                         currTseitinIndex)
                                                         .getVarName());
+                                                        */
                                 currClauses.add(clause);
                             } else
                                 finishCurrTseitinDef = true;
@@ -306,7 +308,7 @@ public class TseitinParser extends SMTLibParser {
     private Formula buildTseitinFormula(List<Formula> CurrClauses,
             PropositionalVariable tseitinVar) {
 
-        System.out.println("start build tseitin formula.");
+        //System.out.println("start build tseitin formula.");
         Timer buildTseitinFormulaTimer = new Timer();
         buildTseitinFormulaTimer.start();
 
@@ -325,8 +327,8 @@ public class TseitinParser extends SMTLibParser {
         }
 
         buildTseitinFormulaTimer.stop();
-        System.out.println("finished build tseitin formula in "
-                + buildTseitinFormulaTimer + ".\n");
+        //System.out.println("finished build tseitin formula in "
+        //        + buildTseitinFormulaTimer + ".\n");
 
         return posFormula;
     }
@@ -437,6 +439,7 @@ public class TseitinParser extends SMTLibParser {
 
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3Path());
+        DebugHelper.getInstance().stringtoFile(smtstr, "debug-tseitin-check.txt");
         z3.solve(smtstr);
 
         switch (z3.getState()) {
