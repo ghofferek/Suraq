@@ -270,10 +270,21 @@ public class TermFunctionMacroInstance extends DomainTerm {
      * Removes array equalities from the body of the macro.
      */
     @Override
-    public void removeArrayEqualities() {
-        macro.removeArrayEqualities();
-        for (Term term : paramMap.values())
-            term.removeArrayEqualities();
+    public Term removeArrayEqualitiesTerm() {
+        TermFunctionMacro macro = (TermFunctionMacro) this.macro
+                .removeArrayEqualities();
+        Map<Token, Term> paramMap = new HashMap<Token, Term>();
+
+        for (Token token : paramMap.keySet())
+            paramMap.put(token, this.paramMap.get(token)
+                    .removeArrayEqualitiesTerm());
+
+        try {
+            return new TermFunctionMacroInstance(macro, paramMap);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -283,10 +294,21 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *            the index set.
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        macro.arrayPropertiesToFiniteConjunctions(indexSet);
-        for (Term term : paramMap.values())
-            term.arrayPropertiesToFiniteConjunctions(indexSet);
+    public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
+        TermFunctionMacro macro = (TermFunctionMacro) this.macro
+                .arrayPropertiesToFiniteConjunctions(indexSet);
+        Map<Token, Term> paramMap = new HashMap<Token, Term>();
+        
+        for (Token token : paramMap.keySet())
+            paramMap.put(token, this.paramMap.get(token)
+                    .arrayPropertiesToFiniteConjunctionsTerm(indexSet));
+
+        try {
+            return new TermFunctionMacroInstance(macro, paramMap);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -334,11 +356,21 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
             UninterpretedFunction newFunction) {
-        macro.substituteUninterpretedFunction(oldFunction, newFunction);
-        for (Term param : paramMap.values())
-            param.substituteUninterpretedFunction(oldFunction, newFunction);
+        TermFunctionMacro macro = (TermFunctionMacro) this.macro.substituteUninterpretedFunction(oldFunction, newFunction);
+        
+        Map<Token, Term> paramMap = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet())
+            paramMap.put(token, this.paramMap.get(token).substituteUninterpretedFunctionTerm(oldFunction, newFunction));
+        
+
+        try {
+            return new TermFunctionMacroInstance(macro, paramMap);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -362,7 +394,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         Set<Formula> localConstraints = macro.makeArrayReadsSimple(
                 topLevelFormula, noDependenceVars);
@@ -446,7 +478,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
 

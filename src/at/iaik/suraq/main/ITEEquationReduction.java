@@ -31,7 +31,7 @@ public class ITEEquationReduction {
             return main;
         else if(andPreList.size()==1)
             return new ImpliesFormula(andPreList.get(0),main);
-        return new ImpliesFormula(new AndFormula(andPreList),main);
+        return new ImpliesFormula(AndFormula.generate(andPreList),main);
     }
     
 }

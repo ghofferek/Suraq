@@ -268,55 +268,79 @@ public class ArrayIte extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        condition.arrayPropertiesToFiniteConjunctions(indexSet);
-        thenBranch.arrayPropertiesToFiniteConjunctions(indexSet);
-        elseBranch.arrayPropertiesToFiniteConjunctions(indexSet);
+    public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
+        Formula condition = this.condition;
+        ArrayTerm thenBranch = this.thenBranch;
+        ArrayTerm elseBranch = this.elseBranch;
+        
+        condition = condition.arrayPropertiesToFiniteConjunctions(indexSet);
+        thenBranch = (ArrayTerm) thenBranch.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        elseBranch = (ArrayTerm) elseBranch.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        
+        return new ArrayIte(condition, thenBranch, elseBranch);
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
-        condition.removeArrayEqualities();
-        thenBranch.removeArrayEqualities();
-        elseBranch.removeArrayEqualities();
+    public Term removeArrayEqualitiesTerm() {
+        Formula condition = this.condition;
+        ArrayTerm thenBranch = this.thenBranch;
+        ArrayTerm elseBranch = this.elseBranch;
+        
+        condition = condition.removeArrayEqualities();
+        thenBranch = (ArrayTerm) thenBranch.removeArrayEqualitiesTerm();
+        elseBranch = (ArrayTerm) elseBranch.removeArrayEqualitiesTerm();
+        
+        return new ArrayIte(condition, thenBranch, elseBranch);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        condition.removeArrayWrites(topLevelFormula, constraints,
+
+        Formula condition = this.condition;
+        ArrayTerm thenBranch = this.thenBranch;
+        ArrayTerm elseBranch = this.elseBranch;
+
+        condition = condition.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
 
         if (thenBranch instanceof ArrayWrite)
             thenBranch = ((ArrayWrite) thenBranch).applyWriteAxiom(
                     topLevelFormula, constraints, noDependenceVars);
         else
-            thenBranch.removeArrayWrites(topLevelFormula, constraints,
-                    noDependenceVars);
+            thenBranch = (ArrayTerm) thenBranch.removeArrayWritesTerm(
+                    topLevelFormula, constraints, noDependenceVars);
 
         if (elseBranch instanceof ArrayWrite)
             elseBranch = ((ArrayWrite) elseBranch).applyWriteAxiom(
                     topLevelFormula, constraints, noDependenceVars);
         else
-            elseBranch.removeArrayWrites(topLevelFormula, constraints,
-                    noDependenceVars);
+            elseBranch = (ArrayTerm) elseBranch.removeArrayWritesTerm(
+                    topLevelFormula, constraints, noDependenceVars);
 
+        return new ArrayIte(condition, thenBranch, elseBranch);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        thenBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        elseBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
+    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+        Formula condition = this.condition;
+        ArrayTerm thenBranch = this.thenBranch;
+        ArrayTerm elseBranch = this.elseBranch;
+        
+        condition = condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        thenBranch = (ArrayTerm) thenBranch.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
+        elseBranch = (ArrayTerm) elseBranch.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
+        
+        return new ArrayIte(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -336,11 +360,17 @@ public class ArrayIte extends ArrayTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
             UninterpretedFunction newFunction) {
-        condition.substituteUninterpretedFunction(oldFunction, newFunction);
-        thenBranch.substituteUninterpretedFunction(oldFunction, newFunction);
-        elseBranch.substituteUninterpretedFunction(oldFunction, newFunction);
+        Formula condition = this.condition;
+        ArrayTerm thenBranch = this.thenBranch;
+        ArrayTerm elseBranch = this.elseBranch;
+        
+        condition = condition.substituteUninterpretedFunction(oldFunction, newFunction);
+        thenBranch = (ArrayTerm) thenBranch.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        elseBranch = (ArrayTerm) elseBranch.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        
+        return new ArrayIte(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -348,14 +378,20 @@ public class ArrayIte extends ArrayTerm {
      *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        condition.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
-        thenBranch.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
-        elseBranch.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
+        Formula condition = this.condition;
+        ArrayTerm thenBranch = this.thenBranch;
+        ArrayTerm elseBranch = this.elseBranch;
+
+        condition = condition.makeArrayReadsSimple(topLevelFormula,
+                constraints, noDependenceVars);
+        thenBranch = (ArrayTerm) thenBranch.makeArrayReadsSimpleTerm(
+                topLevelFormula, constraints, noDependenceVars);
+        elseBranch = (ArrayTerm) elseBranch.makeArrayReadsSimpleTerm(
+                topLevelFormula, constraints, noDependenceVars);
+
+        return new ArrayIte(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -394,7 +430,7 @@ public class ArrayIte extends ArrayTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
        	
@@ -423,7 +459,7 @@ public class ArrayIte extends ArrayTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars){
     	

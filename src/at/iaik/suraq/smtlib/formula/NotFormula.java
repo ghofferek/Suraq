@@ -111,7 +111,7 @@ public class NotFormula extends BooleanCombinationFormula {
             for (Formula subformula : ((AndOrXorFormula) formula).formulas)
                 subformulas.add((new NotFormula(subformula))
                         .negationNormalForm());
-            return new OrFormula(subformulas);
+            return OrFormula.generate(subformulas);
         }
 
         // Or
@@ -120,7 +120,7 @@ public class NotFormula extends BooleanCombinationFormula {
             for (Formula subformula : ((AndOrXorFormula) formula).formulas)
                 subformulas.add((new NotFormula(subformula))
                         .negationNormalForm());
-            return new AndFormula(subformulas);
+            return AndFormula.generate(subformulas);
         }
 
         // Xor
@@ -167,7 +167,7 @@ public class NotFormula extends BooleanCombinationFormula {
             list.add(impliesFormula.getLeftSide().negationNormalForm());
             list.add((new NotFormula(impliesFormula.getRightSide()))
                     .negationNormalForm());
-            return new AndFormula(list);
+            return AndFormula.generate(list);
         }
 
         // MacroInstance
@@ -261,25 +261,29 @@ public class NotFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
+    public Formula removeArrayEqualities() {
+        Formula formula = this.formula;
         if (formula instanceof ArrayEq)
             formula = ((ArrayEq) formula).toArrayProperties();
         else
-            formula.removeArrayEqualities();
+            formula = formula.removeArrayEqualities();
+        return new NotFormula(formula);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        Formula formula = this.formula;
         if (formula instanceof ArrayProperty)
             formula = ((ArrayProperty) formula).toFiniteConjunction(indexSet);
         else
-            formula.arrayPropertiesToFiniteConjunctions(indexSet);
+            formula = formula.arrayPropertiesToFiniteConjunctions(indexSet);
+        return new NotFormula(formula);
     }
 
     /**
@@ -349,18 +353,18 @@ public class NotFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        formula.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
+        return new NotFormula(formula.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars));
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
+    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        return new NotFormula(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
     }
 
     /**
@@ -376,9 +380,9 @@ public class NotFormula extends BooleanCombinationFormula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        formula.substituteUninterpretedFunction(oldFunction, newFunction);
+        return new NotFormula(formula.substituteUninterpretedFunction(oldFunction, newFunction));
     }
 
     /**
@@ -386,10 +390,10 @@ public class NotFormula extends BooleanCombinationFormula {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        formula.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
+        return new NotFormula(formula.makeArrayReadsSimple(topLevelFormula, constraints,
+                noDependenceVars));
     }
 
     /**
@@ -443,7 +447,7 @@ public class NotFormula extends BooleanCombinationFormula {
                 if (Util.isLiteral(notFormula)) {
                     List<Formula> literals = new ArrayList<Formula>();
                     literals.add(notFormula);
-                    Formula orFormula = new OrFormula(literals);
+                    Formula orFormula = OrFormula.generate(literals);
                     return orFormula;
                 } else if (notFormula instanceof OrFormula) {
                     return notFormula;
@@ -512,12 +516,12 @@ public class NotFormula extends BooleanCombinationFormula {
         List<Formula> disjuncts = new ArrayList<Formula>(2);
         disjuncts.add(tseitinVar);
         disjuncts.add(tseitinVarForSubformula);
-        clauses.add(new OrFormula(disjuncts));
+        clauses.add(OrFormula.generate(disjuncts));
 
         disjuncts.clear();
         disjuncts.add(new NotFormula(tseitinVar));
         disjuncts.add(new NotFormula(tseitinVarForSubformula));
-        clauses.add(new OrFormula(disjuncts));
+        clauses.add(OrFormula.generate(disjuncts));
 
         return tseitinVar;
     }
@@ -527,15 +531,22 @@ public class NotFormula extends BooleanCombinationFormula {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {	
-		    	if (formula instanceof UninterpretedPredicateInstance)
-		    		formula = ((UninterpretedPredicateInstance) formula).applyReplaceUninterpretedPredicates(topLeveFormula,
-							      predicateInstances, instanceParameters, noDependenceVars);
-				else
-					formula.uninterpretedPredicatesToAuxiliaryVariables(
-			                      topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        Formula formula = this.formula;
+        if (formula instanceof UninterpretedPredicateInstance)
+            formula = ((UninterpretedPredicateInstance) formula)
+                    .applyReplaceUninterpretedPredicates(topLeveFormula,
+                            predicateInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            formula = formula.uninterpretedPredicatesToAuxiliaryVariables(
+                    topLeveFormula, predicateInstances, instanceParameters,
+                    noDependenceVars);
+        return new NotFormula(formula);
     }
     
     /**
@@ -543,24 +554,29 @@ public class NotFormula extends BooleanCombinationFormula {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        return new NotFormula(
                 formula.uninterpretedFunctionsToAuxiliaryVariables(
-                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-    }
-    
-
-    @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
-    {
-        formula = formula.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
-        return this;
+                        topLeveFormula, functionInstances, instanceParameters,
+                        noDependenceVars));
     }
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)    {
-        formula = formula.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
-        return this;
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
+     return new NotFormula(formula.replaceEquivalences(topLeveFormula,
+                replacements, noDependenceVars));
+    }
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        return new NotFormula(formula.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList));
     }
 }

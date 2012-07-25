@@ -189,8 +189,8 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      */
     @Override
     public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        if (paramMap.containsKey(new Token(varName)))
-            return paramMap.get(new Token(varName));
+        if (paramMap.containsKey(Token.generate(varName)))
+            return paramMap.get(Token.generate(varName));
         else
             return this;
     }
@@ -200,44 +200,44 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      */
     @Override
     public SExpression toSmtlibV2() {
-        return new Token(varName);
+        return Token.generate(varName);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
         // nothing to do here
-        return;
+        return this;
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
+    public Term removeArrayEqualitiesTerm() {
         // nothing to do here
-        return;
+        return this;
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         // nothing to do
-        return;
+        return this;
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
         // nothing to do
-        return;
+        return this;
     }
 
     /**
@@ -253,9 +253,9 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
             UninterpretedFunction newFunction) {
-        return;
+        return this;
     }
 
     /**
@@ -271,9 +271,9 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        return;
+        return this;
     }
 
     /**
@@ -304,7 +304,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  
     	
@@ -320,7 +320,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
     	

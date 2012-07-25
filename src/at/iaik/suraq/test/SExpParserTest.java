@@ -274,9 +274,9 @@ public class SExpParserTest {
             Assert.assertTrue(parser.wasParsingSuccessfull());
             SExpression result = parser.getRootExpr();
             Assert.assertNotNull(result);
-            Token first = new Token("first");
-            Token second = new Token("second");
-            Token third = new Token("third");
+            Token first = Token.generate("first");
+            Token second = Token.generate("second");
+            Token third = Token.generate("third");
             SExpression secondThird = new SExpression();
             secondThird.addChild(second);
             secondThird.addChild(third);
@@ -305,13 +305,13 @@ public class SExpParserTest {
             SExpression result = parser.getRootExpr();
             Assert.assertNotNull(result);
             SExpression actualFirst = result.getChildren().get(0);
-            SExpression[] expectedFirstChildren = { new Token("set-logic"),
-                    new Token("ArraysEx") };
+            SExpression[] expectedFirstChildren = { Token.generate("set-logic"),
+            		Token.generate("ArraysEx") };
             SExpression expectedFirst = new SExpression(expectedFirstChildren);
             SExpression actualLast = result.getChildren().get(
                     result.getChildren().size() - 1);
-            SExpression[] expectedLastChildren = { new Token("get-info"),
-                    new Token("model") };
+            SExpression[] expectedLastChildren = { Token.generate("get-info"),
+            		Token.generate("model") };
             SExpression expectedLast = new SExpression(expectedLastChildren);
             Assert.assertEquals(expectedFirst, actualFirst);
             Assert.assertEquals(expectedLast, actualLast);
@@ -341,18 +341,18 @@ public class SExpParserTest {
             SExpression result = parser.getRootExpr();
             Assert.assertNotNull(result);
             SExpression actualFirst = result.getChildren().get(0);
-            SExpression[] expectedFirstChildren = { new Token("set-logic"),
-                    new Token("QF_LIA") };
+            SExpression[] expectedFirstChildren = { Token.generate("set-logic"),
+            		Token.generate("QF_LIA") };
             SExpression expectedFirst = new SExpression(expectedFirstChildren);
             SExpression actualLast = result.getChildren().get(
                     result.getChildren().size() - 1);
-            SExpression[] expectedLastChildren = { new Token("check-sat") };
+            SExpression[] expectedLastChildren = { Token.generate("check-sat") };
             SExpression expectedLast = new SExpression(expectedLastChildren);
             Assert.assertEquals(expectedFirst, actualFirst);
             Assert.assertEquals(expectedLast, actualLast);
             Assert.assertEquals(
                     result.getChildren().get(result.getChildren().size() - 2)
-                            .getChildren().get(0), new Token("assert"));
+                            .getChildren().get(0), Token.generate("assert"));
         } catch (FileNotFoundException exc1) {
             exc1.printStackTrace();
             Assert.fail(exc1.getMessage());
@@ -379,18 +379,18 @@ public class SExpParserTest {
             SExpression result = parser.getRootExpr();
             Assert.assertNotNull(result);
             SExpression actualFirst = result.getChildren().get(0);
-            SExpression[] expectedFirstChildren = { new Token("set-logic"),
-                    new Token("QF_LIA") };
+            SExpression[] expectedFirstChildren = { Token.generate("set-logic"),
+            		Token.generate("QF_LIA") };
             SExpression expectedFirst = new SExpression(expectedFirstChildren);
             SExpression actualLast = result.getChildren().get(
                     result.getChildren().size() - 1);
-            SExpression[] expectedLastChildren = { new Token("check-sat") };
+            SExpression[] expectedLastChildren = { Token.generate("check-sat") };
             SExpression expectedLast = new SExpression(expectedLastChildren);
             Assert.assertEquals(expectedFirst, actualFirst);
             Assert.assertEquals(expectedLast, actualLast);
             Assert.assertEquals(
                     result.getChildren().get(result.getChildren().size() - 2)
-                            .getChildren().get(0), new Token("assert"));
+                            .getChildren().get(0), Token.generate("assert"));
         } catch (FileNotFoundException exc1) {
             exc1.printStackTrace();
             Assert.fail(exc1.getMessage());
@@ -417,18 +417,18 @@ public class SExpParserTest {
             SExpression result = parser.getRootExpr();
             Assert.assertNotNull(result);
             SExpression actualFirst = result.getChildren().get(0);
-            SExpression[] expectedFirstChildren = { new Token("set-option"),
-                    new Token(":print-success"), new Token("false") };
+            SExpression[] expectedFirstChildren = { Token.generate("set-option"),
+            		Token.generate(":print-success"), Token.generate("false") };
             SExpression expectedFirst = new SExpression(expectedFirstChildren);
             SExpression actualLast = result.getChildren().get(
                     result.getChildren().size() - 1);
-            SExpression[] expectedLastChildren = { new Token("check-sat") };
+            SExpression[] expectedLastChildren = { Token.generate("check-sat") };
             SExpression expectedLast = new SExpression(expectedLastChildren);
             Assert.assertEquals(expectedFirst, actualFirst);
             Assert.assertEquals(expectedLast, actualLast);
             Assert.assertEquals(
                     result.getChildren().get(result.getChildren().size() - 2)
-                            .getChildren().get(0), new Token("assert"));
+                            .getChildren().get(0), Token.generate("assert"));
         } catch (FileNotFoundException exc1) {
             exc1.printStackTrace();
             Assert.fail(exc1.getMessage());

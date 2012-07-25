@@ -81,18 +81,27 @@ public class DomainEq extends EqualityFormula {
      * @see at.iaik.suraq.smtlib.formula.EqualityFormula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+    public Formula arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars) {
+        List<Term> pairs = new ArrayList<Term>(terms);
         for (DomainTerm term : getDomainTerms()) {
             if (term instanceof ArrayRead) {
-                while (terms.remove(term)) {
+                while (pairs.remove(term)) {
                     // this block is intentionally empty
                 }
-                terms.add(((ArrayRead) term)
+                pairs.add(((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars));
-
-            } else
-                term.arrayReadsToUninterpretedFunctions(noDependenceVars);
-
+            } else {
+                pairs.remove(term);
+                pairs.add(term
+                        .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
+            }
+        }
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
     }
 
@@ -122,12 +131,12 @@ public class DomainEq extends EqualityFormula {
         List<Formula> disjuncts = new ArrayList<Formula>(2);
         disjuncts.add(new NotFormula(tseitinVar));
         disjuncts.add(this.deepFormulaCopy());
-        clauses.add(new OrFormula(disjuncts));
+        clauses.add(OrFormula.generate(disjuncts));
 
         disjuncts.clear();
         disjuncts.add(tseitinVar);
         disjuncts.add(new NotFormula(this.deepFormulaCopy()));
-        clauses.add(new OrFormula(disjuncts));
+        clauses.add(OrFormula.generate(disjuncts));
 
         return tseitinVar;
 
@@ -139,30 +148,40 @@ public class DomainEq extends EqualityFormula {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars){
-    	
-    		
-    	
-	        for (DomainTerm term : getDomainTerms()) {
-	            if (term instanceof UninterpretedFunctionInstance) {
-	            	
-	            	 
-	            	 DomainVariable auxiliaryVariable =  ((UninterpretedFunctionInstance) term)
-				            			 .applyReplaceUninterpretedFunctions(topLeveFormula,
-				            					 	functionInstances, instanceParameters, noDependenceVars);
-                     // chillebold: imho: here the order of the variables is not important
-	            	 // terms.remove(term);
-	                 // terms.add(auxiliaryVariable);
-	                 terms.set(terms.indexOf(term),auxiliaryVariable);
-	
-	            } else
-	                 term.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,functionInstances, 
-	                		 instanceParameters, noDependenceVars);
-	        }
-    } 
-    
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
 
+        EqualityFormula second = null;
+        try {
+            second = DomainEq.create(terms, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
+
+        for (DomainTerm term : getDomainTerms()) {
+            if (term instanceof UninterpretedFunctionInstance) {
+
+                DomainVariable auxiliaryVariable = ((UninterpretedFunctionInstance) term)
+                        .applyReplaceUninterpretedFunctions(topLeveFormula,
+                                functionInstances, instanceParameters,
+                                noDependenceVars);
+                // chillebold: imho: here the order of the variables is not
+                // important
+                // terms.remove(term);
+                // terms.add(auxiliaryVariable);
+                second.terms.set(second.terms.indexOf(term), auxiliaryVariable);
+
+            } else
+                second.terms.set(second.terms.indexOf(term), term
+                        .uninterpretedFunctionsToAuxiliaryVariablesTerm(
+                                topLeveFormula, functionInstances,
+                                instanceParameters, noDependenceVars));
+        }
+        return second;
+    }
 
 }

@@ -21,6 +21,9 @@ import at.iaik.suraq.smtlib.SMTLibObject;
  */
 public interface Formula extends SMTLibObject, Serializable {
 
+	@Override
+	public boolean equals(Object formula);
+	
     /**
      * Returns a deep copy of the formula.
      * 
@@ -114,14 +117,14 @@ public interface Formula extends SMTLibObject, Serializable {
      * @param newFunction
      *            the function to put in place.
      */
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction);
 
     /**
      * Replaces all array equalities in this formula by equivalent array
      * properties.
      */
-    public void removeArrayEqualities();
+    public Formula removeArrayEqualities();
 
     /**
      * Reduces all array properties in this formula to finite conjunctions over
@@ -131,7 +134,7 @@ public interface Formula extends SMTLibObject, Serializable {
      * @param indexSet
      *            the index set.
      */
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet);
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet);
 
     /**
      * Simplifies this formula by (Boolean) constant propagation and some
@@ -167,7 +170,7 @@ public interface Formula extends SMTLibObject, Serializable {
      *            are added to this set during recursion.
      * 
      */
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars);
 
     /**
@@ -185,7 +188,7 @@ public interface Formula extends SMTLibObject, Serializable {
      *            variables are added to this set during recursion.
      * 
      */
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars);
+    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars);
 
     /**
      * Returns all uninterpreted functions used in this formula. Don't confuse
@@ -209,7 +212,7 @@ public interface Formula extends SMTLibObject, Serializable {
      *            the set of variables on which the controller may not depend.
      *            New variables might be added to this set.
      */
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars);
 
     /**
@@ -302,7 +305,7 @@ public interface Formula extends SMTLibObject, Serializable {
      *         variables.
      */
     
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);  
     
@@ -324,7 +327,7 @@ public interface Formula extends SMTLibObject, Serializable {
 	 * @return a new formula with uninterpreted predicates replaced by auxiliary
 	 *         domain variables.
 	 */
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
     

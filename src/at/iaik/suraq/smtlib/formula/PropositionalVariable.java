@@ -209,8 +209,8 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        if (paramMap.containsKey(new Token(varName)))
-            return paramMap.get(new Token(varName));
+        if (paramMap.containsKey(Token.generate(varName)))
+            return paramMap.get(Token.generate(varName));
         else
             return this;
     }
@@ -220,8 +220,8 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        if (paramMap.containsKey(new Token(varName)))
-            return (PropositionalTerm) paramMap.get(new Token(varName));
+        if (paramMap.containsKey(Token.generate(varName)))
+            return (PropositionalTerm) paramMap.get(Token.generate(varName));
         else
             return this;
     }
@@ -230,11 +230,16 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         // Nothing to do here.
-        return;
+        return this;
     }
-
+    @Override
+    public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
+        // Nothing to do here.
+        return this;
+    }
+    
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#flatten()
      */
@@ -248,26 +253,38 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public SExpression toSmtlibV2() {
-        return new Token(varName);
+        return Token.generate(varName);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         // nothing to do
-        return;
+        return this;
+    }
+
+    @Override
+    public Term removeArrayWritesTerm(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        // nothing to do
+        return this;
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
         // nothing to do
-        return;
+        return this;
+    }
+    @Override
+    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+        // nothing to do
+        return this;
     }
 
     /**
@@ -283,9 +300,14 @@ public class PropositionalVariable extends PropositionalTerm implements
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        return;
+        return this;
+    }
+    @Override
+    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
+            UninterpretedFunction newFunction) {
+        return this;
     }
 
     /**
@@ -293,9 +315,14 @@ public class PropositionalVariable extends PropositionalTerm implements
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        return;
+        return this;
+    }
+    @Override
+    public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        return this;
     }
 
     /**
@@ -340,7 +367,7 @@ public class PropositionalVariable extends PropositionalTerm implements
         if (firstLevel == true) {
             List<Formula> literals = new ArrayList<Formula>();
             literals.add(this);
-            return new OrFormula(literals);
+            return OrFormula.generate(literals);
         }
         if (notFlag == true)
             return new NotFormula(this);
@@ -363,10 +390,15 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	return;
+    	return this;
+    }
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
+            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
+            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+        return this;
     }
 
     /**
@@ -374,10 +406,16 @@ public class PropositionalVariable extends PropositionalTerm implements
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-        return;
+        return this;
+    }
+    @Override
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+        return this;
     }
 
     @Override

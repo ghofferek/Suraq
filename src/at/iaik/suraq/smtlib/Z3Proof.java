@@ -391,7 +391,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             newSubProofs.add(subProof);
         }
 
-        Z3Proof instance = new Z3Proof(new Token(this.proofType), newSubProofs,
+        Z3Proof instance = new Z3Proof(Token.generate(this.proofType), newSubProofs,
                 consequent);
 
         return instance;
@@ -1229,7 +1229,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 conjuncts.add(subProof.consequent);
             }
             conjuncts.add(new NotFormula(this.consequent));
-            Formula formulaToCheck = new AndFormula(conjuncts);
+            Formula formulaToCheck = AndFormula.generate(conjuncts);
 
             String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
             String formulaSmtStr = buildSMTDescription(declarationStr,
@@ -1343,12 +1343,12 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 if (globalLeafs != null)
                     disjuncts.addAll(globalLeafs);
 
-                Formula leafFormula = new OrFormula(disjuncts);
+                Formula leafFormula = OrFormula.generate(disjuncts);
 
                 List<Formula> conjuncts = new ArrayList<Formula>();
                 conjuncts.add(originalFormulas.get(partition));
                 conjuncts.add(leafFormula);
-                Formula formulaToCheck = new AndFormula(conjuncts);
+                Formula formulaToCheck = AndFormula.generate(conjuncts);
 
                 String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
                 String formulaSmtStr = buildSMTDescription(declarationStr,
@@ -1378,7 +1378,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
         // check axioms: (~A1 \/ ~A2 \/ ... ) = UNSAT
         if (axiomsDisjuncts.size() > 0) {
-            Formula formulaToCheck = new OrFormula(axiomsDisjuncts);
+            Formula formulaToCheck = OrFormula.generate(axiomsDisjuncts);
 
             String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
             String formulaSmtStr = buildSMTDescription(declarationStr,
@@ -1433,7 +1433,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             conjuncts.add(leaf.consequent);
         }
         conjuncts.add(new NotFormula(this.consequent));
-        Formula formulaToCheck = new AndFormula(conjuncts);
+        Formula formulaToCheck = AndFormula.generate(conjuncts);
 
         String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
         String formulaSmtStr = buildSMTDescription(declarationStr,

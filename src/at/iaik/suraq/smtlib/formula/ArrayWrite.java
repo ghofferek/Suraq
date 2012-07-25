@@ -226,27 +226,29 @@ public class ArrayWrite extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        arrayTerm.arrayPropertiesToFiniteConjunctions(indexSet);
-        indexTerm.arrayPropertiesToFiniteConjunctions(indexSet);
-        valueTerm.arrayPropertiesToFiniteConjunctions(indexSet);
+    public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
+        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        DomainTerm indexTerm = (DomainTerm)this.indexTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        DomainTerm valueTerm = (DomainTerm)this.valueTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
-        arrayTerm.removeArrayEqualities();
-        indexTerm.removeArrayEqualities();
-        valueTerm.removeArrayEqualities();
+    public Term removeArrayEqualitiesTerm() {
+        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.removeArrayEqualitiesTerm();
+        DomainTerm indexTerm = (DomainTerm)this.indexTerm.removeArrayEqualitiesTerm();
+        DomainTerm valueTerm = (DomainTerm)this.valueTerm.removeArrayEqualitiesTerm();
+        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         throw new RuntimeException(
                 "removeArrayWrites cannot be called on an ArrayWrite.\nUse applyWriteAxiom instead.");
@@ -282,7 +284,7 @@ public class ArrayWrite extends ArrayTerm {
         }
 
         index = indexTerm.deepTermCopy();
-        index.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
+        index.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
         if (!(index instanceof DomainVariable)) {
             DomainVariable simpleIndex = new DomainVariable(Util.freshVarName(
                     topLevelFormula, "read"));
@@ -295,12 +297,12 @@ public class ArrayWrite extends ArrayTerm {
             // This might be conservative and might not be complete (i.e., may
             // result unnecessary unrealizability)
             if (Util.termContainsAny(index, noDependenceVars))
-                noDependenceVars.add(new Token(simpleIndex.getVarName()));
+                noDependenceVars.add(Token.generate(simpleIndex.getVarName()));
             index = simpleIndex;
         }
 
         value = valueTerm.deepTermCopy();
-        value.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
+        value.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
 
         // now apply axiom
         String oldVar = result.toSmtlibV2().toString().replaceAll("\\W", "");
@@ -308,9 +310,9 @@ public class ArrayWrite extends ArrayTerm {
                 topLevelFormula, oldVar + "_store"));
 
         ArrayRead newRead = new ArrayRead(newVar, index);
-        newRead.makeArrayReadsSimple(topLevelFormula, constraints,
+        newRead.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
-        value.makeArrayReadsSimple(topLevelFormula, constraints,
+        value.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
         Set<DomainTerm> domainTerms = new HashSet<DomainTerm>();
         domainTerms.add(newRead);
@@ -340,7 +342,7 @@ public class ArrayWrite extends ArrayTerm {
 
         // Make the new array a noDependenceVar
         // (store-results are "future" values, on which we should not depend.)
-        noDependenceVars.add(new Token(newVar.getVarName()));
+        noDependenceVars.add(Token.generate(newVar.getVarName()));
 
         return newVar;
     }
@@ -349,21 +351,29 @@ public class ArrayWrite extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        arrayTerm.arrayReadsToUninterpretedFunctions(noDependenceVars);
+    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+        ArrayTerm arrayTerm = this.arrayTerm;
+        DomainTerm indexTerm = this.indexTerm;
+        DomainTerm valueTerm = this.valueTerm;
+
+        arrayTerm = (ArrayTerm) arrayTerm
+                .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
 
         if (indexTerm instanceof ArrayRead)
             indexTerm = ((ArrayRead) indexTerm)
                     .toUninterpretedFunctionInstance(noDependenceVars);
         else
-            indexTerm.arrayReadsToUninterpretedFunctions(noDependenceVars);
+            indexTerm = (DomainTerm) indexTerm
+                    .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
 
         if (valueTerm instanceof ArrayRead)
             valueTerm = ((ArrayRead) valueTerm)
                     .toUninterpretedFunctionInstance(noDependenceVars);
         else
-            valueTerm.arrayReadsToUninterpretedFunctions(noDependenceVars);
+            valueTerm = (DomainTerm) valueTerm
+                    .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
 
+        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
     }
 
     /**
@@ -383,10 +393,12 @@ public class ArrayWrite extends ArrayTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
             UninterpretedFunction newFunction) {
-        arrayTerm.substituteUninterpretedFunction(oldFunction, newFunction);
-        indexTerm.substituteUninterpretedFunction(oldFunction, newFunction);
+        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        DomainTerm indexTerm = (DomainTerm)this.indexTerm.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        
+        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
     }
 
     /**
@@ -404,14 +416,16 @@ public class ArrayWrite extends ArrayTerm {
      *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        arrayTerm.makeArrayReadsSimple(topLevelFormula, constraints,
+        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
-        indexTerm.makeArrayReadsSimple(topLevelFormula, constraints,
+        DomainTerm indexTerm = (DomainTerm)this.indexTerm.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
-        valueTerm.makeArrayReadsSimple(topLevelFormula, constraints,
+        DomainTerm valueTerm = (DomainTerm)this.valueTerm.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
+        
+        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
 
     }
 
@@ -453,7 +467,7 @@ public class ArrayWrite extends ArrayTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  	
     	
@@ -474,7 +488,7 @@ public class ArrayWrite extends ArrayTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
     	  	

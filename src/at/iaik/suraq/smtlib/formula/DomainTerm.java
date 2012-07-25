@@ -64,7 +64,7 @@ public abstract class DomainTerm extends Term implements Serializable {
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(t)
      */
     @Override
-    public abstract void uninterpretedPredicatesToAuxiliaryVariables(
+    public abstract Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
     
@@ -74,7 +74,7 @@ public abstract class DomainTerm extends Term implements Serializable {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public abstract void uninterpretedFunctionsToAuxiliaryVariables(
+    public abstract Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
 

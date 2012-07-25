@@ -268,7 +268,7 @@ public class TransformedZ3Proof extends Z3Proof {
         if (disjuncts.size() == 0)
             disjuncts.add(new PropositionalConstant(false));
 
-        this.consequent = (new OrFormula(disjuncts))
+        this.consequent = (OrFormula.generate(disjuncts))
                 .transformToConsequentsForm();
 
         this.recomputeObsoleteLiterals();
@@ -459,7 +459,7 @@ public class TransformedZ3Proof extends Z3Proof {
                                     + "List of Literals:  " + remainingFormula
                                     + "given Literal:  " + invLiteral);
 
-                remainingFormula = (new OrFormula(newDisjuncts))
+                remainingFormula = (OrFormula.generate(newDisjuncts))
                         .transformToConsequentsForm();
 
                 transformedAntecedent = new TransformedZ3Proof(
@@ -2072,7 +2072,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (!newDisjuncts.contains(negatedLiteral));
                 newDisjuncts.remove(new PropositionalConstant(false));
                 newDisjuncts.add(negatedLiteral);
-                node.consequent = (new OrFormula(newDisjuncts))
+                node.consequent = (OrFormula.generate(newDisjuncts))
                         .transformToConsequentsForm();
 
                 Z3Proof foundHypothesis = Util.findHypothesisInSubproofs(node,
@@ -2085,7 +2085,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     node.takeValuesFrom(otherChild);
                     // Consequent must be overwritten with new value containing
                     // the hypothesis
-                    node.consequent = (new OrFormula(newDisjuncts))
+                    node.consequent = (OrFormula.generate(newDisjuncts))
                             .transformToConsequentsForm();
                 }
             }
@@ -2160,7 +2160,7 @@ public class TransformedZ3Proof extends Z3Proof {
             }
 
             axiomParts.add(this.consequent);
-            OrFormula axiomFormula = (new OrFormula(axiomParts))
+            OrFormula axiomFormula = (OrFormula.generate(axiomParts))
                     .transformToConsequentsForm();
 
             Z3Proof remainingAxiom = new TransformedZ3Proof(
@@ -2180,7 +2180,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 remainingAxiom = new TransformedZ3Proof(
                         SExpressionConstants.UNIT_RESOLUTION, currentEquality,
                         remainingAxiom, literal.transformToConsequentsForm(),
-                        (new OrFormula(axiomParts))
+                        (OrFormula.generate(axiomParts))
                                 .transformToConsequentsForm());
             }
 
@@ -2259,7 +2259,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 if (this.assertPartition != 0)
                     child += "(p:" + this.assertPartition + ")";
 
-                children.add(new Token(child));
+                children.add(Token.generate(child));
             }
 
             else
@@ -2330,7 +2330,7 @@ public class TransformedZ3Proof extends Z3Proof {
             // Replace Tseitin variables
             Map<Token, Term> substitutionsMap = new HashMap<Token, Term>();
             for (PropositionalVariable tseitinVar : tseitinEncoding.keySet())
-                substitutionsMap.put(new Token(tseitinVar.getVarName()),
+                substitutionsMap.put(Token.generate(tseitinVar.getVarName()),
                         FormulaTerm.create(tseitinEncoding.get(tseitinVar)));
 
             trees.put(signal, tree.substituteFormula(substitutionsMap));

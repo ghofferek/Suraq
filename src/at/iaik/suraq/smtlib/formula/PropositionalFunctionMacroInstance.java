@@ -261,13 +261,13 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
      */
     @Override
     public void removeArrayEqualities() {
         macro.removeArrayEqualities();
         for (Term term : paramMap.values())
-            term.removeArrayEqualities();
+            term.removeArrayEqualitiesTerm();
     }
 
     /**
@@ -278,7 +278,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         macro.arrayPropertiesToFiniteConjunctions(indexSet);
         for (Term term : paramMap.values())
-            term.arrayPropertiesToFiniteConjunctions(indexSet);
+            term.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
     }
 
     /**
@@ -326,7 +326,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
         for (Term term : paramMap.values())
-            term.removeArrayWrites(topLevelFormula, constraints,
+            term.removeArrayWritesTerm(topLevelFormula, constraints,
                     noDependenceVars);
 
     }
@@ -343,7 +343,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
                 paramMap.put(key, ((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars));
             else
-                term.arrayReadsToUninterpretedFunctions(noDependenceVars);
+                term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
         }
     }
 
@@ -364,7 +364,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
             UninterpretedFunction newFunction) {
         macro.substituteUninterpretedFunction(oldFunction, newFunction);
         for (Term param : paramMap.values())
-            param.substituteUninterpretedFunction(oldFunction, newFunction);
+            param.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
     }
 
     /**
@@ -388,7 +388,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
         for (Term term : paramMap.values())
-            term.makeArrayReadsSimple(topLevelFormula, constraints,
+            term.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                     noDependenceVars);
     }
 
@@ -493,7 +493,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
 		      
 		        for (Token token : paramMap.keySet())
 		                    paramMap.get(token)
-		                            .uninterpretedPredicatesToAuxiliaryVariables(
+		                            .uninterpretedPredicatesToAuxiliaryVariablesTerm(
 		                                    topLeveFormula, predicateInstances,
 		                                    instanceParameters, noDependenceVars);
     }
@@ -512,7 +512,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
 		      
 		        for (Token token : paramMap.keySet())
 		                    paramMap.get(token)
-		                            .uninterpretedFunctionsToAuxiliaryVariables(
+		                            .uninterpretedFunctionsToAuxiliaryVariablesTerm(
 		                                    topLeveFormula, functionInstances,
 		                                    instanceParameters, noDependenceVars);
     }

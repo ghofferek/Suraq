@@ -101,11 +101,11 @@ public class TseitinParser extends SMTLibParser {
 
         int numChildren = goalExpr.size();
 
-        assert (goalExpr.getChildren().get(numChildren - 4).equals(new Token(
+        assert (goalExpr.getChildren().get(numChildren - 4).equals(Token.generate(
                 ":precision")));
-        assert (goalExpr.getChildren().get(numChildren - 3).equals(new Token(
+        assert (goalExpr.getChildren().get(numChildren - 3).equals(Token.generate(
                 "precise")));
-        assert (goalExpr.getChildren().get(numChildren - 2).equals(new Token(
+        assert (goalExpr.getChildren().get(numChildren - 2).equals(Token.generate(
                 ":depth")));
 
         goalExpr.removeChild(numChildren - 1);
@@ -124,14 +124,14 @@ public class TseitinParser extends SMTLibParser {
         for (PropositionalVariable var : tseitinVariables) {
             PropositionalVariable newVar = new PropositionalVariable(
                     var.getVarName() + "_p!" + partition);
-            renameMap.put(new Token(var.getVarName()), newVar);
+            renameMap.put(Token.generate(var.getVarName()), newVar);
             tmpList.add(newVar);
         }
 
         tseitinVariables.clear();
         tseitinVariables.addAll(tmpList);
 
-        rootFormula = (new AndFormula(clauses)).substituteFormula(renameMap);
+        rootFormula = (AndFormula.generate(clauses)).substituteFormula(renameMap);
         parsingSuccessfull = true;
     }
 
@@ -392,7 +392,7 @@ public class TseitinParser extends SMTLibParser {
         List<Formula> conjuncts = new ArrayList<Formula>();
         conjuncts.add(formula1);
         conjuncts.add(new NotFormula(formula2));
-        Formula formulaToCheck = new AndFormula(conjuncts);
+        Formula formulaToCheck = AndFormula.generate(conjuncts);
 
         // Writes the declarations of all domain variables, propositional
         // variables and uninterpreted functions
@@ -427,7 +427,7 @@ public class TseitinParser extends SMTLibParser {
                     function.getName(), function.getType(),
                     function.getNumParams()));
 
-        outputExpressions.add(new SExpression(new Token("assert"), SExpression
+        outputExpressions.add(new SExpression(Token.generate("assert"), SExpression
                 .fromString(formulaToCheck.toString())));
 
         outputExpressions.add(SExpressionConstants.CHECK_SAT);
@@ -529,10 +529,10 @@ public class TseitinParser extends SMTLibParser {
             else
                 literals.remove(numLiterals - 1);
 
-            conjuncts.add(new OrFormula(literals));
+            conjuncts.add(OrFormula.generate(literals));
 
         }
-        return new AndFormula(conjuncts);
+        return AndFormula.generate(conjuncts);
     }
 
     /**
@@ -611,10 +611,10 @@ public class TseitinParser extends SMTLibParser {
             else
                 literals.remove(numLiterals - 1);
 
-            disjuncts.add(new NotFormula(new OrFormula(literals)));
+            disjuncts.add(new NotFormula(OrFormula.generate(literals)));
 
         }
-        return new OrFormula(disjuncts);
+        return OrFormula.generate(disjuncts);
     }
 
     /**

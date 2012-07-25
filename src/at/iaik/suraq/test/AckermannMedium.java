@@ -7,9 +7,12 @@ import org.junit.Test;
 import at.iaik.suraq.main.Ackermann;
 import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.main.ITEEquationReduction;
+import at.iaik.suraq.main.QBFEncoder;
+import at.iaik.suraq.main.QBFSolver;
 import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.smtlib.Z3Proof;
+import at.iaik.suraq.util.FormulaCache;
 
 public class AckermannMedium {
 
@@ -22,6 +25,7 @@ public class AckermannMedium {
         Ackermann.setActive(true);
         ITEEquationReduction.setActive(true);
         GraphReduction.setActive(true);
+        //QBFSolver.setActive(true);
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -36,6 +40,7 @@ public class AckermannMedium {
         "./rsc/test/input_dependent_2_controllers.smt2"}; //, "-v", "--check-result"
         Suraq suraq = new Suraq(args);
         suraq.run();
+        FormulaCache.printStatistic();
         Assert.assertTrue(suraq.success());
     }
     
@@ -49,6 +54,7 @@ public class AckermannMedium {
         "./rsc/test/simple_2_controllers.smt2"}; //, "-v", "--check-result"
         Suraq suraq = new Suraq(args);
         suraq.run();
+        FormulaCache.printStatistic();
         Assert.assertTrue(suraq.success());
     }
     
@@ -61,6 +67,7 @@ public class AckermannMedium {
         "./rsc/test/no_readonly_pipeline_example_suraq.smt2"}; //, "-v", "--check-result"
         Suraq suraq = new Suraq(args);
         suraq.run();
+        FormulaCache.printStatistic();
         Assert.assertTrue(suraq.success());
     }
 

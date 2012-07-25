@@ -94,7 +94,7 @@ public class QBFEncoder {
         header = header.append("a ");
         for(PropositionalVariable var : inputVars)
         {
-            if(!noDependenceVars.contains(new Token(var.getVarName())))
+            if(!noDependenceVars.contains(Token.generate(var.getVarName())))
                 header = header.append(encodeVar(var.getVarName())+" ");
         }
         header = header.append("0\n");

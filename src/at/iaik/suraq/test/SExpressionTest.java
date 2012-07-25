@@ -21,9 +21,9 @@ public class SExpressionTest {
     @Test
     public void testToString() {
         SExpression expr = new SExpression();
-        Token first = new Token("first");
-        Token second = new Token("second");
-        Token third = new Token("third");
+        Token first = Token.generate("first");
+        Token second = Token.generate("second");
+        Token third = Token.generate("third");
         SExpression secondThird = new SExpression();
         secondThird.addChild(second);
         secondThird.addChild(third);
@@ -88,9 +88,9 @@ public class SExpressionTest {
     @Test
     public void testEquals() {
         SExpression expr = new SExpression();
-        Token first = new Token("first");
-        Token second = new Token("second");
-        Token third = new Token("third");
+        Token first = Token.generate("first");
+        Token second = Token.generate("second");
+        Token third = Token.generate("third");
         SExpression secondThird = new SExpression();
         secondThird.addChild(second);
         secondThird.addChild(third);

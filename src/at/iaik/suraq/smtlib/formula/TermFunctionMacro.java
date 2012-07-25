@@ -102,16 +102,26 @@ public class TermFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.FunctionMacro#removeArrayEqualities()
      */
     @Override
-    public void removeArrayEqualities() {
-        body.removeArrayEqualities();
+    public FunctionMacro removeArrayEqualities() {
+        try {
+            return new TermFunctionMacro(name, parameters, paramMap, body.removeArrayEqualitiesTerm());
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.FunctionMacro#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        body.arrayPropertiesToFiniteConjunctions(indexSet);
+    public FunctionMacro arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        try {
+            return new TermFunctionMacro(name, parameters, paramMap, body.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -131,7 +141,7 @@ public class TermFunctionMacro extends FunctionMacro {
     public Set<Formula> removeArrayWrites(Formula topLevelFormula,
             Set<Token> noDependenceVars) {
         Set<Formula> constraints = new HashSet<Formula>();
-        body.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
+        body.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
         return constraints;
     }
 
@@ -139,7 +149,7 @@ public class TermFunctionMacro extends FunctionMacro {
      * Replaces array-read expressions with uninterpreted function instances
      */
     public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        body.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        body.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
     }
 
     /**
@@ -161,9 +171,16 @@ public class TermFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Term#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public FunctionMacro substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        body.substituteUninterpretedFunction(oldFunction, newFunction);
+        try {
+            Term tmp = body.substituteUninterpretedFunctionTerm(oldFunction,
+                    newFunction);
+            return new TermFunctionMacro(name, parameters, paramMap, tmp);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -174,7 +191,7 @@ public class TermFunctionMacro extends FunctionMacro {
     public Set<Formula> makeArrayReadsSimple(Formula topLevelFormula,
             Set<Token> noDependenceVars) {
         Set<Formula> constraints = new HashSet<Formula>();
-        body.makeArrayReadsSimple(topLevelFormula, constraints,
+        body.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
         return constraints;
     }
@@ -214,24 +231,43 @@ public class TermFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
-    public void uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	
-		        body.uninterpretedPredicatesToAuxiliaryVariables(
-		                 topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    public FunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        Term tmp = body.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                topLeveFormula, predicateInstances, instanceParameters,
+                noDependenceVars);
+
+        try {
+            return new TermFunctionMacro(name, parameters, paramMap, tmp);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
-    
     
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
-    public void uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-		
-		       body.uninterpretedFunctionsToAuxiliaryVariables(
-		                topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    public FunctionMacro uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        Term tmp = body.uninterpretedFunctionsToAuxiliaryVariablesTerm(
+                topLeveFormula, functionInstances, instanceParameters,
+                noDependenceVars);
+
+        try {
+            return new TermFunctionMacro(name, parameters, paramMap, tmp);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

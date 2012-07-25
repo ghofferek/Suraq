@@ -158,7 +158,7 @@ public abstract class FunctionMacro {
     /**
      * Removes array equalities from the body of the macro.
      */
-    public abstract void removeArrayEqualities();
+    public abstract FunctionMacro removeArrayEqualities();
 
     /**
      * Converts array properties in the body of the macro to finite conjunctions
@@ -166,7 +166,7 @@ public abstract class FunctionMacro {
      * @param indexSet
      *            the index set.
      */
-    public abstract void arrayPropertiesToFiniteConjunctions(
+    public abstract FunctionMacro arrayPropertiesToFiniteConjunctions(
             Set<DomainTerm> indexSet);
 
     /**

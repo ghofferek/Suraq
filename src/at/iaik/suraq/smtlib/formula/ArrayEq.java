@@ -64,10 +64,10 @@ public class ArrayEq extends EqualityFormula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.EqualityFormula#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.EqualityFormula#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
+    public Formula removeArrayEqualities() {
         throw new RuntimeException(
                 "Cannot remove array equalities from an array equality.");
     }
@@ -116,7 +116,7 @@ public class ArrayEq extends EqualityFormula {
                     }
                 }
             }
-            newFormula = new AndFormula(conjuncts);
+            newFormula = AndFormula.generate(conjuncts);
         }
         return newFormula;
     }
@@ -125,7 +125,7 @@ public class ArrayEq extends EqualityFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         throw new RuntimeException(
                 "arrayPropertiesToFiniteConjunctions cannot be called on an ArrayEq.\nRemove array equalities before reducing properties to conjunctions.");
     }
@@ -135,18 +135,24 @@ public class ArrayEq extends EqualityFormula {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
+        List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms) {
             if (term instanceof ArrayWrite) {
-                terms.remove(term);
-                terms.add(((ArrayWrite) term).applyWriteAxiom(topLevelFormula,
+                pairs.add(((ArrayWrite) term).applyWriteAxiom(topLevelFormula,
                         constraints, noDependenceVars));
-            } else
-                term.removeArrayWrites(topLevelFormula, constraints,
-                        noDependenceVars);
+            } else {
+                pairs.add(term.removeArrayWritesTerm(topLevelFormula, constraints,
+                        noDependenceVars));
+            }
         }
-
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**

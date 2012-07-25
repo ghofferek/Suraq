@@ -93,19 +93,26 @@ public class TseitinTest {
         tseitinParser.getRootFormula();
         Map<PropositionalVariable, Formula> tseitinEncoding = tseitinParser
                 .getTseitinEncoding();
+        
+        for(PropositionalVariable var : tseitinEncoding.keySet())
+        {
+        	Formula tseitinFormula = tseitinEncoding.get(var);
+        	System.out.println("****** TSEITIN OF "+var.getVarName()+" ********");
+        	System.out.println(tseitinFormula.toString());
+        }
 
         // create expected Output
         Map<PropositionalVariable, Formula> expectedOutput = new HashMap<PropositionalVariable, Formula>();
         ArrayList<Formula> conjuncts = new ArrayList<Formula>();
         conjuncts.add(d);
         conjuncts.add(a);
-        Formula notk0 = new AndFormula(conjuncts);
+        Formula notk0 = AndFormula.generate(conjuncts);
         expectedOutput.put(new PropositionalVariable("k!0", 2), notk0);
 
         conjuncts = new ArrayList<Formula>();
         conjuncts.add(a);
         conjuncts.add(new NotFormula(c));
-        Formula notk1 = new AndFormula(conjuncts);
+        Formula notk1 = AndFormula.generate(conjuncts);
         expectedOutput.put(new PropositionalVariable("k!1", -1), notk1);
 
         conjuncts = new ArrayList<Formula>();
@@ -115,14 +122,25 @@ public class TseitinTest {
         conjuncts.add(a);
         conjuncts.add(c);
         conjuncts.add(new NotFormula(notk0.deepFormulaCopy()));
-        Formula notk2 = new AndFormula(conjuncts);
+        Formula notk2 = AndFormula.generate(conjuncts);
         expectedOutput.put(new PropositionalVariable("k!2", 2), notk2);
 
+        int i=0;
         for (Map.Entry<PropositionalVariable, Formula> entry : expectedOutput
-                .entrySet()) {
+                .entrySet())
+        {
             PropositionalVariable tseitinVar = entry.getKey();
             Formula expectedFormula = entry.getValue();
             Formula actualFormula = tseitinEncoding.get(tseitinVar);
+        	
+        	i++;
+        	System.out.println("["+i+"] Test: "+tseitinVar.getVarName());
+        	System.out.println("========== EXPECTED ===============");
+        	System.out.println(""+expectedFormula.toString());
+        	System.out.println("========== ACTUAL =================");
+        	System.out.println(""+actualFormula.toString());
+        	System.out.println("===================================");
+        	
             Assert.assertEquals(expectedFormula.toString(),
                     actualFormula.toString());
         }

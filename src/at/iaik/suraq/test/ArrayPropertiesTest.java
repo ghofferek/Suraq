@@ -84,7 +84,7 @@ public class ArrayPropertiesTest {
             Formula conjunct = new ImpliesFormula(leftSide, rightSide);
             conjuncts.add(conjunct);
         }
-        AndFormula expected = new AndFormula(conjuncts);
+        AndFormula expected = AndFormula.generate(conjuncts);
 
         Assert.assertEquals(expected, actual);
     }

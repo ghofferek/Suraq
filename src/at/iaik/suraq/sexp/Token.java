@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import at.iaik.suraq.exceptions.NotATokenListException;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * A class representing a single token
@@ -33,9 +34,14 @@ public class Token extends SExpression implements Serializable {
      * @param token
      *            the string representation of the token.
      */
-    public Token(String token) {
+    protected Token(String token) {
         this.token = token;
         hashCode = token.hashCode();
+    }    
+    public static Token generate(String token)
+    {
+    	Token t = new Token(token);
+    	return FormulaCache.token.put(t);
     }
 
     /**
@@ -44,10 +50,15 @@ public class Token extends SExpression implements Serializable {
      * @param token
      *            the string representation of the token.
      */
-    public Token(StringBuffer token) {
+    protected Token(StringBuffer token) {
         this.token = token.toString();
         hashCode = token.hashCode();
     }
+    public static Token generate(StringBuffer token)
+    {
+    	Token t = new Token(token);
+    	return FormulaCache.token.put(t);
+    }
 
     /**
      * Constructs a new <code>Token</code>.
@@ -55,11 +66,16 @@ public class Token extends SExpression implements Serializable {
      * @param token
      *            the string representation of the token.
      */
-    public Token(StringBuffer token, int lineNumber, int columnNumber) {
+    protected Token(StringBuffer token, int lineNumber, int columnNumber) {
         this.token = token.toString();
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
         hashCode = token.hashCode();
+    }
+    public static Token generate(StringBuffer token, int lineNumber, int columnNumber)
+    {
+    	Token t = new Token(token, lineNumber, columnNumber);
+    	return FormulaCache.token.put(t);
     }
 
     /**
@@ -68,9 +84,14 @@ public class Token extends SExpression implements Serializable {
      * @param original
      *            the <code>Token</code> to copy.
      */
-    public Token(Token original) {
+    protected Token(Token original) {
         this.token = new String(original.token);
         hashCode = token.hashCode();
+    }
+    public static Token generate(Token original)
+    {
+    	Token t = new Token(original);
+    	return FormulaCache.token.put(t);
     }
 
     /**

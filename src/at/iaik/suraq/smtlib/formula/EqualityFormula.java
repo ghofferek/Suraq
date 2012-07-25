@@ -197,7 +197,7 @@ public abstract class EqualityFormula implements Formula {
                 }
             }
         }
-        return new AndFormula(pairs);
+        return AndFormula.generate(pairs);
     }
 
     /**
@@ -297,29 +297,41 @@ public abstract class EqualityFormula implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
+    public Formula removeArrayEqualities() {
         // If this equality is an array equality, it will be dealt with on a
         // higher level.
         // For other equalities, recurse on their terms.
+        List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms) {
-            term.removeArrayEqualities();
+            pairs.add(term.removeArrayEqualitiesTerm());
         }
-        return;
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         // recurse on terms (ITE terms may have formulas in them)
+        List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms) {
-            term.arrayPropertiesToFiniteConjunctions(indexSet);
+            pairs.add(term.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
         }
-        return;
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -389,20 +401,35 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
+        List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
-            term.removeArrayWrites(topLevelFormula, constraints,
-                    noDependenceVars);
+            pairs.add(term.removeArrayWritesTerm(topLevelFormula, constraints,
+                    noDependenceVars));
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+    public Formula arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars) {
+        List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
-            term.arrayReadsToUninterpretedFunctions(noDependenceVars);
+            pairs.add(term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -421,10 +448,18 @@ public abstract class EqualityFormula implements Formula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
+        List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
-            term.substituteUninterpretedFunction(oldFunction, newFunction);
+            pairs.add(term.substituteUninterpretedFunctionTerm(oldFunction,
+                    newFunction));
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
 
     }
 
@@ -442,11 +477,18 @@ public abstract class EqualityFormula implements Formula {
      *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
+        List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
-            term.makeArrayReadsSimple(topLevelFormula, constraints,
-                    noDependenceVars);
+            pairs.add(term.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
+                    noDependenceVars));
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -512,7 +554,7 @@ public abstract class EqualityFormula implements Formula {
             this.equal = true;
             if (firstLevel == true) {
                 literals.add(this);
-                return new OrFormula(literals);
+                return OrFormula.generate(literals);
             } else
                 return this;
 
@@ -521,7 +563,7 @@ public abstract class EqualityFormula implements Formula {
             this.equal = true;
             if (firstLevel == true) {
                 literals.add(new NotFormula(this));
-                return new OrFormula(literals);
+                return OrFormula.generate(literals);
             } else
                 return new NotFormula(this);
         } else
@@ -542,12 +584,20 @@ public abstract class EqualityFormula implements Formula {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	 for (Term term : terms)
-             term.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula, predicateInstances,
-            		 instanceParameters, noDependenceVars);
+
+        List<Term> pairs = new ArrayList<Term>();
+    	for (Term term : terms)
+    	    pairs.add(term.uninterpretedPredicatesToAuxiliaryVariablesTerm(topLeveFormula, predicateInstances,
+            		 instanceParameters, noDependenceVars));
+        try {
+            return create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
      
@@ -556,12 +606,19 @@ public abstract class EqualityFormula implements Formula {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+        List<Term> pairs = new ArrayList<Term>();
     	 for (Term term : terms)
-             term.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula, functionInstances,
-            		 instanceParameters, noDependenceVars);
+    	     pairs.add(term.uninterpretedFunctionsToAuxiliaryVariablesTerm(topLeveFormula, functionInstances,
+            		 instanceParameters, noDependenceVars));
+         try {
+             return create(pairs, equal);
+         } catch (Exception ex) {
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         }
     }
 
     
@@ -613,6 +670,7 @@ public abstract class EqualityFormula implements Formula {
                         {
                             // take an existent replacement because it's the same
                             newName = replacements.get(ef);
+                            //System.err.print('+'); // approx. 44000 times
                         }
                         else
                         {
@@ -621,9 +679,9 @@ public abstract class EqualityFormula implements Formula {
                             //newName = Util.freshVarNameCached(topLeveFormula, newName);
                             newName = GraphReduction.getVarName(topLeveFormula, ti.toString(), tj.toString());
                             replacements.put(ef, newName);
-                            if(noDependenceVars.contains(new Token(ti.toString())) || noDependenceVars.contains(new Token(tj.toString())) )
+                            if(noDependenceVars.contains(Token.generate(ti.toString())) || noDependenceVars.contains(Token.generate(tj.toString())) )
                             {
-                                noDependenceVars.add(new Token(newName));
+                                noDependenceVars.add(Token.generate(newName));
                             }
                         }
                         
@@ -651,7 +709,7 @@ public abstract class EqualityFormula implements Formula {
             }
             else
             {
-                return new AndFormula(newTerms);
+                return AndFormula.generate(newTerms);
             }
             
         }catch(IncomparableTermsException ex)
@@ -692,12 +750,12 @@ public abstract class EqualityFormula implements Formula {
             {
                 if(_andlist.size()==1)
                     return new ImpliesFormula(_andlist.get(0), this);
-                return new ImpliesFormula(new AndFormula(_andlist), this);
+                return new ImpliesFormula(AndFormula.generate(_andlist), this);
             }
             else if(method == 2)
             {
                 _andlist.add(this);
-                return new AndFormula(_andlist);
+                return AndFormula.generate(_andlist);
             }
             else if(method == 3)
             {

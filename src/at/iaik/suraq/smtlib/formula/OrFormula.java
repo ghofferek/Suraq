@@ -11,6 +11,7 @@ import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -37,6 +38,12 @@ public class OrFormula extends AndOrXorFormula {
      */
     public OrFormula(List<Formula> formulas) {
         super(formulas);
+    }
+    
+
+    public static OrFormula generate(List<Formula> formulas)
+    {
+    	return FormulaCache.orFormula.put(new OrFormula(formulas));
     }
 
     /**
@@ -122,7 +129,7 @@ public class OrFormula extends AndOrXorFormula {
     @Override
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
-
+    	// FIXME: chillebold: strange...
         // Special case: not(or(Literal)) --> or(not(literal)
         if ((notFlag == true) && (this.formulas.size() != 1))
             throw new RuntimeException(
@@ -156,7 +163,7 @@ public class OrFormula extends AndOrXorFormula {
 
         }
 
-        Formula orFormula = new OrFormula(subFormulas);
+        Formula orFormula = OrFormula.generate(subFormulas);
         return orFormula;
     }
 
@@ -209,11 +216,11 @@ public class OrFormula extends AndOrXorFormula {
             List<Formula> tmp = new ArrayList<Formula>(2);
             tmp.add(new NotFormula(currentTseitinVar));
             tmp.add(tseitinVar);
-            clauses.add(new OrFormula(tmp));
+            clauses.add(OrFormula.generate(tmp));
         }
 
         disjuncts.add(new NotFormula(tseitinVar));
-        clauses.add(new OrFormula(disjuncts));
+        clauses.add(OrFormula.generate(disjuncts));
 
         return tseitinVar;
     }

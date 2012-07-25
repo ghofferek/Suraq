@@ -20,6 +20,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.DebugHelper;
+import at.iaik.suraq.util.FormulaCache;
 
 public class Ackermann {
 
@@ -55,7 +56,7 @@ public class Ackermann {
 		UninterpretedPredicateInstance.method=_isPredicateActive;
         UninterpretedFunctionInstance.method=_isFunctionActive;
         for (String var : topLevelFormula.getUninterpretedFunctionNames())
-            currentUninterpretedFunctions.add(new Token(var));
+            currentUninterpretedFunctions.add(Token.generate(var));
         UninterpretedPredicateInstance.method=true;
         UninterpretedFunctionInstance.method=true;
         // this adds UFs as well as UPs... as expected
@@ -81,7 +82,7 @@ public class Ackermann {
             {
                 Formula ackermannConstraints = (constraintsList.size() == 1) 
                         ? constraintsList.iterator().next() 
-                        : new AndFormula(constraintsList);
+                        : AndFormula.generate(constraintsList);
                         topLevelFormula = new ImpliesFormula(ackermannConstraints, topLevelFormula);
             }
             else
@@ -127,7 +128,7 @@ public class Ackermann {
     		{
     		    Formula ackermannConstraints = (constraintsList.size() == 1)
     		            ? constraintsList.iterator().next()
-    		            : new AndFormula(constraintsList);
+    		            : AndFormula.generate(constraintsList);
                 topLevelFormula = new ImpliesFormula(ackermannConstraints, topLevelFormula);
     		}
     		else
@@ -227,7 +228,7 @@ public class Ackermann {
 					}
 					Formula parametersEquivalities;
 					if (parametersEq.size() > 1)
-						parametersEquivalities = new AndFormula(parametersEq);
+						parametersEquivalities = AndFormula.generate(parametersEq);
 					else
 						parametersEquivalities = parametersEq.iterator().next();
 
@@ -284,7 +285,7 @@ public class Ackermann {
 						parametersEq.add(new DomainEq(list, true));
 					}
 					Formula parametersEquivalities = (parametersEq.size() > 1)
-					        ? new AndFormula(parametersEq)
+					        ? AndFormula.generate(parametersEq)
 					        : parametersEq.iterator().next();
 					
 					List<DomainTerm> functionEq = new ArrayList<DomainTerm>();

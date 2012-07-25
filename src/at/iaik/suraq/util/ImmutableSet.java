@@ -152,6 +152,7 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * @see java.util.Set#add(java.lang.Object)
      */
     @Override
+    @Deprecated
     public boolean add(E e) {
         throw new UnsupportedOperationException(
                 "'add' called on immutable set!");
@@ -163,6 +164,7 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * @see java.util.Set#remove(java.lang.Object)
      */
     @Override
+    @Deprecated
     public boolean remove(Object o) {
         throw new UnsupportedOperationException(
                 "'remove' called on immutable set!");
@@ -182,6 +184,7 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * @see java.util.Set#addAll(java.util.Collection)
      */
     @Override
+    @Deprecated
     public boolean addAll(Collection<? extends E> c) {
         throw new UnsupportedOperationException(
                 "'addAll' called on immutable set!");
@@ -193,6 +196,7 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * @see java.util.Set#retainAll(java.util.Collection)
      */
     @Override
+    @Deprecated
     public boolean retainAll(Collection<?> c) {
         throw new UnsupportedOperationException(
                 "'retainAll' called on immutable set!");
@@ -204,6 +208,7 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * @see java.util.Set#removeAll(java.util.Collection)
      */
     @Override
+    @Deprecated
     public boolean removeAll(Collection<?> c) {
         throw new UnsupportedOperationException(
                 "'removeAll' called on immutable set!");
@@ -215,6 +220,7 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * @see java.util.Set#clear()
      */
     @Override
+    @Deprecated
     public void clear() {
         throw new UnsupportedOperationException(
                 "'removeAll' called on immutable set!");

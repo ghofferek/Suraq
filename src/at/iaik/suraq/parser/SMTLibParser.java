@@ -136,7 +136,7 @@ public abstract class SMTLibParser extends Parser {
         if (expression.toString().charAt(0) == SMTLibParser.REF_FORMULA) {
             // resolve reference with LUT
             assert (expression instanceof Token);
-            Token pureKey = new Token(expression.toString().substring(1));
+            Token pureKey = Token.generate(expression.toString().substring(1));
             Formula formula = this.formulas.get(pureKey);
 
             if (formula == null)
@@ -206,7 +206,7 @@ public abstract class SMTLibParser extends Parser {
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
                 }
-                return new AndFormula(formulaList);
+                return AndFormula.generate(formulaList);
             }
 
             if (operator.equals(SExpressionConstants.OR)) {
@@ -218,7 +218,7 @@ public abstract class SMTLibParser extends Parser {
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
                 }
-                return new OrFormula(formulaList);
+                return OrFormula.generate(formulaList);
             }
 
             if (operator.equals(SExpressionConstants.XOR)) {
@@ -512,7 +512,7 @@ public abstract class SMTLibParser extends Parser {
         if (expression.toString().charAt(0) == SMTLibParser.REF_TERM) {
             // resolve reference with LUT
             assert (expression instanceof Token);
-            Token pureKey = new Token(expression.toString().substring(1));
+            Token pureKey = Token.generate(expression.toString().substring(1));
             Term term = this.terms.get(pureKey);
 
             if (term == null)

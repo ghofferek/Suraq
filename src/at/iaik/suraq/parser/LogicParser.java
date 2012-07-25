@@ -145,7 +145,7 @@ public class LogicParser extends SMTLibParser {
             List<Formula> list = new ArrayList<Formula>();
             list.add(mainFormula);
             list.add(body);
-            mainFormula = new AndFormula(list);
+            mainFormula = AndFormula.generate(list);
         }
 
     }
@@ -441,16 +441,16 @@ public class LogicParser extends SMTLibParser {
         Set<Token> names = new HashSet<Token>();
 
         for (PropositionalVariable variable : boolVariables)
-            names.add(new Token(variable.getVarName()));
+            names.add(Token.generate(variable.getVarName()));
 
         for (PropositionalVariable variable : controlVariables)
-            names.add(new Token(variable.getVarName()));
+            names.add(Token.generate(variable.getVarName()));
 
         for (DomainVariable variable : domainVariables)
-            names.add(new Token(variable.getVarName()));
+            names.add(Token.generate(variable.getVarName()));
 
         for (ArrayVariable variable : arrayVariables)
-            names.add(new Token(variable.getVarName()));
+            names.add(Token.generate(variable.getVarName()));
 
         for (UninterpretedFunction function : functions)
             names.add(function.getName());

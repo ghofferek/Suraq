@@ -102,7 +102,7 @@ public class QBFTest {
         ArrayList<Formula> f12 = new ArrayList<Formula>();
         f12.add(f1);
         f12.add(f2);
-        AndFormula equiv = new AndFormula(f12);
+        AndFormula equiv = AndFormula.generate(f12);
         
         // Test Output
         String z3InputStr = th.transformFormulaToString(equiv);

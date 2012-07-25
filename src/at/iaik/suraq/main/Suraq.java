@@ -47,6 +47,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.DagOperationManager;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.SaveCache;
@@ -412,10 +413,8 @@ public class Suraq implements Runnable {
         Timer onePartitionTimer = new Timer();
         List<String> tseitinPartitions = new ArrayList<String>();
 
-        // FIXME: merging -> didn't the comments say, we won't use Z3?
-        // I just commented out the code:
-        //SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
-        //        SuraqOptions.getZ3_4Path());
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                SuraqOptions.getZ3_4Path());
 
         for (int count = 1; count <= assertPartitionFormulas.size(); count++) {
             onePartitionTimer.reset();
@@ -426,7 +425,7 @@ public class Suraq implements Runnable {
 
             // simplify assert partition
 
-            /*String smtStr = "";
+            String smtStr = "";
             smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
             smtStr += SExpressionConstants.SET_OPTION_PRODUCE_MODELS_TRUE
                     .toString();
@@ -435,13 +434,13 @@ public class Suraq implements Runnable {
             smtStr += "(assert " + partitionFormula.toString() + " )";
             smtStr += "(apply (then (! simplify :elim-and true) skip))";
             smtStr += SExpressionConstants.EXIT.toString();
-            */
-            //String simpleSmtStr = z3.solve2(smtStr);
+            
+            String simpleSmtStr = z3.solve2(smtStr);
 
-            //TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
+            TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
             //assert (parser.getTseitinVariables().size() == 0);
 
-            //partitionFormula = parser.getRootFormula();
+            partitionFormula = parser.getRootFormula();
 
             // apply tseitin encoding
 
@@ -455,8 +454,8 @@ public class Suraq implements Runnable {
 
             List<Formula> disjuncts = new ArrayList<Formula>();
             disjuncts.add(tseitinVar);
-            clauses.add(new OrFormula(disjuncts));
-            Formula encodedPartitionFormula = new AndFormula(clauses);
+            clauses.add(OrFormula.generate(disjuncts));
+            Formula encodedPartitionFormula = AndFormula.generate(clauses);
             
             DebugHelper.getInstance().formulaToFile(encodedPartitionFormula, "debug-tseitin-encoding.txt");
 
@@ -1242,7 +1241,7 @@ public class Suraq implements Runnable {
         // declarations for tseitin variables
         for (PropositionalVariable var : tseitinEncoding.keySet())
             smtStr.append(SExpression.makeDeclareFun(
-                    new Token(var.getVarName()),
+            		Token.generate(var.getVarName()),
                     SExpressionConstants.BOOL_TYPE, 0));
 
         for (String tseitinPartition : tseitinPartitions) {
@@ -1320,7 +1319,7 @@ public class Suraq implements Runnable {
 
         // create assert partition for every simplified partition
         for (String partition : simplifiedAssertPartitions) {
-            SExpression expr = new SExpression(new Token("assert"),
+            SExpression expr = new SExpression(Token.generate("assert"),
                     SExpression.fromString(partition));
             smtStr += expr.toString();
         }
@@ -1400,7 +1399,7 @@ public class Suraq implements Runnable {
         if (constraints.size() > 0) {
             List<Formula> constraintsList = new ArrayList<Formula>();
             constraintsList.addAll(constraints);
-            AndFormula arrayConstraints = new AndFormula(constraintsList);
+            AndFormula arrayConstraints = AndFormula.generate(constraintsList);
             formula = new ImpliesFormula(arrayConstraints, formula);
         }
         timer.stop();
@@ -1409,7 +1408,7 @@ public class Suraq implements Runnable {
         System.out.println("  Removing array equalities...");
         timer.reset();
         timer.start();
-        formula.removeArrayEqualities();
+        formula = formula.removeArrayEqualities();
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
@@ -1424,14 +1423,14 @@ public class Suraq implements Runnable {
             domainTerms.add(index);
             lambdaDisequalities.add(new DomainEq(domainTerms, false));
         }
-        Formula lambdaConstraints = new AndFormula(lambdaDisequalities);
+        Formula lambdaConstraints = AndFormula.generate(lambdaDisequalities);
         indexSet.add(lambda);
-        noDependenceVars.add(new Token(lambda.getVarName()));
+        noDependenceVars.add(Token.generate(lambda.getVarName()));
 
         System.out.println("  Converting array properties to finite conjunctions...");
         timer.reset();
         timer.start();
-        formula.arrayPropertiesToFiniteConjunctions(indexSet);
+        formula = formula.arrayPropertiesToFiniteConjunctions(indexSet);
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
@@ -1439,14 +1438,14 @@ public class Suraq implements Runnable {
 
         Set<Token> currentDependenceArrayVariables = new HashSet<Token>();
         for (ArrayVariable var : formula.getArrayVariables())
-            if (!noDependenceVars.contains(new Token(var.getVarName())))
+            if (!noDependenceVars.contains(Token.generate(var.getVarName())))
                 currentDependenceArrayVariables
-                        .add(new Token(var.getVarName()));
+                        .add(Token.generate(var.getVarName()));
         System.out
                 .println("  Converting array reads to uninterpreted function calls...");
         timer.reset();
         timer.start();
-        formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        formula = formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
         noDependenceVars.removeAll(currentDependenceArrayVariables);
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
@@ -1657,7 +1656,7 @@ public class Suraq implements Runnable {
             int mask = 1;
             for (int signalCount = 0; signalCount < controlSignals.size(); signalCount++) {
                 variableSubstitutions
-                        .put(new Token(controlSignals.get(signalCount)
+                        .put(Token.generate(controlSignals.get(signalCount)
                                 .getVarName()), new PropositionalConstant(
                                 (currentCount & mask) != 0));
                 currentCount = currentCount >> 1;
@@ -1698,14 +1697,14 @@ public class Suraq implements Runnable {
             throw new SuraqException("outputExpressions not initialized!");
 
         varTypes = new HashMap<Token, SExpression>();
-        varTypes.put(new Token(lambda.getVarName()),
+        varTypes.put(Token.generate(lambda.getVarName()),
                 SExpressionConstants.VALUE_TYPE);
         Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
 
         System.out.println("   step 1: prop. vars");
         for (PropositionalVariable var : formula.getPropositionalVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
-                varTypes.put(new Token(var.getVarName()),
+                varTypes.put(Token.generate(var.getVarName()),
                         SExpressionConstants.BOOL_TYPE);
                 continue; // noDependenceVars will be handled later.
             }
@@ -1717,7 +1716,7 @@ public class Suraq implements Runnable {
         System.out.println("   step 2: domain vars");
         for (DomainVariable var : formula.getDomainVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
-                varTypes.put(new Token(var.getVarName()),
+                varTypes.put(Token.generate(var.getVarName()),
                         SExpressionConstants.VALUE_TYPE);
                 continue; // noDependenceVars will be handled later.
             }
@@ -1732,7 +1731,7 @@ public class Suraq implements Runnable {
         // (so that performing only some of the reductions can be tested)
         for (ArrayVariable var : formula.getArrayVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
-                varTypes.put(new Token(var.getVarName()),
+                varTypes.put(Token.generate(var.getVarName()),
                         SExpressionConstants.ARRAY_TYPE);
                 continue; // noDependenceVars will be handled later.
             }
@@ -1745,7 +1744,7 @@ public class Suraq implements Runnable {
         for (UninterpretedFunction function : formula
                 .getUninterpretedFunctions()) {
             if (noDependenceVars.contains(function.getName())) {
-                varTypes.put(new Token(function.getName()),
+                varTypes.put(Token.generate(function.getName()),
                         SExpressionConstants.VALUE_TYPE);
                 functionArity.put(function.getName(), function.getNumParams());
                 continue; // noDependenceVars will be handled later.
@@ -1800,7 +1799,7 @@ public class Suraq implements Runnable {
             {
                 
                 String name = Util.freshVarNameCached(formula, var.toString() + "_copy_" + count);
-                outputExpressions.add(SExpression.makeDeclareFun(new Token(name), type, numParams));
+                outputExpressions.add(SExpression.makeDeclareFun(Token.generate(name), type, numParams));
                 if (numParams == 0)
                 {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))

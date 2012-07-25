@@ -88,7 +88,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
             throws SuraqException {
         assert (!name.toString().endsWith("NNF"));
 
-        Token nnfName = new Token(name.toString() + "NNF");
+        Token nnfName = Token.generate(name.toString() + "NNF");
         Map<Token, SExpression> nnfParamMap = new HashMap<Token, SExpression>(
                 paramMap);
         List<Token> nnfParameters = new ArrayList<Token>(parameters);
@@ -106,7 +106,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @throws SuraqException
      */
     public PropositionalFunctionMacro negatedMacro() throws SuraqException {
-        Token negatedName = new Token(name.toString() + "Negated");
+        Token negatedName = Token.generate(name.toString() + "Negated");
         Map<Token, SExpression> negatedParamMap = new HashMap<Token, SExpression>(
                 paramMap);
         List<Token> negatedParameters = new ArrayList<Token>(parameters);
@@ -155,11 +155,19 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * Removes array equalities from the body of the macro.
      */
     @Override
-    public void removeArrayEqualities() {
+    public PropositionalFunctionMacro removeArrayEqualities() {
+        Formula body = this.body;
         if (body instanceof ArrayEq)
             body = ((ArrayEq) body).toArrayProperties();
         else
-            body.removeArrayEqualities();
+            body = body.removeArrayEqualities();
+
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap, body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -169,11 +177,19 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      *            the index set.
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public PropositionalFunctionMacro arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        Formula body = this.body;
         if (body instanceof ArrayProperty)
             body = ((ArrayProperty) body).toFiniteConjunction(indexSet);
         else
-            body.arrayPropertiesToFiniteConjunctions(indexSet);
+            body = body.arrayPropertiesToFiniteConjunctions(indexSet);
+
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap, body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**

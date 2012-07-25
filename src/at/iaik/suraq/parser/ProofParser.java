@@ -229,7 +229,7 @@ public class ProofParser extends SMTLibParser {
     private void insertLUTEntry(Token key, SExpression entryExpr)
             throws ParseError {
 
-        Token pureKey = new Token(key.toString().substring(1));
+        Token pureKey = Token.generate(key.toString().substring(1));
         char typeCharEntry = entryExpr.toString().charAt(0);
         char typeCharKey = key.toString().charAt(0);
 
@@ -374,7 +374,7 @@ public class ProofParser extends SMTLibParser {
         if (expression.toString().charAt(0) == SMTLibParser.REF_PROOF) {
             // resolve reference with LUT
             assert (expression instanceof Token);
-            Token pureKey = new Token(expression.toString().substring(1));
+            Token pureKey = Token.generate(expression.toString().substring(1));
             Z3Proof proof = this.proofs.get(pureKey);
 
             if (proof == null)

@@ -11,6 +11,7 @@ import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -37,6 +38,11 @@ public class AndFormula extends AndOrXorFormula {
      */
     public AndFormula(List<? extends Formula> formulas) {
         super(formulas);
+    }
+    
+    public static AndFormula generate(List<? extends Formula> formulas)
+    {
+    	return FormulaCache.andFormula.put(new AndFormula(formulas));
     }
 
     /**
@@ -151,8 +157,7 @@ public class AndFormula extends AndOrXorFormula {
 
         }
 
-        Formula orFormula = new OrFormula(subFormulas);
-        return orFormula;
+        return OrFormula.generate(subFormulas);
     }
 
     /**
@@ -203,11 +208,11 @@ public class AndFormula extends AndOrXorFormula {
             List<Formula> tmp = new ArrayList<Formula>(2);
             tmp.add(new NotFormula(tseitinVar));
             tmp.add(currentTseitinVar);
-            clauses.add(new OrFormula(tmp));
+            clauses.add(OrFormula.generate(tmp));
         }
 
         disjuncts.add(tseitinVar);
-        clauses.add(new OrFormula(disjuncts));
+        clauses.add(OrFormula.generate(disjuncts));
 
         return tseitinVar;
     }

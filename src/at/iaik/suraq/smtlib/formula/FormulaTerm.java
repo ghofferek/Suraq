@@ -3,11 +3,14 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.exceptions.WrongFunctionTypeException;
+import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
@@ -180,12 +183,20 @@ public class FormulaTerm extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         if (formula instanceof ArrayProperty)
-            ((ArrayProperty) formula).toFiniteConjunction(indexSet);
+            return new FormulaTerm(((ArrayProperty) formula).toFiniteConjunction(indexSet));
+        // TODO: the line before maybe returns something wrong because toFiniteConjunction returns And
         else
-            formula.arrayPropertiesToFiniteConjunctions(indexSet);
-
+            return new FormulaTerm(formula.arrayPropertiesToFiniteConjunctions(indexSet));
+    }
+    @Override
+    public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
+        if (formula instanceof ArrayProperty)
+            return new FormulaTerm(((ArrayProperty) formula).toFiniteConjunction(indexSet));
+        // TODO: the line before maybe returns something wrong because toFiniteConjunction returns And
+        else
+            return new FormulaTerm(formula.arrayPropertiesToFiniteConjunctions(indexSet));
     }
 
     /**
@@ -193,20 +204,29 @@ public class FormulaTerm extends PropositionalTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        formula.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
-
+        return new FormulaTerm(formula.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars));
     }
+    @Override
+    public Term removeArrayWritesTerm(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        return new FormulaTerm(formula.removeArrayWrites(topLevelFormula, constraints,
+                noDependenceVars));
+    }
+
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions(java.util.Set)
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        formula.arrayReadsToUninterpretedFunctions(noDependenceVars);
-
+    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        return new FormulaTerm(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
+    }
+    @Override
+    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+        return new FormulaTerm(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
     }
 
     /**
@@ -222,8 +242,10 @@ public class FormulaTerm extends PropositionalTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
+        Formula formula = this.formula;
+
         if (formula instanceof UninterpretedPredicateInstance) {
             if (((UninterpretedFunctionInstance) formula).getFunction().equals(
                     oldFunction)) {
@@ -236,12 +258,69 @@ public class FormulaTerm extends PropositionalTerm {
                             "Unexpected situation while subsituting uninterpreted function");
                 }
             }
+            List<DomainTerm> paramNew = new ArrayList<DomainTerm>();
             for (Term param : ((UninterpretedFunctionInstance) formula)
                     .getParameters())
-                param.substituteUninterpretedFunction(oldFunction, newFunction);
-        }
-        formula.substituteUninterpretedFunction(oldFunction, newFunction);
+                paramNew.add((DomainTerm) param
+                        .substituteUninterpretedFunctionTerm(oldFunction,
+                                newFunction));
+            try {
+                formula = new UninterpretedPredicateInstance(
+                        ((UninterpretedPredicateInstance) formula).getFunction(),
+                        paramNew, assertPartition);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+            // (UninterpretedFunction function,List<DomainTerm> parameters, int
+            // partition
+            // ... create new formula with parameters...
 
+        }
+        formula = formula.substituteUninterpretedFunction(oldFunction,
+                newFunction);
+        return new FormulaTerm(formula);
+    }
+    
+    @Override
+    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
+            UninterpretedFunction newFunction) {
+        Formula formula = this.formula;
+
+        if (formula instanceof UninterpretedPredicateInstance) {
+            if (((UninterpretedFunctionInstance) formula).getFunction().equals(
+                    oldFunction)) {
+                try {
+                    formula = new UninterpretedPredicateInstance(newFunction,
+                            ((UninterpretedFunctionInstance) formula)
+                                    .getParameters());
+                } catch (SuraqException exc) {
+                    throw new RuntimeException(
+                            "Unexpected situation while subsituting uninterpreted function");
+                }
+            }
+            List<DomainTerm> paramNew = new ArrayList<DomainTerm>();
+            for (Term param : ((UninterpretedFunctionInstance) formula)
+                    .getParameters())
+                paramNew.add((DomainTerm) param
+                        .substituteUninterpretedFunctionTerm(oldFunction,
+                                newFunction));
+            try {
+                formula = new UninterpretedPredicateInstance(
+                        ((UninterpretedPredicateInstance) formula).getFunction(),
+                        paramNew, assertPartition);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+            // (UninterpretedFunction function,List<DomainTerm> parameters, int
+            // partition
+            // ... create new formula with parameters...
+
+        }
+        formula = formula.substituteUninterpretedFunction(oldFunction,
+                newFunction);
+        return new FormulaTerm(formula);
     }
 
     /**
@@ -249,10 +328,16 @@ public class FormulaTerm extends PropositionalTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        formula.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
+        return new FormulaTerm(formula.makeArrayReadsSimple(topLevelFormula, constraints,
+                noDependenceVars));
+    }
+    @Override
+    public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
+            Set<Formula> constraints, Set<Token> noDependenceVars) {
+        return new FormulaTerm(formula.makeArrayReadsSimple(topLevelFormula, constraints,
+                noDependenceVars));
     }
 
     /**
@@ -337,16 +422,38 @@ public class FormulaTerm extends PropositionalTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	
-		    	if (formula instanceof UninterpretedPredicateInstance)
-		    		formula = ((UninterpretedPredicateInstance) formula).applyReplaceUninterpretedPredicates(topLeveFormula,
-							      predicateInstances, instanceParameters, noDependenceVars);
-				else
-					formula.uninterpretedPredicatesToAuxiliaryVariables(
-								  topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        Formula formula = this.formula;
+        if (formula instanceof UninterpretedPredicateInstance)
+            formula = ((UninterpretedPredicateInstance) formula)
+                    .applyReplaceUninterpretedPredicates(topLeveFormula,
+                            predicateInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            formula = formula.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+                    predicateInstances, instanceParameters, noDependenceVars);
+        return new FormulaTerm(formula);
+    }
+    @Override
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        Formula formula = this.formula;
+        if (formula instanceof UninterpretedPredicateInstance)
+            formula = ((UninterpretedPredicateInstance) formula)
+                    .applyReplaceUninterpretedPredicates(topLeveFormula,
+                            predicateInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            formula = formula.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+                    predicateInstances, instanceParameters, noDependenceVars);
+        return new FormulaTerm(formula);
     }
 
     
@@ -355,11 +462,18 @@ public class FormulaTerm extends PropositionalTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-		       formula.uninterpretedFunctionsToAuxiliaryVariables(
-		                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+		       return new FormulaTerm(formula.uninterpretedFunctionsToAuxiliaryVariables(
+		                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars));
+    }  
+    @Override
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
+            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
+            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+               return new FormulaTerm(formula.uninterpretedFunctionsToAuxiliaryVariables(
+                                topLeveFormula, functionInstances, instanceParameters, noDependenceVars));
     }  
     
 

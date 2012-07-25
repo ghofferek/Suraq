@@ -212,35 +212,42 @@ public class ArrayRead extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        arrayTerm.arrayPropertiesToFiniteConjunctions(indexSet);
-        indexTerm.arrayPropertiesToFiniteConjunctions(indexSet);
+    public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
+        ArrayTerm arrayTerm = (ArrayTerm)this.arrayTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        DomainTerm indexTerm = (DomainTerm)this.indexTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        return new ArrayRead(arrayTerm,indexTerm);
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
-        arrayTerm.removeArrayEqualities();
-        indexTerm.removeArrayEqualities();
+    public Term removeArrayEqualitiesTerm() {
+        ArrayTerm arrayTerm = (ArrayTerm)this.arrayTerm.removeArrayEqualitiesTerm();
+        DomainTerm indexTerm = (DomainTerm)this.indexTerm.removeArrayEqualitiesTerm();
+        return new ArrayRead(arrayTerm, indexTerm);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
+        ArrayTerm arrayTerm = this.arrayTerm;
+        DomainTerm indexTerm = this.indexTerm;
+
         if (arrayTerm instanceof ArrayWrite)
             arrayTerm = ((ArrayWrite) arrayTerm).applyWriteAxiom(
                     topLevelFormula, constraints, noDependenceVars);
         else
-            arrayTerm.removeArrayWrites(topLevelFormula, constraints,
-                    noDependenceVars);
+            arrayTerm = (ArrayTerm) arrayTerm.removeArrayWritesTerm(
+                    topLevelFormula, constraints, noDependenceVars);
 
-        indexTerm.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
+        indexTerm = (DomainTerm) indexTerm.removeArrayWritesTerm(topLevelFormula,
+                constraints, noDependenceVars);
+
+        return new ArrayRead(arrayTerm, indexTerm);
     }
 
     /**
@@ -262,7 +269,7 @@ public class ArrayRead extends DomainTerm {
                 term = ((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars);
             else
-                term.arrayReadsToUninterpretedFunctions(noDependenceVars);
+                term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
 
             // Check if the arrayTerm contained any noDependenceVars.
             // This is conservative and might not be complete (i.e., may
@@ -270,7 +277,7 @@ public class ArrayRead extends DomainTerm {
             // in practice, array reads should only occur on primitive
             // array expressions, so this should not be a "real" problem.
             if (Util.termContainsAny(arrayTerm, noDependenceVars))
-                noDependenceVars.add(new Token(functionName));
+                noDependenceVars.add(Token.generate(functionName));
 
             return new UninterpretedFunctionInstance(new UninterpretedFunction(
                     functionName, 1, SExpressionConstants.VALUE_TYPE), term);
@@ -285,7 +292,7 @@ public class ArrayRead extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
         throw new RuntimeException(
                 "arrayReadsToUninterpretedFunctions cannot be called on an ArrayWrite.\nUse toUninterpretedFunctionInstance instead.");
     }
@@ -306,10 +313,13 @@ public class ArrayRead extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
             UninterpretedFunction newFunction) {
-        arrayTerm.substituteUninterpretedFunction(oldFunction, newFunction);
-        indexTerm.substituteUninterpretedFunction(oldFunction, newFunction);
+        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm
+                .substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        DomainTerm indexTerm = (DomainTerm) this.indexTerm
+                .substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        return new ArrayRead(arrayTerm, indexTerm);
     }
 
     /**
@@ -326,13 +336,14 @@ public class ArrayRead extends DomainTerm {
      *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        if (indexTerm instanceof DomainVariable)
-            return; // This read is already simple.
-        DomainTerm oldIndexTerm = indexTerm;
-        indexTerm = new DomainVariable(Util.freshVarName(topLevelFormula,
-                "read"));
+        if (this.indexTerm instanceof DomainVariable)
+            return this; // This read is already simple.
+
+        DomainTerm oldIndexTerm = this.indexTerm;
+        DomainTerm indexTerm = new DomainVariable(Util.freshVarName(
+                topLevelFormula, "read"));
 
         List<DomainTerm> list = new ArrayList<DomainTerm>();
         list.add(indexTerm);
@@ -345,8 +356,10 @@ public class ArrayRead extends DomainTerm {
         // in practice, array reads should only occur on primitive
         // array expressions, so this should not be a "real" problem.
         if (Util.termContainsAny(arrayTerm, noDependenceVars))
-            noDependenceVars.add(new Token(((DomainVariable) indexTerm)
+            noDependenceVars.add(Token.generate(((DomainVariable) indexTerm)
                     .getVarName()));
+
+        return new ArrayRead(this.arrayTerm, indexTerm);
     }
 
     /**
@@ -385,7 +398,7 @@ public class ArrayRead extends DomainTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {     	
        
@@ -405,7 +418,7 @@ public class ArrayRead extends DomainTerm {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {     
     	

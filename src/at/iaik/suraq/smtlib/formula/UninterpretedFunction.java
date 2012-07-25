@@ -60,7 +60,7 @@ public class UninterpretedFunction implements Serializable {
      *            <code>Bool</code>).
      */
     public UninterpretedFunction(String name, int numParams, Token type) {
-        this.name = new Token(name);
+        this.name = Token.generate(name);
         this.numParams = numParams;
         this.type = type;
         this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
@@ -97,8 +97,8 @@ public class UninterpretedFunction implements Serializable {
      */
     public UninterpretedFunction(UninterpretedFunction original) {
         this.numParams = original.numParams;
-        this.name = new Token(original.name);
-        this.type = new Token(original.type);
+        this.name = Token.generate(original.name);
+        this.type = Token.generate(original.type);
         this.assertPartition = original.assertPartition;
         this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
                 + numParams;
@@ -120,7 +120,7 @@ public class UninterpretedFunction implements Serializable {
      */
     public UninterpretedFunction(String name, int numParams, Token type,
             int assertPartition) {
-        this.name = new Token(name);
+        this.name = Token.generate(name);
         this.numParams = numParams;
         this.type = type;
         this.assertPartition = assertPartition;

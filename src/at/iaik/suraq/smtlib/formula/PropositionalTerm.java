@@ -33,15 +33,24 @@ public abstract class PropositionalTerm extends Term implements Formula,
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
+    public Formula removeArrayEqualities() {
         // Nothing to do here.
         // No array equalities contained here.
-        return;
+        return this;
+    }
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
+     */
+    public Term removeArrayEqualitiesTerm() {
+        // Nothing to do here.
+        // No array equalities contained here.
+        return this;
     }
 
+    
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#simplify()
      */

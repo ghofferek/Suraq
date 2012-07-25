@@ -180,14 +180,14 @@ public abstract class Term implements Serializable {
      * @param indexSet
      *            the index set.
      */
-    public abstract void arrayPropertiesToFiniteConjunctions(
+    public abstract Term arrayPropertiesToFiniteConjunctionsTerm(
             Set<DomainTerm> indexSet);
 
     /**
      * Replaces all array equalities in this formula by equivalent array
      * properties.
      */
-    public abstract void removeArrayEqualities();
+    public abstract Term removeArrayEqualitiesTerm();
 
     /**
      * Recursively replaces all array writes by applying the write axiom.
@@ -202,7 +202,7 @@ public abstract class Term implements Serializable {
      *            on which the controller may not depend are added to this set
      *            during recursion.
      */
-    public abstract void removeArrayWrites(Formula topLevelFormula,
+    public abstract Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars);
 
     /**
@@ -214,7 +214,7 @@ public abstract class Term implements Serializable {
      *            variables are added to this set during recursion.
      * 
      */
-    public abstract void arrayReadsToUninterpretedFunctions(
+    public abstract Term arrayReadsToUninterpretedFunctionsTerm(
             Set<Token> noDependenceVars);
 
     /**
@@ -226,7 +226,7 @@ public abstract class Term implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    public abstract void substituteUninterpretedFunction(Token oldFunction,
+    public abstract Term substituteUninterpretedFunctionTerm(Token oldFunction,
             UninterpretedFunction newFunction);
 
     /**
@@ -251,7 +251,7 @@ public abstract class Term implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.Formula#makeArrayReadsSimple(Formula,
      *      at.iaik.suraq.smtlib.formula.Formula, Set)
      */
-    public abstract void makeArrayReadsSimple(Formula topLevelFormula,
+    public abstract Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars);
 
 
@@ -283,7 +283,7 @@ public abstract class Term implements Serializable {
      *         variables.
      */
     
-    public abstract void uninterpretedPredicatesToAuxiliaryVariables(
+    public abstract Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);      
     
@@ -306,7 +306,7 @@ public abstract class Term implements Serializable {
      * @return a new formula with uninterpreted predicates replaced by auxiliary
      *         variables.
      */
-     public abstract void uninterpretedFunctionsToAuxiliaryVariables(
+     public abstract Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
     

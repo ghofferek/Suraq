@@ -283,54 +283,65 @@ public class DomainIte extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        condition.arrayPropertiesToFiniteConjunctions(indexSet);
-        thenBranch.arrayPropertiesToFiniteConjunctions(indexSet);
-        elseBranch.arrayPropertiesToFiniteConjunctions(indexSet);
+    public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
+        Formula condition = this.condition
+                .arrayPropertiesToFiniteConjunctions(indexSet);
+        DomainTerm thenBranch = (DomainTerm) this.thenBranch
+                .arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        DomainTerm elseBranch = (DomainTerm) this.elseBranch
+                .arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        return new DomainIte(condition, thenBranch, elseBranch);
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
-        condition.removeArrayEqualities();
-        thenBranch.removeArrayEqualities();
-        elseBranch.removeArrayEqualities();
+    public Term removeArrayEqualitiesTerm() {
+        Formula condition = this.condition.removeArrayEqualities();
+        DomainTerm thenBranch = (DomainTerm) this.thenBranch
+                .removeArrayEqualitiesTerm();
+        DomainTerm elseBranch = (DomainTerm) this.elseBranch
+                .removeArrayEqualitiesTerm();
+        return new DomainIte(condition, thenBranch, elseBranch);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        condition.removeArrayWrites(topLevelFormula, constraints,
+        Formula condition = this.condition.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
-        thenBranch.removeArrayWrites(topLevelFormula, constraints,
+        DomainTerm thenBranch = (DomainTerm) this.thenBranch.removeArrayWritesTerm(topLevelFormula, constraints,
                 noDependenceVars);
-        elseBranch.removeArrayWrites(topLevelFormula, constraints,
+        DomainTerm elseBranch = (DomainTerm) this.elseBranch.removeArrayWritesTerm(topLevelFormula, constraints,
                 noDependenceVars);
+        return new DomainIte(condition, thenBranch, elseBranch);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
-
+    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+        Formula condition = this.condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        DomainTerm thenBranch = this.thenBranch;
+        DomainTerm elseBranch = this.elseBranch;
+        
         if (thenBranch instanceof ArrayRead)
             thenBranch = ((ArrayRead) thenBranch)
                     .toUninterpretedFunctionInstance(noDependenceVars);
         else
-            thenBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
+            thenBranch = (DomainTerm)thenBranch.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
 
         if (elseBranch instanceof ArrayRead)
             elseBranch = ((ArrayRead) elseBranch)
                     .toUninterpretedFunctionInstance(noDependenceVars);
         else
-            elseBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
+            elseBranch = (DomainTerm)elseBranch.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
+        return new DomainIte(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -350,11 +361,12 @@ public class DomainIte extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
             UninterpretedFunction newFunction) {
-        condition.substituteUninterpretedFunction(oldFunction, newFunction);
-        thenBranch.substituteUninterpretedFunction(oldFunction, newFunction);
-        elseBranch.substituteUninterpretedFunction(oldFunction, newFunction);
+        Formula condition = this.condition.substituteUninterpretedFunction(oldFunction, newFunction);
+        DomainTerm thenBranch = (DomainTerm) this.thenBranch.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        DomainTerm elseBranch = (DomainTerm) this.elseBranch.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        return new DomainIte(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -362,14 +374,15 @@ public class DomainIte extends DomainTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        condition.makeArrayReadsSimple(topLevelFormula, constraints,
+        Formula condition = this.condition.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        thenBranch.makeArrayReadsSimple(topLevelFormula, constraints,
+        DomainTerm thenBranch = (DomainTerm) this.thenBranch.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
-        elseBranch.makeArrayReadsSimple(topLevelFormula, constraints,
+        DomainTerm elseBranch = (DomainTerm) this.elseBranch.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
+        return new DomainIte(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -408,23 +421,34 @@ public class DomainIte extends DomainTerm {
      * @see at.iaik.suraq.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(t)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  	
-    	
-	    	if (condition instanceof UninterpretedPredicateInstance) 
-	    		condition= ((UninterpretedPredicateInstance) condition).applyReplaceUninterpretedPredicates(topLeveFormula,
-	    				predicateInstances, instanceParameters, noDependenceVars);
-			else
-				condition.uninterpretedPredicatesToAuxiliaryVariables(
-						topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
-		
-				
-			thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
-                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
-		
-			elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
-                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+
+        Formula condition = this.condition;
+        DomainTerm thenBranch = this.thenBranch;
+        DomainTerm elseBranch = this.elseBranch;
+
+        if (condition instanceof UninterpretedPredicateInstance)
+            condition = ((UninterpretedPredicateInstance) condition)
+                    .applyReplaceUninterpretedPredicates(topLeveFormula,
+                            predicateInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            condition = condition.uninterpretedPredicatesToAuxiliaryVariables(
+                    topLeveFormula, predicateInstances, instanceParameters,
+                    noDependenceVars);
+
+        thenBranch = (DomainTerm) thenBranch
+                .uninterpretedPredicatesToAuxiliaryVariablesTerm(topLeveFormula,
+                        predicateInstances, instanceParameters,
+                        noDependenceVars);
+
+        elseBranch = (DomainTerm) elseBranch
+                .uninterpretedPredicatesToAuxiliaryVariablesTerm(topLeveFormula,
+                        predicateInstances, instanceParameters,
+                        noDependenceVars);
+        return new DomainIte(condition, thenBranch, elseBranch);
     }
     
     
@@ -434,27 +458,40 @@ public class DomainIte extends DomainTerm {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public  void uninterpretedFunctionsToAuxiliaryVariables(
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	
-    			condition.uninterpretedFunctionsToAuxiliaryVariables(
-    					topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-    		
-    			if (thenBranch instanceof UninterpretedFunctionInstance) 
-    				thenBranch= ((UninterpretedFunctionInstance) thenBranch).applyReplaceUninterpretedFunctions(topLeveFormula,
-    					 	functionInstances, instanceParameters, noDependenceVars);
-    			else	
-    				thenBranch.uninterpretedFunctionsToAuxiliaryVariables(
-                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-    			
-    			if (elseBranch instanceof UninterpretedFunctionInstance) 
-    				elseBranch= ((UninterpretedFunctionInstance) elseBranch).applyReplaceUninterpretedFunctions(topLeveFormula,
-    					 	functionInstances, instanceParameters, noDependenceVars);
-    			else	
-    				elseBranch.uninterpretedFunctionsToAuxiliaryVariables(
-                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
- 
+        Formula condition = this.condition;
+        DomainTerm thenBranch = this.thenBranch;
+        DomainTerm elseBranch = this.elseBranch;
+
+        condition = condition.uninterpretedFunctionsToAuxiliaryVariables(
+                topLeveFormula, functionInstances, instanceParameters,
+                noDependenceVars);
+
+        if (thenBranch instanceof UninterpretedFunctionInstance)
+            thenBranch = ((UninterpretedFunctionInstance) thenBranch)
+                    .applyReplaceUninterpretedFunctions(topLeveFormula,
+                            functionInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            thenBranch = (DomainTerm) thenBranch
+                    .uninterpretedFunctionsToAuxiliaryVariablesTerm(topLeveFormula,
+                            functionInstances, instanceParameters,
+                            noDependenceVars);
+
+        if (elseBranch instanceof UninterpretedFunctionInstance)
+            elseBranch = ((UninterpretedFunctionInstance) elseBranch)
+                    .applyReplaceUninterpretedFunctions(topLeveFormula,
+                            functionInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            elseBranch = (DomainTerm) elseBranch
+                    .uninterpretedFunctionsToAuxiliaryVariablesTerm(topLeveFormula,
+                            functionInstances, instanceParameters,
+                            noDependenceVars);
+        return new DomainIte(condition, thenBranch, elseBranch);
+
     }
     
 
@@ -466,7 +503,7 @@ public class DomainIte extends DomainTerm {
         
         // remember that "ite" is a reserved word!
         // Hence I used "itev" instead for ite variable
-        Token newDomainToken = new Token(Util.freshVarNameCached(topLevelFormula, "itev"));
+        Token newDomainToken = Token.generate(Util.freshVarNameCached(topLevelFormula, "itev"));
         DomainVariable newDomainVar = new DomainVariable(newDomainToken);
         newToken.value = newDomainVar;
         
@@ -552,7 +589,7 @@ public class DomainIte extends DomainTerm {
                 //return new ImpliesFormula(new AndFormula(_andlist),newPropFormula);
                 _andlist.add(newPropFormula);
                 
-                return new AndFormula(_andlist);
+                return AndFormula.generate(_andlist);
             }
         }
         catch(Exception ex)

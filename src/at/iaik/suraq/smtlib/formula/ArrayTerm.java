@@ -50,7 +50,7 @@ public abstract class ArrayTerm extends Term implements Serializable {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public abstract void uninterpretedPredicatesToAuxiliaryVariables(
+    public abstract Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
 
@@ -60,7 +60,7 @@ public abstract class ArrayTerm extends Term implements Serializable {
      *      java.util.Map, java.util.Map)
      */
     @Override
-     public abstract void uninterpretedFunctionsToAuxiliaryVariables(
+     public abstract Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
 

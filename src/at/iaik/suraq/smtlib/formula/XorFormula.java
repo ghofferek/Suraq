@@ -52,13 +52,13 @@ public class XorFormula extends AndOrXorFormula {
         List<Formula> listOr = new ArrayList<Formula>();
         listAnd1.add(new NotFormula(x1));
         listAnd1.add(x2);
-        AndFormula and1 = new AndFormula(listAnd1);
+        AndFormula and1 = AndFormula.generate(listAnd1);
         listAnd2.add(new NotFormula(x2));
         listAnd2.add(x1);
-        AndFormula and2 = new AndFormula(listAnd2);
+        AndFormula and2 = AndFormula.generate(listAnd2);
         listOr.add(and1);
         listOr.add(and2);
-        return new OrFormula(listOr);
+        return OrFormula.generate(listOr);
     }
 
     /**

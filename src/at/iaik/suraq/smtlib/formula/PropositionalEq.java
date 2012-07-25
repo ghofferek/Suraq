@@ -91,7 +91,7 @@ public class PropositionalEq extends EqualityFormula {
         conjuncts.add(new ImpliesFormula(term2, term1));
         */
 
-        return (new AndFormula(conjuncts).tseitinEncode(clauses, encoding));
+        return (AndFormula.generate(conjuncts).tseitinEncode(clauses, encoding));
     }
     
     @Override

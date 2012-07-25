@@ -418,13 +418,13 @@ public class ArrayProperty implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
+    public Formula removeArrayEqualities() {
         // Nothing to do.
         // ArrayProperties cannot contain array equalities.
-        return;
+        return this;
     }
 
     /**
@@ -447,7 +447,7 @@ public class ArrayProperty implements Formula {
 
         Map<Token, Term> substitutions = new HashMap<Token, Term>();
         for (int count = 0; count < uVars.size(); count++)
-            substitutions.put(new Token(uVars.get(count).toString()),
+            substitutions.put(Token.generate(uVars.get(count).toString()),
                     indices.get(count));
 
         return new ImpliesFormula(indexGuard.substituteFormula(substitutions),
@@ -482,14 +482,14 @@ public class ArrayProperty implements Formula {
             }
 
         } while (Util.incrementCounters(counters, indices.size()));
-        return new AndFormula(conjuncts);
+        return AndFormula.generate(conjuncts);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         throw new RuntimeException(
                 "arrayPropertiesToFiniteConjunctions cannot be called on an ArrayProperty.\nUse toFiniteConjunction instead.");
     }
@@ -544,19 +544,32 @@ public class ArrayProperty implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         // Does not contain array writes subformulas.
-        return;
+        return this;
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        indexGuard.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        valueConstraint.arrayReadsToUninterpretedFunctions(noDependenceVars);
+    public Formula arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars) {
+        Formula indexGuard = this.indexGuard;
+        Formula valueConstraint = this.valueConstraint;
+
+        indexGuard = indexGuard
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
+        valueConstraint = valueConstraint
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
+
+        try {
+            return new ArrayProperty(uVars, indexGuard, valueConstraint);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -575,11 +588,21 @@ public class ArrayProperty implements Formula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        indexGuard.substituteUninterpretedFunction(oldFunction, newFunction);
-        valueConstraint.substituteUninterpretedFunction(oldFunction,
+        Formula indexGuard = this.indexGuard;
+        Formula valueConstraint = this.valueConstraint;
+        
+        indexGuard = indexGuard.substituteUninterpretedFunction(oldFunction, newFunction);
+        valueConstraint = valueConstraint.substituteUninterpretedFunction(oldFunction,
                 newFunction);
+
+        try {
+            return new ArrayProperty(uVars, indexGuard, valueConstraint);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -596,12 +619,22 @@ public class ArrayProperty implements Formula {
      *      java.util.Set, Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        indexGuard.makeArrayReadsSimple(topLevelFormula, constraints,
+        Formula indexGuard = this.indexGuard;
+        Formula valueConstraint = this.valueConstraint;
+        
+        indexGuard = indexGuard.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        valueConstraint.makeArrayReadsSimple(topLevelFormula, constraints,
+        valueConstraint = valueConstraint.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
+
+        try {
+            return new ArrayProperty(uVars, indexGuard, valueConstraint);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -686,7 +719,7 @@ public class ArrayProperty implements Formula {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
     	
@@ -716,7 +749,7 @@ public class ArrayProperty implements Formula {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
         

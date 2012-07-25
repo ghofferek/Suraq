@@ -271,12 +271,12 @@ public class SExpParser extends Parser {
         }
 
         if (currentExpr != null)
-            currentExpr.addChild(new Token(currentToken, currentLineNumber,
+            currentExpr.addChild(Token.generate(currentToken, currentLineNumber,
                     currentColumnNumber));
         else {
             assert (parentExpr.size() == 1);
             parentExpr.peek().addChild(
-                    new Token(currentToken, currentLineNumber,
+            		Token.generate(currentToken, currentLineNumber,
                             currentColumnNumber));
         }
         currentToken = null;

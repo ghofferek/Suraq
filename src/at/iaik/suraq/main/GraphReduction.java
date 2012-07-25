@@ -23,6 +23,7 @@ import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 public class GraphReduction {
@@ -63,7 +64,7 @@ public class GraphReduction {
         {
             return prop_cache.get(token);
         }
-        PropositionalVariable p = new PropositionalVariable(token);
+        PropositionalVariable p = (PropositionalVariable)FormulaCache.propVar.put(new PropositionalVariable(token));
         prop_cache.put(token, p);
         return p;
     }
@@ -72,7 +73,7 @@ public class GraphReduction {
      * computes stats in O(vertices.size()) time and prints to System.out
      * @param vertices
      */
-    public void writeStats(Collection<GraphElement> vertices)
+    protected void writeStats(Collection<GraphElement> vertices)
     {
         int count = vertices.size();
         int sum_neighbours = 0;
@@ -165,7 +166,7 @@ public class GraphReduction {
         return new ImpliesFormula(btrans, formula);
     }
 
-    public int countTriangles(Collection<GraphElement> vertices) //throws IOException
+    protected int countTriangles(Collection<GraphElement> vertices) //throws IOException
     {
         for(GraphElement vertex : vertices)
         {
@@ -198,7 +199,7 @@ public class GraphReduction {
 
         return count;
     }
-    public Formula generateBtrans(Collection<GraphElement> vertices) //throws IOException
+    protected Formula generateBtrans(Collection<GraphElement> vertices) //throws IOException
     {
         long step = vertices.size() / 100;
         if(step==0) step=1;
@@ -264,14 +265,17 @@ public class GraphReduction {
         vertices = null;
         
         // for small examples
-        return new AndFormula(btransparts);
+
+        // TODO: comment in: only for debugging issues
+        FormulaCache.printStatistic();
+        return AndFormula.generate(btransparts);
         
         // for large examples
         //return new PropositionalVariable("Btrans");
         
     } // generateBtrans
     
-    public PropositionalVariable generateBtransToFile(Collection<GraphElement> vertices, String filename)
+    protected PropositionalVariable generateBtransToFile(Collection<GraphElement> vertices, String filename)
     {
         long step = vertices.size() / 1000;
         if(step==0) step=1;
@@ -311,9 +315,9 @@ public class GraphReduction {
                             Token t1 = vertex.getToken(ni);
                             Token t2 = vertex.getToken(nj);
                             Token t3 = ni.getToken(nj);
-                            btransparts.add(generateBtransElemCNF(t1, t2, t3));
-                            btransparts.add(generateBtransElemCNF(t2, t3, t1));
-                            btransparts.add(generateBtransElemCNF(t3, t1, t2));
+                            btransparts.add(generateBtransElem(t1, t2, t3));
+                            btransparts.add(generateBtransElem(t2, t3, t1));
+                            btransparts.add(generateBtransElem(t3, t1, t2));
                         }
                     }
                 }
@@ -353,16 +357,20 @@ public class GraphReduction {
         }
         vertices = null;
         btransparts = null;
+        
         return new PropositionalVariable("Btrans");
+        
+        
     } // generateBtransToFile
     
     protected OrFormula generateBtransElemCNF(Token a, Token b, Token c)
     {
         List<Formula> part1 = new ArrayList<Formula>(3);
-        part1.add(new NotFormula(generatePropositionalVariable(a)));
-        part1.add(new NotFormula(generatePropositionalVariable(b)));
+        part1.add(FormulaCache.notFormula.put(new NotFormula(generatePropositionalVariable(a))));
+        part1.add(FormulaCache.notFormula.put(new NotFormula(generatePropositionalVariable(b))));
         part1.add(generatePropositionalVariable(c));
-        return new OrFormula(part1);
+        OrFormula or = FormulaCache.orFormula.put(OrFormula.generate(part1));
+        return or;
     }
     
     protected ImpliesFormula generateBtransElem(Token a, Token b, Token c)
@@ -370,8 +378,9 @@ public class GraphReduction {
         List<Formula> part1 = new ArrayList<Formula>(2);
         part1.add(generatePropositionalVariable(a));
         part1.add(generatePropositionalVariable(b));
-        AndFormula and = new AndFormula(part1);
-        return new ImpliesFormula(and, generatePropositionalVariable(c));
+        AndFormula and = FormulaCache.andFormula.put(AndFormula.generate(part1));
+        ImpliesFormula implies = FormulaCache.impliesFormula.put(new ImpliesFormula(and, generatePropositionalVariable(c)));
+        return implies;
     }
     
     protected Formula generateBtransCircles(Formula topLevelFormula, Collection<GraphElement> vertices)
@@ -468,7 +477,7 @@ public class GraphReduction {
             {
                 List<PropositionalVariable> newList = new ArrayList<PropositionalVariable>(circle);
                 PropositionalVariable c = newList.remove(i);
-                btransList.add(new ImpliesFormula(new AndFormula(newList), c));
+                btransList.add(new ImpliesFormula(AndFormula.generate(newList), c));
             }
         }
 
@@ -480,11 +489,11 @@ public class GraphReduction {
             {
                 List<PropositionalVariable> newList = new ArrayList<PropositionalVariable>(circle);
                 PropositionalVariable c = newList.remove(i);
-                btransList.add(new ImpliesFormula(new AndFormula(newList), c));
+                btransList.add(new ImpliesFormula(AndFormula.generate(newList), c));
             }
         }
         
-        return new AndFormula(btransList);
+        return AndFormula.generate(btransList);
     } // generateBtransCircles
 
     protected void resetVisited(GraphElement current)
@@ -696,7 +705,7 @@ public class GraphReduction {
         
     } // depthFirstSearch
     
-    public void makeChordFreeGraph(Formula topLevelFormula, Collection<GraphElement> vertices)
+    protected void makeChordFreeGraph(Formula topLevelFormula, Collection<GraphElement> vertices)
     {
         System.out.println("There are "+vertices.size()+" vertices.");
         long step = vertices.size() / 100 + 1;
@@ -716,15 +725,28 @@ public class GraphReduction {
                 GraphElement ni = (GraphElement)neighbours[i];
                 if(ni.isVisited()) // vertex was already "deleted"
                     continue;
+                // there is no such Vertex :-(
+                //if(ni.getNeighbours().size()<2)
+                //{
+                //	System.err.print('+');
+                //	continue;
+                //}
                 for(int j=i+1;j<size;j++)
                 {
                     GraphElement nj = (GraphElement)neighbours[j];
                     if(nj.isVisited()) // vertex was already "deleted"
                         continue;
+
+                    // there is no such Vertex :-(
+                    //if(nj.getNeighbours().size()<2) // not nessasary to connect this one
+                    //{
+                    //	System.err.print('+');
+                    //	continue;
+                    //}
                     if(!ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
                     {
                         // add a chord
-                        Token token = new Token(getVarName(topLevelFormula, ni.getVarname(), nj.getVarname()));
+                        Token token = Token.generate(getVarName(topLevelFormula, ni.getVarname(), nj.getVarname()));
                         ni.addNeighbour(nj, token);
                         nj.addNeighbour(ni, token);
                     }
@@ -752,7 +774,7 @@ public class GraphReduction {
      * @param replacements
      * @return a Collection of vertices (former Variables) that are connected (former equalities)
      */
-    public Collection<GraphElement> generateGraph(Map<EqualityFormula, String> replacements)
+    protected Collection<GraphElement> generateGraph(Map<EqualityFormula, String> replacements)
     {
         Map<String, GraphElement> vertices = new HashMap<String, GraphElement>();
         for(EqualityFormula replacement : replacements.keySet())
@@ -787,7 +809,7 @@ public class GraphReduction {
                 vertices.put(name2, g2);
             }
             
-            Token token = new Token(replacements.get(replacement));
+            Token token = Token.generate(replacements.get(replacement));
             g1.addNeighbour(g2, token);
             g2.addNeighbour(g1, token);
         }
@@ -833,7 +855,7 @@ public class GraphReduction {
             System.out.print(" " + circlecounter);
     }   
     
-    int stat_failed = 0;
+    private int stat_failed = 0;
     public synchronized void addHashCircle(HashSet<PropositionalVariable> circle)
     {
         if(!hashCircles.contains(circle))

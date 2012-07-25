@@ -119,7 +119,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         List<Formula> list = new ArrayList<Formula>();
         list.add((new NotFormula(leftSide)).negationNormalForm());
         list.add(rightSide.negationNormalForm());
-        return new OrFormula(list);
+        return OrFormula.generate(list);
     }
 
     /**
@@ -210,36 +210,43 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualities()
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
+    public Formula removeArrayEqualities() {
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
         if (leftSide instanceof ArrayEq)
             leftSide = ((ArrayEq) leftSide).toArrayProperties();
         else
-            leftSide.removeArrayEqualities();
+            leftSide = leftSide.removeArrayEqualities();
 
         if (rightSide instanceof ArrayEq)
             rightSide = ((ArrayEq) rightSide).toArrayProperties();
         else
-            rightSide.removeArrayEqualities();
+            rightSide = rightSide.removeArrayEqualities();
+
+        return new ImpliesFormula(leftSide, rightSide);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
         if (leftSide instanceof ArrayProperty)
             leftSide = ((ArrayProperty) leftSide).toFiniteConjunction(indexSet);
         else
-            leftSide.arrayPropertiesToFiniteConjunctions(indexSet);
+            leftSide = leftSide.arrayPropertiesToFiniteConjunctions(indexSet);
 
         if (rightSide instanceof ArrayProperty)
             rightSide = ((ArrayProperty) rightSide)
                     .toFiniteConjunction(indexSet);
         else
-            rightSide.arrayPropertiesToFiniteConjunctions(indexSet);
+            rightSide = rightSide.arrayPropertiesToFiniteConjunctions(indexSet);
+        return new ImpliesFormula(leftSide, rightSide);
     }
 
     /**
@@ -299,22 +306,27 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
         leftSide.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
         rightSide.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
+        return new ImpliesFormula(leftSide, rightSide);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        leftSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        rightSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
-
+    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
+        leftSide = leftSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        rightSide = rightSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        return new ImpliesFormula(leftSide, rightSide);
     }
 
     /**
@@ -333,10 +345,15 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        leftSide.substituteUninterpretedFunction(oldFunction, newFunction);
-        rightSide.substituteUninterpretedFunction(oldFunction, newFunction);
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
+        leftSide = leftSide.substituteUninterpretedFunction(oldFunction,
+                newFunction);
+        rightSide = rightSide.substituteUninterpretedFunction(oldFunction,
+                newFunction);
+        return new ImpliesFormula(leftSide, rightSide);
     }
 
     /**
@@ -344,12 +361,15 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        leftSide.makeArrayReadsSimple(topLevelFormula, constraints,
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
+        leftSide = leftSide.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        rightSide.makeArrayReadsSimple(topLevelFormula, constraints,
+        rightSide = rightSide.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
+        return new ImpliesFormula(leftSide, rightSide);
     }
 
     /**
@@ -475,7 +495,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             throw new RuntimeException(
                     "Unexpected Chid: right child of implies formula is not valid");
 
-        return new OrFormula(subFormulas);
+        return OrFormula.generate(subFormulas);
     }
 
     /**
@@ -518,7 +538,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         else
             disjuncts.add(new NotFormula(leftSide));
         disjuncts.add(rightSide);
-        OrFormula implication = new OrFormula(disjuncts);
+        OrFormula implication = OrFormula.generate(disjuncts);
         return implication.tseitinEncode(clauses, encoding);
     }
     
@@ -527,24 +547,36 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) { 	
-		    	if (leftSide instanceof UninterpretedPredicateInstance)
-		    		leftSide = ((UninterpretedPredicateInstance) leftSide).applyReplaceUninterpretedPredicates(topLeveFormula,
-							      predicateInstances, instanceParameters, noDependenceVars);
-				else
-					leftSide.uninterpretedPredicatesToAuxiliaryVariables(
-			                      topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
-		    	
-		    	if (rightSide instanceof UninterpretedPredicateInstance)
-		    		rightSide = ((UninterpretedPredicateInstance) rightSide).applyReplaceUninterpretedPredicates(topLeveFormula,
-							      predicateInstances, instanceParameters, noDependenceVars);
-				else
-					rightSide.uninterpretedPredicatesToAuxiliaryVariables(
-			                      topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
-    }
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
 
+        if (leftSide instanceof UninterpretedPredicateInstance)
+            leftSide = ((UninterpretedPredicateInstance) leftSide)
+                    .applyReplaceUninterpretedPredicates(topLeveFormula,
+                            predicateInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            leftSide = leftSide.uninterpretedPredicatesToAuxiliaryVariables(
+                    topLeveFormula, predicateInstances, instanceParameters,
+                    noDependenceVars);
+
+        if (rightSide instanceof UninterpretedPredicateInstance)
+            rightSide = ((UninterpretedPredicateInstance) rightSide)
+                    .applyReplaceUninterpretedPredicates(topLeveFormula,
+                            predicateInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            rightSide = rightSide.uninterpretedPredicatesToAuxiliaryVariables(
+                    topLeveFormula, predicateInstances, instanceParameters,
+                    noDependenceVars);
+
+        return new ImpliesFormula(leftSide, rightSide);
+    }
     
     
     /**
@@ -552,30 +584,45 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {    
-                leftSide.uninterpretedFunctionsToAuxiliaryVariables(
-                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-                rightSide.uninterpretedFunctionsToAuxiliaryVariables(
-                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
+        leftSide = leftSide.uninterpretedFunctionsToAuxiliaryVariables(
+                topLeveFormula, functionInstances, instanceParameters,
+                noDependenceVars);
+        rightSide = rightSide.uninterpretedFunctionsToAuxiliaryVariables(
+                topLeveFormula, functionInstances, instanceParameters,
+                noDependenceVars);
+
+        return new ImpliesFormula(leftSide, rightSide);
     }
     
-
-    
     @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
-    {
-        leftSide = leftSide.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
-        rightSide = rightSide.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
-        return this;
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
+        leftSide = leftSide.replaceEquivalences(topLeveFormula, replacements,
+                noDependenceVars);
+        rightSide = rightSide.replaceEquivalences(topLeveFormula, replacements,
+                noDependenceVars);
+        return new ImpliesFormula(leftSide, rightSide);
     }
-    
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)    {
-        leftSide = leftSide.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
-        rightSide = rightSide.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
-        return this;
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        Formula rightSide = this.rightSide;
+        Formula leftSide = this.leftSide;
+        leftSide = leftSide.removeDomainITE(topLevelFormula, noDependenceVars,
+                andPreList);
+        rightSide = rightSide.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        return new ImpliesFormula(leftSide, rightSide);
     }
 }

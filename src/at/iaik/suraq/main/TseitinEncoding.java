@@ -34,8 +34,8 @@ public class TseitinEncoding {
 
         List<Formula> disjuncts = new ArrayList<Formula>();
         disjuncts.add(tseitinVar);
-        clauses.add(new OrFormula(disjuncts));
-        Formula encodedFormula = new AndFormula(clauses);
+        clauses.add(OrFormula.generate(disjuncts));
+        Formula encodedFormula = AndFormula.generate(clauses);
         
         timer.end();        
         DebugHelper.getInstance().formulaToFile(encodedFormula, "debug-tseitin-encoding.txt");
