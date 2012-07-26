@@ -266,11 +266,12 @@ public class GraphReduction {
         
         // for small examples
 
-        // TODO: comment in: only for debugging issues
+        // you can comment that in: only for debugging issues
         FormulaCache.printStatistic();
+        
         return AndFormula.generate(btransparts);
         
-        // for large examples
+        // for large examples if the btrans matrix is written to a file.
         //return new PropositionalVariable("Btrans");
         
     } // generateBtrans
@@ -400,7 +401,7 @@ public class GraphReduction {
                 System.out.print("\n next:");
                 this.resetVisited(vertex);
                 vertex.setVisited(true);
-                //depthFirstSearch(vertex, vertex, null); // TODO
+                //depthFirstSearch(vertex, vertex, null);
                 depthFirstSearchHash(vertex, vertex, null);
             }
         }
@@ -419,7 +420,7 @@ public class GraphReduction {
                 int cpus = Runtime.getRuntime().availableProcessors();
                 if(cpus > _maxThreads)
                     _maxThreads = cpus-1;
-                // FIXME working here
+                
                 int singleSize = circlesize / _maxThreads;
                 int last_index = 0;
                 threads = new ArrayList<GraphReductionThread>();

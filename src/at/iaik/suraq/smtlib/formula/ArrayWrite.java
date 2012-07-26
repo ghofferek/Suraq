@@ -36,12 +36,12 @@ public class ArrayWrite extends ArrayTerm {
     /**
      * The index to which this expression writes.
      */
-    private DomainTerm indexTerm;
+    private final DomainTerm indexTerm;
 
     /**
      * The value that is written.
      */
-    private DomainTerm valueTerm;
+    private final DomainTerm valueTerm;
 
     /**
      * Constructs a new <code>ArrayWrite</code>.
@@ -284,7 +284,7 @@ public class ArrayWrite extends ArrayTerm {
         }
 
         index = indexTerm.deepTermCopy();
-        index.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
+        index = (DomainTerm)index.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
         if (!(index instanceof DomainVariable)) {
             DomainVariable simpleIndex = new DomainVariable(Util.freshVarName(
                     topLevelFormula, "read"));
@@ -302,7 +302,7 @@ public class ArrayWrite extends ArrayTerm {
         }
 
         value = valueTerm.deepTermCopy();
-        value.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
+        value = (DomainTerm) value.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
 
         // now apply axiom
         String oldVar = result.toSmtlibV2().toString().replaceAll("\\W", "");
@@ -310,9 +310,9 @@ public class ArrayWrite extends ArrayTerm {
                 topLevelFormula, oldVar + "_store"));
 
         ArrayRead newRead = new ArrayRead(newVar, index);
-        newRead.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
+        newRead = (ArrayRead)newRead.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
-        value.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
+        value = (DomainTerm) value.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
         Set<DomainTerm> domainTerms = new HashSet<DomainTerm>();
         domainTerms.add(newRead);

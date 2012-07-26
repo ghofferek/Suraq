@@ -25,7 +25,7 @@ public class FormulaTerm extends PropositionalTerm {
     /**
      * The formula that represents this term.
      */
-    private Formula formula;
+    private final Formula formula;
 
     /**
      * 
@@ -478,8 +478,8 @@ public class FormulaTerm extends PropositionalTerm {
     @Override
     public Formula replaceEquivalences(Formula topLevelFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
     {
-        formula = formula.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
-        return this;
+        Formula formula = this.formula.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+        return new FormulaTerm(formula);
     }
     
     
@@ -487,8 +487,8 @@ public class FormulaTerm extends PropositionalTerm {
     @Override
     public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
-        formula = formula.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
-        return this;
+        Formula formula = this.formula.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        return new FormulaTerm(formula);
     }
     
 }

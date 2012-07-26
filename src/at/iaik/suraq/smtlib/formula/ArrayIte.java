@@ -34,12 +34,12 @@ public class ArrayIte extends ArrayTerm {
     /**
      * The then-branch.
      */
-    private ArrayTerm thenBranch;
+    private final ArrayTerm thenBranch;
 
     /**
      * The else-branch
      */
-    private ArrayTerm elseBranch;
+    private final ArrayTerm elseBranch;
 
     /**
      * 

@@ -28,7 +28,7 @@ public class UninterpretedFunction implements Serializable {
     /**
      * The assert-partitions
      */
-    protected int assertPartition = Term.GLOBAL_PARTITION;
+    protected final int assertPartition;
 
     /**
      * The number of parameters.
@@ -63,6 +63,7 @@ public class UninterpretedFunction implements Serializable {
         this.name = Token.generate(name);
         this.numParams = numParams;
         this.type = type;
+        assertPartition = Term.GLOBAL_PARTITION;
         this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
                 + numParams;
     }
@@ -83,6 +84,7 @@ public class UninterpretedFunction implements Serializable {
         this.name = name;
         this.numParams = numParams;
         this.type = type;
+        assertPartition = Term.GLOBAL_PARTITION;
         this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
                 + numParams;
     }

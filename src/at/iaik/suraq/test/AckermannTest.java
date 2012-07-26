@@ -49,9 +49,10 @@ public class AckermannTest {
 	
 	@Before
 	public void setUp() {
+	    Ackermann.setActive(true);
 	    SuraqOptions.kill();
 	    SuraqOptions.reset();
-	    Z3Proof.setInstanceCounter(0);
+	    //Z3Proof.setInstanceCounter(0);
 	}
 
 	

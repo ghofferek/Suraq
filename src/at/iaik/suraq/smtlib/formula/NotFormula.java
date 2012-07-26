@@ -32,7 +32,7 @@ public class NotFormula extends BooleanCombinationFormula {
     /**
      * The negated internal formula.
      */
-    private Formula formula;
+    private final Formula formula;
 
     /**
      * 
@@ -321,7 +321,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula simplify() {
-        formula = formula.simplify();
+        Formula formula = this.formula.simplify();
 
         if (formula instanceof PropositionalConstant)
             return new PropositionalConstant(
@@ -330,7 +330,7 @@ public class NotFormula extends BooleanCombinationFormula {
         if (formula instanceof NotFormula)
             return ((NotFormula) formula).formula;
 
-        return this;
+        return new NotFormula(formula);
     }
 
     /**

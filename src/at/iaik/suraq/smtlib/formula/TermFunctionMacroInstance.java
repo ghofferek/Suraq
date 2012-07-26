@@ -317,26 +317,29 @@ public class TermFunctionMacroInstance extends DomainTerm {
     @Override
     public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        // FIXME: this cannot work:
-        Set<Formula> localConstraints = macro.removeArrayWrites(
-                topLevelFormula, noDependenceVars);
-        for (Formula localConstraint : localConstraints)
-            constraints.add(localConstraint.substituteFormula(paramMap));
-
-        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
-        for (Token key : paramMap.keySet()) {
-            // for (Term term : paramMap.values())
-            paramMap2.put(
-                    key,
-                    paramMap.get(key).removeArrayWritesTerm(topLevelFormula,
-                            constraints, noDependenceVars));
-        }
-        try {
-            return new TermFunctionMacroInstance(macro, paramMap2);
-        } catch (InvalidParametersException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        // this cannot work:
+        
+        throw new RuntimeException("Cannot work");
+        // FIXME: comment in
+//        Set<Formula> localConstraints = macro.removeArrayWrites(
+//                topLevelFormula, noDependenceVars);
+//        for (Formula localConstraint : localConstraints)
+//            constraints.add(localConstraint.substituteFormula(paramMap));
+//
+//        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+//        for (Token key : paramMap.keySet()) {
+//            // for (Term term : paramMap.values())
+//            paramMap2.put(
+//                    key,
+//                    paramMap.get(key).removeArrayWritesTerm(topLevelFormula,
+//                            constraints, noDependenceVars));
+//        }
+//        try {
+//            return new TermFunctionMacroInstance(macro, paramMap2);
+//        } catch (InvalidParametersException e) {
+//            e.printStackTrace();
+//            throw new RuntimeException(e);
+//        }
     }
 
     /**

@@ -36,12 +36,12 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     /**
      * The function of which this is an instance.
      */
-    private UninterpretedFunction function;
+    private final UninterpretedFunction function;
 
     /**
      * The list of parameters of this instance.
      */
-    private final List<DomainTerm> parameters;
+    private List<DomainTerm> parameters;
 
     public UninterpretedFunctionInstance(UninterpretedFunction function,
             List<DomainTerm> parameters, int partition)
@@ -570,7 +570,6 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             Map<DomainVariable,List<DomainTerm>> instanceParameters) {
     	
     	DomainVariable result = null;
-    			// FIXME: fix this class!!!!!!!!	
 		Set<String> instancesStr = new HashSet<String>();
 		for (DomainVariable dv : instanceParameters.keySet())
 			  instancesStr.add(dv.getVarName());
@@ -638,7 +637,6 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		    	
 		    	for (DomainTerm term : parameters) {
 		            if (term instanceof UninterpretedFunctionInstance) {
-		            	
 		            	 DomainVariable auxiliaryVariable =  ((UninterpretedFunctionInstance) term)
 		            			 .applyReplaceUninterpretedFunctions(topLeveFormula,
 		            					 	functionInstances, instanceParameters, noDependenceVars);
@@ -649,6 +647,9 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		                newParameters.add((DomainTerm)term.uninterpretedFunctionsToAuxiliaryVariablesTerm(topLeveFormula,functionInstances, instanceParameters, noDependenceVars));
 		            }
 		        }
+
+                // dirty hack, because parameters should be final
+		    	this.parameters = newParameters;
 		    	
 		        DomainVariable result = matchFunctionInstance(functionInstances, instanceParameters);
 		        

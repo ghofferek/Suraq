@@ -21,7 +21,7 @@ public class TermFunctionMacro extends FunctionMacro {
     /**
      * The body of this macro.
      */
-    private Term body;
+    private final Term body;
 
     /**
      * Constructs a new <code>TermFunctionMacro</code> with the given values.

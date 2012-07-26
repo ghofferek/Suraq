@@ -34,17 +34,17 @@ public class DomainIte extends DomainTerm {
     /**
      * The condition.
      */
-    private Formula condition;
+    private final Formula condition;
 
     /**
      * The then-branch.
      */
-    private DomainTerm thenBranch;
+    private final DomainTerm thenBranch;
 
     /**
      * The else-branch
      */
-    private DomainTerm elseBranch;
+    private final DomainTerm elseBranch;
 
     /**
      * 
@@ -508,7 +508,9 @@ public class DomainIte extends DomainTerm {
         newToken.value = newDomainVar;
         
         // remove DomainITE recusively -> also condition, then, else
-        condition = condition.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        Formula condition = this.condition.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+        DomainTerm elseBranch = this.elseBranch;
+        DomainTerm thenBranch = this.thenBranch;
         if(elseBranch instanceof DomainIte)
         {
             Holder<Term> newToken2 = new Holder<Term>();
@@ -521,8 +523,8 @@ public class DomainIte extends DomainTerm {
             _andlist.add(((DomainIte)thenBranch).removeDomainITE(topLevelFormula, noDependenceVars, newToken2, andPreList));
             thenBranch = (DomainVariable) newToken2.value;
         }
-        
-        // TODO: the if is not sufficient enough
+
+
         HashSet<DomainVariable> innerVariables = new HashSet<DomainVariable>();
         innerVariables.addAll(elseBranch.getDomainVariables());
         innerVariables.addAll(thenBranch.getDomainVariables());

@@ -339,7 +339,8 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public Formula simplify() {
-
+        List<Term> terms = new ArrayList<Term>(this.terms);
+        
         for (int count = 0; count < terms.size(); count++) {
             if (terms.get(count) instanceof DomainIte)
                 terms.set(count, ((DomainIte) terms.get(count)).simplify());
@@ -362,7 +363,13 @@ public abstract class EqualityFormula implements Formula {
                 return new PropositionalConstant(false);
         }
 
-        return this;
+        //return this;
+        try {
+            return create(terms, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -544,7 +551,8 @@ public abstract class EqualityFormula implements Formula {
             boolean firstLevel) {
 
         List<Formula> literals = new ArrayList<Formula>();
-
+        
+        // TODO: make this.equal final
         if (terms.size() != 2)
             throw new RuntimeException(
                     "Equality should have only two terms for consequents form");
@@ -722,46 +730,35 @@ public abstract class EqualityFormula implements Formula {
     }
     
 
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
-    {
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
         List<Formula> _andlist = new ArrayList<Formula>();
-        for(int i=0;i<terms.size();i++)
-        {
-            if(terms.get(i) instanceof DomainIte)
-            {
+
+        List<Term> terms2 = new ArrayList<Term>();
+        for (int i = 0; i < terms.size(); i++) {
+            if (terms.get(i) instanceof DomainIte) {
                 DomainIte domainITE = (DomainIte) terms.get(i);
-                
+
                 // replace the ITE with a new variable
-                // the ITE-constraint is added on the end of the topLevelFormula by this function
+                // the ITE-constraint is added on the end of the topLevelFormula
+                // by this function
                 Holder<Term> newVarName = new Holder<Term>();
-                _andlist.add(domainITE.removeDomainITE(topLevelFormula, noDependenceVars, newVarName, andPreList));
-                terms.set(i, newVarName.value);
-            }
+                _andlist.add(domainITE.removeDomainITE(topLevelFormula,
+                        noDependenceVars, newVarName, andPreList));
+                // terms.set(i, newVarName.value);
+                terms2.add(newVarName.value);
+
+            } else
+                terms2.add(terms.get(i));
         }
-        
-        if(_andlist.size()>0)
-        {
-            // FIXME: not sure which i shall use
-            // pretty sure the ImpliesFormula is correct
-            // else it is too easy to make it unsat
-            
-            int method = 3;
-            if(method == 1)
-            {
-                if(_andlist.size()==1)
-                    return new ImpliesFormula(_andlist.get(0), this);
-                return new ImpliesFormula(AndFormula.generate(_andlist), this);
-            }
-            else if(method == 2)
-            {
-                _andlist.add(this);
-                return AndFormula.generate(_andlist);
-            }
-            else if(method == 3)
-            {
-                // TODO:add to global list
-                andPreList.addAll(_andlist);
-                return this;
+
+        if (_andlist.size() > 0) {
+            andPreList.addAll(_andlist);
+            try {
+                return create(terms2, equal);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                throw new RuntimeException(ex);
             }
         }
         return this;

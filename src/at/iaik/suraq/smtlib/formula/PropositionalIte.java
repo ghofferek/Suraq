@@ -31,17 +31,17 @@ public class PropositionalIte extends BooleanCombinationFormula {
     /**
      * The formula that represents the condition.
      */
-    private Formula condition;
+    private final Formula condition;
 
     /**
      * The formula that represents the then-branch.
      */
-    private Formula thenBranch;
+    private final Formula thenBranch;
 
     /**
      * The formula that represents the else-branch.
      */
-    private Formula elseBranch;
+    private final Formula elseBranch;
 
     /**
      * 
@@ -302,9 +302,9 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula simplify() {
-        condition = condition.simplify();
-        thenBranch = thenBranch.simplify();
-        elseBranch = elseBranch.simplify();
+        Formula condition = this.condition.simplify();
+        Formula thenBranch = this.thenBranch.simplify();
+        Formula elseBranch = this.elseBranch.simplify();
 
         if (condition instanceof PropositionalConstant) {
             if (((PropositionalConstant) condition).getValue())
@@ -316,7 +316,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         if (thenBranch.equals(elseBranch))
             return thenBranch;
 
-        return this;
+        return new PropositionalIte(condition, thenBranch, elseBranch);
     }
 
     /**

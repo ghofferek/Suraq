@@ -1249,7 +1249,7 @@ public class Suraq implements Runnable {
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
         // FIXME: GET_PROOF was deactivated
-        // smtStr.append(SExpressionConstants.GET_PROOF.toString()); // TODO: comment in to get proof
+        // smtStr.append(SExpressionConstants.GET_PROOF.toString());
         smtStr.append(SExpressionConstants.EXIT.toString());
         
 
@@ -1388,13 +1388,13 @@ public class Suraq implements Runnable {
         System.out.println("  Making array reads simple...");
         timer.reset();
         timer.start();
-        formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
+        formula = formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         System.out.println("  Removing array writes...");
         timer.reset();
         timer.start();
-        formula.removeArrayWrites(formula, constraints, noDependenceVars);
+        formula = formula.removeArrayWrites(formula, constraints, noDependenceVars);
         if (constraints.size() > 0) {
             List<Formula> constraintsList = new ArrayList<Formula>();
             constraintsList.addAll(constraints);
@@ -1555,12 +1555,15 @@ public class Suraq implements Runnable {
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
+        // TODO: this seems not to work correctly for performFullSuraq3_no_readonly_pipeline_ex_suraq
+        // TODO: outputExpressions?
+        
         // get declarations and functions
         ListIterator<SExpression> beginDeclarations = outputExpressions
                 .listIterator(beginDeclarationsIdx);
         while (beginDeclarations.hasNext()) {
             SExpression elem = beginDeclarations.next();
-            declarationStr += elem.toString();
+            declarationStr += elem.toString(); 
         }
 
         int beginAssertPartitionIdx = outputExpressions.size();
@@ -1636,7 +1639,7 @@ public class Suraq implements Runnable {
                 {
                     // it's an uninterpreted function
                     System.err.println("There was a function (Ackerman didn't perform?)");
-                    tempFormula.substituteUninterpretedFunction(var,
+                    tempFormula = tempFormula.substituteUninterpretedFunction(var,
                             noDependenceFunctionsCopies.get(var).get(count));
                 }
                 // This was commented out, because we don't use some variables
@@ -1772,7 +1775,6 @@ public class Suraq implements Runnable {
                 System.out.print((100*cnt) / _cnt + "% ");
             
             SExpression type = varTypes.get(var);
-            if(type==null) continue; // TODO remove this line
             assert (type != null);
             int numParams = 0;
             if (functionArity.containsKey(var))

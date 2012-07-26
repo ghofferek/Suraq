@@ -67,7 +67,7 @@ public class Ackermann {
     		Map<String, List<DomainVariable>> functionInstances = new HashMap<String, List<DomainVariable>>();
     		Map<DomainVariable, List<DomainTerm>> instanceParameters = new HashMap<DomainVariable, List<DomainTerm>>();
             DebugHelper.getInstance().formulaToFile(topLevelFormula, "./debug_aux_func_before.txt");
-    		topLevelFormula.uninterpretedFunctionsToAuxiliaryVariables(topLevelFormula, functionInstances, instanceParameters, noDependenceVars);
+            topLevelFormula = topLevelFormula.uninterpretedFunctionsToAuxiliaryVariables(topLevelFormula, functionInstances, instanceParameters, noDependenceVars);
             DebugHelper.getInstance().formulaToFile(topLevelFormula, "./debug_aux_func_after.txt");
             
             // Add Constraints for these UFs
@@ -109,7 +109,7 @@ public class Ackermann {
     		
     
             DebugHelper.getInstance().formulaToFile(topLevelFormula, "./debug_aux_pred_before.txt");
-    		topLevelFormula.uninterpretedPredicatesToAuxiliaryVariables(topLevelFormula, predicateInstances, instanceParametersPredicates, noDependenceVars);
+            topLevelFormula = topLevelFormula.uninterpretedPredicatesToAuxiliaryVariables(topLevelFormula, predicateInstances, instanceParametersPredicates, noDependenceVars);
             DebugHelper.getInstance().formulaToFile(topLevelFormula, "./debug_aux_pred_after.txt");
             
             
@@ -144,8 +144,6 @@ public class Ackermann {
         if(_isPredicateActive && _isFunctionActive)
         {
             assert(topLevelFormula.getUninterpretedFunctions().size()==0);
-            if(topLevelFormula.getUninterpretedFunctions().size()!=0)
-                System.err.println("asdfasdfasdfasdfasdfasdfasdfasdf");
         }
 
         ////////////////////////////////////////////////////////////

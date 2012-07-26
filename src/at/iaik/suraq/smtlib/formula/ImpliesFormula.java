@@ -32,12 +32,12 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     /**
      * The left side of the implication.
      */
-    private Formula leftSide;
+    private final Formula leftSide;
 
     /**
      * The right side of the implication.
      */
-    private Formula rightSide;
+    private final Formula rightSide;
 
     /**
      * 
@@ -254,8 +254,8 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula simplify() {
-        leftSide = leftSide.simplify();
-        rightSide = rightSide.simplify();
+        Formula leftSide = this.leftSide.simplify();
+        Formula rightSide = this.rightSide.simplify();
 
         if (leftSide instanceof PropositionalConstant) {
             if (((PropositionalConstant) leftSide).getValue())
@@ -282,7 +282,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             if (leftSide.equals(((NotFormula) rightSide).getNegatedFormula()))
                 return rightSide;
 
-        return this;
+        return new ImpliesFormula(leftSide, rightSide);
     }
 
     /**

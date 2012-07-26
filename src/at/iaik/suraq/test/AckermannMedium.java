@@ -14,16 +14,21 @@ import at.iaik.suraq.util.FormulaCache;
 
 public class AckermannMedium {
 
-    @Before
-    public void setUp() {
-        SuraqOptions.kill();
-        SuraqOptions.reset();
-        Z3Proof.setInstanceCounter(0);
-        
-        Ackermann.setActive(true);
-        ITEEquationReduction.setActive(true);
-        GraphReduction.setActive(true);
-        //QBFSolver.setActive(true);
+    //@Before
+    public void setUp2() {
+        try {
+            SuraqOptions.kill();
+            SuraqOptions.reset();
+           // Z3Proof.setInstanceCounter(0);
+
+            Ackermann.setActive(false);
+            ITEEquationReduction.setActive(false);
+            GraphReduction.setActive(false);
+            //QBFSolver.setActive(false);
+        } catch (Throwable e) {
+            e.printStackTrace();
+
+        }
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -32,6 +37,7 @@ public class AckermannMedium {
     // contains PropITE containing DomainEq with DomainITE
     @Test
     public void performFullSuraq2_simple_3_input_dependent_2_controllers() { 
+        setUp2();
         System.out.println("****************************************************");
         
         String[] args = { "-i",
@@ -46,6 +52,7 @@ public class AckermannMedium {
     // contains simple ITE, UF, control signals, nodependence
     @Test
     public void performFullSuraq1_simple_2_controllers() { 
+        setUp2();
         System.out.println("****************************************************");
         
         String[] args = { "-i",
@@ -57,8 +64,9 @@ public class AckermannMedium {
     }
     
     // Interessanter Fall
-    @Test
+    /*@Test
     public void performFullSuraq3_no_readonly_pipeline_ex_suraq() { 
+        setUp2();
         System.out.println("****************************************************");
         //Ackermann.setPredicateActive(false);
         String[] args = { "-i",
@@ -67,6 +75,6 @@ public class AckermannMedium {
         suraq.run();
         FormulaCache.printStatistic();
         Assert.assertTrue(suraq.success());
-    }
+    }*/
 
 }

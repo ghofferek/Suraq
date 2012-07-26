@@ -5,7 +5,6 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +29,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     /**
      * The body of this macro.
      */
-    private Formula body;
+    private final Formula body;
 
     /**
      * Constructs a new <code>PropositionalFunctionMacro</code> with the given
@@ -240,12 +239,20 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.EqualityFormula#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    public Set<Formula> removeArrayWrites(Formula topLevelFormula,
+
+    public PropositionalFunctionMacro removeArrayWrites(
+            Formula topLevelFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
-        Set<Formula> constraints = new HashSet<Formula>();
-        // FIXME: this will not work
-        body.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
-        return constraints;
+        Formula body = this.body.removeArrayWrites(topLevelFormula,
+                constraints, noDependenceVars);
+
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap,
+                    body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -302,13 +309,18 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @param noDependenceVars
      * @return
      */
-    public Set<Formula> makeArrayReadsSimple(Formula topLevelFormula,
+    public PropositionalFunctionMacro makeArrayReadsSimple(Formula topLevelFormula,
+            Set<Formula> constraints,
             Set<Token> noDependenceVars) {
-        Set<Formula> constraints = new HashSet<Formula>();
-        // FIXME: this will will not work this way!
-        body.makeArrayReadsSimple(topLevelFormula, constraints,
+        Formula body = this.body.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        return constraints;
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap,
+                    body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**

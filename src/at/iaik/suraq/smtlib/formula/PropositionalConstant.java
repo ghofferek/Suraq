@@ -28,7 +28,7 @@ public class PropositionalConstant extends PropositionalTerm {
      * 
      */
     private static final long serialVersionUID = 48734596062800807L;
-    private boolean constant;
+    private final boolean constant;
 
     /**
      * 
@@ -302,16 +302,20 @@ public class PropositionalConstant extends PropositionalTerm {
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
 
+        Formula _this = this;
         if (notFlag == true)
-            this.constant = !this.constant;
+        {
+            //this.constant = !this.constant;
+            _this = new PropositionalConstant(!this.constant);
+        }
 
         if (firstLevel == true) {
             List<Formula> literals = new ArrayList<Formula>();
-            literals.add(this);
+            literals.add(_this);
             return OrFormula.generate(literals);
         }
 
-        return this;
+        return _this;
     }
 
     /**

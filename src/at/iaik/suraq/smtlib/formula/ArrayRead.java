@@ -31,12 +31,12 @@ public class ArrayRead extends DomainTerm {
     /**
      * The array variable that is read.
      */
-    private ArrayTerm arrayTerm;
+    private final ArrayTerm arrayTerm;
 
     /**
      * The index from which is read.
      */
-    private DomainTerm indexTerm;
+    private final DomainTerm indexTerm;
 
     /**
      * Constructs a new <code>ArrayRead</code>.
@@ -269,7 +269,7 @@ public class ArrayRead extends DomainTerm {
                 term = ((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars);
             else
-                term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
+                term = (DomainTerm) term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
 
             // Check if the arrayTerm contained any noDependenceVars.
             // This is conservative and might not be complete (i.e., may

@@ -347,9 +347,9 @@ public class PropositionalFunctionMacroInstance implements Formula {
     @Override
     public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        // FIXME: this will not work, because it chances macro!
-        Set<Formula> localConstraints = macro.removeArrayWrites(
-                topLevelFormula, noDependenceVars);
+        Set<Formula> localConstraints = new HashSet<Formula>();
+        PropositionalFunctionMacro macro = this.macro.removeArrayWrites(
+                topLevelFormula, localConstraints, noDependenceVars);
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
 
@@ -438,11 +438,12 @@ public class PropositionalFunctionMacroInstance implements Formula {
     @Override
     public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        // FIXME: this will not work this way, change macro
-        Set<Formula> localConstraints = macro.makeArrayReadsSimple(
-                topLevelFormula, noDependenceVars);
+
+        Set<Formula> localConstraints = new HashSet<Formula>();
+        PropositionalFunctionMacro macro = this.macro.makeArrayReadsSimple(
+                topLevelFormula, localConstraints, noDependenceVars);
         
-        // FIXME: this may not work this way: see implementation!
+        // FIXME??? this may not work this way but it could... 
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
 
