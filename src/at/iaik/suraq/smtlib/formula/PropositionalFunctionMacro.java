@@ -195,8 +195,14 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     /**
      * Simplifies the body of the macro.
      */
-    public void simplify() {
-        body = body.simplify();
+    public PropositionalFunctionMacro simplify() {
+        Formula body = this.body.simplify();
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap, body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -237,6 +243,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     public Set<Formula> removeArrayWrites(Formula topLevelFormula,
             Set<Token> noDependenceVars) {
         Set<Formula> constraints = new HashSet<Formula>();
+        // FIXME: this will not work
         body.removeArrayWrites(topLevelFormula, constraints, noDependenceVars);
         return constraints;
     }
@@ -244,8 +251,17 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     /**
      * Replaces array-read expression with uninterpreted function instances
      */
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        body.arrayReadsToUninterpretedFunctions(noDependenceVars);
+    public PropositionalFunctionMacro arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars) {
+        Formula body = this.body
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap,
+                    body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -267,9 +283,18 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public PropositionalFunctionMacro substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        body.substituteUninterpretedFunction(oldFunction, newFunction);
+
+        Formula body = this.body.substituteUninterpretedFunction(oldFunction,
+                newFunction);
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap,
+                    body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -280,6 +305,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     public Set<Formula> makeArrayReadsSimple(Formula topLevelFormula,
             Set<Token> noDependenceVars) {
         Set<Formula> constraints = new HashSet<Formula>();
+        // FIXME: this will will not work this way!
         body.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
         return constraints;
@@ -321,26 +347,51 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
-    public void uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	
-    	if (body instanceof UninterpretedPredicateInstance) 
-    		body= ((UninterpretedPredicateInstance) body).applyReplaceUninterpretedPredicates(topLeveFormula,
-    				predicateInstances, instanceParameters, noDependenceVars);
-		else
-			body.uninterpretedPredicatesToAuxiliaryVariables(
-                 topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
+    public PropositionalFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        Formula body = this.body;
+        if (body instanceof UninterpretedPredicateInstance)
+            body = ((UninterpretedPredicateInstance) body)
+                    .applyReplaceUninterpretedPredicates(topLeveFormula,
+                            predicateInstances, instanceParameters,
+                            noDependenceVars);
+        else
+            body = body.uninterpretedPredicatesToAuxiliaryVariables(
+                    topLeveFormula, predicateInstances, instanceParameters,
+                    noDependenceVars);
+
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap,
+                    body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
     
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
-    public void uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-		       body.uninterpretedFunctionsToAuxiliaryVariables(
-		                topLeveFormula, functionInstances, instanceParameters, noDependenceVars);      
-    }  
+    public PropositionalFunctionMacro uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        Formula body = this.body.uninterpretedFunctionsToAuxiliaryVariables(
+                topLeveFormula, functionInstances, instanceParameters,
+                noDependenceVars);
+
+        try {
+            return new PropositionalFunctionMacro(name, parameters, paramMap,
+                    body);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
 }

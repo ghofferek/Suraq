@@ -315,31 +315,55 @@ public class TermFunctionMacroInstance extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
+        // FIXME: this cannot work:
         Set<Formula> localConstraints = macro.removeArrayWrites(
                 topLevelFormula, noDependenceVars);
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
-        for (Term term : paramMap.values())
-            term.removeArrayWrites(topLevelFormula, constraints,
-                    noDependenceVars);
 
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token key : paramMap.keySet()) {
+            // for (Term term : paramMap.values())
+            paramMap2.put(
+                    key,
+                    paramMap.get(key).removeArrayWritesTerm(topLevelFormula,
+                            constraints, noDependenceVars));
+        }
+        try {
+            return new TermFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        macro.arrayReadsToUninterpretedFunctions(noDependenceVars);
+    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+        TermFunctionMacro macro = (TermFunctionMacro) this.macro
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
+
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token key : paramMap.keySet()) {
             Term term = paramMap.get(key);
             if (term instanceof ArrayRead)
-                paramMap.put(key, ((ArrayRead) term)
+                paramMap2.put(key, ((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars));
             else
-                term.arrayReadsToUninterpretedFunctions(noDependenceVars);
+                paramMap2
+                        .put(key,
+                                term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
+        }
+
+        try {
+            return new TermFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -360,13 +384,13 @@ public class TermFunctionMacroInstance extends DomainTerm {
             UninterpretedFunction newFunction) {
         TermFunctionMacro macro = (TermFunctionMacro) this.macro.substituteUninterpretedFunction(oldFunction, newFunction);
         
-        Map<Token, Term> paramMap = new HashMap<Token, Term>();
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token token : paramMap.keySet())
-            paramMap.put(token, this.paramMap.get(token).substituteUninterpretedFunctionTerm(oldFunction, newFunction));
+            paramMap2.put(token, this.paramMap.get(token).substituteUninterpretedFunctionTerm(oldFunction, newFunction));
         
 
         try {
-            return new TermFunctionMacroInstance(macro, paramMap);
+            return new TermFunctionMacroInstance(macro, paramMap2);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -400,9 +424,20 @@ public class TermFunctionMacroInstance extends DomainTerm {
                 topLevelFormula, noDependenceVars);
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
-        for (Term term : paramMap.values())
-            term.makeArrayReadsSimple(topLevelFormula, constraints,
-                    noDependenceVars);
+
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet())
+            paramMap2.put(
+                    token,
+                    paramMap.get(token).makeArrayReadsSimpleTerm(
+                            topLevelFormula, constraints, noDependenceVars));
+
+        try {
+            return new TermFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -458,20 +493,34 @@ public class TermFunctionMacroInstance extends DomainTerm {
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
-    public void uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-        
-	        macro.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
-	        		predicateInstances, instanceParameters, noDependenceVars);
-	      
-	        for (Token token : paramMap.keySet())
-	                    paramMap.get(token)
-	                            .uninterpretedPredicatesToAuxiliaryVariables(
-	                                    topLeveFormula, predicateInstances,
-	                                    instanceParameters, noDependenceVars);
+    @Override
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        TermFunctionMacro macro = (TermFunctionMacro) this.macro
+                .uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+                        predicateInstances, instanceParameters,
+                        noDependenceVars);
+
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet())
+            paramMap2.put(
+                    token,
+                    paramMap.get(token)
+                            .uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                                    topLeveFormula, predicateInstances,
+                                    instanceParameters, noDependenceVars));
+
+        try {
+            return new TermFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
-    
       
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
@@ -479,16 +528,29 @@ public class TermFunctionMacroInstance extends DomainTerm {
      */
     @Override
     public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
 
-	        macro.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,
-	                		functionInstances, instanceParameters, noDependenceVars);
-   
-	        for (Token token : paramMap.keySet())
-	                   paramMap.get(token)
-	                            .uninterpretedFunctionsToAuxiliaryVariables(
-	                                    topLeveFormula, functionInstances,
-	                                    instanceParameters, noDependenceVars);
+        TermFunctionMacro macro = (TermFunctionMacro) this.macro
+                .uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,
+                        functionInstances, instanceParameters, noDependenceVars);
+
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet())
+            paramMap2.put(
+                    token,
+                    paramMap.get(token)
+                            .uninterpretedFunctionsToAuxiliaryVariablesTerm(
+                                    topLeveFormula, functionInstances,
+                                    instanceParameters, noDependenceVars));
+
+        try {
+            return new TermFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

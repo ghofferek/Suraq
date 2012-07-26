@@ -20,7 +20,6 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.DebugHelper;
-import at.iaik.suraq.util.FormulaCache;
 
 public class Ackermann {
 

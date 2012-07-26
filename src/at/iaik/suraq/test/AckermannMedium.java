@@ -7,8 +7,6 @@ import org.junit.Test;
 import at.iaik.suraq.main.Ackermann;
 import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.main.ITEEquationReduction;
-import at.iaik.suraq.main.QBFEncoder;
-import at.iaik.suraq.main.QBFSolver;
 import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.smtlib.Z3Proof;

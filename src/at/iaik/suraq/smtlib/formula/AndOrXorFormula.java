@@ -493,7 +493,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     {
         List<Formula> children = new ArrayList<Formula>();
         for(int i=0;i<formulas.size();i++)
-            children.add(replaceEquivalences(topLevelFormula, replacements, noDependenceVars));
+            children.add(formulas.get(i).replaceEquivalences(topLevelFormula, replacements, noDependenceVars));
         return create(children);
     }
 
@@ -502,7 +502,8 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     {
         List<Formula> children = new ArrayList<Formula>();
         for(int i=0;i<formulas.size();i++)
-            children.add(removeDomainITE(topLevelFormula, noDependenceVars, andPreList));
+            
+            children.add(formulas.get(i).removeDomainITE(topLevelFormula, noDependenceVars, andPreList));
         return create(children);
     }
 }

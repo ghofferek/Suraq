@@ -264,10 +264,20 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
      */
     @Override
-    public void removeArrayEqualities() {
-        macro.removeArrayEqualities();
-        for (Term term : paramMap.values())
-            term.removeArrayEqualitiesTerm();
+    public Formula removeArrayEqualities() {
+        PropositionalFunctionMacro macro = this.macro.removeArrayEqualities();
+
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet()) {
+            paramMap2.put(token, paramMap.get(token)
+                    .removeArrayEqualitiesTerm());
+        }
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -275,10 +285,21 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
 
     @Override
-    public void arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        macro.arrayPropertiesToFiniteConjunctions(indexSet);
-        for (Term term : paramMap.values())
-            term.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+    public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+        PropositionalFunctionMacro macro = this.macro.arrayPropertiesToFiniteConjunctions(indexSet);
+
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet()) {
+            paramMap2.put(
+                    token,
+                    paramMap.get(token).arrayPropertiesToFiniteConjunctionsTerm(indexSet));
+        }
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -286,13 +307,18 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public Formula simplify() {
-        macro.simplify();
+        PropositionalFunctionMacro macro = this.macro.simplify();
 
         Boolean simplification = macro.simplify(paramMap);
         if (simplification != null)
             return new PropositionalConstant(simplification);
 
-        return this;
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -319,31 +345,50 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayWrites(at.iaik.suraq.smtlib.formula.Formula)
      */
     @Override
-    public void removeArrayWrites(Formula topLevelFormula,
+    public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
+        // FIXME: this will not work, because it chances macro!
         Set<Formula> localConstraints = macro.removeArrayWrites(
                 topLevelFormula, noDependenceVars);
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
-        for (Term term : paramMap.values())
-            term.removeArrayWritesTerm(topLevelFormula, constraints,
-                    noDependenceVars);
 
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet()) {
+            paramMap2.put(
+                    token,
+                    paramMap.get(token).removeArrayWritesTerm(topLevelFormula,
+                            constraints, noDependenceVars));
+        }
+
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public void arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        macro.arrayReadsToUninterpretedFunctions(noDependenceVars);
+    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+        PropositionalFunctionMacro macro = this.macro.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token key : paramMap.keySet()) {
             Term term = paramMap.get(key);
             if (term instanceof ArrayRead)
-                paramMap.put(key, ((ArrayRead) term)
+                paramMap2.put(key, ((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars));
             else
-                term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
+                paramMap2.put(key, term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
+        }
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -360,11 +405,21 @@ public class PropositionalFunctionMacroInstance implements Formula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public void substituteUninterpretedFunction(Token oldFunction,
+    public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        macro.substituteUninterpretedFunction(oldFunction, newFunction);
-        for (Term param : paramMap.values())
-            param.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        PropositionalFunctionMacro macro = this.macro.substituteUninterpretedFunction(oldFunction, newFunction);
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet()) {
+            paramMap2.put(
+                    token,
+                    paramMap.get(token).substituteUninterpretedFunctionTerm(oldFunction, newFunction));
+        }
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -381,15 +436,31 @@ public class PropositionalFunctionMacroInstance implements Formula {
      *      java.util.Set, java.util.Set)
      */
     @Override
-    public void makeArrayReadsSimple(Formula topLevelFormula,
+    public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
+        // FIXME: this will not work this way, change macro
         Set<Formula> localConstraints = macro.makeArrayReadsSimple(
                 topLevelFormula, noDependenceVars);
+        
+        // FIXME: this may not work this way: see implementation!
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
-        for (Term term : paramMap.values())
-            term.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
-                    noDependenceVars);
+
+        //for (Term term : paramMap.values())
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet()) {
+            paramMap2.put(
+                    token,
+                    paramMap.get(token).makeArrayReadsSimpleTerm(topLevelFormula, constraints,
+                    noDependenceVars));
+        }
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+            
     }
 
     /**
@@ -484,18 +555,32 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
-    public void uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-        
-		        macro.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
-		        		predicateInstances, instanceParameters, noDependenceVars);
-		      
-		        for (Token token : paramMap.keySet())
-		                    paramMap.get(token)
-		                            .uninterpretedPredicatesToAuxiliaryVariablesTerm(
-		                                    topLeveFormula, predicateInstances,
-		                                    instanceParameters, noDependenceVars);
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        PropositionalFunctionMacro macro = this.macro
+                .uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+                        predicateInstances, instanceParameters,
+                        noDependenceVars);
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+
+        for (Token token : paramMap.keySet()) {
+            paramMap2.put(
+                    token,
+                    paramMap.get(token)
+                            .uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                                    topLeveFormula, predicateInstances,
+                                    instanceParameters, noDependenceVars));
+        }
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
       
     /**
@@ -503,18 +588,31 @@ public class PropositionalFunctionMacroInstance implements Formula {
      *      java.util.Map, java.util.Map)
      */
     @Override
-    public void uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	
-		       macro.uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,
-		                		functionInstances, instanceParameters, noDependenceVars);
-		      
-		        for (Token token : paramMap.keySet())
-		                    paramMap.get(token)
-		                            .uninterpretedFunctionsToAuxiliaryVariablesTerm(
-		                                    topLeveFormula, functionInstances,
-		                                    instanceParameters, noDependenceVars);
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        PropositionalFunctionMacro macro = this.macro
+                .uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,
+                        functionInstances, instanceParameters, noDependenceVars);
+
+        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        for (Token token : paramMap.keySet())
+            paramMap2.put(
+                    token,
+                    paramMap.get(token)
+                            .uninterpretedFunctionsToAuxiliaryVariablesTerm(
+                                    topLeveFormula, functionInstances,
+                                    instanceParameters, noDependenceVars));
+
+        try {
+            return new PropositionalFunctionMacroInstance(macro, paramMap2);
+        } catch (InvalidParametersException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

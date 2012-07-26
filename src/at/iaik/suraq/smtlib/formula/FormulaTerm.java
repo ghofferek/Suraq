@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
-import at.iaik.suraq.exceptions.WrongFunctionTypeException;
-import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 
