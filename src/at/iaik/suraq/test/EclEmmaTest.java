@@ -1,7 +1,5 @@
 package at.iaik.suraq.test;
 
-import static org.junit.Assert.*;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -9,7 +7,6 @@ import at.iaik.suraq.main.Ackermann;
 import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.main.ITEEquationReduction;
 import at.iaik.suraq.main.Suraq;
-import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.util.FormulaCache;
 
 public class EclEmmaTest {

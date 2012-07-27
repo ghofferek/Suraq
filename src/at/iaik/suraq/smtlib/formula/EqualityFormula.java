@@ -20,6 +20,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.ImmutableArrayList;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -34,12 +35,12 @@ public abstract class EqualityFormula implements Formula {
     /**
      * The terms to be compared.
      */
-    protected final List<Term> terms;
+    protected final ImmutableArrayList<Term> terms;
 
     /**
      * <code>true</code> for an equality, <code>false</code> for an inequality.
      */
-    protected boolean equal;
+    protected final boolean equal;
 
     /**
      * 
@@ -53,10 +54,10 @@ public abstract class EqualityFormula implements Formula {
      */
     protected EqualityFormula(Collection<? extends Term> terms, boolean equal) {
         this.equal = equal;
-        ArrayList<Term> termList = new ArrayList<Term>();
-        for (Term term : terms)
-            termList.add(term);
-        this.terms = termList;
+        ArrayList<Term> termList = new ArrayList<Term>(terms);
+        //for (Term term : terms)
+        //    termList.add(term);
+        this.terms = new ImmutableArrayList<Term>(termList);
     }
 
     /**
@@ -363,7 +364,6 @@ public abstract class EqualityFormula implements Formula {
                 return new PropositionalConstant(false);
         }
 
-        //return this;
         try {
             return create(terms, equal);
         } catch (Exception ex) {
@@ -551,31 +551,38 @@ public abstract class EqualityFormula implements Formula {
             boolean firstLevel) {
 
         List<Formula> literals = new ArrayList<Formula>();
+        boolean equal = this.equal;
         
         // TODO: make this.equal final
         if (terms.size() != 2)
             throw new RuntimeException(
                     "Equality should have only two terms for consequents form");
 
-        if (((this.equal == true) && (notFlag == false))
-                || ((this.equal == false) && (notFlag == true))) {
-            this.equal = true;
+        try{
+        if (((equal == true) && (notFlag == false))
+                || ((equal == false) && (notFlag == true))) {
+            equal = true;
             if (firstLevel == true) {
-                literals.add(this);
+                literals.add(create(terms, equal));
                 return OrFormula.generate(literals);
             } else
-                return this;
+                return create(terms, equal);
 
-        } else if (((this.equal == false) && (notFlag == false))
-                || ((this.equal == true) && (notFlag == true))) {
-            this.equal = true;
+        } else if (((equal == false) && (notFlag == false))
+                || ((equal == true) && (notFlag == true))) {
+            equal = true;
             if (firstLevel == true) {
-                literals.add(new NotFormula(this));
+                literals.add(new NotFormula(create(terms, equal)));
                 return OrFormula.generate(literals);
             } else
-                return new NotFormula(this);
+                return new NotFormula(create(terms, equal));
         } else
             throw new RuntimeException("This point should not be reachable");
+        }
+        catch(Exception ex)
+        {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -730,6 +737,7 @@ public abstract class EqualityFormula implements Formula {
     }
     
 
+    @Override
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
         List<Formula> _andlist = new ArrayList<Formula>();

@@ -62,6 +62,7 @@ public class AndFormula extends AndOrXorFormula {
         Set<PropositionalVariable> negativeVars = new HashSet<PropositionalVariable>();
         Set<PropositionalVariable> positiveVars = new HashSet<PropositionalVariable>();
 
+        ArrayList<Formula> formulas = new ArrayList<Formula>(this.formulas);
         for (int count = 0; count < formulas.size(); count++) {
             Formula formula = formulas.get(count).simplify();
             formulas.set(count, formula);
@@ -99,7 +100,7 @@ public class AndFormula extends AndOrXorFormula {
         }
 
         // No simplifications found
-        return this;
+        return create(formulas);
     }
 
     /**

@@ -15,6 +15,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.ImmutableHashMap;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -35,7 +36,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     /**
      * A map from parameter names to the terms.
      */
-    private final Map<Token, Term> paramMap;
+    private final ImmutableHashMap<Token, Term> paramMap;
 
     /**
      * Constructs a new <code>PropositionalFunctionMacroInstance</code>.
@@ -62,7 +63,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
         }
 
         this.macro = macro;
-        this.paramMap = paramMap;
+        this.paramMap = new ImmutableHashMap<Token, Term>(paramMap);
     }
 
     /**
@@ -556,6 +557,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
+    @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula,
             Map<String, List<PropositionalVariable>> predicateInstances,

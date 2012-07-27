@@ -15,6 +15,7 @@ import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.ImmutableHashMap;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -34,7 +35,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
     /**
      * A map from parameter names to the terms.
      */
-    private final Map<Token, Term> paramMap;
+    private final ImmutableHashMap<Token, Term> paramMap;
 
     /**
      * Constructs a new <code>TermFunctionMacroInstance</code>.
@@ -61,7 +62,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
         }
 
         this.macro = macro;
-        this.paramMap = paramMap;
+        this.paramMap = new ImmutableHashMap<Token, Term>(paramMap);
     }
 
     /**
@@ -317,7 +318,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
     @Override
     public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        // this cannot work:
+        // FIXME: this cannot work:
         
         throw new RuntimeException("Cannot work");
         // FIXME: comment in

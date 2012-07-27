@@ -18,6 +18,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -38,7 +39,7 @@ public class ArrayProperty implements Formula {
     /**
      * The collection of universally quantified variables.
      */
-    private final List<DomainVariable> uVars;
+    private final ImmutableArrayList<DomainVariable> uVars;
 
     /**
      * The formula representing the index guard.
@@ -68,7 +69,7 @@ public class ArrayProperty implements Formula {
     public ArrayProperty(Collection<DomainVariable> uVars, Formula indexGuard,
             Formula valueConstraint) throws InvalidIndexGuardException,
             InvalidValueConstraintException {
-        this.uVars = new ArrayList<DomainVariable>(uVars);
+        this.uVars = new ImmutableArrayList<DomainVariable>(uVars);
 
         if (indexGuard instanceof FormulaTerm)
             indexGuard = ((FormulaTerm) indexGuard).getFormula();
@@ -784,6 +785,7 @@ public class ArrayProperty implements Formula {
     }
     
 
+    @Override
     public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
         throw new RuntimeException("Arrays must be replaced removing DomainITE.");

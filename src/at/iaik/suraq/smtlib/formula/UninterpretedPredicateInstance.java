@@ -16,6 +16,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.DebugHelper;
+import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -32,12 +33,12 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     /**
      * The function of which this is an instance.
      */
-    private UninterpretedFunction function;
+    private final UninterpretedFunction function;
 
     /**
      * The list of parameters of this instance.
      */
-    private final List<DomainTerm> parameters;
+    private final ImmutableArrayList<DomainTerm> parameters;
 
     public UninterpretedPredicateInstance(UninterpretedFunction function,
             List<DomainTerm> parameters, int partition)
@@ -74,7 +75,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             throw new WrongFunctionTypeException(
                     "Expected a domain function. Received type: "
                             + function.getType().toString());
-        this.parameters = new ArrayList<DomainTerm>(parameters);
+        this.parameters = new ImmutableArrayList<DomainTerm>(parameters);
 
         Set<Integer> partitions = new HashSet<Integer>();
         for (DomainTerm parameter : this.parameters)
@@ -730,6 +731,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
+    @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters,  Set<Token> noDependenceVars) {
@@ -737,6 +739,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     	  throw new RuntimeException(
                   "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an UninterpretedPredicateInstance.\nUse applyReplaceUninterpretedPredicates instead.");
     }
+    @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters,  Set<Token> noDependenceVars) {
@@ -780,13 +783,14 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                 
 
             } else
-                term.uninterpretedFunctionsToAuxiliaryVariablesTerm(topLeveFormula,
-                        functionInstances, instanceParameters, noDependenceVars);
+                paramNew.add((DomainTerm)term.uninterpretedFunctionsToAuxiliaryVariablesTerm(topLeveFormula,
+                        functionInstances, instanceParameters, noDependenceVars));
         }
 
         try {
             return new UninterpretedPredicateInstance(function, paramNew);
         } catch (SuraqException e) {
+            System.err.println("is: "+function.getNumParams() + " should:" + paramNew.size());
             e.printStackTrace();
             throw new RuntimeException(e);
         }

@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -41,7 +42,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     /**
      * The list of parameters of this instance.
      */
-    private List<DomainTerm> parameters;
+    private ImmutableArrayList<DomainTerm> parameters;
+    // this cannot be final until now.
 
     public UninterpretedFunctionInstance(UninterpretedFunction function,
             List<DomainTerm> parameters, int partition)
@@ -79,7 +81,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             throw new WrongFunctionTypeException(
                     "Expected a domain function. Received type: "
                             + function.getType().toString());
-        this.parameters = new ArrayList<DomainTerm>(parameters);
+        this.parameters = new ImmutableArrayList<DomainTerm>(parameters);
 
         Set<Integer> partitions = new HashSet<Integer>();
         for (DomainTerm parameter : this.parameters)
@@ -110,7 +112,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         this.function = function;
         List<DomainTerm> params = new ArrayList<DomainTerm>();
         params.add(term);
-        this.parameters = params;
+        this.parameters = new ImmutableArrayList<DomainTerm>(params);
     }
 
     /**
@@ -594,6 +596,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
+    @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters,  Set<Token> noDependenceVars) {  	
@@ -649,7 +652,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		        }
 
                 // dirty hack, because parameters should be final
-		    	this.parameters = newParameters;
+		    	this.parameters = new ImmutableArrayList<DomainTerm>(newParameters);
 		    	
 		        DomainVariable result = matchFunctionInstance(functionInstances, instanceParameters);
 		        

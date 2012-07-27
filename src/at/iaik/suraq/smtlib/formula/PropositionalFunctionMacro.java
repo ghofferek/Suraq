@@ -218,7 +218,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
 
         Formula bodyCopy = body.deepFormulaCopy();
 
-        bodyCopy.substituteFormula(paramMap);
+        bodyCopy = bodyCopy.substituteFormula(paramMap);
         bodyCopy = bodyCopy.simplify();
 
         if (bodyCopy instanceof PropositionalConstant)

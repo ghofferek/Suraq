@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.ImmutableArrayList;
 
 /**
  * A common superclass for And- Or- and Xor-formulas to avoid code redundancy.
@@ -31,7 +32,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     /**
      * The list of sub-formulas.
      */
-    protected final List<Formula> formulas;
+    protected final ImmutableArrayList<Formula> formulas;
 
     
     /**
@@ -43,15 +44,17 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      *            the list of subformulas.
      */
     protected AndOrXorFormula(List<? extends Formula> formulas) {
-        this.formulas = new ArrayList<Formula>();
+        ArrayList<Formula> tmp = new ArrayList<Formula>();
         for (Formula formula : formulas) {
             if (formula instanceof FormulaTerm)
-                this.formulas.add(((FormulaTerm) formula).getFormula());
+                tmp.add(((FormulaTerm) formula).getFormula());
             else
-                this.formulas.add(formula);
+                tmp.add(formula);
         }
         if (formulas.size() < 1)
-            this.formulas.add(new PropositionalConstant(true));
+            tmp.add(new PropositionalConstant(true));
+        
+        this.formulas = new ImmutableArrayList<Formula>(tmp);
     }
 
     /**
@@ -230,6 +233,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             hashCode ^= formula.hashCode();
         */
         return formulas.hashCode();
+        // NOTE, that the hashcode will be the same for an AND and an OR-Class with the same attributes
     }
 
     /**
@@ -249,18 +253,16 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula removeArrayEqualities() {
-        AndOrXorFormula secondInstance = create(formulas);
-        for (int count = 0; count < secondInstance.formulas.size(); count++) {
-            if (secondInstance.formulas.get(count) instanceof ArrayEq)
-                secondInstance.formulas.set(count,
-                        ((ArrayEq) secondInstance.formulas.get(count))
-                                .toArrayProperties());
+        List<Formula> children = new ArrayList<Formula>();
+
+        for (int count = 0; count < formulas.size(); count++) {
+            if (formulas.get(count) instanceof ArrayEq)
+                children.add(((ArrayEq) formulas.get(count))
+                        .toArrayProperties());
             else
-                secondInstance.formulas.set(count,
-                        secondInstance.formulas.get(count)
-                                .removeArrayEqualities());
+                children.add(formulas.get(count).removeArrayEqualities());
         }
-        return secondInstance;
+        return create(children);
     }
 
     /**
@@ -268,18 +270,17 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
-        AndOrXorFormula secondInstance = create(formulas);
-        for (int count = 0; count < secondInstance.formulas.size(); count++) {
-            if (secondInstance.formulas.get(count) instanceof ArrayProperty)
-                secondInstance.formulas.set(count,
-                        ((ArrayProperty) secondInstance.formulas.get(count))
-                                .toFiniteConjunction(indexSet));
+        List<Formula> children = new ArrayList<Formula>();
+
+        for (int count = 0; count < formulas.size(); count++) {
+            if (formulas.get(count) instanceof ArrayProperty)
+                children.add(((ArrayProperty) formulas.get(count))
+                        .toFiniteConjunction(indexSet));
             else
-                secondInstance.formulas.set(count,
-                        secondInstance.formulas.get(count)
-                                .arrayPropertiesToFiniteConjunctions(indexSet));
+                children.add(formulas.get(count)
+                        .arrayPropertiesToFiniteConjunctions(indexSet));
         }
-        return secondInstance;
+        return create(children);
     }
 
     /**
@@ -287,11 +288,11 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula simplify() {
-        AndOrXorFormula secondInstance = create(formulas);
+        List<Formula> children = new ArrayList<Formula>();
         // Default, unless a subclass has more clever method
         for (int count = 0; count < formulas.size(); count++)
-            secondInstance.formulas.set(count, formulas.get(count).simplify());
-        return secondInstance;
+            children.add(formulas.get(count).simplify());
+        return create(children);
     }
 
     /**
@@ -442,30 +443,35 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
 
-    	AndOrXorFormula secondInstance = create(formulas);
-    	Collection<Formula> subformulas = this.getSubFormulas();
-		  
-    	for (Formula formula : subformulas)
-    		if (formula instanceof UninterpretedPredicateInstance){ 
-				  
-    			Formula auxVar = ((UninterpretedPredicateInstance) formula).applyReplaceUninterpretedPredicates(topLeveFormula,
-    					predicateInstances, instanceParameters, noDependenceVars);
-				  
-    			// added by chille: 03.07.2012
-    			secondInstance.formulas.set(secondInstance.formulas.indexOf(formula), auxVar);
-				  
-    			// removed by chille:
-    			// formulas.remove(formula);
-    			// formulas.add(auxVar);
-    		}
-    		else
-    			secondInstance.formulas.set(secondInstance.formulas.indexOf(formula), formula.uninterpretedPredicatesToAuxiliaryVariables(
-    					topLeveFormula, predicateInstances, instanceParameters, noDependenceVars)); 
-    	return secondInstance;
+        List<Formula> children = new ArrayList<Formula>();
+
+        Collection<Formula> subformulas = this.getSubFormulas();
+
+        for (Formula formula : subformulas)
+            if (formula instanceof UninterpretedPredicateInstance) {
+
+                Formula auxVar = ((UninterpretedPredicateInstance) formula)
+                        .applyReplaceUninterpretedPredicates(topLeveFormula,
+                                predicateInstances, instanceParameters,
+                                noDependenceVars);
+
+                // added by chille: 03.07.2012
+                children.add(auxVar);
+
+                // removed by chille:
+                // formulas.remove(formula);
+                // formulas.add(auxVar);
+            } else
+                children.add(formula
+                        .uninterpretedPredicatesToAuxiliaryVariables(
+                                topLeveFormula, predicateInstances,
+                                instanceParameters, noDependenceVars));
+        return create(children);
 
     }
     

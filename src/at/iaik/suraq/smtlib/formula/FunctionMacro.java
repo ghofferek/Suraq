@@ -13,6 +13,8 @@ import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.ImmutableArrayList;
+import at.iaik.suraq.util.ImmutableHashMap;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -29,7 +31,7 @@ public abstract class FunctionMacro {
     /**
      * The map of parameters to their types.
      */
-    protected final Map<Token, SExpression> paramMap;
+    protected final ImmutableHashMap<Token, SExpression> paramMap;
 
     /**
      * Constructs a new <code>FunctionMacro</code> with the given values.
@@ -55,8 +57,8 @@ public abstract class FunctionMacro {
                 throw new InvalidParametersException();
         }
         this.name = name;
-        this.parameters = new ArrayList<Token>(parameters);
-        this.paramMap = new HashMap<Token, SExpression>(paramMap);
+        this.parameters = new ImmutableArrayList<Token>(parameters);
+        this.paramMap = new ImmutableHashMap<Token, SExpression>(paramMap);
 
     }
 
@@ -73,10 +75,11 @@ public abstract class FunctionMacro {
         this.parameters = new ArrayList<Token>();
         for (Token parameter : macro.parameters)
             this.parameters.add((Token) parameter.deepCopy());
-        this.paramMap = new HashMap<Token, SExpression>();
+        HashMap<Token, SExpression> tmp = new HashMap<Token, SExpression>();
         for (Token token : macro.paramMap.keySet())
-            this.paramMap.put((Token) token.deepCopy(),
+            tmp.put((Token) token.deepCopy(),
                     macro.paramMap.get(token).deepCopy());
+        this.paramMap = new ImmutableHashMap<Token, SExpression>(tmp);
     }
 
     /**

@@ -589,7 +589,6 @@ public class GraphReduction {
     //protected int depthFirstSearch(GraphElement current, GraphElement last, int remainingDepth)
     protected void depthFirstSearchHash(GraphElement start, GraphElement current, GraphElement last)
     {
-        // TODO: improve here!!!
         //int minRemainingDepth = remainingDepth;
         current.setVisited(true);
         visitedDFS.push(current);

@@ -310,9 +310,9 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         Formula rightSide = this.rightSide;
         Formula leftSide = this.leftSide;
-        leftSide.removeArrayWrites(topLevelFormula, constraints,
+        leftSide = leftSide.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
-        rightSide.removeArrayWrites(topLevelFormula, constraints,
+        rightSide = rightSide.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
         return new ImpliesFormula(leftSide, rightSide);
     }

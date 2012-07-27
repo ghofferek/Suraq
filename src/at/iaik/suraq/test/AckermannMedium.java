@@ -1,7 +1,6 @@
 package at.iaik.suraq.test;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import at.iaik.suraq.main.Ackermann;
@@ -9,7 +8,6 @@ import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.main.ITEEquationReduction;
 import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
-import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.util.FormulaCache;
 
 public class AckermannMedium {
@@ -21,7 +19,7 @@ public class AckermannMedium {
             SuraqOptions.reset();
            // Z3Proof.setInstanceCounter(0);
 
-            Ackermann.setActive(false);
+            Ackermann.setActive(true);
             ITEEquationReduction.setActive(false);
             GraphReduction.setActive(false);
             //QBFSolver.setActive(false);

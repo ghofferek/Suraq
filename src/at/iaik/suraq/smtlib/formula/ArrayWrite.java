@@ -337,6 +337,7 @@ public class ArrayWrite extends ArrayTerm {
             constraints.add(new ArrayProperty(uVars, indexGuard,
                     valueConstraint));
         } catch (SuraqException exc) {
+            exc.printStackTrace();
             throw new RuntimeException("Could not apply write axiom.", exc);
         }
 

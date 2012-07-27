@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.sexp.Token;
 
 /**
@@ -95,14 +96,21 @@ public class PropositionalEq extends EqualityFormula {
     }
     
     @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars) 
-    {
-        for(int i=0; i<terms.size(); i++)
-        {
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
+        ArrayList<Term> terms2 = new ArrayList<Term>();
+        for (int i = 0; i < terms.size(); i++) {
             PropositionalTerm term = (PropositionalTerm) terms.get(i);
-            Formula newterm = term.replaceEquivalences(topLeveFormula, replacements, noDependenceVars);
-            terms.set(i, (PropositionalTerm)newterm);
+            Formula newterm = term.replaceEquivalences(topLeveFormula,
+                    replacements, noDependenceVars);
+            terms2.add((PropositionalTerm) newterm);
         }
-        return this;
+        try {
+            return create(terms2, equal);
+        } catch (IncomparableTermsException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

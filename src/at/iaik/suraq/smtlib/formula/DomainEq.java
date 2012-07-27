@@ -154,13 +154,7 @@ public class DomainEq extends EqualityFormula {
             Map<DomainVariable, List<DomainTerm>> instanceParameters,
             Set<Token> noDependenceVars) {
 
-        EqualityFormula second = null;
-        try {
-            second = DomainEq.create(terms, equal);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        }
+        List<Term> terms2 = new ArrayList<Term>(terms);
 
         for (DomainTerm term : getDomainTerms()) {
             if (term instanceof UninterpretedFunctionInstance) {
@@ -169,19 +163,19 @@ public class DomainEq extends EqualityFormula {
                         .applyReplaceUninterpretedFunctions(topLeveFormula,
                                 functionInstances, instanceParameters,
                                 noDependenceVars);
-                // chillebold: imho: here the order of the variables is not
-                // important
-                // terms.remove(term);
-                // terms.add(auxiliaryVariable);
-                second.terms.set(second.terms.indexOf(term), auxiliaryVariable);
+                terms2.add(auxiliaryVariable);
 
             } else
-                second.terms.set(second.terms.indexOf(term), term
-                        .uninterpretedFunctionsToAuxiliaryVariablesTerm(
-                                topLeveFormula, functionInstances,
-                                instanceParameters, noDependenceVars));
+                terms2.add(term.uninterpretedFunctionsToAuxiliaryVariablesTerm(
+                        topLeveFormula, functionInstances, instanceParameters,
+                        noDependenceVars));
         }
-        return second;
+        try {
+            return DomainEq.create(terms, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
 }

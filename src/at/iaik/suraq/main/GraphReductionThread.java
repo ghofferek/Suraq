@@ -29,7 +29,8 @@ public class GraphReductionThread extends Thread
     }
     
     private int i;
-    
+
+    @Override
     public void run()
     {
         while(true)

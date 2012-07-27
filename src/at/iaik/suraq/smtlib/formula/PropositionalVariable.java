@@ -390,11 +390,13 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
+    @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
     	return this;
     }
+    @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
             Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
