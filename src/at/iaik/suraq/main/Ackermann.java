@@ -37,149 +37,156 @@ public class Ackermann {
     
     
 	
-	public Formula performAckermann(Formula topLevelFormula, Set<Token> noDependenceVars)
-	{
-	    // For Debugging issues you can deactivate the Ackermann's reduction by
-	    // calling Ackermann.setActive(false);
-	    if(!_isActive)
-	    {
-	        System.err.println("* WARNING: Didn't perform Ackermann, because it was deactivated.");
-            System.err.println("* Use Ackermamnn.setActive(true) to activate the Ackermann's reduction.");
-	        return topLevelFormula;
-	    }
+    public Formula performAckermann(Formula topLevelFormula,
+            Set<Token> noDependenceVars) {
+        // For Debugging issues you can deactivate the Ackermann's reduction by
+        // calling Ackermann.setActive(false);
+        if (!_isActive) {
+            System.err
+                    .println("* WARNING: Didn't perform Ackermann, because it was deactivated.");
+            System.err
+                    .println("* Use Ackermamnn.setActive(true) to activate the Ackermann's reduction.");
+            return topLevelFormula;
+        }
 
-		// Get all UF-Names and store them to a set of Tokens.
+        // Get all UF-Names and store them to a set of Tokens.
         System.out.println("   Ackermann: getUninterpretedFunctionNames()");
-		Set<Token> currentUninterpretedFunctions = new HashSet<Token>();
-		
-		UninterpretedPredicateInstance.method=_isPredicateActive;
-        UninterpretedFunctionInstance.method=_isFunctionActive;
+        Set<Token> currentUninterpretedFunctions = new HashSet<Token>();
+
+        UninterpretedPredicateInstance.method = _isPredicateActive;
+        UninterpretedFunctionInstance.method = _isFunctionActive;
         for (String var : topLevelFormula.getUninterpretedFunctionNames())
             currentUninterpretedFunctions.add(Token.generate(var));
-        UninterpretedPredicateInstance.method=true;
-        UninterpretedFunctionInstance.method=true;
+        UninterpretedPredicateInstance.method = true;
+        UninterpretedFunctionInstance.method = true;
         // this adds UFs as well as UPs... as expected
 
-        ////////////////////////////////////////////////////////////
-		// Substitute UF by Variables
-		if(_isFunctionActive){
-            System.out.println("   Ackermann: uninterpretedFunctionsToAuxiliaryVariables(...)");
-    		Map<String, List<DomainVariable>> functionInstances = new HashMap<String, List<DomainVariable>>();
-    		Map<DomainVariable, List<DomainTerm>> instanceParameters = new HashMap<DomainVariable, List<DomainTerm>>();
-            DebugHelper.getInstance().formulaToFile(topLevelFormula, "./debug_aux_func_before.txt");
-            topLevelFormula = topLevelFormula.uninterpretedFunctionsToAuxiliaryVariables(topLevelFormula, functionInstances, instanceParameters, noDependenceVars);
-            DebugHelper.getInstance().formulaToFile(topLevelFormula, "./debug_aux_func_after.txt");
-            
+        // //////////////////////////////////////////////////////////
+        // Substitute UF by Variables
+        if (_isFunctionActive) {
+            System.out
+                    .println("   Ackermann: uninterpretedFunctionsToAuxiliaryVariables(...)");
+            Map<String, List<DomainVariable>> functionInstances = new HashMap<String, List<DomainVariable>>();
+            Map<DomainVariable, List<DomainTerm>> instanceParameters = new HashMap<DomainVariable, List<DomainTerm>>();
+            DebugHelper.getInstance().formulaToFile(topLevelFormula,
+                    "./debug_aux_func_before.txt");
+            topLevelFormula = topLevelFormula
+                    .uninterpretedFunctionsToAuxiliaryVariables(
+                            topLevelFormula, functionInstances,
+                            instanceParameters, noDependenceVars);
+            DebugHelper.getInstance().formulaToFile(topLevelFormula,
+                    "./debug_aux_func_after.txt");
+
             // Add Constraints for these UFs
             System.out.println("   Ackermann: add UF-constraints(...)");
             List<Formula> constraintsList = new ArrayList<Formula>();
-            addAckermannFunctionConstraints(topLevelFormula, constraintsList, functionInstances, instanceParameters);
-            
+            addAckermannFunctionConstraints(topLevelFormula, constraintsList,
+                    functionInstances, instanceParameters);
+            System.out.println("   Ackermann: added UF-constraints(...): cnt="+constraintsList.size());
+
             // Generate the Implies formula FC => !flat
             System.out.println("   Ackermann: ImpliesFormula(...)");
-            if (constraintsList.size() > 0)
-            {
-                Formula ackermannConstraints = (constraintsList.size() == 1) 
-                        ? constraintsList.iterator().next() 
-                        : AndFormula.generate(constraintsList);
-                        topLevelFormula = new ImpliesFormula(ackermannConstraints, topLevelFormula);
+            if (constraintsList.size() > 0) {
+                Formula ackermannConstraints = (constraintsList.size() == 1) ? constraintsList
+                        .iterator().next() : AndFormula
+                        .generate(constraintsList);
+                topLevelFormula = new ImpliesFormula(ackermannConstraints,
+                        topLevelFormula);
+            } else {
+                System.out
+                        .println("   Ackermann: There are no FunctionConstraints.");
             }
-            else
-            {
-                System.out.println("   Ackermann: There are no FunctionConstraints.");
-            }
-            
-		}
-		else
-		{
-		    System.err.println(" *** Warning: Ackermann didn't perform on Functions (disabled)");
-		}
-        
 
-        ////////////////////////////////////////////////////////////
+        } else {
+            System.err
+                    .println(" *** Warning: Ackermann didn't perform on Functions (disabled)");
+        }
 
-        if(_isPredicateActive){
-    		// Init for UP
+        // //////////////////////////////////////////////////////////
+
+        if (_isPredicateActive) {
+            // Init for UP
             // constraintsList = new ArrayList<Formula>();
-    
-    		// substitute UP by Variables
-            System.out.println("   Ackermann: uninterpretedPredicatesToAuxiliaryVariables(...)");
-    		Map<String, List<PropositionalVariable>> predicateInstances = new HashMap<String, List<PropositionalVariable>>();
-    		Map<PropositionalVariable, List<DomainTerm>> instanceParametersPredicates = new HashMap<PropositionalVariable, List<DomainTerm>>();
-    		
-    
-            DebugHelper.getInstance().formulaToFile(topLevelFormula, "./debug_aux_pred_before.txt");
-            topLevelFormula = topLevelFormula.uninterpretedPredicatesToAuxiliaryVariables(topLevelFormula, predicateInstances, instanceParametersPredicates, noDependenceVars);
-            DebugHelper.getInstance().formulaToFile(topLevelFormula, "./debug_aux_pred_after.txt");
-            
-            
-            System.out.println("   Ackermann: predicateInstances.size: "+predicateInstances.size());
-            System.out.println("   Ackermann: instanceParametersPredicates.size: "+instanceParametersPredicates.size());
-    		// Add Constraints for these UPs
-            System.out.println("   Ackermann: addAckermannPredicateConstraints(...)");
-            
-            //HashSet<Formula> constraints = new HashSet<Formula>();
+
+            // substitute UP by Variables
+            System.out
+                    .println("   Ackermann: uninterpretedPredicatesToAuxiliaryVariables(...)");
+            Map<String, List<PropositionalVariable>> predicateInstances = new HashMap<String, List<PropositionalVariable>>();
+            Map<PropositionalVariable, List<DomainTerm>> instanceParametersPredicates = new HashMap<PropositionalVariable, List<DomainTerm>>();
+
+            DebugHelper.getInstance().formulaToFile(topLevelFormula,
+                    "./debug_aux_pred_before.txt");
+            topLevelFormula = topLevelFormula
+                    .uninterpretedPredicatesToAuxiliaryVariables(
+                            topLevelFormula, predicateInstances,
+                            instanceParametersPredicates, noDependenceVars);
+            DebugHelper.getInstance().formulaToFile(topLevelFormula,
+                    "./debug_aux_pred_after.txt");
+
+            System.out.println("   Ackermann: predicateInstances.size: "
+                    + predicateInstances.size());
+            System.out
+                    .println("   Ackermann: instanceParametersPredicates.size: "
+                            + instanceParametersPredicates.size());
+            // Add Constraints for these UPs
+            System.out
+                    .println("   Ackermann: addAckermannPredicateConstraints(...)");
+
+            // HashSet<Formula> constraints = new HashSet<Formula>();
             List<Formula> constraintsList = new ArrayList<Formula>();
-    		addAckermannPredicateConstraints(topLevelFormula, constraintsList, predicateInstances, instanceParametersPredicates);
-    
+            addAckermannPredicateConstraints(topLevelFormula, constraintsList,
+                    predicateInstances, instanceParametersPredicates);
+
             // Generate the Implies formula FC => !flat
-    		if (constraintsList.size() > 0)
-    		{
-    		    Formula ackermannConstraints = (constraintsList.size() == 1)
-    		            ? constraintsList.iterator().next()
-    		            : AndFormula.generate(constraintsList);
-                topLevelFormula = new ImpliesFormula(ackermannConstraints, topLevelFormula);
-    		}
-    		else
-    		{
-    		    System.out.println("   Ackermann: There are no PredicateConstraints.");
-    		}
-        }
-        else
-        {
-            System.err.println(" *** Warning: Ackermann didn't perform on Predicates (disabled)");
-        }
-        
-        // debug check:
-        if(_isPredicateActive && _isFunctionActive)
-        {
-            assert(topLevelFormula.getUninterpretedFunctions().size()==0);
+            if (constraintsList.size() > 0) {
+                Formula ackermannConstraints = (constraintsList.size() == 1) ? constraintsList
+                        .iterator().next() : AndFormula
+                        .generate(constraintsList);
+                topLevelFormula = new ImpliesFormula(ackermannConstraints,
+                        topLevelFormula);
+            } else {
+                System.out
+                        .println("   Ackermann: There are no PredicateConstraints.");
+            }
+        } else {
+            System.err
+                    .println(" *** Warning: Ackermann didn't perform on Predicates (disabled)");
         }
 
-        ////////////////////////////////////////////////////////////
-		
-		// remove all UF and UP (?)
+        // debug check:
+        if (_isPredicateActive && _isFunctionActive) {
+            System.out.println("Count of UF: " + topLevelFormula.getUninterpretedFunctions().size());
+            assert (topLevelFormula.getUninterpretedFunctions().size() == 0);
+        }
+
+        // //////////////////////////////////////////////////////////
+
+        // remove all UF and UP (?)
         System.out.println("   Ackermann: noDependenceVars.removeall(UF)");
         // DEBUG:
         /*
-        System.err.flush();
-        System.out.flush();
-        System.out.println("   The following UF are noDependenceVars and can be deleted of that list:");
-        System.err.println("   The following UF are not noDependenceVars and are not on that list:");
-        for(Token t : currentUninterpretedFunctions)
-        {
-            if(noDependenceVars.contains(t))
-            {
-                System.out.println("      "+t);
-            }
-            else
-            {
-                System.err.println("      "+t);
-            }
-        }
-        System.err.flush();
-        System.out.flush();
-        */
-        System.out.println("    Anzahl der Variablen bevor dem Entfernen: "+noDependenceVars.size());
-        System.out.println("    Entfernt werden sollten "+ currentUninterpretedFunctions.size() + "Variablen");
-		noDependenceVars.removeAll(currentUninterpretedFunctions);
+         * System.err.flush(); System.out.flush(); System.out.println(
+         * "   The following UF are noDependenceVars and can be deleted of that list:"
+         * ); System.err.println(
+         * "   The following UF are not noDependenceVars and are not on that list:"
+         * ); for(Token t : currentUninterpretedFunctions) {
+         * if(noDependenceVars.contains(t)) { System.out.println("      "+t); }
+         * else { System.err.println("      "+t); } } System.err.flush();
+         * System.out.flush();
+         */
+        System.out.println("    Anzahl der Variablen bevor dem Entfernen: "
+                + noDependenceVars.size());
+        System.out.println("    Entfernt werden sollten "
+                + currentUninterpretedFunctions.size() + "Variablen");
+        noDependenceVars.removeAll(currentUninterpretedFunctions);
         // may remove too much (functions and predicates) if one is deactivated
-        System.out.println("    Anzahl der Variablen nach dem Entfernen: "+noDependenceVars.size());
+        System.out.println("    Anzahl der Variablen nach dem Entfernen: "
+                + noDependenceVars.size());
 
-		// finished. return.
+        // finished. return.
         System.out.println("   Ackermann: done - return.");
-		return topLevelFormula;
-	}
+        return topLevelFormula;
+    }
 	
     
 	/**

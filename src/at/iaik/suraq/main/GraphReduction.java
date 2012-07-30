@@ -128,6 +128,8 @@ public class GraphReduction {
         // 1.3 set noDependenceVars for the replaced term if any containing term is noDepVar
         formula = formula.replaceEquivalences(formula, replacements, noDependenceVars);
         
+        
+        
         // 2.1 Build Graph
         Collection<GraphElement> vertices = generateGraph(replacements);
         
@@ -162,6 +164,11 @@ public class GraphReduction {
                 btrans = this.generateBtransToFile(vertices, "./btrans.txt");
             }
         }
+        
+        // delete all NoDepVars that are not propositional vars
+        HashSet<Token> toDelete = new HashSet<Token>(noDependenceVars);
+        toDelete.removeAll(formula.getPropositionalVariables());
+        noDependenceVars.removeAll(toDelete);
 
         return new ImpliesFormula(btrans, formula);
     }

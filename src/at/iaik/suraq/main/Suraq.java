@@ -1703,7 +1703,7 @@ public class Suraq implements Runnable {
                 SExpressionConstants.VALUE_TYPE);
         Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
 
-        System.out.println("   step 1: prop. vars");
+        System.out.println("   step 1: prop. vars: "+formula.getPropositionalVariables().size());
         for (PropositionalVariable var : formula.getPropositionalVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(Token.generate(var.getVarName()),
@@ -1715,7 +1715,7 @@ public class Suraq implements Runnable {
                             SExpressionConstants.BOOL_TYPE, 0));
         }
 
-        System.out.println("   step 2: domain vars");
+        System.out.println("   step 2: domain vars: "+formula.getDomainVariables().size());
         for (DomainVariable var : formula.getDomainVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(Token.generate(var.getVarName()),
@@ -1727,7 +1727,7 @@ public class Suraq implements Runnable {
                     0));
         }
 
-        System.out.println("   step 3: debug / Array Vars");
+        System.out.println("   step 3: debug / Array Vars: "+formula.getArrayVariables().size());
         // DEBUG
         // For debugging purposes, also handle array variables
         // (so that performing only some of the reductions can be tested)
@@ -1742,7 +1742,8 @@ public class Suraq implements Runnable {
                     0));
         } // end debug
 
-        System.out.println("   step 4: UF");
+        System.out.println("   step 4: UF: "+formula
+                .getUninterpretedFunctions().size());
         for (UninterpretedFunction function : formula
                 .getUninterpretedFunctions()) {
             if (noDependenceVars.contains(function.getName())) {
@@ -1775,6 +1776,10 @@ public class Suraq implements Runnable {
                 System.out.print((100*cnt) / _cnt + "% ");
             
             SExpression type = varTypes.get(var);
+            if(type==null)
+            {
+                System.err.println("Type is null for '"+var+"'. Strange...");
+            }
             assert (type != null);
             int numParams = 0;
             if (functionArity.containsKey(var))

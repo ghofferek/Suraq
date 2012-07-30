@@ -30,9 +30,9 @@ public class EclEmmaTest {
             //SuraqOptions.reset();
            // Z3Proof.setInstanceCounter(0);
 
-            Ackermann.setActive(false);
-            ITEEquationReduction.setActive(false);
-            GraphReduction.setActive(false);
+            Ackermann.setActive(true);
+            ITEEquationReduction.setActive(true);
+            GraphReduction.setActive(true);
             //QBFSolver.setActive(false);
         } catch (Throwable e) {
             e.printStackTrace();

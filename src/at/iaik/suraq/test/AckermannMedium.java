@@ -20,8 +20,8 @@ public class AckermannMedium {
            // Z3Proof.setInstanceCounter(0);
 
             Ackermann.setActive(true);
-            ITEEquationReduction.setActive(false);
-            GraphReduction.setActive(false);
+            ITEEquationReduction.setActive(true);
+            GraphReduction.setActive(true);
             //QBFSolver.setActive(false);
         } catch (Throwable e) {
             e.printStackTrace();

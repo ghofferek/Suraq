@@ -19,7 +19,7 @@ public class FormulaCache<T> {
 	public static FormulaCache<PropositionalVariable> propVar = new FormulaCache<PropositionalVariable>("PropVar", true);
 	public static FormulaCache<ImpliesFormula> impliesFormula = new FormulaCache<ImpliesFormula>("implies", true);
 	
-	public static boolean _isActive = false;
+	public static boolean _isActive = true;
 	public boolean _isActive2 = true;
 	
 	// For statistics

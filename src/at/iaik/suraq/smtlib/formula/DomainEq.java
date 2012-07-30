@@ -154,7 +154,7 @@ public class DomainEq extends EqualityFormula {
             Map<DomainVariable, List<DomainTerm>> instanceParameters,
             Set<Token> noDependenceVars) {
 
-        List<Term> terms2 = new ArrayList<Term>(terms);
+        List<Term> terms2 = new ArrayList<Term>();
 
         for (DomainTerm term : getDomainTerms()) {
             if (term instanceof UninterpretedFunctionInstance) {
@@ -171,7 +171,7 @@ public class DomainEq extends EqualityFormula {
                         noDependenceVars));
         }
         try {
-            return DomainEq.create(terms, equal);
+            return DomainEq.create(terms2, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
