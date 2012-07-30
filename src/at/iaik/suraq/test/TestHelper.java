@@ -152,7 +152,7 @@ public class TestHelper {
         this.setUp();
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3_4Path());
-        NotFormula valid = new NotFormula(formula);
+        NotFormula valid = NotFormula.create(formula);
         z3.solve(transformFormulaToString(valid));
         int valid2 = z3.getState();
         if(valid2==1) //  (1=UNSAT, 2=SAT) 

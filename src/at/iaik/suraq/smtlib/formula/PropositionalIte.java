@@ -343,7 +343,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
             conjunctsThen.add(condition);
             conjunctsThen.add(thenBranch);
             disjuncts.add(AndFormula.generate(conjunctsThen));
-            conjunctsElse.add(new NotFormula(condition));
+            conjunctsElse.add(NotFormula.create(condition));
             conjunctsElse.add(elseBranch);
             disjuncts.add(AndFormula.generate(conjunctsElse));
             Formula result = OrFormula.generate(disjuncts);
@@ -505,7 +505,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         disjuncts.add(AndFormula.generate(conjuncts));
 
         conjuncts.clear();
-        conjuncts.add(new NotFormula(condition));
+        conjuncts.add(NotFormula.create(condition));
         conjuncts.add(elseBranch);
         disjuncts.add(AndFormula.generate(conjuncts));
 

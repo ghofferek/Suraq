@@ -168,16 +168,16 @@ public abstract class SMTLibParser extends Parser {
                                 + expression.toString());
 
             int partition = getPartitionBoolVariable(expression);
-            return new PropositionalVariable((Token) expression, partition);
+            return PropositionalVariable.create((Token) expression, partition);
         }
 
         if (isPropositionalVariable(expression)) {
             int partition = getPartitionBoolVariable(expression);
-            return new PropositionalVariable((Token) expression, partition);
+            return PropositionalVariable.create((Token) expression, partition);
         }
 
         if (isTseitinVariable(expression)) {
-            PropositionalVariable var = new PropositionalVariable(
+            PropositionalVariable var = PropositionalVariable.create(
                     (Token) expression);
 
             if (!tseitinVariables.contains(var))
@@ -194,7 +194,7 @@ public abstract class SMTLibParser extends Parser {
                             "Expected exactly 1 expression after 'not'.");
                 Formula negatedFormula = parseFormulaBody(expression
                         .getChildren().get(1));
-                return new NotFormula(negatedFormula);
+                return NotFormula.create(negatedFormula);
             }
 
             if (operator.equals(SExpressionConstants.AND)) {
@@ -242,7 +242,7 @@ public abstract class SMTLibParser extends Parser {
                         .get(1));
                 Formula rightSide = parseFormulaBody(expression.getChildren()
                         .get(2));
-                return new ImpliesFormula(leftSide, rightSide);
+                return ImpliesFormula.create(leftSide, rightSide);
             }
 
             if (operator.equals(SExpressionConstants.ITE)) {
@@ -433,7 +433,7 @@ public abstract class SMTLibParser extends Parser {
     private int getPartitionBoolVariable(SExpression expression) {
 
         for (PropositionalVariable var : boolVariables)
-            if (var.equals(new PropositionalVariable((Token) expression))) {
+            if (var.equals(PropositionalVariable.create((Token) expression))) {
                 Set<Integer> partitions = var.getPartitionsFromSymbols();
                 return partitions.iterator().next();
             }
@@ -452,7 +452,7 @@ public abstract class SMTLibParser extends Parser {
      */
     private int getPartitionDomainVariable(SExpression expression) {
         for (DomainVariable var : domainVariables)
-            if (var.equals(new DomainVariable((Token) expression))) {
+            if (var.equals(DomainVariable.create((Token) expression))) {
                 Set<Integer> partitions = var.getPartitionsFromSymbols();
                 return partitions.iterator().next();
             }
@@ -524,7 +524,7 @@ public abstract class SMTLibParser extends Parser {
 
         if (isUVar(expression)) { // Takes precedence over other variable types
             int partition = getPartitionDomainVariable(expression);
-            return new DomainVariable((Token) expression, partition);
+            return DomainVariable.create((Token) expression, partition);
         }
 
         SExpression type = isLocalVariable(expression); // takes precedence over
@@ -536,13 +536,13 @@ public abstract class SMTLibParser extends Parser {
             }
             if (type.equals(SExpressionConstants.VALUE_TYPE)) {
                 int partition = getPartitionDomainVariable(expression);
-                return new DomainVariable((Token) expression, partition);
+                return DomainVariable.create((Token) expression, partition);
             }
             if (type.equals(SExpressionConstants.BOOL_TYPE)
                     || type.equals(SExpressionConstants.CONTROL_TYPE)) {
 
                 int partition = getPartitionBoolVariable(expression);
-                return new PropositionalVariable((Token) expression, partition);
+                return PropositionalVariable.create((Token) expression, partition);
             }
             // In case we have a type that should not exist:
             throw new RuntimeException(
@@ -610,7 +610,7 @@ public abstract class SMTLibParser extends Parser {
 
         if (isDomainVariable(expression)) {
             int partition = getPartitionDomainVariable(expression);
-            return new DomainVariable(expression.toString(), partition);
+            return DomainVariable.create(expression.toString(), partition);
         }
 
         UninterpretedFunction function = isUninterpredFunctionInstance(expression);
@@ -666,7 +666,7 @@ public abstract class SMTLibParser extends Parser {
                 return new PropositionalConstant(false);
 
             int partition = getPartitionBoolVariable(expression);
-            PropositionalVariable variable = new PropositionalVariable(
+            PropositionalVariable variable = PropositionalVariable.create(
                     (Token) expression, partition);
             if (!boolVariables.contains(variable)
                     && !controlVariables.contains(variable))
@@ -751,7 +751,7 @@ public abstract class SMTLibParser extends Parser {
 
             int partition = getPartitionDomainVariable(child.getChildren().get(
                     0));
-            if (!uVars.add(new DomainVariable((Token) child.getChildren()
+            if (!uVars.add(DomainVariable.create((Token) child.getChildren()
                     .get(0), partition))) {
                 throw new ParseError(child.getChildren().get(0),
                         "Duplicate variable in quantifier scope: "
@@ -938,7 +938,7 @@ public abstract class SMTLibParser extends Parser {
         if (!(expression instanceof Token))
             return false;
         Token token = (Token) expression;
-        PropositionalVariable variable = new PropositionalVariable(token);
+        PropositionalVariable variable = PropositionalVariable.create(token);
         if (boolVariables.contains(variable)
                 || controlVariables.contains(variable))
             return true;
@@ -960,7 +960,7 @@ public abstract class SMTLibParser extends Parser {
             return false;
 
         Token token = (Token) expression;
-        PropositionalVariable variable = new PropositionalVariable(token);
+        PropositionalVariable variable = PropositionalVariable.create(token);
 
         if (expression.toString().startsWith("k!")) {
             if (boolVariables.contains(variable)
@@ -1021,7 +1021,7 @@ public abstract class SMTLibParser extends Parser {
         if (expression.equals(SExpressionConstants.FALSE))
             return true;
 
-        PropositionalVariable variable = new PropositionalVariable(
+        PropositionalVariable variable = PropositionalVariable.create(
                 (Token) expression);
         if (boolVariables.contains(variable))
             // || controlVariables.contains(variable))
@@ -1041,7 +1041,7 @@ public abstract class SMTLibParser extends Parser {
     protected boolean isDomainVariable(SExpression expression) {
         if (!(expression instanceof Token))
             return false;
-        return domainVariables.contains(new DomainVariable((Token) expression));
+        return domainVariables.contains(DomainVariable.create((Token) expression));
     }
 
     /**
@@ -1100,7 +1100,7 @@ public abstract class SMTLibParser extends Parser {
         if (!(expression instanceof Token))
             return false;
 
-        return (this.currentUVars.contains(new DomainVariable(
+        return (this.currentUVars.contains(DomainVariable.create(
                 (Token) expression)));
     }
 

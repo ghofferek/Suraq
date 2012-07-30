@@ -43,8 +43,8 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a"));
-        propsitionalVars.add(new PropositionalVariable("b"));
+        propsitionalVars.add(PropositionalVariable.create("a"));
+        propsitionalVars.add(PropositionalVariable.create("b"));
 
         String proof = "(|unit-resolution| (asserted (or a b)) (asserted (not a)) b)";
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
@@ -69,9 +69,9 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a", -1));
-        propsitionalVars.add(new PropositionalVariable("b", 1));
-        propsitionalVars.add(new PropositionalVariable("c", 1));
+        propsitionalVars.add(PropositionalVariable.create("a", -1));
+        propsitionalVars.add(PropositionalVariable.create("b", 1));
+        propsitionalVars.add(PropositionalVariable.create("c", 1));
 
         String proof = "(|unit-resolution| (asserted (or a b c)) (asserted (not a)) (asserted (not b)) c)";
         String output = parseAndTransform(proof, domainVars, propsitionalVars,
@@ -94,9 +94,9 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a", 1));
-        propsitionalVars.add(new PropositionalVariable("b", 2));
-        propsitionalVars.add(new PropositionalVariable("c"));
+        propsitionalVars.add(PropositionalVariable.create("a", 1));
+        propsitionalVars.add(PropositionalVariable.create("b", 2));
+        propsitionalVars.add(PropositionalVariable.create("c"));
 
         String resolution1 = "(|unit-resolution| (asserted (or (not a) c)) (hypothesis a) c )";
         String resolution2 = "(|unit-resolution| (asserted (or b (not c))) (hypothesis (not b)) (not c) )";
@@ -127,10 +127,10 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a", 1));
-        propsitionalVars.add(new PropositionalVariable("b", 2));
-        propsitionalVars.add(new PropositionalVariable("x", -1));
-        propsitionalVars.add(new PropositionalVariable("y", -1));
+        propsitionalVars.add(PropositionalVariable.create("a", 1));
+        propsitionalVars.add(PropositionalVariable.create("b", 2));
+        propsitionalVars.add(PropositionalVariable.create("x", -1));
+        propsitionalVars.add(PropositionalVariable.create("y", -1));
 
         String symmetry = "(symm (asserted (= a y)) (= y a))";
         String trans1 = "(trans (asserted (= a x)) (asserted (= x b)) (= a b))";
@@ -156,15 +156,15 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        domainVars.add(new DomainVariable("a", 1));
-        domainVars.add(new DomainVariable("b", 2));
-        domainVars.add(new DomainVariable("c", 3));
-        domainVars.add(new DomainVariable("d", 3));
-        domainVars.add(new DomainVariable("e", -1));
-        domainVars.add(new DomainVariable("f", -1));
+        domainVars.add(DomainVariable.create("a", 1));
+        domainVars.add(DomainVariable.create("b", 2));
+        domainVars.add(DomainVariable.create("c", 3));
+        domainVars.add(DomainVariable.create("d", 3));
+        domainVars.add(DomainVariable.create("e", -1));
+        domainVars.add(DomainVariable.create("f", -1));
 
-        domainVars.add(new DomainVariable("x", -1));
-        domainVars.add(new DomainVariable("y", -1));
+        domainVars.add(DomainVariable.create("x", -1));
+        domainVars.add(DomainVariable.create("y", -1));
 
         String unitResolution1 = "(|unit-resolution| (hypothesis (not (= x b))) (asserted (or (= b x) (not (= e f)))) (not (= e f)))";
         String unitResolution2 = "(|unit-resolution| (asserted (or (= c d) (= e f)))"
@@ -190,15 +190,15 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a", 1));
-        propsitionalVars.add(new PropositionalVariable("b", 2));
-        propsitionalVars.add(new PropositionalVariable("c", 3));
-        propsitionalVars.add(new PropositionalVariable("d", 3));
-        propsitionalVars.add(new PropositionalVariable("e", -1));
-        propsitionalVars.add(new PropositionalVariable("f", -1));
+        propsitionalVars.add(PropositionalVariable.create("a", 1));
+        propsitionalVars.add(PropositionalVariable.create("b", 2));
+        propsitionalVars.add(PropositionalVariable.create("c", 3));
+        propsitionalVars.add(PropositionalVariable.create("d", 3));
+        propsitionalVars.add(PropositionalVariable.create("e", -1));
+        propsitionalVars.add(PropositionalVariable.create("f", -1));
 
-        propsitionalVars.add(new PropositionalVariable("x", -1));
-        propsitionalVars.add(new PropositionalVariable("y", -1));
+        propsitionalVars.add(PropositionalVariable.create("x", -1));
+        propsitionalVars.add(PropositionalVariable.create("y", -1));
 
         String unitResolution1 = "(|unit-resolution| (hypothesis (not (= x b))) (asserted (or (= b x) (not (= e f)))) (not (= e f)))";
         String unitResolution2 = "(|unit-resolution| (asserted (or (= c d) (= e f)))"
@@ -231,11 +231,11 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        domainVars.add(new DomainVariable("a", 1));
-        domainVars.add(new DomainVariable("b", 2));
+        domainVars.add(DomainVariable.create("a", 1));
+        domainVars.add(DomainVariable.create("b", 2));
 
-        domainVars.add(new DomainVariable("x", -1));
-        domainVars.add(new DomainVariable("y", -1));
+        domainVars.add(DomainVariable.create("x", -1));
+        domainVars.add(DomainVariable.create("y", -1));
 
         uninterpretedFunctions.add(new UninterpretedFunction("f", 1,
                 SExpressionConstants.VALUE_TYPE));
@@ -267,18 +267,18 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        domainVars.add(new DomainVariable("a", 1));
-        domainVars.add(new DomainVariable("b", 1));
+        domainVars.add(DomainVariable.create("a", 1));
+        domainVars.add(DomainVariable.create("b", 1));
 
-        domainVars.add(new DomainVariable("c", 2));
-        domainVars.add(new DomainVariable("d", 2));
+        domainVars.add(DomainVariable.create("c", 2));
+        domainVars.add(DomainVariable.create("d", 2));
 
-        domainVars.add(new DomainVariable("x", -1));
-        domainVars.add(new DomainVariable("y", -1));
-        domainVars.add(new DomainVariable("z", -1));
-        domainVars.add(new DomainVariable("u", -1));
-        domainVars.add(new DomainVariable("v", -1));
-        domainVars.add(new DomainVariable("w", -1));
+        domainVars.add(DomainVariable.create("x", -1));
+        domainVars.add(DomainVariable.create("y", -1));
+        domainVars.add(DomainVariable.create("z", -1));
+        domainVars.add(DomainVariable.create("u", -1));
+        domainVars.add(DomainVariable.create("v", -1));
+        domainVars.add(DomainVariable.create("w", -1));
 
         uninterpretedFunctions.add(new UninterpretedFunction("f", 2,
                 SExpressionConstants.VALUE_TYPE));
@@ -317,11 +317,11 @@ public class TransformedZ3ProofTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        propsitionalVars.add(new PropositionalVariable("a", -1));
-        propsitionalVars.add(new PropositionalVariable("b", -1));
-        propsitionalVars.add(new PropositionalVariable("c", 1));
-        propsitionalVars.add(new PropositionalVariable("d", 2));
-        propsitionalVars.add(new PropositionalVariable("e", 2));
+        propsitionalVars.add(PropositionalVariable.create("a", -1));
+        propsitionalVars.add(PropositionalVariable.create("b", -1));
+        propsitionalVars.add(PropositionalVariable.create("c", 1));
+        propsitionalVars.add(PropositionalVariable.create("d", 2));
+        propsitionalVars.add(PropositionalVariable.create("e", 2));
 
         String unitResolutionE = "(|unit-resolution| (hypothesis e) (asserted (or (not b) (not d) (not e))) (or (not b) (not d)))";
         String unitResolutionD = "(|unit-resolution| (hypothesis d) "

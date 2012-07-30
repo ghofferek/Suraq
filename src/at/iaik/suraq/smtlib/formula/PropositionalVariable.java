@@ -14,6 +14,7 @@ import java.util.TreeSet;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * A class for formulas that consist just of one propositional variable.
@@ -35,6 +36,25 @@ public class PropositionalVariable extends PropositionalTerm implements
 
     private final int hashCode;
 
+    public static PropositionalVariable create(String varname) {
+        return FormulaCache.propVar.put(new PropositionalVariable(varname));
+    }
+
+    public static PropositionalVariable create(Token name) {
+        return FormulaCache.propVar.put(new PropositionalVariable(name
+                .toString()));
+    }
+
+    public static PropositionalVariable create(Token name, int assertPartition) {
+        return FormulaCache.propVar.put(new PropositionalVariable(name
+                .toString(), assertPartition));
+    }
+
+    public static PropositionalVariable create(String name, int assertPartition) {
+        return FormulaCache.propVar.put(new PropositionalVariable(name,
+                assertPartition));
+    }
+    
     /**
      * 
      * Constructs a new <code>PropositionalVariable</code>.
@@ -42,35 +62,8 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @param varName
      *            the name of the variable.
      */
-    public PropositionalVariable(String varName) {
+    private PropositionalVariable(String varName) {
         this.varName = varName;
-        hashCode = varName.hashCode();
-    }
-
-    /**
-     * 
-     * Constructs a new <code>PropositionalVariable</code>.
-     * 
-     * @param name
-     *            the <code>Token</code> representing the variable name.
-     */
-    public PropositionalVariable(Token name) {
-        this.varName = name.toString();
-        hashCode = varName.hashCode();
-    }
-
-    /**
-     * 
-     * Constructs a new <code>PropositionalVariable</code>.
-     * 
-     * @param name
-     *            the <code>Token</code> representing the variable name.
-     * @param assertPartition
-     *            the assert partition of the variable.
-     */
-    public PropositionalVariable(Token name, int assertPartition) {
-        this.varName = name.toString();
-        this.assertPartition = assertPartition;
         hashCode = varName.hashCode();
     }
 
@@ -83,7 +76,7 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @param assertPartition
      *            the assert partition of the variable.
      */
-    public PropositionalVariable(String name, int assertPartition) {
+    private PropositionalVariable(String name, int assertPartition) {
         this.varName = name.toString();
         this.assertPartition = assertPartition;
         hashCode = varName.hashCode();
@@ -370,7 +363,7 @@ public class PropositionalVariable extends PropositionalTerm implements
             return OrFormula.generate(literals);
         }
         if (notFlag == true)
-            return new NotFormula(this);
+            return NotFormula.create(this);
 
         return this;
 

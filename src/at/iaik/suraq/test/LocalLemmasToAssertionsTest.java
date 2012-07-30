@@ -36,9 +36,9 @@ public class LocalLemmasToAssertionsTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        domainVars.add(new DomainVariable("a"));
-        domainVars.add(new DomainVariable("b"));
-        domainVars.add(new DomainVariable("c"));
+        domainVars.add(DomainVariable.create("a"));
+        domainVars.add(DomainVariable.create("b"));
+        domainVars.add(DomainVariable.create("c"));
 
         String transitivity = "(trans (asserted (= a b)) (asserted (= b c)) (= a c))";
         String resolution = "(|unit-resolution| " + transitivity
@@ -65,9 +65,9 @@ public class LocalLemmasToAssertionsTest {
         Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
 
-        domainVars.add(new DomainVariable("a", 1));
-        domainVars.add(new DomainVariable("b"));
-        domainVars.add(new DomainVariable("c", 2));
+        domainVars.add(DomainVariable.create("a", 1));
+        domainVars.add(DomainVariable.create("b"));
+        domainVars.add(DomainVariable.create("c", 2));
 
         String transitivity = "(trans (asserted (= a b)) (asserted (= b c)) (= a c))";
         String resolution = "(|unit-resolution| " + transitivity

@@ -577,7 +577,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 			  instancesStr.add(dv.getVarName());
 		  
     	String varName = Util.freshVarName(topLeveFormula,function.getName().toString(),instancesStr);
-    	result = new DomainVariable(varName);
+    	result = DomainVariable.create(varName);
        
     	String functionName = function.getName().toString();
     	List<DomainVariable> instances = functionInstances.get(functionName);

@@ -42,11 +42,11 @@ public class ArrayPropertiesTest {
     @Test
     public void testArrayPropertiesToFiniteConjunctions()
             throws InvalidIndexGuardException, InvalidValueConstraintException {
-        DomainVariable uVar = new DomainVariable("uVar");
-        DomainVariable i1 = new DomainVariable("i1");
-        DomainVariable i2 = new DomainVariable("i2");
-        DomainVariable i3 = new DomainVariable("i3");
-        DomainVariable constant = new DomainVariable("constant");
+        DomainVariable uVar = DomainVariable.create("uVar");
+        DomainVariable i1 = DomainVariable.create("i1");
+        DomainVariable i2 = DomainVariable.create("i2");
+        DomainVariable i3 = DomainVariable.create("i3");
+        DomainVariable constant = DomainVariable.create("constant");
 
         ArrayVariable array = new ArrayVariable("array");
         ArrayRead read = new ArrayRead(array, uVar);
@@ -81,7 +81,7 @@ public class ArrayPropertiesTest {
             list.add(constant);
 
             Formula rightSide = new DomainEq(list, true);
-            Formula conjunct = new ImpliesFormula(leftSide, rightSide);
+            Formula conjunct = ImpliesFormula.create(leftSide, rightSide);
             conjuncts.add(conjunct);
         }
         AndFormula expected = AndFormula.generate(conjuncts);

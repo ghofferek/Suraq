@@ -67,7 +67,7 @@ public final class Util {
      * @return a Tseitin variable with a name that has not been returned before.
      */
     public static PropositionalVariable freshTseitinVar(int partition) {
-        return new PropositionalVariable("ts!" + Util.tseitinVarCounter++,
+        return PropositionalVariable.create("ts!" + Util.tseitinVarCounter++,
                 partition);
     }
 
@@ -96,9 +96,9 @@ public final class Util {
             String name = prefix + (count > 0 ? ("_fresh" + count) : "");
             if (arrayVars.contains(new ArrayVariable(name)))
                 continue;
-            if (domainVars.contains(new DomainVariable(name)))
+            if (domainVars.contains(DomainVariable.create(name)))
                 continue;
-            if (propVars.contains(new PropositionalVariable(name)))
+            if (propVars.contains(PropositionalVariable.create(name)))
                 continue;
             if (functionNames.contains(name))
                 continue;
@@ -122,9 +122,9 @@ public final class Util {
             String name = prefix + (count > 0 ? ("_fresh" + count) : "");
             if (arrayVars.contains(new ArrayVariable(name)))
                 continue;
-            if (domainVars.contains(new DomainVariable(name)))
+            if (domainVars.contains(DomainVariable.create(name)))
                 continue;
-            if (propVars.contains(new PropositionalVariable(name)))
+            if (propVars.contains(PropositionalVariable.create(name)))
                 continue;
             if (functionNames.contains(name))
                 continue;
@@ -190,9 +190,9 @@ public final class Util {
         for (Token token : names) {
             if (arrayVars.contains(new ArrayVariable(token)))
                 return true;
-            if (domainVars.contains(new DomainVariable(token)))
+            if (domainVars.contains(DomainVariable.create(token)))
                 return true;
-            if (propVars.contains(new PropositionalVariable(token)))
+            if (propVars.contains(PropositionalVariable.create(token)))
                 return true;
             if (functionNames.contains(token))
                 return true;
@@ -224,9 +224,9 @@ public final class Util {
         for (Token token : names) {
             if (arrayVars.contains(new ArrayVariable(token)))
                 return true;
-            if (domainVars.contains(new DomainVariable(token)))
+            if (domainVars.contains(DomainVariable.create(token)))
                 return true;
-            if (propVars.contains(new PropositionalVariable(token)))
+            if (propVars.contains(PropositionalVariable.create(token)))
                 return true;
             if (functionNames.contains(token))
                 return true;
@@ -287,9 +287,9 @@ public final class Util {
     public static Term variableFactory(Token name, Token type)
             throws SuraqException {
         if (type.equals(SExpressionConstants.BOOL_TYPE))
-            return new PropositionalVariable(name);
+            return PropositionalVariable.create(name);
         if (type.equals(SExpressionConstants.VALUE_TYPE))
-            return new DomainVariable(name);
+            return DomainVariable.create(name);
         if (type.equals(SExpressionConstants.ARRAY_TYPE))
             return new ArrayVariable(name);
         throw new SuraqException("Cannot create variable of type "
@@ -535,7 +535,7 @@ public final class Util {
         if (literal instanceof NotFormula) {
             return ((NotFormula) literal).getNegatedFormula();
         } else
-            return new NotFormula(literal);
+            return NotFormula.create(literal);
 
     }
 
@@ -614,7 +614,7 @@ public final class Util {
                 Formula reverseInverseLiteral = null;
                 if (Util.isNegativeLiteral(inverseLiteral))
                     reverseInverseLiteral = Util
-                            .getSingleLiteral((new NotFormula(reverseLiteral))
+                            .getSingleLiteral((NotFormula.create(reverseLiteral))
                                     .transformToConsequentsForm());
                 else
                     reverseInverseLiteral = Util

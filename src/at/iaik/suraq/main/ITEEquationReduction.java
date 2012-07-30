@@ -30,8 +30,8 @@ public class ITEEquationReduction {
         if(andPreList.size()==0)
             return main;
         else if(andPreList.size()==1)
-            return new ImpliesFormula(andPreList.get(0),main);
-        return new ImpliesFormula(AndFormula.generate(andPreList),main);
+            return ImpliesFormula.create(andPreList.get(0),main);
+        return ImpliesFormula.create(AndFormula.generate(andPreList),main);
     }
     
 }

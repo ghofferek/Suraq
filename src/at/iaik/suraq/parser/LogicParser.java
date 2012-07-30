@@ -398,17 +398,17 @@ public class LogicParser extends SMTLibParser {
         }
 
         if (type.equals(SExpressionConstants.CONTROL_TYPE)) {
-            if (!controlVariables.add(new PropositionalVariable(name))) {
+            if (!controlVariables.add(PropositionalVariable.create(name))) {
                 throw new ParseError(name, "Duplicate variable definition: "
                         + name.toString());
             }
         } else if (type.equals(SExpressionConstants.BOOL_TYPE)) {
-            if (!boolVariables.add(new PropositionalVariable(name))) {
+            if (!boolVariables.add(PropositionalVariable.create(name))) {
                 throw new ParseError(name, "Duplicate variable definition: "
                         + name.toString());
             }
         } else if (type.equals(SExpressionConstants.VALUE_TYPE)) {
-            if (!domainVariables.add(new DomainVariable(name))) {
+            if (!domainVariables.add(DomainVariable.create(name))) {
                 throw new ParseError(name, "Duplicate variable definition: "
                         + name.toString());
             }

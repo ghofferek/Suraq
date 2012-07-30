@@ -591,7 +591,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             return OrFormula.generate(literals);
         }
         if (notFlag == true)
-            return new NotFormula(this);
+            return NotFormula.create(this);
 
         return this;
     }
@@ -633,13 +633,13 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
         encoding.put(tseitinVar, this.deepFormulaCopy());
 
         List<Formula> disjuncts = new ArrayList<Formula>(2);
-        disjuncts.add(new NotFormula(tseitinVar));
+        disjuncts.add(NotFormula.create(tseitinVar));
         disjuncts.add(this.deepFormulaCopy());
         clauses.add(OrFormula.generate(disjuncts));
 
         disjuncts.clear();
         disjuncts.add(tseitinVar);
-        disjuncts.add(new NotFormula(this.deepFormulaCopy()));
+        disjuncts.add(NotFormula.create(this.deepFormulaCopy()));
         clauses.add(OrFormula.generate(disjuncts));
 
         return tseitinVar;
@@ -711,7 +711,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
 		
     	String varName = Util.freshVarName(topLeveFormula,function.getName().toString(),instancesStr);
     	
-    	result = new PropositionalVariable(varName);
+    	result = PropositionalVariable.create(varName);
        
     	String predicateName = function.getName().toString();
     	List<PropositionalVariable> instances = predicateInstances.get(predicateName);

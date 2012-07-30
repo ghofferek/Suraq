@@ -90,7 +90,7 @@ public class Ackermann {
                 Formula ackermannConstraints = (constraintsList.size() == 1) ? constraintsList
                         .iterator().next() : AndFormula
                         .generate(constraintsList);
-                topLevelFormula = new ImpliesFormula(ackermannConstraints,
+                topLevelFormula = ImpliesFormula.create(ackermannConstraints,
                         topLevelFormula);
             } else {
                 System.out
@@ -142,7 +142,7 @@ public class Ackermann {
                 Formula ackermannConstraints = (constraintsList.size() == 1) ? constraintsList
                         .iterator().next() : AndFormula
                         .generate(constraintsList);
-                topLevelFormula = new ImpliesFormula(ackermannConstraints,
+                topLevelFormula = ImpliesFormula.create(ackermannConstraints,
                         topLevelFormula);
             } else {
                 System.out
@@ -239,7 +239,7 @@ public class Ackermann {
 					List<PropositionalTerm> predicateEq = new ArrayList<PropositionalTerm>();
 					predicateEq.add(instances.get(i));
 					predicateEq.add(instances.get(j));
-					constraints.add(new ImpliesFormula(parametersEquivalities, new PropositionalEq(predicateEq, true)));
+					constraints.add(ImpliesFormula.create(parametersEquivalities, new PropositionalEq(predicateEq, true)));
 
 				}
 		}
@@ -296,7 +296,7 @@ public class Ackermann {
 					functionEq.add(instances.get(i));
 					functionEq.add(instances.get(j));
 					constraints.add(
-					        new ImpliesFormula(parametersEquivalities, new DomainEq(functionEq, true)));
+					        ImpliesFormula.create(parametersEquivalities, new DomainEq(functionEq, true)));
 
 				}
 		}

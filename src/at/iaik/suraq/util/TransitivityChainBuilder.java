@@ -151,9 +151,9 @@ public class TransitivityChainBuilder {
         if (tmpChain == null) {
             reversePolarity = true;
             PropositionalTerm reverseStartTerm = FormulaTerm
-                    .create(new NotFormula((PropositionalTerm) targetStartTerm));
+                    .create(NotFormula.create((PropositionalTerm) targetStartTerm));
             PropositionalTerm reverseEndTerm = FormulaTerm
-                    .create(new NotFormula((PropositionalTerm) targetEndTerm));
+                    .create(NotFormula.create((PropositionalTerm) targetEndTerm));
             tmpChain = graph.findPath(reverseStartTerm, reverseEndTerm);
             if (tmpChain == null)
                 assert (false);
@@ -197,10 +197,10 @@ public class TransitivityChainBuilder {
                     .get(1);
 
             List<Formula> disjuncts = new ArrayList<Formula>(3);
-            disjuncts.add(predicatePolarity ^ reversePolarity ? new NotFormula(
+            disjuncts.add(predicatePolarity ^ reversePolarity ? NotFormula.create(
                     term1) : term1);
             disjuncts.add(predicatePolarity ^ reversePolarity ? term2
-                    : new NotFormula(term2));
+                    : NotFormula.create(term2));
 
             if (current.getProofType().equals(SExpressionConstants.SYMMETRY)) {
                 assert (current.getSubProofs().size() == 1);
@@ -223,7 +223,7 @@ public class TransitivityChainBuilder {
                     if (!(Util.getSingleLiteral(current.getSubProofs().get(0)
                             .getConsequent()) instanceof DomainEq))
                         assert (false);
-                    disjuncts.add(new NotFormula(current.getSubProofs().get(0)
+                    disjuncts.add(NotFormula.create(current.getSubProofs().get(0)
                             .getConsequent()));
                     TransformedZ3Proof axiom = new TransformedZ3Proof(
                             SExpressionConstants.ASSERTED,
@@ -249,9 +249,9 @@ public class TransitivityChainBuilder {
                             .getConsequent()) instanceof DomainEq);
                     assert (Util.getSingleLiteral(current.getSubProofs().get(1)
                             .getConsequent()) instanceof DomainEq);
-                    disjuncts.add(new NotFormula(current.getSubProofs().get(1)
+                    disjuncts.add(NotFormula.create(current.getSubProofs().get(1)
                             .getConsequent()));
-                    disjuncts.add(new NotFormula(current.getSubProofs().get(0)
+                    disjuncts.add(NotFormula.create(current.getSubProofs().get(0)
                             .getConsequent()));
                     TransformedZ3Proof axiom = new TransformedZ3Proof(
                             SExpressionConstants.ASSERTED,

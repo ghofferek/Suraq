@@ -1228,7 +1228,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             for (Z3Proof subProof : this.subProofs) {
                 conjuncts.add(subProof.consequent);
             }
-            conjuncts.add(new NotFormula(this.consequent));
+            conjuncts.add(NotFormula.create(this.consequent));
             Formula formulaToCheck = AndFormula.generate(conjuncts);
 
             String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
@@ -1323,9 +1323,9 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 leafList.add(leaf);
 
                 if (leaf.assertPartition == -1)
-                    globalLeafs.add(new NotFormula(leaf.consequent));
+                    globalLeafs.add(NotFormula.create(leaf.consequent));
                 if (leaf.axiom)
-                    axiomsDisjuncts.add(new NotFormula(leaf.consequent));
+                    axiomsDisjuncts.add(NotFormula.create(leaf.consequent));
             }
         }
 
@@ -1338,7 +1338,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
                 List<Formula> disjuncts = new ArrayList<Formula>();
                 for (Z3Proof leaf : entry.getValue())
-                    disjuncts.add(new NotFormula(leaf.consequent));
+                    disjuncts.add(NotFormula.create(leaf.consequent));
 
                 if (globalLeafs != null)
                     disjuncts.addAll(globalLeafs);
@@ -1432,7 +1432,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         for (Z3Proof leaf : leafs) {
             conjuncts.add(leaf.consequent);
         }
-        conjuncts.add(new NotFormula(this.consequent));
+        conjuncts.add(NotFormula.create(this.consequent));
         Formula formulaToCheck = AndFormula.generate(conjuncts);
 
         String declarationStr = makeDeclarationsAndDefinitions(formulaToCheck);
@@ -2062,7 +2062,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 PropositionalTerm positiveTerm = FormulaTerm.create((Util
                         .makeLiteralPositive(formula)));
                 PropositionalTerm negativeTerm = FormulaTerm
-                        .create(new NotFormula(Util
+                        .create(NotFormula.create(Util
                                 .makeLiteralPositive(formula)));
                 if (term1.equals(formula) || term2.equals(formula)
                         || term1.equals(positiveTerm)

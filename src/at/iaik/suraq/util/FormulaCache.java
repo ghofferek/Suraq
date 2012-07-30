@@ -3,6 +3,7 @@ package at.iaik.suraq.util;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.TreeMap;
+import java.util.WeakHashMap;
 
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.*;
@@ -14,16 +15,20 @@ public class FormulaCache<T> {
 
 	public static FormulaCache<Token> token = new FormulaCache<Token>("Token", true);
 	public static FormulaCache<NotFormula> notFormula = new FormulaCache<NotFormula>("NOT", true);
-	public static FormulaCache<AndFormula> andFormula = new FormulaCache<AndFormula>("AND", true);
-	public static FormulaCache<OrFormula> orFormula = new FormulaCache<OrFormula>("OR", true);
 	public static FormulaCache<PropositionalVariable> propVar = new FormulaCache<PropositionalVariable>("PropVar", true);
-	public static FormulaCache<ImpliesFormula> impliesFormula = new FormulaCache<ImpliesFormula>("implies", true);
-	
+    public static FormulaCache<DomainVariable> domainVarFormula = new FormulaCache<DomainVariable>("DomainVar", true);
+    public static FormulaCache<ImpliesFormula> impliesFormula = new FormulaCache<ImpliesFormula>("implies", true);
+    public static FormulaCache<AndOrXorFormula> andOrXorFormula = new FormulaCache<AndOrXorFormula>("AndOrXor", true);
+    public static FormulaCache<FormulaTerm> formulaTerm = new FormulaCache<FormulaTerm>("FormulaTerm", true);
+    public static FormulaCache<EqualityFormula> equalityFormula = new FormulaCache<EqualityFormula>("EqualityFormula", true);
+    
+    
 	public static boolean _isActive = true;
 	public boolean _isActive2 = true;
 	
 	// For statistics
 	private int cachedReads = 0;
+	private int cachedWrites = 0;
 	
 	
 	// Sets are not possible, because they don't provide the get() method
@@ -33,8 +38,9 @@ public class FormulaCache<T> {
 	// http://docs.oracle.com/javase/6/docs/api/java/util/WeakHashMap.html
 	
 	// Use a TreeMap, where the Key is the HashCode of the Objects
-	private TreeMap<Integer, WeakReference<T>> cache = new TreeMap<Integer, WeakReference<T>>();
-	private String name; 
+	//private TreeMap<Integer, WeakReference<T>> cache = new TreeMap<Integer, WeakReference<T>>();
+	private WeakHashMap<T, WeakReference<T>> cache = new WeakHashMap<T, WeakReference<T>>();
+    private String name; 
 	
 	private FormulaCache(String name, boolean isActive2)
 	{
@@ -78,7 +84,9 @@ public class FormulaCache<T> {
 	public void post(T object) throws ClassCastException
 	{
 		if(!_isActive || ! _isActive2) return;
-		cache.put(object.hashCode(), new WeakReference<T>(object));
+		//cache.put(object.hashCode(), new WeakReference<T>(object));
+        cache.put(object, new WeakReference<T>(object));
+        cachedWrites++;
 	}
 	
 	/**
@@ -92,11 +100,13 @@ public class FormulaCache<T> {
 	public T put(T object) throws ClassCastException
 	{
 		if(!_isActive || ! _isActive2) return object;
-		int hash = object.hashCode();
-		//type.cast(reference);
-		if(cache.containsKey(hash))
+		//int hash = object.hashCode();
+		
+		//if(cache.containsKey(hash))
+        if(cache.containsKey(object))
 		{
-			T result = cache.get(hash).get();
+			//T result = cache.get(hash).get();
+            T result = cache.get(object).get();
 			if(result != null)
 			{
 				if(result != object)
@@ -104,7 +114,9 @@ public class FormulaCache<T> {
 				return result;
 			}
 		}
-		cache.put(hash, new WeakReference<T>(object));
+		//cache.put(hash, new WeakReference<T>(object));
+        cache.put(object, new WeakReference<T>(object));
+        cachedWrites++;
 		return object;
 	}
 	
@@ -118,10 +130,12 @@ public class FormulaCache<T> {
 	public T get(T reference) throws ClassCastException
 	{
 		if(!_isActive || ! _isActive2) return reference;
-		int hash = reference.hashCode();
-		if(cache.containsKey(hash))
+		//int hash = reference.hashCode();
+		//if(cache.containsKey(hash))
+        if(cache.containsKey(reference))
 		{
-			T result = cache.get(hash).get();
+			//T result = cache.get(hash).get();
+            T result = cache.get(reference).get();
 			if(result != reference && result != null)
 				cachedReads++;
 			return result;
@@ -133,6 +147,10 @@ public class FormulaCache<T> {
 	{
 		return cachedReads;
 	}
+    public int getCachedWrites()
+    {
+        return cachedWrites;
+    }
 	public int getCachedElements()
 	{
 		return cache.size();
@@ -149,10 +167,28 @@ public class FormulaCache<T> {
 		{
 			int reads = instance.getCachedReads();
 			int elems = instance.getCachedElements();
+			int writes = instance.getCachedWrites();
 			String className = instance.getName();
-			System.out.println("* saved "+ reads + " reads on " + elems + " elements:" + className);
+			System.out.println("* saved "+ reads + " reads on " + elems + " elements of max. " + writes + ":" + className);
 		}
 		System.out.println("************************************************");
+		
+		try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+		
+	      System.out.println("************************************************");
+	        for(FormulaCache<?> instance : instances)
+	        {
+	            int reads = instance.getCachedReads();
+	            int elems = instance.getCachedElements();
+	            int writes = instance.getCachedWrites();
+	            String className = instance.getName();
+	            System.out.println("* saved "+ reads + " reads on " + elems + " elements of max. " + writes + ":" + className);
+	        }
+	        System.out.println("************************************************");
 	}
 	
 }

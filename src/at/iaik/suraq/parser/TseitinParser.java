@@ -122,7 +122,7 @@ public class TseitinParser extends SMTLibParser {
         List<PropositionalVariable> tmpList = new ArrayList<PropositionalVariable>(
                 tseitinVariables.size());
         for (PropositionalVariable var : tseitinVariables) {
-            PropositionalVariable newVar = new PropositionalVariable(
+            PropositionalVariable newVar = PropositionalVariable.create(
                     var.getVarName() + "_p!" + partition);
             renameMap.put(Token.generate(var.getVarName()), newVar);
             tmpList.add(newVar);
@@ -280,7 +280,7 @@ public class TseitinParser extends SMTLibParser {
                         }
                         assert (partition != 0);
 
-                        tseitinEncoding.put(new PropositionalVariable(
+                        tseitinEncoding.put(PropositionalVariable.create(
                                 currTseitinVar.getVarName(), partition),
                                 formula);
 
@@ -391,7 +391,7 @@ public class TseitinParser extends SMTLibParser {
             Formula formula2) {
         List<Formula> conjuncts = new ArrayList<Formula>();
         conjuncts.add(formula1);
-        conjuncts.add(new NotFormula(formula2));
+        conjuncts.add(NotFormula.create(formula2));
         Formula formulaToCheck = AndFormula.generate(conjuncts);
 
         // Writes the declarations of all domain variables, propositional
@@ -611,7 +611,7 @@ public class TseitinParser extends SMTLibParser {
             else
                 literals.remove(numLiterals - 1);
 
-            disjuncts.add(new NotFormula(OrFormula.generate(literals)));
+            disjuncts.add(NotFormula.create(OrFormula.generate(literals)));
 
         }
         return OrFormula.generate(disjuncts);

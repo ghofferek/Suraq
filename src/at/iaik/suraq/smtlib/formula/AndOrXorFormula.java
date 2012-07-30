@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableArrayList;
 
 /**
@@ -84,7 +85,9 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             }
             if (instance == null)
                 throw new RuntimeException();
-            return instance;
+            
+            return FormulaCache.andOrXorFormula.put(instance);
+            //return instance;
         } catch (Throwable exc) {
         	exc.printStackTrace();
             throw new RuntimeException("Unable to create AndOrXorFormula", exc);
@@ -212,6 +215,9 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         if (this == obj)
             return true;
 
+        if(obj == null)
+            return false;
+        
         if (this.hashCode() != obj.hashCode())
             return false;
 

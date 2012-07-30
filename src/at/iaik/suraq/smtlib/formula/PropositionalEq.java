@@ -69,11 +69,11 @@ public class PropositionalEq extends EqualityFormula {
         for(int i=1; i < terms.size(); i++)
         {
             PropositionalTerm termi = (PropositionalTerm) terms.get(i);
-            conjuncts.add(new ImpliesFormula(term1, termi));
+            conjuncts.add(ImpliesFormula.create(term1, termi));
         }
 
         PropositionalTerm termlast = (PropositionalTerm) terms.get(terms.size()-1);
-        conjuncts.add(new ImpliesFormula(termlast, term1));
+        conjuncts.add(ImpliesFormula.create(termlast, term1));
         
         if(terms.size() != 2)
             System.err.println("PropositionalVariable:tseitinEncode: Was not implemented correctly, but is now.");
@@ -88,8 +88,8 @@ public class PropositionalEq extends EqualityFormula {
         assert (clauses != null);
         assert (encoding != null);
 
-        conjuncts.add(new ImpliesFormula(term1, term2));
-        conjuncts.add(new ImpliesFormula(term2, term1));
+        conjuncts.add(ImpliesFormula.create(term1, term2));
+        conjuncts.add(ImpliesFormula.create(term2, term1));
         */
 
         return (AndFormula.generate(conjuncts).tseitinEncode(clauses, encoding));

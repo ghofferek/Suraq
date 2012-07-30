@@ -110,7 +110,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                 paramMap);
         List<Token> negatedParameters = new ArrayList<Token>(parameters);
 
-        Formula negatedBody = (new NotFormula(body)).negationNormalForm();
+        Formula negatedBody = (NotFormula.create(body)).negationNormalForm();
 
         return new PropositionalFunctionMacro(negatedName, negatedParameters,
                 negatedParamMap, negatedBody);

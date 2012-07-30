@@ -14,6 +14,7 @@ import java.util.TreeSet;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * A class representing domain variables.
@@ -35,6 +36,24 @@ public class DomainVariable extends DomainTerm implements Serializable {
 
     private final int hashCode;
 
+    
+    public static DomainVariable create(String varName)
+    {
+        return FormulaCache.domainVarFormula.put(new DomainVariable(varName));
+    }
+    public static DomainVariable create(Token name)
+    {
+        return FormulaCache.domainVarFormula.put(new DomainVariable(name.toString()));
+    }    
+    public static DomainVariable create(String varName, int assertPartition)
+    {
+        return FormulaCache.domainVarFormula.put(new DomainVariable(varName, assertPartition));
+    }   
+    public static DomainVariable create(Token name, int assertPartition)
+    {
+        return FormulaCache.domainVarFormula.put(new DomainVariable(name.toString(), assertPartition));
+    }
+    
     /**
      * 
      * Constructs a new <code>DomainVariable</code>.
@@ -42,22 +61,11 @@ public class DomainVariable extends DomainTerm implements Serializable {
      * @param varName
      *            the name of the variable.
      */
-    public DomainVariable(String varName) {
+    private DomainVariable(String varName) {
         this.varName = varName;
         hashCode = varName.hashCode();
     }
 
-    /**
-     * 
-     * Constructs a new <code>DomainVariable</code>.
-     * 
-     * @param name
-     *            the <code>Token</code> representing the variable name.
-     */
-    public DomainVariable(Token name) {
-        this.varName = name.toString();
-        hashCode = varName.hashCode();
-    }
 
     /**
      * 
@@ -68,23 +76,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
      * @param assertPartition
      *            the assert partition of the <code>DomainVariable</code>.
      */
-    public DomainVariable(String name, int assertPartition) {
+    private DomainVariable(String name, int assertPartition) {
         this.varName = name;
-        this.assertPartition = assertPartition;
-        hashCode = varName.hashCode();
-    }
-
-    /**
-     * 
-     * Constructs a new <code>DomainVariable</code>.
-     * 
-     * @param name
-     *            the <code>Token</code> representing the variable name.
-     * @param assertPartition
-     *            the assert partition of the <code>DomainVariable</code>.
-     */
-    public DomainVariable(Token name, int assertPartition) {
-        this.varName = name.toString();
         this.assertPartition = assertPartition;
         hashCode = varName.hashCode();
     }
@@ -133,7 +126,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     @Override
     public DomainTerm deepTermCopy() {
-        return new DomainVariable(new String(varName), this.assertPartition);
+        return DomainVariable.create(new String(varName), this.assertPartition);
     }
 
     /**
@@ -150,7 +143,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
     @Override
     public Set<DomainVariable> getDomainVariables() {
         Set<DomainVariable> result = new HashSet<DomainVariable>();
-        result.add(new DomainVariable(varName));
+        result.add(DomainVariable.create(varName));
         return result;
     }
 
@@ -273,7 +266,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     @Override
     public Term flatten() {
-        return new DomainVariable(varName);
+        return DomainVariable.create(varName);
     }
 
     /**
@@ -294,7 +287,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
     public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
-        return new DomainVariable(varName);
+        return DomainVariable.create(varName);
     }*/
 
     /**

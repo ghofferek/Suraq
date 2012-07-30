@@ -14,6 +14,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -39,6 +40,11 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     private final Formula rightSide;
 
+    public static ImpliesFormula create(Formula leftSide, Formula rightSide)
+    {
+        return FormulaCache.impliesFormula.put(new ImpliesFormula(leftSide, rightSide));
+    }
+    
     /**
      * 
      * Constructs a new <code>ImpliesFormula</code>.
@@ -48,7 +54,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @param rightSide
      *            the right side of the implication
      */
-    public ImpliesFormula(Formula leftSide, Formula rightSide) {
+    private ImpliesFormula(Formula leftSide, Formula rightSide) {
         if (leftSide instanceof FormulaTerm)
             this.leftSide = ((FormulaTerm) leftSide).getFormula();
         else
@@ -117,7 +123,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     @Override
     public Formula negationNormalForm() throws SuraqException {
         List<Formula> list = new ArrayList<Formula>();
-        list.add((new NotFormula(leftSide)).negationNormalForm());
+        list.add((NotFormula.create(leftSide)).negationNormalForm());
         list.add(rightSide.negationNormalForm());
         return OrFormula.generate(list);
     }
@@ -268,7 +274,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             if (((PropositionalConstant) rightSide).getValue())
                 return new PropositionalConstant(true);
             else
-                return new NotFormula(leftSide).simplify();
+                return NotFormula.create(leftSide).simplify();
         }
 
         if (leftSide.equals(rightSide))
@@ -536,7 +542,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         if (leftSide instanceof NotFormula)
             disjuncts.add(((NotFormula) leftSide).getNegatedFormula());
         else
-            disjuncts.add(new NotFormula(leftSide));
+            disjuncts.add(NotFormula.create(leftSide));
         disjuncts.add(rightSide);
         OrFormula implication = OrFormula.generate(disjuncts);
         return implication.tseitinEncode(clauses, encoding);

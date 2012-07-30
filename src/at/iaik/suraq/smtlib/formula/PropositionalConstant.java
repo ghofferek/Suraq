@@ -333,7 +333,7 @@ public class PropositionalConstant extends PropositionalTerm {
         if (this.constant)
             disjuncts.add(tseitinVar);
         else
-            disjuncts.add(new NotFormula(tseitinVar));
+            disjuncts.add(NotFormula.create(tseitinVar));
 
         clauses.add(OrFormula.generate(disjuncts));
 

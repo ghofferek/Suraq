@@ -451,7 +451,7 @@ public class ArrayProperty implements Formula {
             substitutions.put(Token.generate(uVars.get(count).toString()),
                     indices.get(count));
 
-        return new ImpliesFormula(indexGuard.substituteFormula(substitutions),
+        return ImpliesFormula.create(indexGuard.substituteFormula(substitutions),
                 valueConstraint.substituteFormula(substitutions));
     }
 
@@ -524,7 +524,7 @@ public class ArrayProperty implements Formula {
     @Override
     public SExpression toSmtlibV2() {
         return new SExpression(SExpressionConstants.FORALL, uVarsExpression(),
-                (new ImpliesFormula(indexGuard, valueConstraint)).toSmtlibV2());
+                (ImpliesFormula.create(indexGuard, valueConstraint)).toSmtlibV2());
     }
 
     /**

@@ -43,7 +43,8 @@ public class OrFormula extends AndOrXorFormula {
 
     public static OrFormula generate(List<Formula> formulas)
     {
-    	return FormulaCache.orFormula.put(new OrFormula(formulas));
+    	//return FormulaCache.orFormula.put(new OrFormula(formulas));
+        return (OrFormula)FormulaCache.andOrXorFormula.put(new OrFormula(formulas));
     }
 
     /**
@@ -215,12 +216,12 @@ public class OrFormula extends AndOrXorFormula {
             disjuncts.add(currentTseitinVar);
 
             List<Formula> tmp = new ArrayList<Formula>(2);
-            tmp.add(new NotFormula(currentTseitinVar));
+            tmp.add(NotFormula.create(currentTseitinVar));
             tmp.add(tseitinVar);
             clauses.add(OrFormula.generate(tmp));
         }
 
-        disjuncts.add(new NotFormula(tseitinVar));
+        disjuncts.add(NotFormula.create(tseitinVar));
         clauses.add(OrFormula.generate(disjuncts));
 
         return tseitinVar;

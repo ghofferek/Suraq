@@ -56,11 +56,11 @@ public class TseitinTest {
                 + "(or (not k!1) (not b) e (not a) (not c) (not k!0) (not k!2))"
                 + " (or (not k!2) a b)" + ":precision precise :depth 3)" + ")";
 
-        PropositionalVariable a = new PropositionalVariable("a", -1);
-        PropositionalVariable b = new PropositionalVariable("b", -1);
-        PropositionalVariable c = new PropositionalVariable("c", -1);
-        PropositionalVariable d = new PropositionalVariable("d", 2);
-        PropositionalVariable e = new PropositionalVariable("e", -1);
+        PropositionalVariable a = PropositionalVariable.create("a", -1);
+        PropositionalVariable b = PropositionalVariable.create("b", -1);
+        PropositionalVariable c = PropositionalVariable.create("c", -1);
+        PropositionalVariable d = PropositionalVariable.create("d", 2);
+        PropositionalVariable e = PropositionalVariable.create("e", -1);
 
         Set<PropositionalVariable> propsitionalVars = new HashSet<PropositionalVariable>();
         propsitionalVars.add(a);
@@ -107,23 +107,23 @@ public class TseitinTest {
         conjuncts.add(d);
         conjuncts.add(a);
         Formula notk0 = AndFormula.generate(conjuncts);
-        expectedOutput.put(new PropositionalVariable("k!0", 2), notk0);
+        expectedOutput.put(PropositionalVariable.create("k!0", 2), notk0);
 
         conjuncts = new ArrayList<Formula>();
         conjuncts.add(a);
-        conjuncts.add(new NotFormula(c));
+        conjuncts.add(NotFormula.create(c));
         Formula notk1 = AndFormula.generate(conjuncts);
-        expectedOutput.put(new PropositionalVariable("k!1", -1), notk1);
+        expectedOutput.put(PropositionalVariable.create("k!1", -1), notk1);
 
         conjuncts = new ArrayList<Formula>();
-        conjuncts.add(new NotFormula(notk1.deepFormulaCopy()));
+        conjuncts.add(NotFormula.create(notk1.deepFormulaCopy()));
         conjuncts.add(b);
-        conjuncts.add(new NotFormula(e));
+        conjuncts.add(NotFormula.create(e));
         conjuncts.add(a);
         conjuncts.add(c);
-        conjuncts.add(new NotFormula(notk0.deepFormulaCopy()));
+        conjuncts.add(NotFormula.create(notk0.deepFormulaCopy()));
         Formula notk2 = AndFormula.generate(conjuncts);
-        expectedOutput.put(new PropositionalVariable("k!2", 2), notk2);
+        expectedOutput.put(PropositionalVariable.create("k!2", 2), notk2);
 
         int i=0;
         for (Map.Entry<PropositionalVariable, Formula> entry : expectedOutput

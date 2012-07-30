@@ -315,14 +315,14 @@ public class AckermannTest {
 		}
 		
 		//PropositionalEq equiv = new PropositionalEq(col, false); // false for inequality
-		ImpliesFormula f1 = new ImpliesFormula(old_formula, x);
-		ImpliesFormula f2 = new ImpliesFormula(x, old_formula);
+		ImpliesFormula f1 = ImpliesFormula.create(old_formula, x);
+		ImpliesFormula f2 = ImpliesFormula.create(x, old_formula);
 		ArrayList<Formula> f12 = new ArrayList<Formula>();
 		f12.add(f1);
 		f12.add(f2);
 		AndFormula equiv = AndFormula.generate(f12);
 		
-		NotFormula whole = new NotFormula(equiv);
+		NotFormula whole = NotFormula.create(equiv);
 		
 		Formula toShow = whole;
 		String z3InputStr = transformFormulaToString(toShow);

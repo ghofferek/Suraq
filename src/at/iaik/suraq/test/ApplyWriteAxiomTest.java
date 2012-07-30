@@ -33,8 +33,8 @@ public class ApplyWriteAxiomTest {
     @Test
     public void testApplyWriteAxiom() throws Throwable {
         ArrayVariable arrayVar = new ArrayVariable("A");
-        DomainVariable index = new DomainVariable("i");
-        DomainVariable value = new DomainVariable("v");
+        DomainVariable index = DomainVariable.create("i");
+        DomainVariable value = DomainVariable.create("v");
 
         ArrayWrite write = new ArrayWrite(arrayVar, index, value);
         Set<Formula> constraints = new HashSet<Formula>();

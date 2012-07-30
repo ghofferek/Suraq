@@ -11,6 +11,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -27,6 +28,7 @@ public class FormulaTerm extends PropositionalTerm {
      */
     private final Formula formula;
 
+    
     /**
      * 
      * Constructs a new <code>FormulaTerm</code>.
@@ -53,7 +55,7 @@ public class FormulaTerm extends PropositionalTerm {
         if (formula instanceof PropositionalTerm)
             return (PropositionalTerm) formula;
         else
-            return new FormulaTerm(formula);
+            return FormulaCache.formulaTerm.put(new FormulaTerm(formula));
     }
 
     /**

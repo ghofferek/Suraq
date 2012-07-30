@@ -1394,7 +1394,7 @@ public class Suraq implements Runnable {
             List<Formula> constraintsList = new ArrayList<Formula>();
             constraintsList.addAll(constraints);
             AndFormula arrayConstraints = AndFormula.generate(constraintsList);
-            formula = new ImpliesFormula(arrayConstraints, formula);
+            formula = ImpliesFormula.create(arrayConstraints, formula);
         }
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
@@ -1408,7 +1408,7 @@ public class Suraq implements Runnable {
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
 
-        lambda = new DomainVariable(Util.freshVarName(formula, "lambda"));
+        lambda = DomainVariable.create(Util.freshVarName(formula, "lambda"));
 
         List<Formula> lambdaDisequalities = new ArrayList<Formula>();
         for (DomainTerm index : indexSet) {
@@ -1428,7 +1428,7 @@ public class Suraq implements Runnable {
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
-        formula = new ImpliesFormula(lambdaConstraints, formula);
+        formula = ImpliesFormula.create(lambdaConstraints, formula);
 
         Set<Token> currentDependenceArrayVariables = new HashSet<Token>();
         for (ArrayVariable var : formula.getArrayVariables())
@@ -1496,7 +1496,7 @@ public class Suraq implements Runnable {
         if(qbfsolver)
         {
             // debug:
-            //formula = new NotFormula(formula);
+            //formula = NotFormula.create(formula);
             
             TseitinEncoding tseitin = new TseitinEncoding();
             formula = tseitin.performTseitinEncodingWithoutZ3(formula);
@@ -1660,7 +1660,7 @@ public class Suraq implements Runnable {
             }
 
             tempFormula = tempFormula.substituteFormula(variableSubstitutions);
-            tempFormula = new NotFormula(tempFormula);
+            tempFormula = NotFormula.create(tempFormula);
             this.assertPartitionFormulas.put(count + 1, tempFormula);
             SExpression assertPartitionExpression = new SExpression();
             assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
@@ -1804,9 +1804,9 @@ public class Suraq implements Runnable {
                 if (numParams == 0)
                 {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))
-                        listOfVarCopies.add(new PropositionalVariable(name, count));
+                        listOfVarCopies.add(PropositionalVariable.create(name, count));
                     else if (type.equals(SExpressionConstants.VALUE_TYPE))
-                        listOfVarCopies.add(new DomainVariable(name, count));
+                        listOfVarCopies.add(DomainVariable.create(name, count));
                     else
                     {
                         assert (type.equals(SExpressionConstants.ARRAY_TYPE));

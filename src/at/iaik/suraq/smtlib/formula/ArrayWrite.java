@@ -286,7 +286,7 @@ public class ArrayWrite extends ArrayTerm {
         index = indexTerm.deepTermCopy();
         index = (DomainTerm)index.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
         if (!(index instanceof DomainVariable)) {
-            DomainVariable simpleIndex = new DomainVariable(Util.freshVarName(
+            DomainVariable simpleIndex = DomainVariable.create(Util.freshVarName(
                     topLevelFormula, "read"));
             List<DomainTerm> terms = new ArrayList<DomainTerm>();
             terms.add(simpleIndex);
@@ -319,7 +319,7 @@ public class ArrayWrite extends ArrayTerm {
         domainTerms.add(value);
         constraints.add(new DomainEq(domainTerms, true));
 
-        DomainVariable newUVar = new DomainVariable(Util.freshVarName(
+        DomainVariable newUVar = DomainVariable.create(Util.freshVarName(
                 topLevelFormula, "uVar"));
         domainTerms.clear();
         domainTerms.add(index);

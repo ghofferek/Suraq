@@ -504,7 +504,7 @@ public class DomainIte extends DomainTerm {
         // remember that "ite" is a reserved word!
         // Hence I used "itev" instead for ite variable
         Token newDomainToken = Token.generate(Util.freshVarNameCached(topLevelFormula, "itev"));
-        DomainVariable newDomainVar = new DomainVariable(newDomainToken);
+        DomainVariable newDomainVar = DomainVariable.create(newDomainToken);
         newToken.value = newDomainVar;
         
         // remove DomainITE recusively -> also condition, then, else

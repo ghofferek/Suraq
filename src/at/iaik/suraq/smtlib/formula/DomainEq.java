@@ -12,6 +12,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -63,7 +64,7 @@ public class DomainEq extends EqualityFormula {
         for (Term term : this.terms) {
             terms.add((DomainTerm) term.deepTermCopy());
         }
-        return new DomainEq(terms, equal);
+        return FormulaCache.equalityFormula.put(new DomainEq(terms, equal));
     }
 
     /**
@@ -129,13 +130,13 @@ public class DomainEq extends EqualityFormula {
         encoding.put(tseitinVar, this.deepFormulaCopy());
 
         List<Formula> disjuncts = new ArrayList<Formula>(2);
-        disjuncts.add(new NotFormula(tseitinVar));
+        disjuncts.add(NotFormula.create(tseitinVar));
         disjuncts.add(this.deepFormulaCopy());
         clauses.add(OrFormula.generate(disjuncts));
 
         disjuncts.clear();
         disjuncts.add(tseitinVar);
-        disjuncts.add(new NotFormula(this.deepFormulaCopy()));
+        disjuncts.add(NotFormula.create(this.deepFormulaCopy()));
         clauses.add(OrFormula.generate(disjuncts));
 
         return tseitinVar;

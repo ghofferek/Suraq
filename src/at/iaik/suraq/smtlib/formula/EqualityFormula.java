@@ -20,6 +20,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableArrayList;
 
 /**
@@ -86,7 +87,7 @@ public abstract class EqualityFormula implements Formula {
             for (Term term : terms) {
                 domainTerms.add((DomainTerm) term);
             }
-            return new DomainEq(domainTerms, equal);
+            return FormulaCache.equalityFormula.put(new DomainEq(domainTerms, equal));
         }
 
         if (termType.equals(Term.arrayTermClass)) {
@@ -94,7 +95,7 @@ public abstract class EqualityFormula implements Formula {
             for (Term term : terms) {
                 arrayTerms.add((ArrayTerm) term);
             }
-            return new ArrayEq(arrayTerms, equal);
+            return FormulaCache.equalityFormula.put(new ArrayEq(arrayTerms, equal));
         }
 
         if (termType.equals(Term.propositionalTermClass)) {
@@ -102,7 +103,7 @@ public abstract class EqualityFormula implements Formula {
             for (Term term : terms) {
                 propositionalTerms.add((PropositionalTerm) term);
             }
-            return new PropositionalEq(propositionalTerms, equal);
+            return FormulaCache.equalityFormula.put(new PropositionalEq(propositionalTerms, equal));
         }
 
         // This should never be reached
@@ -572,10 +573,10 @@ public abstract class EqualityFormula implements Formula {
                 || ((equal == true) && (notFlag == true))) {
             equal = true;
             if (firstLevel == true) {
-                literals.add(new NotFormula(create(terms, equal)));
+                literals.add(NotFormula.create(create(terms, equal)));
                 return OrFormula.generate(literals);
             } else
-                return new NotFormula(create(terms, equal));
+                return NotFormula.create(create(terms, equal));
         } else
             throw new RuntimeException("This point should not be reachable");
         }
@@ -703,9 +704,9 @@ public abstract class EqualityFormula implements Formula {
                         // we must take care of inequalities, so we add a NOT around single terms
                         // x != y != z <=> x!=y && x!=z && y!=z <=> e12 && e13 && e23
                         if(this.equal)
-                            newTerms.add(new PropositionalVariable(newName));
+                            newTerms.add(PropositionalVariable.create(newName));
                         else
-                            newTerms.add(new NotFormula(new PropositionalVariable(newName)));
+                            newTerms.add(NotFormula.create(PropositionalVariable.create(newName)));
                     }
                 }
             }

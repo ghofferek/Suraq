@@ -32,7 +32,7 @@ public class ConsequentTransformationTest {
     public void testSinglePosLiteral() {
 
         // define input
-        Formula input = new PropositionalVariable("a");
+        Formula input = PropositionalVariable.create("a");
 
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
@@ -52,7 +52,7 @@ public class ConsequentTransformationTest {
     public void testSingleNegLiteral() {
 
         // define input
-        Formula input = new NotFormula(new PropositionalVariable("a"));
+        Formula input = NotFormula.create(PropositionalVariable.create("a"));
 
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
@@ -72,7 +72,7 @@ public class ConsequentTransformationTest {
     public void testPropositionalConstant() {
 
         // define input
-        Formula input = new NotFormula(new PropositionalConstant(false));
+        Formula input = NotFormula.create(new PropositionalConstant(false));
 
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
@@ -92,10 +92,10 @@ public class ConsequentTransformationTest {
     public void testSimpleTransformation() {
 
         // define input
-        Formula b = new PropositionalVariable("b");
+        Formula b = PropositionalVariable.create("b");
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
-        subFormulas.add(new NotFormula(b));
-        Formula input = new NotFormula(OrFormula.generate(subFormulas));
+        subFormulas.add(NotFormula.create(b));
+        Formula input = NotFormula.create(OrFormula.generate(subFormulas));
 
         // create expected output
         subFormulas = new ArrayList<Formula>();
@@ -115,12 +115,12 @@ public class ConsequentTransformationTest {
     public void testRemoveMultipleNots() {
 
         // define input
-        Formula propVar = new PropositionalVariable("a");
-        Formula input = new NotFormula(new NotFormula(new NotFormula(propVar)));
+        Formula propVar = PropositionalVariable.create("a");
+        Formula input = NotFormula.create(NotFormula.create(NotFormula.create(propVar)));
 
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
-        subFormulas.add(new NotFormula(propVar));
+        subFormulas.add(NotFormula.create(propVar));
         Formula expectedOutput = OrFormula.generate(subFormulas);
 
         // create output with transformation
@@ -136,14 +136,14 @@ public class ConsequentTransformationTest {
     public void testRewriteImplies() {
 
         // define input
-        PropositionalTerm a = new PropositionalVariable("a");
-        PropositionalTerm b = new PropositionalVariable("b");
-        Formula input = new ImpliesFormula(a, b);
+        PropositionalTerm a = PropositionalVariable.create("a");
+        PropositionalTerm b = PropositionalVariable.create("b");
+        Formula input = ImpliesFormula.create(a, b);
 
         // create expected output
 
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
-        subFormulas.add(new NotFormula(a));
+        subFormulas.add(NotFormula.create(a));
         subFormulas.add(b);
         Formula expectedOutput = OrFormula.generate(subFormulas);
 
@@ -159,8 +159,8 @@ public class ConsequentTransformationTest {
     public void testRewriteInequality() {
 
         // define input
-        PropositionalTerm a = new PropositionalVariable("a");
-        PropositionalTerm b = new PropositionalVariable("b");
+        PropositionalTerm a = PropositionalVariable.create("a");
+        PropositionalTerm b = PropositionalVariable.create("b");
         List<PropositionalTerm> inputFormulas = new ArrayList<PropositionalTerm>();
         inputFormulas.add(a);
         inputFormulas.add(b);
@@ -169,7 +169,7 @@ public class ConsequentTransformationTest {
         // create expected output
         Formula equality = new PropositionalEq(inputFormulas, true);
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
-        subFormulas.add(new NotFormula(equality));
+        subFormulas.add(NotFormula.create(equality));
         Formula expectedOutput = OrFormula.generate(subFormulas);
 
         // create output with transformation
@@ -185,17 +185,17 @@ public class ConsequentTransformationTest {
     public void testApplyDeMorgan() {
 
         // define input
-        PropositionalTerm a = new PropositionalVariable("a");
-        PropositionalTerm b = new PropositionalVariable("b");
+        PropositionalTerm a = PropositionalVariable.create("a");
+        PropositionalTerm b = PropositionalVariable.create("b");
         List<Formula> inputFormulas = new ArrayList<Formula>();
         inputFormulas.add(a);
         inputFormulas.add(b);
-        Formula input = new NotFormula(AndFormula.generate(inputFormulas));
+        Formula input = NotFormula.create(AndFormula.generate(inputFormulas));
 
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
-        subFormulas.add(new NotFormula(a));
-        subFormulas.add(new NotFormula(b));
+        subFormulas.add(NotFormula.create(a));
+        subFormulas.add(NotFormula.create(b));
         Formula expectedOutput = OrFormula.generate(subFormulas);
 
         // create output with transformation
@@ -211,9 +211,9 @@ public class ConsequentTransformationTest {
     public void testNestedOrOperations() {
 
         // define input
-        PropositionalTerm a = new PropositionalVariable("a");
-        PropositionalTerm b = new PropositionalVariable("b");
-        PropositionalTerm c = new PropositionalVariable("c");
+        PropositionalTerm a = PropositionalVariable.create("a");
+        PropositionalTerm b = PropositionalVariable.create("b");
+        PropositionalTerm c = PropositionalVariable.create("c");
 
         List<Formula> inputOr1Formulas = new ArrayList<Formula>();
         inputOr1Formulas.add(b);
@@ -246,9 +246,9 @@ public class ConsequentTransformationTest {
     public void testNestedAndOperations() {
 
         // define input
-        PropositionalTerm a = new PropositionalVariable("a");
-        PropositionalTerm b = new PropositionalVariable("b");
-        PropositionalTerm c = new PropositionalVariable("c");
+        PropositionalTerm a = PropositionalVariable.create("a");
+        PropositionalTerm b = PropositionalVariable.create("b");
+        PropositionalTerm c = PropositionalVariable.create("c");
 
         List<Formula> inputAnd1Formulas = new ArrayList<Formula>();
         inputAnd1Formulas.add(b);
@@ -258,13 +258,13 @@ public class ConsequentTransformationTest {
         List<Formula> inputAnd2Formulas = new ArrayList<Formula>();
         inputAnd2Formulas.add(a);
         inputAnd2Formulas.add(and1Formula);
-        Formula input = new NotFormula(AndFormula.generate(inputAnd2Formulas));
+        Formula input = NotFormula.create(AndFormula.generate(inputAnd2Formulas));
 
         // create expected output
         List<Formula> subFormulas = new ArrayList<Formula>();
-        subFormulas.add(new NotFormula(a));
-        subFormulas.add(new NotFormula(b));
-        subFormulas.add(new NotFormula(c));
+        subFormulas.add(NotFormula.create(a));
+        subFormulas.add(NotFormula.create(b));
+        subFormulas.add(NotFormula.create(c));
         Formula expectedOutput = OrFormula.generate(subFormulas);
 
         // create output with transformation

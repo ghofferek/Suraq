@@ -146,8 +146,8 @@ public class GraphReductionTest {
         
 		
 		// this only works for VALID formulas
-		ImpliesFormula f1 = new ImpliesFormula(old_formula, x);
-		ImpliesFormula f2 = new ImpliesFormula(x, old_formula);
+		ImpliesFormula f1 = ImpliesFormula.create(old_formula, x);
+		ImpliesFormula f2 = ImpliesFormula.create(x, old_formula);
 		ArrayList<Formula> f12 = new ArrayList<Formula>();
 		f12.add(f1);
 		f12.add(f2);

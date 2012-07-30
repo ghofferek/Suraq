@@ -261,7 +261,7 @@ public class TransformedZ3Proof extends Z3Proof {
         for (Lit literal : node.cl) {
             Formula elem = literalMap.get(literal.var());
             if (!literal.isPos())
-                elem = new NotFormula(elem);
+                elem = NotFormula.create(elem);
             disjuncts.add(elem);
         }
 
@@ -2156,7 +2156,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
             List<Formula> axiomParts = new ArrayList<Formula>();
             for (Z3Proof subProof : this.subProofs) {
-                axiomParts.add((new NotFormula(subProof.consequent)));
+                axiomParts.add((NotFormula.create(subProof.consequent)));
             }
 
             axiomParts.add(this.consequent);
@@ -2474,7 +2474,7 @@ public class TransformedZ3Proof extends Z3Proof {
         OrFormula premise1 = (OrFormula) subProofs.get(0).consequent;
         OrFormula premise2 = (OrFormula) subProofs.get(0).consequent;
 
-        Formula negatedLiteral = new NotFormula(literal);
+        Formula negatedLiteral = NotFormula.create(literal);
 
         int polarity = 0;
         for (Formula literalFromPremise1 : premise1.getDisjuncts()) {

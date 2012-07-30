@@ -15,6 +15,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -34,6 +35,11 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     private final Formula formula;
 
+    public static NotFormula create(Formula formula)
+    {
+        return FormulaCache.notFormula.put(new NotFormula(formula));
+    }
+    
     /**
      * 
      * Constructs a new <code>NotFormula</code>.
@@ -41,7 +47,7 @@ public class NotFormula extends BooleanCombinationFormula {
      * @param formula
      *            the negation of this formula.
      */
-    public NotFormula(Formula formula) {
+    private NotFormula(Formula formula) {
         if (formula instanceof FormulaTerm)
             this.formula = ((FormulaTerm) formula).getFormula();
         else
@@ -72,7 +78,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula deepFormulaCopy() {
-        return new NotFormula(formula.deepFormulaCopy());
+        return NotFormula.create(formula.deepFormulaCopy());
     }
 
     /**
@@ -109,7 +115,7 @@ public class NotFormula extends BooleanCombinationFormula {
         if (formula instanceof AndFormula) {
             List<Formula> subformulas = new ArrayList<Formula>();
             for (Formula subformula : ((AndOrXorFormula) formula).formulas)
-                subformulas.add((new NotFormula(subformula))
+                subformulas.add((NotFormula.create(subformula))
                         .negationNormalForm());
             return OrFormula.generate(subformulas);
         }
@@ -118,7 +124,7 @@ public class NotFormula extends BooleanCombinationFormula {
         if (formula instanceof OrFormula) {
             List<Formula> subformulas = new ArrayList<Formula>();
             for (Formula subformula : ((AndOrXorFormula) formula).formulas)
-                subformulas.add((new NotFormula(subformula))
+                subformulas.add((NotFormula.create(subformula))
                         .negationNormalForm());
             return AndFormula.generate(subformulas);
         }
@@ -126,7 +132,7 @@ public class NotFormula extends BooleanCombinationFormula {
         // Xor
         if (formula instanceof XorFormula) {
             Formula converted = ((XorFormula) formula).toAndOrFormula();
-            return (new NotFormula(converted)).negationNormalForm();
+            return (NotFormula.create(converted)).negationNormalForm();
         }
 
         // Not
@@ -142,7 +148,7 @@ public class NotFormula extends BooleanCombinationFormula {
                         !eqFormula.isEqual());
 
             AndFormula pairwise = eqFormula.toPairwise();
-            return (new NotFormula(pairwise)).negationNormalForm();
+            return (NotFormula.create(pairwise)).negationNormalForm();
         }
 
         // ArrayProperty
@@ -165,7 +171,7 @@ public class NotFormula extends BooleanCombinationFormula {
             ImpliesFormula impliesFormula = (ImpliesFormula) formula;
             List<Formula> list = new ArrayList<Formula>();
             list.add(impliesFormula.getLeftSide().negationNormalForm());
-            list.add((new NotFormula(impliesFormula.getRightSide()))
+            list.add((NotFormula.create(impliesFormula.getRightSide()))
                     .negationNormalForm());
             return AndFormula.generate(list);
         }
@@ -184,9 +190,9 @@ public class NotFormula extends BooleanCombinationFormula {
         // PropositionalITE
         if (formula instanceof PropositionalIte) {
             PropositionalIte iteFormula = (PropositionalIte) formula;
-            Formula thenBranch = (new NotFormula(iteFormula.getThenBranch()))
+            Formula thenBranch = (NotFormula.create(iteFormula.getThenBranch()))
                     .negationNormalForm();
-            Formula elseBranch = (new NotFormula(iteFormula.getElseBranch()))
+            Formula elseBranch = (NotFormula.create(iteFormula.getElseBranch()))
                     .negationNormalForm();
             return new PropositionalIte(iteFormula.getCondition()
                     .negationNormalForm(), thenBranch, elseBranch);
@@ -257,7 +263,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return new NotFormula(formula.substituteFormula(paramMap));
+        return NotFormula.create(formula.substituteFormula(paramMap));
     }
 
     /**
@@ -270,7 +276,7 @@ public class NotFormula extends BooleanCombinationFormula {
             formula = ((ArrayEq) formula).toArrayProperties();
         else
             formula = formula.removeArrayEqualities();
-        return new NotFormula(formula);
+        return NotFormula.create(formula);
     }
 
     /**
@@ -283,7 +289,7 @@ public class NotFormula extends BooleanCombinationFormula {
             formula = ((ArrayProperty) formula).toFiniteConjunction(indexSet);
         else
             formula = formula.arrayPropertiesToFiniteConjunctions(indexSet);
-        return new NotFormula(formula);
+        return NotFormula.create(formula);
     }
 
     /**
@@ -330,7 +336,7 @@ public class NotFormula extends BooleanCombinationFormula {
         if (formula instanceof NotFormula)
             return ((NotFormula) formula).formula;
 
-        return new NotFormula(formula);
+        return NotFormula.create(formula);
     }
 
     /**
@@ -338,7 +344,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula flatten() {
-        return new NotFormula(formula.flatten());
+        return NotFormula.create(formula.flatten());
     }
 
     /**
@@ -355,7 +361,7 @@ public class NotFormula extends BooleanCombinationFormula {
     @Override
     public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        return new NotFormula(formula.removeArrayWrites(topLevelFormula, constraints,
+        return NotFormula.create(formula.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars));
     }
 
@@ -364,7 +370,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        return new NotFormula(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
+        return NotFormula.create(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
     }
 
     /**
@@ -382,7 +388,7 @@ public class NotFormula extends BooleanCombinationFormula {
     @Override
     public Formula substituteUninterpretedFunction(Token oldFunction,
             UninterpretedFunction newFunction) {
-        return new NotFormula(formula.substituteUninterpretedFunction(oldFunction, newFunction));
+        return NotFormula.create(formula.substituteUninterpretedFunction(oldFunction, newFunction));
     }
 
     /**
@@ -392,7 +398,7 @@ public class NotFormula extends BooleanCombinationFormula {
     @Override
     public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        return new NotFormula(formula.makeArrayReadsSimple(topLevelFormula, constraints,
+        return NotFormula.create(formula.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars));
     }
 
@@ -404,7 +410,7 @@ public class NotFormula extends BooleanCombinationFormula {
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
-        return new NotFormula(
+        return NotFormula.create(
                 formula.uninterpretedPredicatesToAuxiliaryVariables(
                         topLeveFormula, constraints, noDependenceVars));
     }*/
@@ -519,8 +525,8 @@ public class NotFormula extends BooleanCombinationFormula {
         clauses.add(OrFormula.generate(disjuncts));
 
         disjuncts.clear();
-        disjuncts.add(new NotFormula(tseitinVar));
-        disjuncts.add(new NotFormula(tseitinVarForSubformula));
+        disjuncts.add(NotFormula.create(tseitinVar));
+        disjuncts.add(NotFormula.create(tseitinVarForSubformula));
         clauses.add(OrFormula.generate(disjuncts));
 
         return tseitinVar;
@@ -546,7 +552,7 @@ public class NotFormula extends BooleanCombinationFormula {
             formula = formula.uninterpretedPredicatesToAuxiliaryVariables(
                     topLeveFormula, predicateInstances, instanceParameters,
                     noDependenceVars);
-        return new NotFormula(formula);
+        return NotFormula.create(formula);
     }
     
     /**
@@ -559,7 +565,7 @@ public class NotFormula extends BooleanCombinationFormula {
             Map<String, List<DomainVariable>> functionInstances,
             Map<DomainVariable, List<DomainTerm>> instanceParameters,
             Set<Token> noDependenceVars) {
-        return new NotFormula(
+        return NotFormula.create(
                 formula.uninterpretedFunctionsToAuxiliaryVariables(
                         topLeveFormula, functionInstances, instanceParameters,
                         noDependenceVars));
@@ -569,14 +575,14 @@ public class NotFormula extends BooleanCombinationFormula {
     public Formula replaceEquivalences(Formula topLeveFormula,
             Map<EqualityFormula, String> replacements,
             Set<Token> noDependenceVars) {
-     return new NotFormula(formula.replaceEquivalences(topLeveFormula,
+     return NotFormula.create(formula.replaceEquivalences(topLeveFormula,
                 replacements, noDependenceVars));
     }
 
     @Override
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
-        return new NotFormula(formula.removeDomainITE(topLevelFormula,
+        return NotFormula.create(formula.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList));
     }
 }

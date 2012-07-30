@@ -50,10 +50,10 @@ public class XorFormula extends AndOrXorFormula {
         List<Formula> listAnd1 = new ArrayList<Formula>();
         List<Formula> listAnd2 = new ArrayList<Formula>();
         List<Formula> listOr = new ArrayList<Formula>();
-        listAnd1.add(new NotFormula(x1));
+        listAnd1.add(NotFormula.create(x1));
         listAnd1.add(x2);
         AndFormula and1 = AndFormula.generate(listAnd1);
-        listAnd2.add(new NotFormula(x2));
+        listAnd2.add(NotFormula.create(x2));
         listAnd2.add(x1);
         AndFormula and2 = AndFormula.generate(listAnd2);
         listOr.add(and1);

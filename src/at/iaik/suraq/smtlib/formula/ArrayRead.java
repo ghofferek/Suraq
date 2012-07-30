@@ -342,7 +342,7 @@ public class ArrayRead extends DomainTerm {
             return this; // This read is already simple.
 
         DomainTerm oldIndexTerm = this.indexTerm;
-        DomainTerm indexTerm = new DomainVariable(Util.freshVarName(
+        DomainTerm indexTerm = DomainVariable.create(Util.freshVarName(
                 topLevelFormula, "read"));
 
         List<DomainTerm> list = new ArrayList<DomainTerm>();

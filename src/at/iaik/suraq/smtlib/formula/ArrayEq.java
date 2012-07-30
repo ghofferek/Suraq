@@ -79,7 +79,7 @@ public class ArrayEq extends EqualityFormula {
      */
     public Formula toArrayProperties() {
         Formula newFormula;
-        DomainVariable index = new DomainVariable(Util.freshVarName(this,
+        DomainVariable index = DomainVariable.create(Util.freshVarName(this,
                 "index"));
         Set<DomainVariable> uVars = new HashSet<DomainVariable>();
         uVars.add(index);

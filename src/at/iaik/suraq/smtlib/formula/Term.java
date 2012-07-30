@@ -29,11 +29,11 @@ public abstract class Term implements Serializable {
      */
     private static final long serialVersionUID = -5654824580231056142L;
 
-    public static final Class<?> domainTermClass = (new DomainVariable(""))
+    public static final Class<?> domainTermClass = (DomainVariable.create(""))
             .getClass().getSuperclass();
     public static final Class<?> arrayTermClass = (new ArrayVariable(""))
             .getClass().getSuperclass();
-    public static final Class<?> propositionalTermClass = (new PropositionalVariable(
+    public static final Class<?> propositionalTermClass = (PropositionalVariable.create(
             "")).getClass().getSuperclass();
 
     public final static int GLOBAL_PARTITION = -1;

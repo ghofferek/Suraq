@@ -58,17 +58,16 @@ public class GraphReduction {
     
     
     
-    private PropositionalVariable generatePropositionalVariable(Token token)
-    {
-        if(prop_cache.containsKey(token))
-        {
+    private PropositionalVariable generatePropositionalVariable(Token token) {
+        if (prop_cache.containsKey(token)) {
             return prop_cache.get(token);
         }
-        PropositionalVariable p = (PropositionalVariable)FormulaCache.propVar.put(new PropositionalVariable(token));
+        PropositionalVariable p = (PropositionalVariable) FormulaCache.propVar
+                .put(PropositionalVariable.create(token));
         prop_cache.put(token, p);
         return p;
     }
-    
+
     /**
      * computes stats in O(vertices.size()) time and prints to System.out
      * @param vertices
@@ -170,7 +169,7 @@ public class GraphReduction {
         toDelete.removeAll(formula.getPropositionalVariables());
         noDependenceVars.removeAll(toDelete);
 
-        return new ImpliesFormula(btrans, formula);
+        return ImpliesFormula.create(btrans, formula);
     }
 
     protected int countTriangles(Collection<GraphElement> vertices) //throws IOException
@@ -366,7 +365,7 @@ public class GraphReduction {
         vertices = null;
         btransparts = null;
         
-        return new PropositionalVariable("Btrans");
+        return PropositionalVariable.create("Btrans");
         
         
     } // generateBtransToFile
@@ -374,10 +373,10 @@ public class GraphReduction {
     protected OrFormula generateBtransElemCNF(Token a, Token b, Token c)
     {
         List<Formula> part1 = new ArrayList<Formula>(3);
-        part1.add(FormulaCache.notFormula.put(new NotFormula(generatePropositionalVariable(a))));
-        part1.add(FormulaCache.notFormula.put(new NotFormula(generatePropositionalVariable(b))));
+        part1.add(NotFormula.create(generatePropositionalVariable(a)));
+        part1.add(NotFormula.create(generatePropositionalVariable(b)));
         part1.add(generatePropositionalVariable(c));
-        OrFormula or = FormulaCache.orFormula.put(OrFormula.generate(part1));
+        OrFormula or = OrFormula.generate(part1);
         return or;
     }
     
@@ -386,8 +385,8 @@ public class GraphReduction {
         List<Formula> part1 = new ArrayList<Formula>(2);
         part1.add(generatePropositionalVariable(a));
         part1.add(generatePropositionalVariable(b));
-        AndFormula and = FormulaCache.andFormula.put(AndFormula.generate(part1));
-        ImpliesFormula implies = FormulaCache.impliesFormula.put(new ImpliesFormula(and, generatePropositionalVariable(c)));
+        AndFormula and = AndFormula.generate(part1);
+        ImpliesFormula implies = FormulaCache.impliesFormula.put(ImpliesFormula.create(and, generatePropositionalVariable(c)));
         return implies;
     }
     
@@ -485,7 +484,7 @@ public class GraphReduction {
             {
                 List<PropositionalVariable> newList = new ArrayList<PropositionalVariable>(circle);
                 PropositionalVariable c = newList.remove(i);
-                btransList.add(new ImpliesFormula(AndFormula.generate(newList), c));
+                btransList.add(ImpliesFormula.create(AndFormula.generate(newList), c));
             }
         }
 
@@ -497,7 +496,7 @@ public class GraphReduction {
             {
                 List<PropositionalVariable> newList = new ArrayList<PropositionalVariable>(circle);
                 PropositionalVariable c = newList.remove(i);
-                btransList.add(new ImpliesFormula(AndFormula.generate(newList), c));
+                btransList.add(ImpliesFormula.create(AndFormula.generate(newList), c));
             }
         }
         
