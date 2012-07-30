@@ -131,7 +131,6 @@ public class OrFormula extends AndOrXorFormula {
     @Override
     public Formula transformToConsequentsForm(boolean notFlag,
             boolean firstLevel) {
-    	// FIXME: chillebold: strange...
         // Special case: not(or(Literal)) --> or(not(literal)
         if ((notFlag == true) && (this.formulas.size() != 1))
             throw new RuntimeException(

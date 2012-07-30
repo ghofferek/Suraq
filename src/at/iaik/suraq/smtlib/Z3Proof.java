@@ -328,7 +328,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
         // This node only takes the "values" of the other node.
         // its position in the DAG stays the same.
 
-        // FIXME: merging -> following line was added or removed?
+        
         Z3Proof.hypModCount++;
         this.hypCacheModCount = proof.hypCacheModCount;
         this.hypCacheDirty = proof.hypCacheDirty;

@@ -75,7 +75,17 @@ public class ProofParser extends SMTLibParser {
     @Override
     public void parse() throws ParseError {
 
-        for (int count = 0; count < rootExpr.getChildren().size(); count++) {
+        int start = 0;
+        // TODO: verify:
+        // chillebold: workaround:
+        // because proof looks like: ((set-logic QF_UF)(proof (let (($x131....
+        if(rootExpr.getChildren().get(0).getChildren().get(0).equals(SExpressionConstants.SET_LOGIC_QF_UF))
+        {
+            rootExpr = rootExpr.getChildren().get(0).getChildren().get(1);
+            // TODO: chillebold: startcounter changed from 0 to 1 in that case
+            start = 1;
+        }
+        for (int count = start; count < rootExpr.getChildren().size(); count++) {
             SExpression expression = rootExpr.getChildren().get(count);
 
             if (expression instanceof Token)
@@ -101,9 +111,13 @@ public class ProofParser extends SMTLibParser {
                         " \nwith value: "+expression.getChildren().get(0).toString());
                     System.out.println("use next: "+expression.getChildren().get(1).getClass().getName());
                     
+                    System.out.println("We will take the next element given:");
                     expression = expression.getChildren().get(1); // this is now a (PROOF
+                    
+                    //System.out.println(expression.toString().substring(0,200)+"...");
+                    
                     // also leave out the PROOF...
-                    expression = expression.getChildren().get(1); // this is now the first LET
+                    //expression = expression.getChildren().get(1); // this is now the first LET
                     
                    
                 }
@@ -186,7 +200,7 @@ public class ProofParser extends SMTLibParser {
         int numChildren = expression.getChildren().size();
         assert (numChildren >= 2);
 
-        int subProofsCount = numChildren - 2;
+        int subProofsCount = numChildren - 2; // 0
 
         List<Z3Proof> subProofs = new ArrayList<Z3Proof>();
         if (subProofsCount > 0)

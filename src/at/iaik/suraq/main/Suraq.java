@@ -46,6 +46,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.util.BenchmarkTimer;
 import at.iaik.suraq.util.DagOperationManager;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.ImmutableSet;
@@ -61,7 +62,9 @@ import at.iaik.suraq.util.Util;
  * 
  */
 public class Suraq implements Runnable {
-
+    public static final BenchmarkTimer extTimer = new BenchmarkTimer();
+    
+    
     /**
      * Timer for overall execution
      */
@@ -178,6 +181,8 @@ public class Suraq implements Runnable {
     public static void main(String[] args) {
 
         try {
+            Suraq.extTimer.start();
+            Suraq.extTimer.stopReset("start");
             Suraq suraq = new Suraq(args);
             suraq.run();
 
@@ -190,6 +195,7 @@ public class Suraq implements Runnable {
     }
 
     private String inputTransformations(File sourceFile) {
+        Suraq.extTimer.stopReset("<inputTransformations>");
         System.out.println("Starting to read " + sourceFile.getPath() + " ...");
         SuraqOptions options = SuraqOptions.getInstance();
 
@@ -318,7 +324,7 @@ public class Suraq implements Runnable {
         {
             List<String> tseitinPartitions = new ArrayList<String>();
             
-            
+            Suraq.extTimer.stopReset("before tseitin");
             if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
                 System.out.println("  Performing tseitin encoding without Z3...");
                 tseitinPartitions = performTseitinEncodingWithoutZ3();
@@ -326,6 +332,7 @@ public class Suraq implements Runnable {
                 System.out.println("  Performing tseitin encoding with Z3...");
                 tseitinPartitions = performTseitinEncodingWithZ3();
             }
+            Suraq.extTimer.stopReset("after tseitin");
     
             allPartitionsTimer.end();
             System.out.println("  All partitions done. (" + allPartitionsTimer
@@ -334,11 +341,13 @@ public class Suraq implements Runnable {
             // make asserts out of tseitinPartitions (returns the inputstring for the z3)
             z3InputStr = buildSMTDescriptionFromTseitinPartitions(
                     declarationStr, tseitinPartitions);
+            Suraq.extTimer.stopReset("after buildSMTDescriptionFromTseitinPartitions");
         }
         else
         {
             z3InputStr = buildSMTDescriptionWithoutTsetin(declarationStr);
         }
+        Suraq.extTimer.stopReset("</inputTransformations>");
 
         return z3InputStr;
     }
@@ -857,11 +866,12 @@ public class Suraq implements Runnable {
             
             // write z3Proof to file
             if (z3.getState() == SMTSolver.UNSAT) {
+                Suraq.extTimer.stopReset("UNSAT :-)");
                 System.out.println("UNSAT");
                 proof = z3.getProof();
 
                 try {
-
+                    System.err.println(Suraq.extTimer);
                     System.out.println("writing proof to: "+z3ProofFile);
                     FileWriter fstream = new FileWriter(z3ProofFile);
                     fstream.write(z3.getProof());
@@ -875,10 +885,12 @@ public class Suraq implements Runnable {
             }
             else
             {
+                Suraq.extTimer.abortReset("SAT :-(");
                 System.out.println("SAT");
                 proof = z3.getProof();
 
                 try {
+                    System.err.println(Suraq.extTimer);
                     System.out.println("writing proof to: "+z3ProofFile);
                     FileWriter fstream = new FileWriter(z3ProofFile);
                     fstream.write(z3.getProof());
@@ -1065,6 +1077,7 @@ public class Suraq implements Runnable {
         // All done :-)
         overallTimer.stop();
         printEnd(noErrors, overallTimer);
+        System.err.println(Suraq.extTimer);
         return;
     }
 
@@ -1364,7 +1377,7 @@ public class Suraq implements Runnable {
      *             if something goes wrong
      */
     private Formula doMainWork() throws SuraqException {
-
+        Suraq.extTimer.stopReset("<doMainWork>");
         Timer timer = new Timer();
 
         // Flattening formula, because macros cause problems when
@@ -1398,6 +1411,7 @@ public class Suraq implements Runnable {
         }
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
+        Suraq.extTimer.stopReset("after removin array reads + writes");
 
         System.out.println("  Removing array equalities...");
         timer.reset();
@@ -1405,6 +1419,7 @@ public class Suraq implements Runnable {
         formula = formula.removeArrayEqualities();
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
+        Suraq.extTimer.stopReset("after removing array equalities");
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
 
@@ -1443,7 +1458,7 @@ public class Suraq implements Runnable {
         noDependenceVars.removeAll(currentDependenceArrayVariables);
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
-
+        Suraq.extTimer.stopReset("after Array Reads to UF");
 
         
         ///////////////////////////////////////////////////
@@ -1457,6 +1472,7 @@ public class Suraq implements Runnable {
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         DebugHelper.getInstance().formulaToFile(formula, "./debug_ackermann.txt");
+        Suraq.extTimer.stopReset("after Ackermann");
     
         ///////////////////////////////////////////////////
 
@@ -1465,6 +1481,7 @@ public class Suraq implements Runnable {
         ITEEquationReduction itered = new ITEEquationReduction();
         formula = itered.performReduction(formula, noDependenceVars);
         DebugHelper.getInstance().formulaToFile(formula, "./debug_ite.txt");
+        Suraq.extTimer.stopReset("after ITE equality trans");
         
         ///////////////////////////////////////////////////
         // Perform Graph Based Reduction
@@ -1481,6 +1498,7 @@ public class Suraq implements Runnable {
         }
         timer.end();
         System.out.println("    Done. (" + timer + ")");
+        Suraq.extTimer.stopReset("after Graph reduction");
     
         ///////////////////////////////////////////////////
         DebugHelper.getInstance().formulaToFile(formula, "./debug_graph.txt");
@@ -1492,7 +1510,7 @@ public class Suraq implements Runnable {
         ///////////////////////////////////////////////////
         // TSEITIN-Encoding + QBF Encoding
         ///////////////////////////////////////////////////
-        boolean qbfsolver = QBFSolver.isActive();
+        boolean qbfsolver = QBFEncoder.isActive();
         if(qbfsolver)
         {
             // debug:
@@ -1515,10 +1533,14 @@ public class Suraq implements Runnable {
             qbfSolver.solve(qbf);
             //int state = qbfSolver.getState();
             //if(state == QBFSolver.SAT)
-                
+            System.err.println("System.exit(0) in Suraq.java(1518) because of QBF.");
+            System.exit(0);
             return null;
         }
+        Suraq.extTimer.stopReset("after QBF enc");
+        
 
+        System.err.println(Suraq.extTimer);
 
         ///////////////////////////////////////////////////
         ///////////////////////////////////////////////////
@@ -1595,7 +1617,8 @@ public class Suraq implements Runnable {
             ex.printStackTrace();
         }*/
                 
-        
+
+        Suraq.extTimer.stopReset("</doMainWork>");
         return formula;
     }
     
@@ -1982,6 +2005,7 @@ public class Suraq implements Runnable {
             proofParser.parse();
             assert (proofParser.wasParsingSuccessfull());
         } catch (ParseError exc) {
+            exc.printStackTrace();
             handleParseError(exc);
             noErrors = false;
             throw new RuntimeException("Unable to parse proof!");

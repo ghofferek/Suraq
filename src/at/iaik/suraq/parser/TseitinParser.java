@@ -439,7 +439,8 @@ public class TseitinParser extends SMTLibParser {
 
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3Path());
-        DebugHelper.getInstance().stringtoFile(smtstr, "debug-tseitin-check.txt");
+        //DebugHelper.getInstance().stringtoFile(smtstr, "debug-tseitin-check.txt");
+        System.out.print('.');
         z3.solve(smtstr);
 
         switch (z3.getState()) {

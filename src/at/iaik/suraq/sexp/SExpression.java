@@ -272,6 +272,7 @@ public class SExpression {
      */
     @Override
     public String toString() {
+        // does not terminate
         if (isEmpty())
             return "()";
 

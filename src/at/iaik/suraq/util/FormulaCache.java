@@ -173,22 +173,6 @@ public class FormulaCache<T> {
 		}
 		System.out.println("************************************************");
 		
-		try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-		
-	      System.out.println("************************************************");
-	        for(FormulaCache<?> instance : instances)
-	        {
-	            int reads = instance.getCachedReads();
-	            int elems = instance.getCachedElements();
-	            int writes = instance.getCachedWrites();
-	            String className = instance.getName();
-	            System.out.println("* saved "+ reads + " reads on " + elems + " elements of max. " + writes + ":" + className);
-	        }
-	        System.out.println("************************************************");
 	}
 	
 }
