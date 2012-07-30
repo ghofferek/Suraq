@@ -891,13 +891,9 @@ public class Suraq implements Runnable {
                 }
             }
             z3 = null; // Allow this to be garbage collected
-            // FIXME: remove following to continue proof parsing
-            int ii=2;
-            if(ii>1) // prevent unreachable code warning
-            {
-            	System.out.println("Aborted Proof parsing. Search for me in Suraq.java");
-                return;
-            }
+            
+            assert(proof.length() > 0); // added by chillebold
+
             rootProof = parseProof(proof, propsitionalVars, domainVars,
                     arrayVars, uninterpretedFunctions);
 
@@ -1248,8 +1244,7 @@ public class Suraq implements Runnable {
         }
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
-        // FIXME: GET_PROOF was deactivated
-        // smtStr.append(SExpressionConstants.GET_PROOF.toString());
+        smtStr.append(SExpressionConstants.GET_PROOF.toString());
         smtStr.append(SExpressionConstants.EXIT.toString());
         
 
@@ -1282,7 +1277,7 @@ public class Suraq implements Runnable {
         }
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
-       // smtStr.append(SExpressionConstants.GET_PROOF.toString());
+        smtStr.append(SExpressionConstants.GET_PROOF.toString());
         smtStr.append(SExpressionConstants.EXIT.toString());
 
         return smtStr.toString();
