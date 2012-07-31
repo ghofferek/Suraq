@@ -129,7 +129,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
     @Override
     public Set<ArrayVariable> getArrayVariables() {
         Set<ArrayVariable> result = new HashSet<ArrayVariable>();
-        result.add(new ArrayVariable(varName));
+        result.add(ArrayVariable.create(varName));
         return result;
     }
 

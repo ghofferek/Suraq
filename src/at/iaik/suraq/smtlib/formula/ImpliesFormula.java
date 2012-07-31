@@ -82,8 +82,9 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula deepFormulaCopy() {
-        return new ImpliesFormula(leftSide.deepFormulaCopy(),
-                rightSide.deepFormulaCopy());
+        return this; // experimental
+        //return new ImpliesFormula(leftSide.deepFormulaCopy(),
+        //        rightSide.deepFormulaCopy());
     }
 
     /**
@@ -211,7 +212,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return new ImpliesFormula(leftSide.substituteFormula(paramMap),
+        return ImpliesFormula.create(leftSide.substituteFormula(paramMap),
                 rightSide.substituteFormula(paramMap));
     }
 
@@ -232,7 +233,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         else
             rightSide = rightSide.removeArrayEqualities();
 
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 
     /**
@@ -252,7 +253,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                     .toFiniteConjunction(indexSet);
         else
             rightSide = rightSide.arrayPropertiesToFiniteConjunctions(indexSet);
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 
     /**
@@ -288,7 +289,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             if (leftSide.equals(((NotFormula) rightSide).getNegatedFormula()))
                 return rightSide;
 
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 
     /**
@@ -296,7 +297,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula flatten() {
-        return new ImpliesFormula(leftSide.flatten(), rightSide.flatten());
+        return ImpliesFormula.create(leftSide.flatten(), rightSide.flatten());
     }
 
     /**
@@ -320,7 +321,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 noDependenceVars);
         rightSide = rightSide.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 
     /**
@@ -332,7 +333,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         Formula leftSide = this.leftSide;
         leftSide = leftSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
         rightSide = rightSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 
     /**
@@ -359,7 +360,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 newFunction);
         rightSide = rightSide.substituteUninterpretedFunction(oldFunction,
                 newFunction);
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 
     /**
@@ -375,7 +376,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 noDependenceVars);
         rightSide = rightSide.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 
     /**
@@ -581,7 +582,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                     topLeveFormula, predicateInstances, instanceParameters,
                     noDependenceVars);
 
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
     
     
@@ -604,7 +605,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 topLeveFormula, functionInstances, instanceParameters,
                 noDependenceVars);
 
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
     
     @Override
@@ -617,7 +618,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 noDependenceVars);
         rightSide = rightSide.replaceEquivalences(topLeveFormula, replacements,
                 noDependenceVars);
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 
     @Override
@@ -629,6 +630,6 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 andPreList);
         rightSide = rightSide.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
-        return new ImpliesFormula(leftSide, rightSide);
+        return ImpliesFormula.create(leftSide, rightSide);
     }
 }

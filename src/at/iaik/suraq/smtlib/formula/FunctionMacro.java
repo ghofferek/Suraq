@@ -69,7 +69,7 @@ public abstract class FunctionMacro {
      * @param macro
      *            the macro to (deep) copy.
      */
-    public FunctionMacro(FunctionMacro macro) {
+    /*private FunctionMacro(FunctionMacro macro) {
 
         this.name = (Token) macro.name.deepCopy();
         this.parameters = new ArrayList<Token>();
@@ -80,7 +80,7 @@ public abstract class FunctionMacro {
             tmp.put((Token) token.deepCopy(),
                     macro.paramMap.get(token).deepCopy());
         this.paramMap = new ImmutableHashMap<Token, SExpression>(tmp);
-    }
+    }*/
 
     /**
      * @return the <code>name</code>

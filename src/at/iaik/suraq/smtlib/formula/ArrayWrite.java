@@ -13,6 +13,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -53,13 +54,19 @@ public class ArrayWrite extends ArrayTerm {
      * @param valueTerm
      *            the value being written.
      */
-    public ArrayWrite(ArrayTerm arrayTerm, DomainTerm indexTerm,
+    private ArrayWrite(ArrayTerm arrayTerm, DomainTerm indexTerm,
             DomainTerm valueTerm) {
         this.arrayTerm = arrayTerm;
         this.indexTerm = indexTerm;
         this.valueTerm = valueTerm;
     }
 
+    public static ArrayWrite create(ArrayTerm arrayTerm, DomainTerm indexTerm,
+            DomainTerm valueTerm) {
+        return (ArrayWrite) FormulaCache.term.put(new ArrayWrite(arrayTerm,
+                indexTerm, valueTerm));
+    }
+    
     /**
      * Returns the array to which is written.
      * 
@@ -92,8 +99,9 @@ public class ArrayWrite extends ArrayTerm {
      */
     @Override
     public Term deepTermCopy() {
-        return new ArrayWrite((ArrayTerm) arrayTerm.deepTermCopy(),
-                indexTerm.deepTermCopy(), valueTerm.deepTermCopy());
+        return this;
+        //return new ArrayWrite((ArrayTerm) arrayTerm.deepTermCopy(),
+        //        indexTerm.deepTermCopy(), valueTerm.deepTermCopy());
     }
 
     /**
@@ -204,7 +212,7 @@ public class ArrayWrite extends ArrayTerm {
      */
     @Override
     public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        return new ArrayWrite((ArrayTerm) arrayTerm.substituteTerm(paramMap),
+        return ArrayWrite.create((ArrayTerm) arrayTerm.substituteTerm(paramMap),
                 (DomainTerm) indexTerm.substituteTerm(paramMap),
                 (DomainTerm) valueTerm.substituteTerm(paramMap));
     }
@@ -230,7 +238,7 @@ public class ArrayWrite extends ArrayTerm {
         ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
         DomainTerm indexTerm = (DomainTerm)this.indexTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
         DomainTerm valueTerm = (DomainTerm)this.valueTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
-        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
+        return ArrayWrite.create(arrayTerm, indexTerm, valueTerm);
     }
 
     /**
@@ -241,7 +249,7 @@ public class ArrayWrite extends ArrayTerm {
         ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.removeArrayEqualitiesTerm();
         DomainTerm indexTerm = (DomainTerm)this.indexTerm.removeArrayEqualitiesTerm();
         DomainTerm valueTerm = (DomainTerm)this.valueTerm.removeArrayEqualitiesTerm();
-        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
+        return ArrayWrite.create(arrayTerm, indexTerm, valueTerm);
     }
 
     /**
@@ -334,7 +342,7 @@ public class ArrayWrite extends ArrayTerm {
         Set<DomainVariable> uVars = new HashSet<DomainVariable>();
         uVars.add(newUVar);
         try {
-            constraints.add(new ArrayProperty(uVars, indexGuard,
+            constraints.add(ArrayProperty.create(uVars, indexGuard,
                     valueConstraint));
         } catch (SuraqException exc) {
             exc.printStackTrace();
@@ -374,7 +382,7 @@ public class ArrayWrite extends ArrayTerm {
             valueTerm = (DomainTerm) valueTerm
                     .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
 
-        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
+        return ArrayWrite.create(arrayTerm, indexTerm, valueTerm);
     }
 
     /**
@@ -399,7 +407,7 @@ public class ArrayWrite extends ArrayTerm {
         ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
         DomainTerm indexTerm = (DomainTerm)this.indexTerm.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
         
-        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
+        return ArrayWrite.create(arrayTerm, indexTerm, valueTerm);
     }
 
     /**
@@ -407,7 +415,7 @@ public class ArrayWrite extends ArrayTerm {
      */
     @Override
     public Term flatten() {
-        return new ArrayWrite((ArrayTerm) arrayTerm.flatten(),
+        return ArrayWrite.create((ArrayTerm) arrayTerm.flatten(),
                 (DomainTerm) indexTerm.flatten(),
                 (DomainTerm) valueTerm.flatten());
     }
@@ -426,7 +434,7 @@ public class ArrayWrite extends ArrayTerm {
         DomainTerm valueTerm = (DomainTerm)this.valueTerm.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
         
-        return new ArrayWrite(arrayTerm, indexTerm, valueTerm);
+        return ArrayWrite.create(arrayTerm, indexTerm, valueTerm);
 
     }
 

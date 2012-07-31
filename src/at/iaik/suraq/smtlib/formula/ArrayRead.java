@@ -199,7 +199,7 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        return new ArrayRead((ArrayTerm) arrayTerm.substituteTerm(paramMap),
+        return ArrayRead.create((ArrayTerm) arrayTerm.substituteTerm(paramMap),
                 (DomainTerm) indexTerm.substituteTerm(paramMap));
     }
 
@@ -222,7 +222,7 @@ public class ArrayRead extends DomainTerm {
     public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
         ArrayTerm arrayTerm = (ArrayTerm)this.arrayTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
         DomainTerm indexTerm = (DomainTerm)this.indexTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
-        return new ArrayRead(arrayTerm,indexTerm);
+        return ArrayRead.create(arrayTerm,indexTerm);
     }
 
     /**
@@ -232,7 +232,7 @@ public class ArrayRead extends DomainTerm {
     public Term removeArrayEqualitiesTerm() {
         ArrayTerm arrayTerm = (ArrayTerm)this.arrayTerm.removeArrayEqualitiesTerm();
         DomainTerm indexTerm = (DomainTerm)this.indexTerm.removeArrayEqualitiesTerm();
-        return new ArrayRead(arrayTerm, indexTerm);
+        return ArrayRead.create(arrayTerm, indexTerm);
     }
 
     /**
@@ -254,7 +254,7 @@ public class ArrayRead extends DomainTerm {
         indexTerm = (DomainTerm) indexTerm.removeArrayWritesTerm(topLevelFormula,
                 constraints, noDependenceVars);
 
-        return new ArrayRead(arrayTerm, indexTerm);
+        return ArrayRead.create(arrayTerm, indexTerm);
     }
 
     /**
@@ -286,7 +286,7 @@ public class ArrayRead extends DomainTerm {
             if (Util.termContainsAny(arrayTerm, noDependenceVars))
                 noDependenceVars.add(Token.generate(functionName));
 
-            return UninterpretedFunctionInstance.create(new UninterpretedFunction(
+            return UninterpretedFunctionInstance.create(UninterpretedFunction.create(
                     functionName, 1, SExpressionConstants.VALUE_TYPE), term);
         } catch (WrongNumberOfParametersException exc) {
             throw new RuntimeException(
@@ -326,7 +326,7 @@ public class ArrayRead extends DomainTerm {
                 .substituteUninterpretedFunctionTerm(oldFunction, newFunction);
         DomainTerm indexTerm = (DomainTerm) this.indexTerm
                 .substituteUninterpretedFunctionTerm(oldFunction, newFunction);
-        return new ArrayRead(arrayTerm, indexTerm);
+        return ArrayRead.create(arrayTerm, indexTerm);
     }
 
     /**
@@ -334,7 +334,7 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public Term flatten() {
-        return new ArrayRead((ArrayTerm) arrayTerm.flatten(),
+        return ArrayRead.create((ArrayTerm) arrayTerm.flatten(),
                 (DomainTerm) indexTerm.flatten());
     }
 
@@ -366,7 +366,7 @@ public class ArrayRead extends DomainTerm {
             noDependenceVars.add(Token.generate(((DomainVariable) indexTerm)
                     .getVarName()));
 
-        return new ArrayRead(this.arrayTerm, indexTerm);
+        return ArrayRead.create(this.arrayTerm, indexTerm);
     }
 
     /**

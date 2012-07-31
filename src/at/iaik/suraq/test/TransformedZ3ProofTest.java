@@ -237,7 +237,7 @@ public class TransformedZ3ProofTest {
         domainVars.add(DomainVariable.create("x", -1));
         domainVars.add(DomainVariable.create("y", -1));
 
-        uninterpretedFunctions.add(new UninterpretedFunction("f", 1,
+        uninterpretedFunctions.add(UninterpretedFunction.create("f", 1,
                 SExpressionConstants.VALUE_TYPE));
 
         String trans1 = "(trans (asserted (= a x)) (asserted (= x b)) (= a b))";
@@ -280,7 +280,7 @@ public class TransformedZ3ProofTest {
         domainVars.add(DomainVariable.create("v", -1));
         domainVars.add(DomainVariable.create("w", -1));
 
-        uninterpretedFunctions.add(new UninterpretedFunction("f", 2,
+        uninterpretedFunctions.add(UninterpretedFunction.create("f", 2,
                 SExpressionConstants.VALUE_TYPE));
 
         String trans1 = "(trans (asserted (= a x)) (asserted (= x c)) (= a c))";

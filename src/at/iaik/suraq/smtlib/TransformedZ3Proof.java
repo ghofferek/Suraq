@@ -2391,13 +2391,13 @@ public class TransformedZ3Proof extends Z3Proof {
             if (checkPresence(leftConsequent, this.literal)) {
                 if (!checkPresence(rightConsequent, this.literal)) {
                     // NOTE: Pudlak's "sel" works exactly opposite to "ite".
-                    return new PropositionalIte(this.literal, rightResult,
+                    return PropositionalIte.create(this.literal, rightResult,
                             leftResult);
                 }
             } else if (!checkPresence(leftConsequent, this.literal)) {
                 if (checkPresence(rightConsequent, this.literal)) {
                     // NOTE: Pudlak's "sel" works exactly opposite to "ite".
-                    return new PropositionalIte(this.literal, leftResult,
+                    return PropositionalIte.create(this.literal, leftResult,
                             rightResult);
                 }
             } else

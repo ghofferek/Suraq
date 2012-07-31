@@ -23,7 +23,10 @@ public class FormulaCache<T> {
     public static FormulaCache<EqualityFormula> equalityFormula = new FormulaCache<EqualityFormula>("EqualityFormula", true);
     public static FormulaCache<DomainTerm> domainTerm = new FormulaCache<DomainTerm>("DomainTerm:*", true);
     public static FormulaCache<Term> term = new FormulaCache<Term>("Term:*", true);
-       
+    public static FormulaCache<Formula> formula = new FormulaCache<Formula>("Formula:*", true);
+    public static FormulaCache<UninterpretedFunction> uninterpretedFunction = new FormulaCache<UninterpretedFunction>("UF", true);
+    public static FormulaCache<FunctionMacro> functionMacro = new FormulaCache<FunctionMacro>("FunctionMacro", true);
+    
     
 	public static boolean _isActive = true;
 	public boolean _isActive2 = true;

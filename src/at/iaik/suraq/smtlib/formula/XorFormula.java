@@ -10,6 +10,7 @@ import java.util.Map;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * 
@@ -37,6 +38,11 @@ public class XorFormula extends AndOrXorFormula {
         super(formulas);
     }
 
+    public static XorFormula generate(List<Formula> formulas) {
+        return (XorFormula) FormulaCache.andOrXorFormula.put(new XorFormula(
+                formulas));
+    }
+
     /**
      * Converts this formula into an equivalent formula, using only AND and OR.
      * Subformulas are not copied.
@@ -45,7 +51,7 @@ public class XorFormula extends AndOrXorFormula {
      */
     public OrFormula toAndOrFormula() {
         Formula x1 = formulas.get(0);
-        Formula x2 = (new XorFormula(formulas.subList(1, formulas.size())))
+        Formula x2 = (XorFormula.generate(formulas.subList(1, formulas.size())))
                 .toAndOrFormula();
         List<Formula> listAnd1 = new ArrayList<Formula>();
         List<Formula> listAnd2 = new ArrayList<Formula>();

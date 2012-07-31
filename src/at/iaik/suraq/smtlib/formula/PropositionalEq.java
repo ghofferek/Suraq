@@ -52,11 +52,14 @@ public class PropositionalEq extends EqualityFormula {
      */
     @Override
     public Formula deepFormulaCopy() {
+        return this; // experimental
+        /*
         List<PropositionalTerm> terms = new ArrayList<PropositionalTerm>();
         for (Term term : this.terms) {
             terms.add((PropositionalTerm) term.deepTermCopy());
         }
         return new PropositionalEq(terms, equal);
+        */
     }
 
     /**

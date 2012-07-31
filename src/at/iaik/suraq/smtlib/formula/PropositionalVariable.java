@@ -155,7 +155,8 @@ public class PropositionalVariable extends PropositionalTerm implements
     @Override
     public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = new HashSet<PropositionalVariable>();
-        result.add(new PropositionalVariable(varName));
+        //result.add(PropositionalVariable.create(varName));
+        result.add(this); // experimental
         return result;
     }
 

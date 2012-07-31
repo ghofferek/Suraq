@@ -36,7 +36,7 @@ public class ApplyWriteAxiomTest {
         DomainVariable index = DomainVariable.create("i");
         DomainVariable value = DomainVariable.create("v");
 
-        ArrayWrite write = new ArrayWrite(arrayVar, index, value);
+        ArrayWrite write = ArrayWrite.create(arrayVar, index, value);
         Set<Formula> constraints = new HashSet<Formula>();
         Set<Token> noDependenceVars = new HashSet<Token>();
         List<ArrayTerm> list = new ArrayList<ArrayTerm>();

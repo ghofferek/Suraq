@@ -61,7 +61,7 @@ public class ArrayPropertiesTest {
         Formula indexGuard = PropositionalConstant.create(true);
         Formula valueConstraint = DomainEq.create(list, true);
 
-        ArrayProperty property = new ArrayProperty(uVars, indexGuard,
+        ArrayProperty property = ArrayProperty.create(uVars, indexGuard,
                 valueConstraint);
 
         Set<DomainTerm> indexSet = new HashSet<DomainTerm>();

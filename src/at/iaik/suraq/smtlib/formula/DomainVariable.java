@@ -126,7 +126,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     @Override
     public DomainTerm deepTermCopy() {
-        return DomainVariable.create(new String(varName), this.assertPartition);
+        return this; // experimental
+        //return DomainVariable.create(new String(varName), this.assertPartition);
     }
 
     /**
@@ -266,7 +267,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     @Override
     public Term flatten() {
-        return DomainVariable.create(varName);
+        return this; // experimental
+        //return DomainVariable.create(varName);
     }
 
     /**

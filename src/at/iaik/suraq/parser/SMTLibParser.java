@@ -230,7 +230,7 @@ public abstract class SMTLibParser extends Parser {
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
                 }
-                return new XorFormula(formulaList);
+                return XorFormula.generate(formulaList);
             }
 
             if (operator.equals(SExpressionConstants.IMPLIES)
@@ -255,7 +255,7 @@ public abstract class SMTLibParser extends Parser {
                         .get(2));
                 Formula elseBranch = parseFormulaBody(expression.getChildren()
                         .get(3));
-                return new PropositionalIte(condition, thenBranch, elseBranch);
+                return PropositionalIte.create(condition, thenBranch, elseBranch);
             }
             throw new ParseError(expression, "Unexpected internal parse error!");
 
@@ -325,7 +325,7 @@ public abstract class SMTLibParser extends Parser {
                 }
 
                 try {
-                    return new ArrayProperty(currentUVars, indexGuard,
+                    return ArrayProperty.create(currentUVars, indexGuard,
                             valueConstraint);
                 } catch (InvalidIndexGuardException exc) {
                     throw new ParseError(property, "Malformed index guard.",
@@ -399,7 +399,7 @@ public abstract class SMTLibParser extends Parser {
                 paramMap.put(macro.getParam(count), paramTerm);
             }
             try {
-                return new PropositionalFunctionMacroInstance(
+                return PropositionalFunctionMacroInstance.create(
                         (PropositionalFunctionMacro) macro, paramMap);
             } catch (InvalidParametersException exc) {
                 throw new RuntimeException(
@@ -571,7 +571,7 @@ public abstract class SMTLibParser extends Parser {
 
             if (thenBranch instanceof PropositionalTerm
                     && elseBranch instanceof PropositionalTerm)
-                return FormulaTerm.create((new PropositionalIte(condition,
+                return FormulaTerm.create((PropositionalIte.create(condition,
                         (PropositionalTerm) thenBranch,
                         (PropositionalTerm) elseBranch)));
 
@@ -604,7 +604,7 @@ public abstract class SMTLibParser extends Parser {
                 throw new ParseError(expression.getChildren().get(3),
                         "Third parameter of 'store' must be a domain term.");
 
-            return new ArrayWrite((ArrayTerm) arrayTerm,
+            return ArrayWrite.create((ArrayTerm) arrayTerm,
                     (DomainTerm) indexTerm, (DomainTerm) valueTerm);
         }
 
@@ -704,7 +704,7 @@ public abstract class SMTLibParser extends Parser {
                 if (macro.getType().equals(SExpressionConstants.BOOL_TYPE)) {
                     assert (macro instanceof PropositionalFunctionMacro);
                     return FormulaTerm
-                            .create(new PropositionalFunctionMacroInstance(
+                            .create(PropositionalFunctionMacroInstance.create(
                                     (PropositionalFunctionMacro) macro,
                                     paramMap));
                 } else {

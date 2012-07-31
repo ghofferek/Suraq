@@ -199,7 +199,7 @@ public class LogicParser extends SMTLibParser {
 
             PropositionalFunctionMacro macro;
             try {
-                macro = new PropositionalFunctionMacro(name, paramsList,
+                macro = PropositionalFunctionMacro.create(name, paramsList,
                         paramMap, body);
             } catch (InvalidParametersException exc) {
                 throw new RuntimeException(
@@ -224,7 +224,7 @@ public class LogicParser extends SMTLibParser {
 
             TermFunctionMacro macro;
             try {
-                macro = new TermFunctionMacro(name, paramsList, paramMap, body);
+                macro = TermFunctionMacro.create(name, paramsList, paramMap, body);
             } catch (InvalidParametersException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing macro parameters",
@@ -369,7 +369,7 @@ public class LogicParser extends SMTLibParser {
                     + type.toString());
         assert (type instanceof Token);
 
-        if (!functions.add(new UninterpretedFunction(name, param_list.size(),
+        if (!functions.add(UninterpretedFunction.create(name, param_list.size(),
                 (Token) type))) {
             throw new ParseError(name, "Duplicate function definition: "
                     + name.toString());

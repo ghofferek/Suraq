@@ -18,6 +18,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
@@ -66,7 +67,7 @@ public class ArrayProperty implements Formula {
      * @throws InvalidValueConstraintException
      *             if the value constraint does not adhere to the grammar.
      */
-    public ArrayProperty(Collection<DomainVariable> uVars, Formula indexGuard,
+    private ArrayProperty(Collection<DomainVariable> uVars, Formula indexGuard,
             Formula valueConstraint) throws InvalidIndexGuardException,
             InvalidValueConstraintException {
         this.uVars = new ImmutableArrayList<DomainVariable>(uVars);
@@ -85,6 +86,13 @@ public class ArrayProperty implements Formula {
 
         this.indexGuard = indexGuard;
         this.valueConstraint = valueConstraint;
+    }
+    
+    public static ArrayProperty create(Collection<DomainVariable> uVars,
+            Formula indexGuard, Formula valueConstraint)
+            throws InvalidIndexGuardException, InvalidValueConstraintException {
+        return (ArrayProperty) FormulaCache.formula.put(new ArrayProperty(
+                uVars, indexGuard, valueConstraint));
     }
 
     /**
@@ -280,6 +288,8 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public Formula deepFormulaCopy() {
+        return this; // experimental
+        /*
         List<DomainVariable> uVars = new ArrayList<DomainVariable>();
         for (DomainVariable uVar : this.uVars)
             uVars.add((DomainVariable) uVar.deepTermCopy());
@@ -298,6 +308,7 @@ public class ArrayProperty implements Formula {
             throw new RuntimeException(
                     "Unexpected situation while copying array property.", exc);
         }
+        */
     }
 
     /**
@@ -335,7 +346,7 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public Formula negationNormalForm() throws SuraqException {
-        return new ArrayProperty(new ArrayList<DomainVariable>(uVars),
+        return ArrayProperty.create(new ArrayList<DomainVariable>(uVars),
                 indexGuard.negationNormalForm(),
                 valueConstraint.negationNormalForm());
     }
@@ -409,7 +420,7 @@ public class ArrayProperty implements Formula {
     @Override
     public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
         try {
-            return new ArrayProperty(uVars,
+            return ArrayProperty.create(uVars,
                     indexGuard.substituteFormula(paramMap),
                     valueConstraint.substituteFormula(paramMap));
         } catch (SuraqException exc) {
@@ -510,7 +521,7 @@ public class ArrayProperty implements Formula {
     @Override
     public Formula flatten() {
         try {
-            return new ArrayProperty(uVars, indexGuard.flatten(),
+            return ArrayProperty.create(uVars, indexGuard.flatten(),
                     valueConstraint.flatten());
         } catch (SuraqException exc) {
             throw new RuntimeException(
@@ -566,7 +577,7 @@ public class ArrayProperty implements Formula {
                 .arrayReadsToUninterpretedFunctions(noDependenceVars);
 
         try {
-            return new ArrayProperty(uVars, indexGuard, valueConstraint);
+            return ArrayProperty.create(uVars, indexGuard, valueConstraint);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -599,7 +610,7 @@ public class ArrayProperty implements Formula {
                 newFunction);
 
         try {
-            return new ArrayProperty(uVars, indexGuard, valueConstraint);
+            return ArrayProperty.create(uVars, indexGuard, valueConstraint);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -631,7 +642,7 @@ public class ArrayProperty implements Formula {
                 noDependenceVars);
 
         try {
-            return new ArrayProperty(uVars, indexGuard, valueConstraint);
+            return ArrayProperty.create(uVars, indexGuard, valueConstraint);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);

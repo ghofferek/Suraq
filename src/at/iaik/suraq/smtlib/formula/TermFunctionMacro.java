@@ -11,6 +11,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -38,11 +39,18 @@ public class TermFunctionMacro extends FunctionMacro {
      *             if the size of the parameter list and the type map do not
      *             match.
      */
-    public TermFunctionMacro(Token name, List<Token> parameters,
+    private TermFunctionMacro(Token name, List<Token> parameters,
             Map<Token, SExpression> paramMap, Term body)
             throws InvalidParametersException {
         super(name, parameters, paramMap);
         this.body = body;
+    }
+
+    public static TermFunctionMacro create(Token name, List<Token> parameters,
+            Map<Token, SExpression> paramMap, Term body)
+            throws InvalidParametersException {
+        return (TermFunctionMacro) FormulaCache.functionMacro
+                .put(new TermFunctionMacro(name, parameters, paramMap, body));
     }
 
     /**
@@ -52,10 +60,10 @@ public class TermFunctionMacro extends FunctionMacro {
      * @param macro
      *            the macro to (deep) copy.
      */
-    public TermFunctionMacro(TermFunctionMacro macro) {
+    /*public TermFunctionMacro(TermFunctionMacro macro) {
         super(macro);
         this.body = macro.body.deepTermCopy();
-    }
+    }*/
 
     /**
      * @see java.lang.Object#equals(java.lang.Object)
@@ -104,7 +112,7 @@ public class TermFunctionMacro extends FunctionMacro {
     @Override
     public FunctionMacro removeArrayEqualities() {
         try {
-            return new TermFunctionMacro(name, parameters, paramMap, body.removeArrayEqualitiesTerm());
+            return TermFunctionMacro.create(name, parameters, paramMap, body.removeArrayEqualitiesTerm());
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -117,7 +125,7 @@ public class TermFunctionMacro extends FunctionMacro {
     @Override
     public FunctionMacro arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         try {
-            return new TermFunctionMacro(name, parameters, paramMap, body.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
+            return TermFunctionMacro.create(name, parameters, paramMap, body.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -153,7 +161,7 @@ public class TermFunctionMacro extends FunctionMacro {
         Term body = this.body
                 .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
         try {
-            return new TermFunctionMacro(name, parameters, paramMap, body);
+            return TermFunctionMacro.create(name, parameters, paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -184,7 +192,7 @@ public class TermFunctionMacro extends FunctionMacro {
         try {
             Term tmp = body.substituteUninterpretedFunctionTerm(oldFunction,
                     newFunction);
-            return new TermFunctionMacro(name, parameters, paramMap, tmp);
+            return TermFunctionMacro.create(name, parameters, paramMap, tmp);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -250,7 +258,7 @@ public class TermFunctionMacro extends FunctionMacro {
                 noDependenceVars);
 
         try {
-            return new TermFunctionMacro(name, parameters, paramMap, tmp);
+            return TermFunctionMacro.create(name, parameters, paramMap, tmp);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -272,7 +280,7 @@ public class TermFunctionMacro extends FunctionMacro {
                 noDependenceVars);
 
         try {
-            return new TermFunctionMacro(name, parameters, paramMap, tmp);
+            return TermFunctionMacro.create(name, parameters, paramMap, tmp);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

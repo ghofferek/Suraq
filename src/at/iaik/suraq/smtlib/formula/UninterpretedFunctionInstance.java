@@ -311,7 +311,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 
         UninterpretedFunctionInstance result;
         try {
-            result = new UninterpretedFunctionInstance(function,
+            result = UninterpretedFunctionInstance.create(function,
                     convertedParameters);
         } catch (SuraqException exc) {
             throw new RuntimeException(
@@ -343,7 +343,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                     .arrayPropertiesToFiniteConjunctionsTerm(indexSet));
 
         try {
-            return new UninterpretedFunctionInstance(function, paramnew,
+            return UninterpretedFunctionInstance.create(function, paramnew,
                     assertPartition);
         } catch (SuraqException e) {
             e.printStackTrace();
@@ -362,7 +362,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             paramnew.add((DomainTerm)param.removeArrayEqualitiesTerm());
 
         try {
-            return new UninterpretedFunctionInstance(function, paramnew,
+            return UninterpretedFunctionInstance.create(function, paramnew,
                     assertPartition);
         } catch (SuraqException e) {
             e.printStackTrace();
@@ -382,7 +382,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                     noDependenceVars));
 
             try {
-                return new UninterpretedFunctionInstance(function, paramnew,
+                return UninterpretedFunctionInstance.create(function, paramnew,
                         assertPartition);
             } catch (SuraqException e) {
                 e.printStackTrace();
@@ -405,7 +405,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                 paramnew.add((DomainTerm)term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
 
         try {
-            return new UninterpretedFunctionInstance(function, paramnew,
+            return UninterpretedFunctionInstance.create(function, paramnew,
                     assertPartition);
         } catch (SuraqException e) {
             e.printStackTrace();
@@ -446,7 +446,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                     oldFunction, newFunction));
 
         try {
-            return new UninterpretedFunctionInstance(function, paramnew,
+            return UninterpretedFunctionInstance.create(function, paramnew,
                     assertPartition);
         } catch (SuraqException e) {
             e.printStackTrace();
@@ -463,7 +463,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         for (DomainTerm term : parameters)
             flattenedParams.add((DomainTerm) term.flatten());
         try {
-            return new UninterpretedFunctionInstance(function, flattenedParams);
+            return UninterpretedFunctionInstance.create(function, flattenedParams);
         } catch (SuraqException exc) {
             throw new RuntimeException(
                     "Unexpected error while flattening UninterpretedFunctionInstance.",
@@ -485,7 +485,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                     noDependenceVars));
         
         try {
-            return new UninterpretedFunctionInstance(function, paramnew,
+            return UninterpretedFunctionInstance.create(function, paramnew,
                     assertPartition);
         } catch (SuraqException e) {
             e.printStackTrace();

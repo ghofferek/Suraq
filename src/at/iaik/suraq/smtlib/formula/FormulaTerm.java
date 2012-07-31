@@ -81,7 +81,7 @@ public class FormulaTerm extends PropositionalTerm {
      */
     @Override
     public Formula negationNormalForm() throws SuraqException {
-        return new FormulaTerm(formula.negationNormalForm());
+        return FormulaTerm.create(formula.negationNormalForm());
     }
 
     /**
@@ -89,7 +89,7 @@ public class FormulaTerm extends PropositionalTerm {
      */
     @Override
     public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return new FormulaTerm(formula.substituteFormula(paramMap));
+        return FormulaTerm.create(formula.substituteFormula(paramMap));
     }
 
     /**
@@ -97,7 +97,7 @@ public class FormulaTerm extends PropositionalTerm {
      */
     @Override
     public PropositionalTerm flatten() {
-        return new FormulaTerm(formula.flatten());
+        return FormulaTerm.create(formula.flatten());
     }
 
     /**
@@ -186,18 +186,18 @@ public class FormulaTerm extends PropositionalTerm {
     @Override
     public Formula arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
         if (formula instanceof ArrayProperty)
-            return new FormulaTerm(((ArrayProperty) formula).toFiniteConjunction(indexSet));
+            return FormulaTerm.create(((ArrayProperty) formula).toFiniteConjunction(indexSet));
         // TODO: the line before maybe returns something wrong because toFiniteConjunction returns And
         else
-            return new FormulaTerm(formula.arrayPropertiesToFiniteConjunctions(indexSet));
+            return FormulaTerm.create(formula.arrayPropertiesToFiniteConjunctions(indexSet));
     }
     @Override
     public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
         if (formula instanceof ArrayProperty)
-            return new FormulaTerm(((ArrayProperty) formula).toFiniteConjunction(indexSet));
+            return FormulaTerm.create(((ArrayProperty) formula).toFiniteConjunction(indexSet));
         // TODO: the line before maybe returns something wrong because toFiniteConjunction returns And
         else
-            return new FormulaTerm(formula.arrayPropertiesToFiniteConjunctions(indexSet));
+            return FormulaTerm.create(formula.arrayPropertiesToFiniteConjunctions(indexSet));
     }
 
     /**
@@ -207,13 +207,13 @@ public class FormulaTerm extends PropositionalTerm {
     @Override
     public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        return new FormulaTerm(formula.removeArrayWrites(topLevelFormula, constraints,
+        return FormulaTerm.create(formula.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars));
     }
     @Override
     public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        return new FormulaTerm(formula.removeArrayWrites(topLevelFormula, constraints,
+        return FormulaTerm.create(formula.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars));
     }
 
@@ -223,11 +223,11 @@ public class FormulaTerm extends PropositionalTerm {
      */
     @Override
     public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        return new FormulaTerm(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
+        return FormulaTerm.create(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
     }
     @Override
     public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
-        return new FormulaTerm(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
+        return FormulaTerm.create(formula.arrayReadsToUninterpretedFunctions(noDependenceVars));
     }
 
     /**
@@ -280,7 +280,7 @@ public class FormulaTerm extends PropositionalTerm {
         }
         formula = formula.substituteUninterpretedFunction(oldFunction,
                 newFunction);
-        return new FormulaTerm(formula);
+        return FormulaTerm.create(formula);
     }
     
     @Override
@@ -321,7 +321,7 @@ public class FormulaTerm extends PropositionalTerm {
         }
         formula = formula.substituteUninterpretedFunction(oldFunction,
                 newFunction);
-        return new FormulaTerm(formula);
+        return FormulaTerm.create(formula);
     }
 
     /**
@@ -331,13 +331,13 @@ public class FormulaTerm extends PropositionalTerm {
     @Override
     public Formula makeArrayReadsSimple(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        return new FormulaTerm(formula.makeArrayReadsSimple(topLevelFormula, constraints,
+        return FormulaTerm.create(formula.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars));
     }
     @Override
     public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        return new FormulaTerm(formula.makeArrayReadsSimple(topLevelFormula, constraints,
+        return FormulaTerm.create(formula.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars));
     }
 
@@ -437,7 +437,7 @@ public class FormulaTerm extends PropositionalTerm {
         else
             formula = formula.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
                     predicateInstances, instanceParameters, noDependenceVars);
-        return new FormulaTerm(formula);
+        return FormulaTerm.create(formula);
     }
     @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
@@ -454,7 +454,7 @@ public class FormulaTerm extends PropositionalTerm {
         else
             formula = formula.uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
                     predicateInstances, instanceParameters, noDependenceVars);
-        return new FormulaTerm(formula);
+        return FormulaTerm.create(formula);
     }
 
     
@@ -466,14 +466,14 @@ public class FormulaTerm extends PropositionalTerm {
     public Formula uninterpretedFunctionsToAuxiliaryVariables(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-		       return new FormulaTerm(formula.uninterpretedFunctionsToAuxiliaryVariables(
+		       return FormulaTerm.create(formula.uninterpretedFunctionsToAuxiliaryVariables(
 		                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars));
     }  
     @Override
     public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
             Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
             Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-               return new FormulaTerm(formula.uninterpretedFunctionsToAuxiliaryVariables(
+               return FormulaTerm.create(formula.uninterpretedFunctionsToAuxiliaryVariables(
                                 topLeveFormula, functionInstances, instanceParameters, noDependenceVars));
     }  
     
@@ -482,7 +482,7 @@ public class FormulaTerm extends PropositionalTerm {
     public Formula replaceEquivalences(Formula topLevelFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
     {
         Formula formula = this.formula.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
-        return new FormulaTerm(formula);
+        return FormulaTerm.create(formula);
     }
     
     
@@ -491,7 +491,7 @@ public class FormulaTerm extends PropositionalTerm {
     public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
     {
         Formula formula = this.formula.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
-        return new FormulaTerm(formula);
+        return FormulaTerm.create(formula);
     }
     
 }

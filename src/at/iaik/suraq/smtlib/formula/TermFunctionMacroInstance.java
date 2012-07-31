@@ -291,7 +291,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
                     .removeArrayEqualitiesTerm());
 
         try {
-            return new TermFunctionMacroInstance(macro, paramMap);
+            return TermFunctionMacroInstance.create(macro, paramMap);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -315,7 +315,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
                     .arrayPropertiesToFiniteConjunctionsTerm(indexSet));
 
         try {
-            return new TermFunctionMacroInstance(macro, paramMap);
+            return TermFunctionMacroInstance.create(macro, paramMap);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -374,7 +374,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
         }
 
         try {
-            return new TermFunctionMacroInstance(macro, paramMap2);
+            return TermFunctionMacroInstance.create(macro, paramMap2);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -404,7 +404,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
         
 
         try {
-            return new TermFunctionMacroInstance(macro, paramMap2);
+            return TermFunctionMacroInstance.create(macro, paramMap2);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -447,7 +447,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
                             topLevelFormula, constraints, noDependenceVars));
 
         try {
-            return new TermFunctionMacroInstance(macro, paramMap2);
+            return TermFunctionMacroInstance.create(macro, paramMap2);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -529,7 +529,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
                                     instanceParameters, noDependenceVars));
 
         try {
-            return new TermFunctionMacroInstance(macro, paramMap2);
+            return TermFunctionMacroInstance.create(macro, paramMap2);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -561,7 +561,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
                                     instanceParameters, noDependenceVars));
 
         try {
-            return new TermFunctionMacroInstance(macro, paramMap2);
+            return TermFunctionMacroInstance.create(macro, paramMap2);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

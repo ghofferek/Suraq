@@ -271,7 +271,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
 
         UninterpretedPredicateInstance result;
         try {
-            result = new UninterpretedPredicateInstance(function,
+            result = UninterpretedPredicateInstance.create(function,
                     convertedParameters);
         } catch (SuraqException exc) {
             throw new RuntimeException(
@@ -300,7 +300,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             paramNew.add((DomainTerm)term.substituteUninterpretedFunctionTerm(oldFunction, newFunction));
         
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -322,7 +322,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             paramNew.add((DomainTerm)term.substituteUninterpretedFunctionTerm(oldFunction, newFunction));
         
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -341,7 +341,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             paramNew.add((DomainTerm)param.removeArrayEqualitiesTerm());
         
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -354,7 +354,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             paramNew.add((DomainTerm)param.removeArrayEqualitiesTerm());
         
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -371,7 +371,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             paramNew.add((DomainTerm)param.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
         
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -384,7 +384,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             paramNew.add((DomainTerm)param.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
         
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -408,7 +408,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
         for (DomainTerm term : parameters)
             flattenedParams.add((DomainTerm) term.flatten());
         try {
-            return new UninterpretedPredicateInstance(function, flattenedParams);
+            return UninterpretedPredicateInstance.create(function, flattenedParams);
         } catch (SuraqException exc) {
             throw new RuntimeException(
                     "Unexpected error while flattening UninterpretedFunctionInstance.",
@@ -441,7 +441,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                     topLevelFormula, constraints, noDependenceVars));
 
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -456,7 +456,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                     topLevelFormula, constraints, noDependenceVars));
 
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -477,7 +477,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                 paramNew.add((DomainTerm)term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
         
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -494,7 +494,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                 paramNew.add((DomainTerm)term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
         
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -530,7 +530,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                     topLevelFormula, constraints, noDependenceVars));
 
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -546,7 +546,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                     topLevelFormula, constraints, noDependenceVars));
 
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -808,7 +808,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
         }
 
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             System.err.println("is: "+function.getNumParams() + " should:" + paramNew.size());
             e.printStackTrace();
@@ -850,7 +850,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
         }
 
         try {
-            return new UninterpretedPredicateInstance(function, paramNew);
+            return UninterpretedPredicateInstance.create(function, paramNew);
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

@@ -184,7 +184,7 @@ public class NotFormula extends BooleanCombinationFormula {
             Map<Token, Term> paramMap = new HashMap<Token, Term>(
                     ((PropositionalFunctionMacroInstance) formula)
                             .getParamMap());
-            return new PropositionalFunctionMacroInstance(negatedMacro,
+            return PropositionalFunctionMacroInstance.create(negatedMacro,
                     paramMap);
         }
 
@@ -195,7 +195,7 @@ public class NotFormula extends BooleanCombinationFormula {
                     .negationNormalForm();
             Formula elseBranch = (NotFormula.create(iteFormula.getElseBranch()))
                     .negationNormalForm();
-            return new PropositionalIte(iteFormula.getCondition()
+            return PropositionalIte.create(iteFormula.getCondition()
                     .negationNormalForm(), thenBranch, elseBranch);
         }
 

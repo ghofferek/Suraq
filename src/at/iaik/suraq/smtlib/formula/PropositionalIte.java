@@ -14,6 +14,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * Represents an if-then-else-style formula.
@@ -54,7 +55,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @param elseBranch
      *            the formula that represents the else-branch
      */
-    public PropositionalIte(Formula condition, Formula thenBranch,
+    private PropositionalIte(Formula condition, Formula thenBranch,
             Formula elseBranch) {
         if (condition instanceof FormulaTerm)
             this.condition = ((FormulaTerm) condition).getFormula();
@@ -70,6 +71,12 @@ public class PropositionalIte extends BooleanCombinationFormula {
             this.elseBranch = ((FormulaTerm) elseBranch).getFormula();
         else
             this.elseBranch = elseBranch;
+    }
+    
+    public static PropositionalIte create(Formula condition,
+            Formula thenBranch, Formula elseBranch) {
+        return (PropositionalIte) FormulaCache.formula
+                .put(new PropositionalIte(condition, thenBranch, elseBranch));
     }
 
     /**
@@ -89,8 +96,9 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula deepFormulaCopy() {
-        return new PropositionalIte(condition.deepFormulaCopy(),
-                thenBranch.deepFormulaCopy(), elseBranch.deepFormulaCopy());
+        return this; // experimental
+        //return new PropositionalIte(condition.deepFormulaCopy(),
+        //       thenBranch.deepFormulaCopy(), elseBranch.deepFormulaCopy());
     }
 
     /**
@@ -132,7 +140,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula negationNormalForm() throws SuraqException {
-        return new PropositionalIte(condition.negationNormalForm(),
+        return PropositionalIte.create(condition.negationNormalForm(),
                 thenBranch.negationNormalForm(),
                 elseBranch.negationNormalForm());
     }
@@ -233,7 +241,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return new PropositionalIte(condition.substituteFormula(paramMap),
+        return PropositionalIte.create(condition.substituteFormula(paramMap),
                 thenBranch.substituteFormula(paramMap),
                 elseBranch.substituteFormula(paramMap));
     }
@@ -262,7 +270,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         else
             elseBranch = elseBranch.removeArrayEqualities();
 
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -294,7 +302,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
             elseBranch = elseBranch
                     .arrayPropertiesToFiniteConjunctions(indexSet);
 
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -316,7 +324,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         if (thenBranch.equals(elseBranch))
             return thenBranch;
 
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -324,7 +332,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula flatten() {
-        return new PropositionalIte(condition.flatten(), thenBranch.flatten(),
+        return PropositionalIte.create(condition.flatten(), thenBranch.flatten(),
                 elseBranch.flatten());
     }
 
@@ -370,7 +378,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 noDependenceVars);
         Formula elseBranch = this.elseBranch.removeArrayWrites(topLevelFormula, constraints,
                 noDependenceVars);
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -381,7 +389,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         Formula condition = this.condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
         Formula thenBranch = this.thenBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
         Formula elseBranch = this.elseBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -409,7 +417,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 oldFunction, newFunction);
         Formula elseBranch = this.elseBranch.substituteUninterpretedFunction(
                 oldFunction, newFunction);
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -425,7 +433,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 topLevelFormula, constraints, noDependenceVars);
         Formula elseBranch = this.elseBranch.makeArrayReadsSimple(
                 topLevelFormula, constraints, noDependenceVars);
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -560,7 +568,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
                             topLeveFormula, predicateInstances,
                             instanceParameters, noDependenceVars);
         
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
       
     /**
@@ -582,7 +590,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         Formula elseBranch = this.elseBranch
                 .uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,
                         functionInstances, instanceParameters, noDependenceVars);
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     } 
     
     
@@ -593,7 +601,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         Formula condition = this.condition.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
         Formula thenBranch = this.thenBranch.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
         Formula elseBranch = this.elseBranch.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
     
 
@@ -602,6 +610,6 @@ public class PropositionalIte extends BooleanCombinationFormula {
         Formula condition = this.condition.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
         Formula thenBranch = this.thenBranch.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
         Formula elseBranch = this.elseBranch.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
-        return new PropositionalIte(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 }

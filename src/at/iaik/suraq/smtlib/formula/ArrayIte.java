@@ -101,9 +101,10 @@ public class ArrayIte extends ArrayTerm {
      */
     @Override
     public Term deepTermCopy() {
-        return new ArrayIte(condition.deepFormulaCopy(),
-                (ArrayTerm) thenBranch.deepTermCopy(),
-                (ArrayTerm) elseBranch.deepTermCopy());
+        return this; // experimental
+        //return new ArrayIte(condition.deepFormulaCopy(),
+        //        (ArrayTerm) thenBranch.deepTermCopy(),
+        //        (ArrayTerm) elseBranch.deepTermCopy());
     }
 
     /**
@@ -221,7 +222,7 @@ public class ArrayIte extends ArrayTerm {
         ArrayTerm convertedElseBranch = (ArrayTerm) elseBranch
                 .substituteTerm(paramMap);
         Formula convertedCondition = condition.substituteFormula(paramMap);
-        return new ArrayIte(convertedCondition, convertedThenBranch,
+        return ArrayIte.create(convertedCondition, convertedThenBranch,
                 convertedElseBranch);
     }
 
@@ -245,7 +246,7 @@ public class ArrayIte extends ArrayTerm {
         if (thenBranch.equals(elseBranch))
             return thenBranch;
 
-        return new ArrayIte(simplifiedCondition, thenBranch, elseBranch);
+        return ArrayIte.create(simplifiedCondition, thenBranch, elseBranch);
     }
 
     /**
@@ -253,7 +254,7 @@ public class ArrayIte extends ArrayTerm {
      */
     @Override
     public ArrayTerm flatten() {
-        return new ArrayIte(condition.flatten(),
+        return ArrayIte.create(condition.flatten(),
                 (ArrayTerm) thenBranch.flatten(),
                 (ArrayTerm) elseBranch.flatten());
     }
@@ -284,7 +285,7 @@ public class ArrayIte extends ArrayTerm {
         thenBranch = (ArrayTerm) thenBranch.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
         elseBranch = (ArrayTerm) elseBranch.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
         
-        return new ArrayIte(condition, thenBranch, elseBranch);
+        return ArrayIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -300,7 +301,7 @@ public class ArrayIte extends ArrayTerm {
         thenBranch = (ArrayTerm) thenBranch.removeArrayEqualitiesTerm();
         elseBranch = (ArrayTerm) elseBranch.removeArrayEqualitiesTerm();
         
-        return new ArrayIte(condition, thenBranch, elseBranch);
+        return ArrayIte.create(condition, thenBranch, elseBranch);
     }
 
     /**
@@ -331,7 +332,7 @@ public class ArrayIte extends ArrayTerm {
             elseBranch = (ArrayTerm) elseBranch.removeArrayWritesTerm(
                     topLevelFormula, constraints, noDependenceVars);
 
-        return new ArrayIte(condition, thenBranch, elseBranch);
+        return ArrayIte.create(condition, thenBranch, elseBranch);
     }
 
     /**

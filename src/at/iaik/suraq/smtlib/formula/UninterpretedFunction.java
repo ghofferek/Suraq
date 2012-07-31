@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * This class represents uninterpreted functions. It stores the name of the
@@ -47,6 +48,30 @@ public class UninterpretedFunction implements Serializable {
 
     private final int hashCode;
 
+    public static UninterpretedFunction create(String name, int numParams,
+            Token type) {
+        return FormulaCache.uninterpretedFunction
+                .put(new UninterpretedFunction(name, numParams, type));
+    }
+
+    public static UninterpretedFunction create(Token name, int numParams,
+            Token type) {
+        return FormulaCache.uninterpretedFunction
+                .put(new UninterpretedFunction(name, numParams, type));
+    }
+
+    public static UninterpretedFunction create(String name, int numParams,
+            Token type, int assertPartition) {
+        return FormulaCache.uninterpretedFunction
+                .put(new UninterpretedFunction(name, numParams, type,
+                        assertPartition));
+    }
+
+    public static UninterpretedFunction create(UninterpretedFunction original) {
+        return original; // experimental
+    }
+    
+    
     /**
      * 
      * Constructs a new <code>UninterpretedFunction</code>.
@@ -59,7 +84,7 @@ public class UninterpretedFunction implements Serializable {
      *            the return type of the function (<code>Value</code> or
      *            <code>Bool</code>).
      */
-    public UninterpretedFunction(String name, int numParams, Token type) {
+    private UninterpretedFunction(String name, int numParams, Token type) {
         this.name = Token.generate(name);
         this.numParams = numParams;
         this.type = type;
@@ -67,7 +92,7 @@ public class UninterpretedFunction implements Serializable {
         this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
                 + numParams;
     }
-
+    
     /**
      * 
      * Constructs a new <code>UninterpretedFunction</code>.
@@ -80,7 +105,7 @@ public class UninterpretedFunction implements Serializable {
      *            the return type of the function (<code>Value</code> or
      *            <code>Bool</code>).
      */
-    public UninterpretedFunction(Token name, int numParams, Token type) {
+    private UninterpretedFunction(Token name, int numParams, Token type) {
         this.name = name;
         this.numParams = numParams;
         this.type = type;
@@ -97,7 +122,7 @@ public class UninterpretedFunction implements Serializable {
      * @param original
      *            the object to (deep) copy
      */
-    public UninterpretedFunction(UninterpretedFunction original) {
+    private UninterpretedFunction(UninterpretedFunction original) {
         this.numParams = original.numParams;
         this.name = Token.generate(original.name);
         this.type = Token.generate(original.type);
@@ -120,7 +145,7 @@ public class UninterpretedFunction implements Serializable {
      * @param assertPartition
      *            the function's assert-partition.
      */
-    public UninterpretedFunction(String name, int numParams, Token type,
+    private UninterpretedFunction(String name, int numParams, Token type,
             int assertPartition) {
         this.name = Token.generate(name);
         this.numParams = numParams;

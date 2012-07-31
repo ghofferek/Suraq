@@ -14,6 +14,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * This class represents a (Boolean) function macro. It represents the
@@ -47,11 +48,19 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      *             if the size of the parameter list and the type map do not
      *             match.
      */
-    public PropositionalFunctionMacro(Token name, List<Token> parameters,
+    private PropositionalFunctionMacro(Token name, List<Token> parameters,
             Map<Token, SExpression> paramMap, Formula body)
             throws InvalidParametersException {
         super(name, parameters, paramMap);
         this.body = body;
+    }
+    
+    public static PropositionalFunctionMacro create(Token name,
+            List<Token> parameters, Map<Token, SExpression> paramMap,
+            Formula body) throws InvalidParametersException {
+        return (PropositionalFunctionMacro) FormulaCache.functionMacro
+                .put(new PropositionalFunctionMacro(name, parameters, paramMap,
+                        body));
     }
 
     /**
@@ -61,10 +70,10 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @param macro
      *            the macro to (deep) copy.
      */
-    public PropositionalFunctionMacro(PropositionalFunctionMacro macro) {
+    /*public PropositionalFunctionMacro(PropositionalFunctionMacro macro) {
         super(macro);
         this.body = macro.body.deepFormulaCopy();
-    }
+    }*/
 
     /**
      * Returns the function body of this macro.
@@ -94,7 +103,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
 
         Formula nnfBody = body.negationNormalForm();
 
-        return new PropositionalFunctionMacro(nnfName, nnfParameters,
+        return PropositionalFunctionMacro.create(nnfName, nnfParameters,
                 nnfParamMap, nnfBody);
     }
 
@@ -112,7 +121,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
 
         Formula negatedBody = (NotFormula.create(body)).negationNormalForm();
 
-        return new PropositionalFunctionMacro(negatedName, negatedParameters,
+        return PropositionalFunctionMacro.create(negatedName, negatedParameters,
                 negatedParamMap, negatedBody);
     }
 
@@ -162,7 +171,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
             body = body.removeArrayEqualities();
 
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap, body);
+            return PropositionalFunctionMacro.create(name, parameters, paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -184,7 +193,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
             body = body.arrayPropertiesToFiniteConjunctions(indexSet);
 
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap, body);
+            return PropositionalFunctionMacro.create(name, parameters, paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -197,7 +206,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     public PropositionalFunctionMacro simplify() {
         Formula body = this.body.simplify();
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap, body);
+            return PropositionalFunctionMacro.create(name, parameters, paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -247,7 +256,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                 constraints, noDependenceVars);
 
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap,
+            return PropositionalFunctionMacro.create(name, parameters, paramMap,
                     body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
@@ -263,7 +272,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
         Formula body = this.body
                 .arrayReadsToUninterpretedFunctions(noDependenceVars);
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap,
+            return PropositionalFunctionMacro.create(name, parameters, paramMap,
                     body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
@@ -296,7 +305,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
         Formula body = this.body.substituteUninterpretedFunction(oldFunction,
                 newFunction);
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap,
+            return PropositionalFunctionMacro.create(name, parameters, paramMap,
                     body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
@@ -315,7 +324,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
         Formula body = this.body.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap,
+            return PropositionalFunctionMacro.create(name, parameters, paramMap,
                     body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
@@ -377,7 +386,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                     noDependenceVars);
 
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap,
+            return PropositionalFunctionMacro.create(name, parameters, paramMap,
                     body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
@@ -399,7 +408,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                 noDependenceVars);
 
         try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap,
+            return PropositionalFunctionMacro.create(name, parameters, paramMap,
                     body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();

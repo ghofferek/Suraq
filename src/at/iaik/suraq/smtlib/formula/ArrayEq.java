@@ -98,7 +98,7 @@ public class ArrayEq extends EqualityFormula {
             for (Term term : terms)
                 arrayReads.add(ArrayRead.create((ArrayTerm) term, index));
             try {
-                newFormula = new ArrayProperty(uVars,
+                newFormula = ArrayProperty.create(uVars,
                         PropositionalConstant.create(true), DomainEq.create(
                                 arrayReads, true));
             } catch (SuraqException exc) {
@@ -116,7 +116,7 @@ public class ArrayEq extends EqualityFormula {
                     arrayReads.add(ArrayRead.create((ArrayTerm) terms.get(j),
                             index));
                     try {
-                        conjuncts.add(new ArrayProperty(uVars,
+                        conjuncts.add(ArrayProperty.create(uVars,
                                 PropositionalConstant.create(true), DomainEq.create(
                                         arrayReads, true)));
                     } catch (SuraqException exc) {

@@ -1839,7 +1839,7 @@ public class Suraq implements Runnable {
                 else
                 {
                     assert (type instanceof Token);
-                    listOfFunctionCopies.add(new UninterpretedFunction(name, numParams, (Token) type, count));
+                    listOfFunctionCopies.add(UninterpretedFunction.create(name, numParams, (Token) type, count));
                 }
             }
         }

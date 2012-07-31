@@ -20,7 +20,6 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
-import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableArrayList;
 
 /**
@@ -498,27 +497,6 @@ public abstract class EqualityFormula implements Formula {
             throw new RuntimeException(ex);
         }
     }
-
-    /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
-     *      java.util.Set, java.util.Set)
-     */
-/*    @Override
-    public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-
-        List<Term> newTerms = new ArrayList<Term>();
-        for (Term term : terms)
-            newTerms.add(term.uninterpretedPredicatesToAuxiliaryVariables(
-                    topLeveFormula, constraints, noDependenceVars));
-
-        try {
-            return EqualityFormula.create(newTerms, equal);
-        } catch (IncomparableTermsException exc) {
-            throw new RuntimeException("Unexpectedly incomparable terms.", exc);
-        }
-    }*/
 
     /**
      * Returns the elements assert-partition.
