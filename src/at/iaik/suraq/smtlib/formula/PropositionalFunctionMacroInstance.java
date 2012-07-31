@@ -312,7 +312,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
 
         Boolean simplification = macro.simplify(paramMap);
         if (simplification != null)
-            return new PropositionalConstant(simplification);
+            return PropositionalConstant.create(simplification);
 
         try {
             return new PropositionalFunctionMacroInstance(macro, paramMap);

@@ -149,9 +149,9 @@ public abstract class SMTLibParser extends Parser {
         if (isPropositionalConstant(expression)) {
             PropositionalConstant constant = null;
             if (expression.equals(SExpressionConstants.TRUE))
-                constant = new PropositionalConstant(true);
+                constant = PropositionalConstant.create(true);
             else if (expression.equals(SExpressionConstants.FALSE))
-                constant = new PropositionalConstant(false);
+                constant = PropositionalConstant.create(false);
             else
                 throw new ParseError(expression,
                         "Unexpected Error parsing propositional constant!");
@@ -301,14 +301,14 @@ public abstract class SMTLibParser extends Parser {
                 Formula indexGuard;
                 Formula valueConstraint;
                 if (property.getChildren().size() <= 2) { // not an implication
-                    indexGuard = new PropositionalConstant(true);
+                    indexGuard = PropositionalConstant.create(true);
                     valueConstraint = parseFormulaBody(property);
                 } else if (!property.getChildren().get(0)
                         .equals(SExpressionConstants.IMPLIES)
                         && !property.getChildren().get(0)
                                 .equals(SExpressionConstants.IMPLIES_ALT)) {
                     // also not an implication
-                    indexGuard = new PropositionalConstant(true);
+                    indexGuard = PropositionalConstant.create(true);
                     valueConstraint = parseFormulaBody(property);
                 } else { // we have an implication
                     if (property.getChildren().size() != 3)
@@ -362,7 +362,7 @@ public abstract class SMTLibParser extends Parser {
             }
             try {
                 int partition = getPartitionUninterpretedFunction(function);
-                return new UninterpretedPredicateInstance(function, parameters,
+                return UninterpretedPredicateInstance.create(function, parameters,
                         partition);
             } catch (SuraqException exc) {
                 throw new RuntimeException(
@@ -471,7 +471,7 @@ public abstract class SMTLibParser extends Parser {
      */
     private int getPartitionArrayVariable(SExpression expression) {
         for (ArrayVariable var : arrayVariables)
-            if (var.equals(new ArrayVariable((Token) expression))) {
+            if (var.equals(ArrayVariable.create((Token) expression))) {
                 Set<Integer> partitions = var.getPartitionsFromSymbols();
                 return partitions.iterator().next();
             }
@@ -532,7 +532,7 @@ public abstract class SMTLibParser extends Parser {
         if (type != null) {
             if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
                 int partition = getPartitionArrayVariable(expression);
-                return new ArrayVariable((Token) expression, partition);
+                return ArrayVariable.create((Token) expression, partition);
             }
             if (type.equals(SExpressionConstants.VALUE_TYPE)) {
                 int partition = getPartitionDomainVariable(expression);
@@ -561,12 +561,12 @@ public abstract class SMTLibParser extends Parser {
 
             if (thenBranch instanceof ArrayTerm
                     && elseBranch instanceof ArrayTerm)
-                return new ArrayIte(condition, (ArrayTerm) thenBranch,
+                return ArrayIte.create(condition, (ArrayTerm) thenBranch,
                         (ArrayTerm) elseBranch);
 
             if (thenBranch instanceof DomainTerm
                     && elseBranch instanceof DomainTerm)
-                return new DomainIte(condition, (DomainTerm) thenBranch,
+                return DomainIte.create(condition, (DomainTerm) thenBranch,
                         (DomainTerm) elseBranch);
 
             if (thenBranch instanceof PropositionalTerm
@@ -581,7 +581,7 @@ public abstract class SMTLibParser extends Parser {
 
         if (isArrayVariable(expression)) {
             int partition = getPartitionArrayVariable(expression);
-            return new ArrayVariable(expression.toString(), partition);
+            return ArrayVariable.create(expression.toString(), partition);
         }
 
         if (isArrayWrite(expression)) {
@@ -633,7 +633,7 @@ public abstract class SMTLibParser extends Parser {
             }
             try {
                 int partition = getPartitionUninterpretedFunction(function);
-                return new UninterpretedFunctionInstance(function, parameters,
+                return UninterpretedFunctionInstance.create(function, parameters,
                         partition);
             } catch (SuraqException exc) {
                 throw new RuntimeException(
@@ -656,14 +656,14 @@ public abstract class SMTLibParser extends Parser {
                 throw new ParseError(expression.getChildren().get(2),
                         "Second parameter of 'select' must be a domain term.");
 
-            return new ArrayRead((ArrayTerm) arrayTerm, (DomainTerm) indexTerm);
+            return ArrayRead.create((ArrayTerm) arrayTerm, (DomainTerm) indexTerm);
         }
 
         if (isPropositionalConstOrVar(expression)) {
             if (expression.equals(SExpressionConstants.TRUE))
-                return new PropositionalConstant(true);
+                return PropositionalConstant.create(true);
             else if (expression.equals(SExpressionConstants.FALSE))
-                return new PropositionalConstant(false);
+                return PropositionalConstant.create(false);
 
             int partition = getPartitionBoolVariable(expression);
             PropositionalVariable variable = PropositionalVariable.create(
@@ -709,7 +709,7 @@ public abstract class SMTLibParser extends Parser {
                                     paramMap));
                 } else {
                     assert (macro instanceof TermFunctionMacro);
-                    return new TermFunctionMacroInstance(
+                    return TermFunctionMacroInstance.create(
                             (TermFunctionMacro) macro, paramMap);
                 }
             } catch (InvalidParametersException exc) {
@@ -1055,7 +1055,7 @@ public abstract class SMTLibParser extends Parser {
     protected boolean isArrayVariable(SExpression expression) {
         if (!(expression instanceof Token))
             return false;
-        return arrayVariables.contains(new ArrayVariable((Token) expression));
+        return arrayVariables.contains(ArrayVariable.create((Token) expression));
     }
 
     /**

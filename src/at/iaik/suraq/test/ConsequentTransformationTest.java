@@ -72,11 +72,11 @@ public class ConsequentTransformationTest {
     public void testPropositionalConstant() {
 
         // define input
-        Formula input = NotFormula.create(new PropositionalConstant(false));
+        Formula input = NotFormula.create(PropositionalConstant.create(false));
 
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
-        subFormulas.add(new PropositionalConstant(true));
+        subFormulas.add(PropositionalConstant.create(true));
         Formula expectedOutput = OrFormula.generate(subFormulas);
 
         // create output with transformation
@@ -164,10 +164,10 @@ public class ConsequentTransformationTest {
         List<PropositionalTerm> inputFormulas = new ArrayList<PropositionalTerm>();
         inputFormulas.add(a);
         inputFormulas.add(b);
-        Formula input = new PropositionalEq(inputFormulas, false);
+        Formula input = PropositionalEq.create(inputFormulas, false);
 
         // create expected output
-        Formula equality = new PropositionalEq(inputFormulas, true);
+        Formula equality = PropositionalEq.create(inputFormulas, true);
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
         subFormulas.add(NotFormula.create(equality));
         Formula expectedOutput = OrFormula.generate(subFormulas);

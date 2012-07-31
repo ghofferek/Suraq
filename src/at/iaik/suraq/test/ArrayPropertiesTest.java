@@ -48,8 +48,8 @@ public class ArrayPropertiesTest {
         DomainVariable i3 = DomainVariable.create("i3");
         DomainVariable constant = DomainVariable.create("constant");
 
-        ArrayVariable array = new ArrayVariable("array");
-        ArrayRead read = new ArrayRead(array, uVar);
+        ArrayVariable array = ArrayVariable.create("array");
+        ArrayRead read = ArrayRead.create(array, uVar);
 
         List<DomainTerm> list = new ArrayList<DomainTerm>();
         list.add(read);
@@ -58,8 +58,8 @@ public class ArrayPropertiesTest {
         List<DomainVariable> uVars = new ArrayList<DomainVariable>();
         uVars.add(uVar);
 
-        Formula indexGuard = new PropositionalConstant(true);
-        Formula valueConstraint = new DomainEq(list, true);
+        Formula indexGuard = PropositionalConstant.create(true);
+        Formula valueConstraint = DomainEq.create(list, true);
 
         ArrayProperty property = new ArrayProperty(uVars, indexGuard,
                 valueConstraint);
@@ -73,14 +73,14 @@ public class ArrayPropertiesTest {
 
         List<Formula> conjuncts = new ArrayList<Formula>();
         for (DomainTerm var : indexSet) {
-            Formula leftSide = new PropositionalConstant(true);
+            Formula leftSide = PropositionalConstant.create(true);
 
-            read = new ArrayRead(array, var);
+            read = ArrayRead.create(array, var);
             list.clear();
             list.add(read);
             list.add(constant);
 
-            Formula rightSide = new DomainEq(list, true);
+            Formula rightSide = DomainEq.create(list, true);
             Formula conjunct = ImpliesFormula.create(leftSide, rightSide);
             conjuncts.add(conjunct);
         }

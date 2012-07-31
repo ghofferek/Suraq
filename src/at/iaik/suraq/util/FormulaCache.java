@@ -2,7 +2,6 @@ package at.iaik.suraq.util;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.TreeMap;
 import java.util.WeakHashMap;
 
 import at.iaik.suraq.sexp.Token;
@@ -16,12 +15,15 @@ public class FormulaCache<T> {
 	public static FormulaCache<Token> token = new FormulaCache<Token>("Token", true);
 	public static FormulaCache<NotFormula> notFormula = new FormulaCache<NotFormula>("NOT", true);
 	public static FormulaCache<PropositionalVariable> propVar = new FormulaCache<PropositionalVariable>("PropVar", true);
+    public static FormulaCache<PropositionalConstant> propConst = new FormulaCache<PropositionalConstant>("PropConst", true);
     public static FormulaCache<DomainVariable> domainVarFormula = new FormulaCache<DomainVariable>("DomainVar", true);
     public static FormulaCache<ImpliesFormula> impliesFormula = new FormulaCache<ImpliesFormula>("implies", true);
     public static FormulaCache<AndOrXorFormula> andOrXorFormula = new FormulaCache<AndOrXorFormula>("AndOrXor", true);
     public static FormulaCache<FormulaTerm> formulaTerm = new FormulaCache<FormulaTerm>("FormulaTerm", true);
     public static FormulaCache<EqualityFormula> equalityFormula = new FormulaCache<EqualityFormula>("EqualityFormula", true);
-    
+    public static FormulaCache<DomainTerm> domainTerm = new FormulaCache<DomainTerm>("DomainTerm:*", true);
+    public static FormulaCache<Term> term = new FormulaCache<Term>("Term:*", true);
+       
     
 	public static boolean _isActive = true;
 	public boolean _isActive2 = true;

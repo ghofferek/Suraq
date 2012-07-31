@@ -87,7 +87,7 @@ public abstract class EqualityFormula implements Formula {
             for (Term term : terms) {
                 domainTerms.add((DomainTerm) term);
             }
-            return FormulaCache.equalityFormula.put(new DomainEq(domainTerms, equal));
+            return DomainEq.create(domainTerms, equal);
         }
 
         if (termType.equals(Term.arrayTermClass)) {
@@ -95,7 +95,7 @@ public abstract class EqualityFormula implements Formula {
             for (Term term : terms) {
                 arrayTerms.add((ArrayTerm) term);
             }
-            return FormulaCache.equalityFormula.put(new ArrayEq(arrayTerms, equal));
+            return ArrayEq.create(arrayTerms, equal);
         }
 
         if (termType.equals(Term.propositionalTermClass)) {
@@ -103,7 +103,7 @@ public abstract class EqualityFormula implements Formula {
             for (Term term : terms) {
                 propositionalTerms.add((PropositionalTerm) term);
             }
-            return FormulaCache.equalityFormula.put(new PropositionalEq(propositionalTerms, equal));
+            return PropositionalEq.create(propositionalTerms, equal);
         }
 
         // This should never be reached
@@ -358,11 +358,11 @@ public abstract class EqualityFormula implements Formula {
             terms.addAll(termSet);
 
             if (terms.size() < 2)
-                return new PropositionalConstant(true);
+                return PropositionalConstant.create(true);
 
         } else {
             if (termSet.size() != terms.size())
-                return new PropositionalConstant(false);
+                return PropositionalConstant.create(false);
         }
 
         try {
@@ -672,7 +672,7 @@ public abstract class EqualityFormula implements Formula {
                         if(terms.size() < 2) // this means ti = tj
                         {
                             //System.out.println("Propably there was an equality like x=x");
-                            newTerms.add(new PropositionalConstant(true));
+                            newTerms.add(PropositionalConstant.create(true));
                             continue;
                         }
                         

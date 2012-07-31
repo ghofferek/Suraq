@@ -14,6 +14,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -37,8 +38,13 @@ public class PropositionalConstant extends PropositionalTerm {
      * @param constant
      *            the value to use.
      */
-    public PropositionalConstant(boolean constant) {
+    private PropositionalConstant(boolean constant) {
         this.constant = constant;
+    }
+    
+    public static PropositionalConstant create(boolean constant)
+    {
+        return FormulaCache.propConst.put(new PropositionalConstant(constant));
     }
 
     /**
@@ -55,7 +61,8 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public Formula deepFormulaCopy() {
-        return new PropositionalConstant(constant);
+        return this; // experimental
+       // return PropositionalConstant.create(constant);
     }
 
     /**
@@ -63,7 +70,7 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public Term deepTermCopy() {
-        return new PropositionalConstant(constant);
+        return PropositionalConstant.create(constant);
     }
 
     /**
@@ -95,7 +102,7 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public Formula negationNormalForm() throws SuraqException {
-        return new PropositionalConstant(constant);
+        return PropositionalConstant.create(constant);
     }
 
     /**
@@ -155,7 +162,7 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        return new PropositionalConstant(constant);
+        return PropositionalConstant.create(constant);
     }
 
     /**
@@ -163,7 +170,7 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return new PropositionalConstant(constant);
+        return PropositionalConstant.create(constant);
     }
 
     /**
@@ -187,7 +194,7 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public PropositionalConstant flatten() {
-        return new PropositionalConstant(constant);
+        return PropositionalConstant.create(constant);
     }
 
     /**
@@ -276,7 +283,7 @@ public class PropositionalConstant extends PropositionalTerm {
     public PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
             Formula topLeveFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
-        return new PropositionalConstant(constant);
+        return PropositionalConstant.create(constant);
     }*/
 
     @Override
@@ -306,7 +313,7 @@ public class PropositionalConstant extends PropositionalTerm {
         if (notFlag == true)
         {
             //this.constant = !this.constant;
-            _this = new PropositionalConstant(!this.constant);
+            _this = PropositionalConstant.create(!this.constant);
         }
 
         if (firstLevel == true) {

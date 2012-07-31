@@ -39,8 +39,13 @@ public class DomainEq extends EqualityFormula {
      *            <code>false</code> for an inequality.
      * 
      */
-    public DomainEq(Collection<? extends DomainTerm> domainTerms, boolean equal) {
+    private DomainEq(Collection<? extends DomainTerm> domainTerms, boolean equal) {
         super(domainTerms, equal);
+    }
+    
+    public static DomainEq create(Collection<? extends DomainTerm> domainTerms, boolean equal)
+    {
+        return (DomainEq)FormulaCache.equalityFormula.put(new DomainEq(domainTerms, equal));
     }
 
     /**
@@ -60,11 +65,14 @@ public class DomainEq extends EqualityFormula {
      */
     @Override
     public Formula deepFormulaCopy() {
+        return this; // experimental
+        /*
         List<DomainTerm> terms = new ArrayList<DomainTerm>();
         for (Term term : this.terms) {
             terms.add((DomainTerm) term.deepTermCopy());
         }
         return FormulaCache.equalityFormula.put(new DomainEq(terms, equal));
+        */
     }
 
     /**

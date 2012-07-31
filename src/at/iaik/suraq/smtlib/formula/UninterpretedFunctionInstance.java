@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
@@ -45,7 +46,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     private ImmutableArrayList<DomainTerm> parameters;
     // this cannot be final until now.
 
-    public UninterpretedFunctionInstance(UninterpretedFunction function,
+    private UninterpretedFunctionInstance(UninterpretedFunction function,
             List<DomainTerm> parameters, int partition)
             throws WrongNumberOfParametersException, WrongFunctionTypeException {
         this(function, parameters);
@@ -54,6 +55,15 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             this.assertPartition = partition;
             this.assertPartition = partition;
         }
+    }
+
+    public static UninterpretedFunctionInstance create(
+            UninterpretedFunction function, List<DomainTerm> parameters,
+            int partition) throws WrongNumberOfParametersException,
+            WrongFunctionTypeException {
+        return (UninterpretedFunctionInstance) FormulaCache.domainTerm
+                .put(new UninterpretedFunctionInstance(function, parameters,
+                        partition));
     }
 
     /**
@@ -71,7 +81,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      * @throws WrongFunctionTypeException
      *             if the type of the given function is not <code>Value</code>.
      */
-    public UninterpretedFunctionInstance(UninterpretedFunction function,
+    private UninterpretedFunctionInstance(UninterpretedFunction function,
             List<DomainTerm> parameters)
             throws WrongNumberOfParametersException, WrongFunctionTypeException {
         if (function.getNumParams() != parameters.size())
@@ -92,6 +102,13 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         assert (partitions.size() == 1);
         this.assertPartition = partitions.iterator().next();
     }
+    
+    public static UninterpretedFunctionInstance create(
+            UninterpretedFunction function, List<DomainTerm> parameters)
+            throws WrongNumberOfParametersException, WrongFunctionTypeException {
+        return (UninterpretedFunctionInstance) FormulaCache.domainTerm
+                .put(new UninterpretedFunctionInstance(function, parameters));
+    }
 
     /**
      * Constructs a new <code>UninterpretedFunctionInstance</code> with just one
@@ -105,7 +122,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      *             if the number of parameters of the function does not match
      *             the size of <code>parameters</code>.
      */
-    public UninterpretedFunctionInstance(UninterpretedFunction function,
+    private UninterpretedFunctionInstance(UninterpretedFunction function,
             DomainTerm term) throws WrongNumberOfParametersException {
         if (function.getNumParams() != 1)
             throw new WrongNumberOfParametersException();
@@ -113,6 +130,13 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         List<DomainTerm> params = new ArrayList<DomainTerm>();
         params.add(term);
         this.parameters = new ImmutableArrayList<DomainTerm>(params);
+    }
+
+    public static UninterpretedFunctionInstance create(
+            UninterpretedFunction function, DomainTerm term)
+            throws WrongNumberOfParametersException {
+        return (UninterpretedFunctionInstance) FormulaCache.domainTerm
+                .put(new UninterpretedFunctionInstance(function, term));
     }
 
     /**
@@ -150,6 +174,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     @Override
     public UninterpretedFunctionInstance deepTermCopy() {
+        return this; // experimental
+        /*
         List<DomainTerm> parameters = new ArrayList<DomainTerm>();
         for (DomainTerm term : this.parameters)
             parameters.add(term.deepTermCopy());
@@ -163,6 +189,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                     "Unexpected situation while copying uninterpreted function instance.",
                     exc);
         }
+        */
     }
 
     /**
@@ -576,7 +603,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 		for (DomainVariable dv : instanceParameters.keySet())
 			  instancesStr.add(dv.getVarName());
 		  
-    	String varName = Util.freshVarName(topLeveFormula,function.getName().toString(),instancesStr);
+    	String varName = Util.freshVarNameCached(topLeveFormula,function.getName().toString(),instancesStr);
     	result = DomainVariable.create(varName);
        
     	String functionName = function.getName().toString();

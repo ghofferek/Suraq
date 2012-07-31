@@ -16,6 +16,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.DebugHelper;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
@@ -40,7 +41,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     private final ImmutableArrayList<DomainTerm> parameters;
 
-    public UninterpretedPredicateInstance(UninterpretedFunction function,
+    private UninterpretedPredicateInstance(UninterpretedFunction function,
             List<DomainTerm> parameters, int partition)
             throws WrongNumberOfParametersException, WrongFunctionTypeException {
         this(function, parameters);
@@ -48,6 +49,15 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             assert (partition == this.assertPartition || this.assertPartition == -1);
             this.assertPartition = partition;
         }
+    }
+
+    public static UninterpretedPredicateInstance create(
+            UninterpretedFunction function, List<DomainTerm> parameters,
+            int partition) throws WrongNumberOfParametersException,
+            WrongFunctionTypeException {
+        return (UninterpretedPredicateInstance) FormulaCache.term
+                .put(new UninterpretedPredicateInstance(function, parameters,
+                        partition));
     }
 
     /**
@@ -65,7 +75,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      * @throws WrongFunctionTypeException
      *             if the type of the given function is not <code>Value</code>.
      */
-    public UninterpretedPredicateInstance(UninterpretedFunction function,
+    private UninterpretedPredicateInstance(UninterpretedFunction function,
             List<DomainTerm> parameters)
             throws WrongNumberOfParametersException, WrongFunctionTypeException {
         if (function.getNumParams() != parameters.size())
@@ -85,6 +95,13 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             partitions.remove(-1);
         assert (partitions.size() == 1);
         this.assertPartition = partitions.iterator().next();
+    }
+    
+    public static UninterpretedPredicateInstance create(
+            UninterpretedFunction function, List<DomainTerm> parameters)
+            throws WrongNumberOfParametersException, WrongFunctionTypeException {
+        return (UninterpretedPredicateInstance) FormulaCache.term
+                .put(new UninterpretedPredicateInstance(function, parameters));
     }
 
     /**
@@ -137,6 +154,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     @Override
     public UninterpretedPredicateInstance deepFormulaCopy() {
+        return this; // experimental
+        /*
         List<DomainTerm> parameterCopies = new ArrayList<DomainTerm>();
         for (DomainTerm term : parameters)
             parameterCopies.add(term.deepTermCopy());
@@ -148,6 +167,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             throw new RuntimeException(
                     "Unexpected situation whily copying predicate.", exc);
         }
+        */
     }
 
     /**
@@ -709,7 +729,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
 		for (PropositionalVariable pv : instanceParameters.keySet())
 			  instancesStr.add(pv.getVarName());
 		
-    	String varName = Util.freshVarName(topLeveFormula,function.getName().toString(),instancesStr);
+    	String varName = Util.freshVarNameCached(topLeveFormula,function.getName().toString(),instancesStr);
     	
     	result = PropositionalVariable.create(varName);
        

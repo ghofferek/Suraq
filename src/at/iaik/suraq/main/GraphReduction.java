@@ -62,8 +62,7 @@ public class GraphReduction {
         if (prop_cache.containsKey(token)) {
             return prop_cache.get(token);
         }
-        PropositionalVariable p = (PropositionalVariable) FormulaCache.propVar
-                .put(PropositionalVariable.create(token));
+        PropositionalVariable p = (PropositionalVariable) PropositionalVariable.create(token);
         prop_cache.put(token, p);
         return p;
     }
@@ -386,7 +385,7 @@ public class GraphReduction {
         part1.add(generatePropositionalVariable(a));
         part1.add(generatePropositionalVariable(b));
         AndFormula and = AndFormula.generate(part1);
-        ImpliesFormula implies = FormulaCache.impliesFormula.put(ImpliesFormula.create(and, generatePropositionalVariable(c)));
+        ImpliesFormula implies = ImpliesFormula.create(and, generatePropositionalVariable(c));
         return implies;
     }
     

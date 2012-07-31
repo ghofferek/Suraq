@@ -78,7 +78,8 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula deepFormulaCopy() {
-        return NotFormula.create(formula.deepFormulaCopy());
+        return this; // experimental
+        //return NotFormula.create(formula.deepFormulaCopy());
     }
 
     /**
@@ -159,7 +160,7 @@ public class NotFormula extends BooleanCombinationFormula {
 
         // PropositionalConstant
         if (formula instanceof PropositionalConstant)
-            return new PropositionalConstant(
+            return PropositionalConstant.create(
                     !((PropositionalConstant) formula).getValue());
 
         // PropositionalVariable
@@ -330,7 +331,7 @@ public class NotFormula extends BooleanCombinationFormula {
         Formula formula = this.formula.simplify();
 
         if (formula instanceof PropositionalConstant)
-            return new PropositionalConstant(
+            return PropositionalConstant.create(
                     !((PropositionalConstant) formula).getValue());
 
         if (formula instanceof NotFormula)

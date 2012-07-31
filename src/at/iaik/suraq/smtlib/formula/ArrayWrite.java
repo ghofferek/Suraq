@@ -286,12 +286,12 @@ public class ArrayWrite extends ArrayTerm {
         index = indexTerm.deepTermCopy();
         index = (DomainTerm)index.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
         if (!(index instanceof DomainVariable)) {
-            DomainVariable simpleIndex = DomainVariable.create(Util.freshVarName(
+            DomainVariable simpleIndex = DomainVariable.create(Util.freshVarNameCached(
                     topLevelFormula, "read"));
             List<DomainTerm> terms = new ArrayList<DomainTerm>();
             terms.add(simpleIndex);
             terms.add(index);
-            constraints.add(new DomainEq(terms, true));
+            constraints.add(DomainEq.create(terms, true));
 
             // Check if the complex index contained any noDependenceVars.
             // This might be conservative and might not be complete (i.e., may
@@ -306,10 +306,10 @@ public class ArrayWrite extends ArrayTerm {
 
         // now apply axiom
         String oldVar = result.toSmtlibV2().toString().replaceAll("\\W", "");
-        ArrayVariable newVar = new ArrayVariable(Util.freshVarName(
+        ArrayVariable newVar = ArrayVariable.create(Util.freshVarNameCached(
                 topLevelFormula, oldVar + "_store"));
 
-        ArrayRead newRead = new ArrayRead(newVar, index);
+        ArrayRead newRead = ArrayRead.create(newVar, index);
         newRead = (ArrayRead)newRead.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
                 noDependenceVars);
         value = (DomainTerm) value.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
@@ -317,19 +317,19 @@ public class ArrayWrite extends ArrayTerm {
         Set<DomainTerm> domainTerms = new HashSet<DomainTerm>();
         domainTerms.add(newRead);
         domainTerms.add(value);
-        constraints.add(new DomainEq(domainTerms, true));
+        constraints.add(DomainEq.create(domainTerms, true));
 
-        DomainVariable newUVar = DomainVariable.create(Util.freshVarName(
+        DomainVariable newUVar = DomainVariable.create(Util.freshVarNameCached(
                 topLevelFormula, "uVar"));
         domainTerms.clear();
         domainTerms.add(index);
         domainTerms.add(newUVar);
-        Formula indexGuard = new DomainEq(domainTerms, false);
+        Formula indexGuard = DomainEq.create(domainTerms, false);
 
         domainTerms.clear();
-        domainTerms.add(new ArrayRead(newVar, newUVar));
-        domainTerms.add(new ArrayRead(result, newUVar));
-        Formula valueConstraint = new DomainEq(domainTerms, true);
+        domainTerms.add(ArrayRead.create(newVar, newUVar));
+        domainTerms.add(ArrayRead.create(result, newUVar));
+        Formula valueConstraint = DomainEq.create(domainTerms, true);
 
         Set<DomainVariable> uVars = new HashSet<DomainVariable>();
         uVars.add(newUVar);

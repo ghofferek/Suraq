@@ -12,6 +12,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * An if-then-else-style array term.
@@ -52,7 +53,7 @@ public class ArrayIte extends ArrayTerm {
      * @param elseBranch
      *            the value of the else-branch
      */
-    public ArrayIte(Formula condition, ArrayTerm thenBranch,
+    private ArrayIte(Formula condition, ArrayTerm thenBranch,
             ArrayTerm elseBranch) {
         if (condition instanceof FormulaTerm)
             this.condition = ((FormulaTerm) condition).getFormula();
@@ -60,6 +61,12 @@ public class ArrayIte extends ArrayTerm {
             this.condition = condition;
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
+    }
+    
+    public static ArrayIte create(Formula condition, ArrayTerm thenBranch,
+            ArrayTerm elseBranch) {
+        return (ArrayIte) FormulaCache.term.put(new ArrayIte(condition,
+                thenBranch, elseBranch));
     }
 
     /**

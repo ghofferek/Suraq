@@ -267,18 +267,18 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             if (((PropositionalConstant) leftSide).getValue())
                 return rightSide;
             else
-                return new PropositionalConstant(true);
+                return PropositionalConstant.create(true);
         }
 
         if (rightSide instanceof PropositionalConstant) {
             if (((PropositionalConstant) rightSide).getValue())
-                return new PropositionalConstant(true);
+                return PropositionalConstant.create(true);
             else
                 return NotFormula.create(leftSide).simplify();
         }
 
         if (leftSide.equals(rightSide))
-            return new PropositionalConstant(true);
+            return PropositionalConstant.create(true);
 
         if (leftSide instanceof NotFormula)
             if (rightSide.equals(((NotFormula) leftSide).getNegatedFormula()))

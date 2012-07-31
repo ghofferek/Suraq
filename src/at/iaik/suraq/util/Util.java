@@ -83,6 +83,7 @@ public final class Util {
      * @return a fresh variable name (w.r.t.<code>formula</code>), starting with
      *         <code>prefix</code>.
      */
+    @Deprecated
     public static final String freshVarName(Formula formula, String prefix) {
         Set<ArrayVariable> arrayVars = formula.getArrayVariables();
         Set<DomainVariable> domainVars = formula.getDomainVariables();
@@ -94,7 +95,7 @@ public final class Util {
         int count = -1;
         while (++count >= 0) {
             String name = prefix + (count > 0 ? ("_fresh" + count) : "");
-            if (arrayVars.contains(new ArrayVariable(name)))
+            if (arrayVars.contains(ArrayVariable.create(name)))
                 continue;
             if (domainVars.contains(DomainVariable.create(name)))
                 continue;
@@ -109,6 +110,7 @@ public final class Util {
         throw new RuntimeException("Could not create fresh variable name.");
     }
     
+    @Deprecated
     public static final String freshVarName(Formula formula, String prefix, Set<String> instances) {
         Set<ArrayVariable> arrayVars = formula.getArrayVariables();
         Set<DomainVariable> domainVars = formula.getDomainVariables();
@@ -120,7 +122,7 @@ public final class Util {
         int count = -1;
         while (++count >= 0) {
             String name = prefix + (count > 0 ? ("_fresh" + count) : "");
-            if (arrayVars.contains(new ArrayVariable(name)))
+            if (arrayVars.contains(ArrayVariable.create(name)))
                 continue;
             if (domainVars.contains(DomainVariable.create(name)))
                 continue;
@@ -139,10 +141,14 @@ public final class Util {
 
     static Formula lastFormula = null;
     static Set<Object> lostNames = new HashSet<Object>();
-    public static final String freshVarNameCached(Formula formula, String prefix)
-    {
-        if(lastFormula != formula)
-        {
+
+    public static final String freshVarNameCached(Formula formula, String prefix) {
+        return freshVarNameCached(formula, prefix, null);
+    }
+
+    public static final String freshVarNameCached(Formula formula,
+            String prefix, Set<String> instances) {
+        if (lastFormula != formula) {
             System.out.println("*** New Formula detected. Building lostNames.");
             lastFormula = formula;
             lostNames.clear();
@@ -157,8 +163,10 @@ public final class Util {
         int count = -1;
         while (++count >= 0) {
             String name = prefix + (count > 0 ? ("_fresh" + count) : "");
-            
+
             if (lostNames.contains(name))
+                continue;
+            if (instances != null && instances.contains(name))
                 continue;
             lostNames.add(name);
             return name;
@@ -188,7 +196,7 @@ public final class Util {
         Set<String> macroNames = formula.getFunctionMacroNames();
 
         for (Token token : names) {
-            if (arrayVars.contains(new ArrayVariable(token)))
+            if (arrayVars.contains(ArrayVariable.create(token)))
                 return true;
             if (domainVars.contains(DomainVariable.create(token)))
                 return true;
@@ -222,7 +230,7 @@ public final class Util {
         Set<String> macroNames = term.getFunctionMacroNames();
 
         for (Token token : names) {
-            if (arrayVars.contains(new ArrayVariable(token)))
+            if (arrayVars.contains(ArrayVariable.create(token)))
                 return true;
             if (domainVars.contains(DomainVariable.create(token)))
                 return true;
@@ -243,6 +251,7 @@ public final class Util {
      *            the formula.
      * @return a fresh variable name w.r.t. <code>formula</code>
      */
+    @Deprecated
     public static final String freshVarName(Formula formula) {
         return Util.freshVarName(formula, "");
     }
@@ -291,7 +300,7 @@ public final class Util {
         if (type.equals(SExpressionConstants.VALUE_TYPE))
             return DomainVariable.create(name);
         if (type.equals(SExpressionConstants.ARRAY_TYPE))
-            return new ArrayVariable(name);
+            return ArrayVariable.create(name);
         throw new SuraqException("Cannot create variable of type "
                 + type.toString());
     }
@@ -761,7 +770,7 @@ public final class Util {
                 assert (Util.isLiteral(posLiteral));
                 assert (Util.isAtom(posLiteral));
 
-                if (posLiteral.equals(new PropositionalConstant(false))) {
+                if (posLiteral.equals(PropositionalConstant.create(false))) {
                     resClausePartitions.add(-1);
                     continue;
                 }
@@ -970,7 +979,7 @@ public final class Util {
                 && !Util.containsBadLiteral((OrFormula) sub2.getConsequent()))
             return true;
 
-        if (node.getConsequent().equals(new PropositionalConstant(false)))
+        if (node.getConsequent().equals(PropositionalConstant.create(false)))
             return true;
 
         return false;

@@ -31,7 +31,7 @@ public abstract class Term implements Serializable {
 
     public static final Class<?> domainTermClass = (DomainVariable.create(""))
             .getClass().getSuperclass();
-    public static final Class<?> arrayTermClass = (new ArrayVariable(""))
+    public static final Class<?> arrayTermClass = (ArrayVariable.create(""))
             .getClass().getSuperclass();
     public static final Class<?> propositionalTermClass = (PropositionalVariable.create(
             "")).getClass().getSuperclass();

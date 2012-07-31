@@ -266,7 +266,7 @@ public class TransformedZ3Proof extends Z3Proof {
         }
 
         if (disjuncts.size() == 0)
-            disjuncts.add(new PropositionalConstant(false));
+            disjuncts.add(PropositionalConstant.create(false));
 
         this.consequent = (OrFormula.generate(disjuncts))
                 .transformToConsequentsForm();
@@ -892,7 +892,7 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (proof.hasSingleLiteralConsequent());
         Formula literal = Util.getSingleLiteral(proof.consequent);
 
-        if (literal.equals(new PropositionalConstant(false)))
+        if (literal.equals(PropositionalConstant.create(false)))
             // We do not need an AnnotatedNode for false.
             return null;
 
@@ -1889,9 +1889,9 @@ public class TransformedZ3Proof extends Z3Proof {
         EqualityFormula consequent = null;
         if (function.getType().equals(SExpressionConstants.VALUE_TYPE)) {
             try {
-                UninterpretedFunctionInstance leftInstance = new UninterpretedFunctionInstance(
+                UninterpretedFunctionInstance leftInstance = UninterpretedFunctionInstance.create(
                         function, leftParams);
-                UninterpretedFunctionInstance rightInstance = new UninterpretedFunctionInstance(
+                UninterpretedFunctionInstance rightInstance = UninterpretedFunctionInstance.create(
                         function, rightParams);
                 List<DomainTerm> functionInstances = new ArrayList<DomainTerm>();
                 functionInstances.add(leftInstance);
@@ -1913,9 +1913,9 @@ public class TransformedZ3Proof extends Z3Proof {
         } else {
             assert (function.getType().equals(SExpressionConstants.BOOL_TYPE));
             try {
-                UninterpretedPredicateInstance leftInstance = new UninterpretedPredicateInstance(
+                UninterpretedPredicateInstance leftInstance = UninterpretedPredicateInstance.create(
                         function, leftParams);
-                UninterpretedPredicateInstance rightInstance = new UninterpretedPredicateInstance(
+                UninterpretedPredicateInstance rightInstance = UninterpretedPredicateInstance.create(
                         function, rightParams);
                 List<UninterpretedPredicateInstance> functionInstances = new ArrayList<UninterpretedPredicateInstance>();
                 functionInstances.add(leftInstance);
@@ -1984,7 +1984,7 @@ public class TransformedZ3Proof extends Z3Proof {
         propTerms.add(FormulaTerm.create(leftEq));
         propTerms.add(FormulaTerm.create(rightEq));
 
-        Formula consequent = new PropositionalEq(propTerms, true);
+        Formula consequent = PropositionalEq.create(propTerms, true);
 
         TransformedZ3Proof result = new TransformedZ3Proof(
                 SExpressionConstants.MONOTONICITY, subProofs, consequent);
@@ -2056,7 +2056,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 List<Formula> newDisjuncts = ((OrFormula) node.consequent)
                         .getDisjuncts();
                 assert (!newDisjuncts.contains(negatedLiteral));
-                newDisjuncts.remove(new PropositionalConstant(false));
+                newDisjuncts.remove(PropositionalConstant.create(false));
                 newDisjuncts.add(negatedLiteral);
                 node.consequent = (OrFormula.generate(newDisjuncts))
                         .transformToConsequentsForm();
@@ -2103,11 +2103,11 @@ public class TransformedZ3Proof extends Z3Proof {
             TransformedZ3Proof hypotheticalProof = (TransformedZ3Proof) this.subProofs
                     .get(0);
             assert (hypotheticalProof.consequent
-                    .equals((new PropositionalConstant(false))
+                    .equals((PropositionalConstant.create(false))
                             .transformToConsequentsForm()) || hypotheticalProof.consequent
                     .equals(this.consequent));
 
-            if (hypotheticalProof.consequent.equals(new PropositionalConstant(
+            if (hypotheticalProof.consequent.equals(PropositionalConstant.create(
                     false).transformToConsequentsForm())) {
                 hypotheticalProof.toResolutionProofRecursion(operationId);
                 hypotheticalProof.removeHypotheses();
@@ -2416,7 +2416,7 @@ public class TransformedZ3Proof extends Z3Proof {
             BitSet bits = TransformedZ3Proof.bitSetFromLong(partition - 1);
             boolean isSet = bits.get(signalNum);
 
-            return new PropositionalConstant(isSet);
+            return PropositionalConstant.create(isSet);
 
         } else
             throw new RuntimeException(

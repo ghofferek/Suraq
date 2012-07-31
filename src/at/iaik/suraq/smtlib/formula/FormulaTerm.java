@@ -63,7 +63,8 @@ public class FormulaTerm extends PropositionalTerm {
      */
     @Override
     public Formula deepFormulaCopy() {
-        return new FormulaTerm(formula);
+        return this; // experimental
+        //return new FormulaTerm(formula);
     }
 
     /**
@@ -250,7 +251,7 @@ public class FormulaTerm extends PropositionalTerm {
             if (((UninterpretedFunctionInstance) formula).getFunction().equals(
                     oldFunction)) {
                 try {
-                    formula = new UninterpretedPredicateInstance(newFunction,
+                    formula = UninterpretedPredicateInstance.create(newFunction,
                             ((UninterpretedFunctionInstance) formula)
                                     .getParameters());
                 } catch (SuraqException exc) {
@@ -265,7 +266,7 @@ public class FormulaTerm extends PropositionalTerm {
                         .substituteUninterpretedFunctionTerm(oldFunction,
                                 newFunction));
             try {
-                formula = new UninterpretedPredicateInstance(
+                formula = UninterpretedPredicateInstance.create(
                         ((UninterpretedPredicateInstance) formula).getFunction(),
                         paramNew, assertPartition);
             } catch (Exception e) {
@@ -291,7 +292,7 @@ public class FormulaTerm extends PropositionalTerm {
             if (((UninterpretedFunctionInstance) formula).getFunction().equals(
                     oldFunction)) {
                 try {
-                    formula = new UninterpretedPredicateInstance(newFunction,
+                    formula = UninterpretedPredicateInstance.create(newFunction,
                             ((UninterpretedFunctionInstance) formula)
                                     .getParameters());
                 } catch (SuraqException exc) {
@@ -306,7 +307,7 @@ public class FormulaTerm extends PropositionalTerm {
                         .substituteUninterpretedFunctionTerm(oldFunction,
                                 newFunction));
             try {
-                formula = new UninterpretedPredicateInstance(
+                formula = UninterpretedPredicateInstance.create(
                         ((UninterpretedPredicateInstance) formula).getFunction(),
                         paramNew, assertPartition);
             } catch (Exception e) {

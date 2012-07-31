@@ -413,7 +413,7 @@ public class LogicParser extends SMTLibParser {
                         + name.toString());
             }
         } else if (type.equals(SExpressionConstants.ARRAY_TYPE)) {
-            if (!arrayVariables.add(new ArrayVariable(name))) {
+            if (!arrayVariables.add(ArrayVariable.create(name))) {
                 throw new ParseError(name, "Duplicate variable definition: "
                         + name.toString());
             }

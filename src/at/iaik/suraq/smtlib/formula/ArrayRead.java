@@ -15,6 +15,7 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -46,10 +47,15 @@ public class ArrayRead extends DomainTerm {
      * @param index
      *            the index from which is read.
      */
-    public ArrayRead(ArrayTerm arrayTerm, DomainTerm index) {
+    private ArrayRead(ArrayTerm arrayTerm, DomainTerm index) {
         super();
         this.arrayTerm = arrayTerm;
         this.indexTerm = index;
+    }
+    
+    public static ArrayRead create(ArrayTerm arrayTerm, DomainTerm index)
+    {
+        return (ArrayRead) FormulaCache.domainTerm.put(new ArrayRead(arrayTerm, index));
     }
 
     /**
@@ -84,8 +90,9 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public DomainTerm deepTermCopy() {
-        return new ArrayRead((ArrayTerm) arrayTerm.deepTermCopy(),
-                indexTerm.deepTermCopy());
+        return this; // experimental
+        // return new ArrayRead((ArrayTerm) arrayTerm.deepTermCopy(),
+        //        indexTerm.deepTermCopy());
     }
 
     /**
@@ -279,7 +286,7 @@ public class ArrayRead extends DomainTerm {
             if (Util.termContainsAny(arrayTerm, noDependenceVars))
                 noDependenceVars.add(Token.generate(functionName));
 
-            return new UninterpretedFunctionInstance(new UninterpretedFunction(
+            return UninterpretedFunctionInstance.create(new UninterpretedFunction(
                     functionName, 1, SExpressionConstants.VALUE_TYPE), term);
         } catch (WrongNumberOfParametersException exc) {
             throw new RuntimeException(
@@ -342,13 +349,13 @@ public class ArrayRead extends DomainTerm {
             return this; // This read is already simple.
 
         DomainTerm oldIndexTerm = this.indexTerm;
-        DomainTerm indexTerm = DomainVariable.create(Util.freshVarName(
+        DomainTerm indexTerm = DomainVariable.create(Util.freshVarNameCached(
                 topLevelFormula, "read"));
 
         List<DomainTerm> list = new ArrayList<DomainTerm>();
         list.add(indexTerm);
         list.add(oldIndexTerm);
-        constraints.add(new DomainEq(list, true));
+        constraints.add(DomainEq.create(list, true));
 
         // Check if the arrayTerm contained any noDependenceVars.
         // This is conservative and might not be complete (i.e., may

@@ -12,6 +12,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -38,8 +39,13 @@ public class ArrayEq extends EqualityFormula {
      *            <code>false</code> for an inequality.
      * 
      */
-    public ArrayEq(Collection<ArrayTerm> arrayTerms, boolean equal) {
+    private ArrayEq(Collection<ArrayTerm> arrayTerms, boolean equal) {
         super(arrayTerms, equal);
+    }
+    
+    public static ArrayEq create(Collection<ArrayTerm> arrayTerms, boolean equal) {
+        return (ArrayEq) FormulaCache.equalityFormula.put(new ArrayEq(
+                arrayTerms, equal));
     }
 
     /**
@@ -47,11 +53,14 @@ public class ArrayEq extends EqualityFormula {
      */
     @Override
     public Formula deepFormulaCopy() {
+        return this;
+        /*
         List<ArrayTerm> terms = new ArrayList<ArrayTerm>();
         for (Term term : this.terms) {
             terms.add((ArrayTerm) term.deepTermCopy());
         }
         return new ArrayEq(terms, equal);
+        */
     }
 
     /**
@@ -79,17 +88,18 @@ public class ArrayEq extends EqualityFormula {
      */
     public Formula toArrayProperties() {
         Formula newFormula;
-        DomainVariable index = DomainVariable.create(Util.freshVarName(this,
+        // FIXME: chillebold: instead of "this" here should be the "topLevelFormula"???
+        DomainVariable index = DomainVariable.create(Util.freshVarNameCached(this,
                 "index"));
         Set<DomainVariable> uVars = new HashSet<DomainVariable>();
         uVars.add(index);
         if (equal) {
             List<ArrayRead> arrayReads = new ArrayList<ArrayRead>();
             for (Term term : terms)
-                arrayReads.add(new ArrayRead((ArrayTerm) term, index));
+                arrayReads.add(ArrayRead.create((ArrayTerm) term, index));
             try {
                 newFormula = new ArrayProperty(uVars,
-                        new PropositionalConstant(true), new DomainEq(
+                        PropositionalConstant.create(true), DomainEq.create(
                                 arrayReads, true));
             } catch (SuraqException exc) {
                 throw new RuntimeException(
@@ -101,13 +111,13 @@ public class ArrayEq extends EqualityFormula {
             for (int i = 0; i < terms.size(); i++) {
                 for (int j = i + 1; i < terms.size(); j++) {
                     List<ArrayRead> arrayReads = new ArrayList<ArrayRead>();
-                    arrayReads.add(new ArrayRead((ArrayTerm) terms.get(i),
+                    arrayReads.add(ArrayRead.create((ArrayTerm) terms.get(i),
                             index));
-                    arrayReads.add(new ArrayRead((ArrayTerm) terms.get(j),
+                    arrayReads.add(ArrayRead.create((ArrayTerm) terms.get(j),
                             index));
                     try {
                         conjuncts.add(new ArrayProperty(uVars,
-                                new PropositionalConstant(true), new DomainEq(
+                                PropositionalConstant.create(true), DomainEq.create(
                                         arrayReads, true)));
                     } catch (SuraqException exc) {
                         throw new RuntimeException(

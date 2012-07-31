@@ -69,7 +69,7 @@ public class AndFormula extends AndOrXorFormula {
             formulas.set(count, formula);
             if (formula instanceof PropositionalConstant) {
                 if (!((PropositionalConstant) formula).getValue()) {
-                    return new PropositionalConstant(false);
+                    return PropositionalConstant.create(false);
                 } else
                     formulas.remove(formula);
             }
@@ -77,25 +77,25 @@ public class AndFormula extends AndOrXorFormula {
             if (formula instanceof NotFormula) {
                 if (((NotFormula) formula).isNegatedConstant() != null) {
                     if (((NotFormula) formula).isNegatedConstant().getValue())
-                        return new PropositionalConstant(false);
+                        return PropositionalConstant.create(false);
                 }
                 PropositionalVariable var = ((NotFormula) formula)
                         .isNegatedVariable();
 
                 if (var != null) {
                     if (positiveVars.contains(var))
-                        return new PropositionalConstant(false);
+                        return PropositionalConstant.create(false);
                     negativeVars.add(var);
                 }
 
                 if (formulas.contains(((NotFormula) formula)
                         .getNegatedFormula()))
-                    return new PropositionalConstant(false);
+                    return PropositionalConstant.create(false);
             }
 
             if (formula instanceof PropositionalVariable) {
                 if (negativeVars.contains(formula))
-                    return new PropositionalConstant(false);
+                    return PropositionalConstant.create(false);
                 positiveVars.add((PropositionalVariable) formula);
             }
         }

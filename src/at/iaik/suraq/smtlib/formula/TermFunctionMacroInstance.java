@@ -15,6 +15,7 @@ import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableHashMap;
 
 /**
@@ -48,7 +49,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *             if the given map either misses a parameter or the type of the
      *             term in the map disagrees with the macro.
      */
-    public TermFunctionMacroInstance(TermFunctionMacro macro,
+    private TermFunctionMacroInstance(TermFunctionMacro macro,
             Map<Token, Term> paramMap) throws InvalidParametersException {
 
         for (Token parameter : macro.getParameters()) {
@@ -63,6 +64,12 @@ public class TermFunctionMacroInstance extends DomainTerm {
 
         this.macro = macro;
         this.paramMap = new ImmutableHashMap<Token, Term>(paramMap);
+    }
+    
+    public static TermFunctionMacroInstance create(TermFunctionMacro macro,
+            Map<Token, Term> paramMap) throws InvalidParametersException {
+        return (TermFunctionMacroInstance) FormulaCache.domainTerm
+                .put(new TermFunctionMacroInstance(macro, paramMap));
     }
 
     /**
@@ -108,6 +115,8 @@ public class TermFunctionMacroInstance extends DomainTerm {
      */
     @Override
     public DomainTerm deepTermCopy() {
+        return this; // experimental
+        /*
         TermFunctionMacro macro = new TermFunctionMacro(this.macro);
         Map<Token, Term> paramMap = new HashMap<Token, Term>();
         for (Token token : this.paramMap.keySet())
@@ -123,6 +132,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
                     "Unexpected situation while copying function macro instance.",
                     exc);
         }
+        */
     }
 
     /**

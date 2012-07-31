@@ -11,6 +11,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * A formula consisting of the (in)equality of propositional terms.
@@ -35,11 +36,17 @@ public class PropositionalEq extends EqualityFormula {
      *            <code>false</code> for an inequality.
      * 
      */
-    public PropositionalEq(Collection<? extends PropositionalTerm> propTerms,
+    private PropositionalEq(Collection<? extends PropositionalTerm> propTerms,
             boolean equal) {
         super(propTerms, equal);
     }
 
+    public static PropositionalEq create(
+            Collection<? extends PropositionalTerm> propTerms, boolean equal) {
+        return (PropositionalEq) FormulaCache.equalityFormula
+                .put(new PropositionalEq(propTerms, equal));
+    }
+    
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#deepFormulaCopy()
      */

@@ -53,7 +53,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
                 tmp.add(formula);
         }
         if (formulas.size() < 1)
-            tmp.add(new PropositionalConstant(true));
+            tmp.add(PropositionalConstant.create(true));
         
         this.formulas = new ImmutableArrayList<Formula>(tmp);
     }
@@ -141,7 +141,9 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula deepFormulaCopy() {
-        List<Formula> subformulas = new ArrayList<Formula>();
+        return this; // experimental
+        
+        /*List<Formula> subformulas = new ArrayList<Formula>();
         for (Formula formula : formulas) {
             if (formula == null)
                 System.out.println(formula);
@@ -149,6 +151,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             subformulas.add(formula.deepFormulaCopy());
         }
         return create(subformulas);
+        */
     }
 
     /**

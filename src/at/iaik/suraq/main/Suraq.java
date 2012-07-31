@@ -1423,14 +1423,14 @@ public class Suraq implements Runnable {
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
 
-        lambda = DomainVariable.create(Util.freshVarName(formula, "lambda"));
+        lambda = DomainVariable.create(Util.freshVarNameCached(formula, "lambda"));
 
         List<Formula> lambdaDisequalities = new ArrayList<Formula>();
         for (DomainTerm index : indexSet) {
             List<DomainTerm> domainTerms = new ArrayList<DomainTerm>(2);
             domainTerms.add(lambda);
             domainTerms.add(index);
-            lambdaDisequalities.add(new DomainEq(domainTerms, false));
+            lambdaDisequalities.add(DomainEq.create(domainTerms, false));
         }
         Formula lambdaConstraints = AndFormula.generate(lambdaDisequalities);
         indexSet.add(lambda);
@@ -1677,7 +1677,7 @@ public class Suraq implements Runnable {
             for (int signalCount = 0; signalCount < controlSignals.size(); signalCount++) {
                 variableSubstitutions
                         .put(Token.generate(controlSignals.get(signalCount)
-                                .getVarName()), new PropositionalConstant(
+                                .getVarName()), PropositionalConstant.create(
                                 (currentCount & mask) != 0));
                 currentCount = currentCount >> 1;
             }
@@ -1833,7 +1833,7 @@ public class Suraq implements Runnable {
                     else
                     {
                         assert (type.equals(SExpressionConstants.ARRAY_TYPE));
-                        listOfVarCopies.add(new ArrayVariable(name, count));
+                        listOfVarCopies.add(ArrayVariable.create(name, count));
                     }
                 } 
                 else

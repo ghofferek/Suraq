@@ -79,8 +79,8 @@ public class ProofParser extends SMTLibParser {
         // TODO: verify:
         // chillebold: workaround:
         // because proof looks like: ((set-logic QF_UF)(proof (let (($x131....
-        if(rootExpr.getChildren().get(0).getChildren().get(0).equals(SExpressionConstants.SET_LOGIC_QF_UF))
-        {
+        if (rootExpr.getChildren().get(0).getChildren().get(0)
+                .equals(SExpressionConstants.SET_LOGIC_QF_UF)) {
             rootExpr = rootExpr.getChildren().get(0).getChildren().get(1);
             // TODO: chillebold: startcounter changed from 0 to 1 in that case
             start = 1;
@@ -104,6 +104,7 @@ public class ProofParser extends SMTLibParser {
 
             if (!(expression.getChildren().get(0) instanceof Token))
             {
+                /*
                 if(expression.getChildren().get(0).equals(SExpressionConstants.SET_LOGIC_QF_UF))
                 {
                     System.out.println("Expected 'proof' or 'let' expression. Got: "+
@@ -122,14 +123,14 @@ public class ProofParser extends SMTLibParser {
                    
                 }
                 else
-                {
+                {*/
                     System.err.println("Expected 'proof' or 'let' expression. Got: "+
                             expression.getChildren().get(0).getClass().getName()+
                             " \nwith value: "+expression.getChildren().get(0).toString());
                     throw new ParseError(expression.getLineNumber(),
                             expression.getColumnNumber(), expression.toString(),
                             "Expected 'proof' or 'let' expression.");
-                }
+                //}
             }
 
             if (isLet(expression)) {

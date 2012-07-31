@@ -227,7 +227,7 @@ public class Ackermann {
 						List<DomainTerm> list = new ArrayList<DomainTerm>();
 						list.add(params1.get(k));
 						list.add(params2.get(k));
-						parametersEq.add(new DomainEq(list, true));
+						parametersEq.add(DomainEq.create(list, true));
 
 					}
 					Formula parametersEquivalities;
@@ -239,7 +239,7 @@ public class Ackermann {
 					List<PropositionalTerm> predicateEq = new ArrayList<PropositionalTerm>();
 					predicateEq.add(instances.get(i));
 					predicateEq.add(instances.get(j));
-					constraints.add(ImpliesFormula.create(parametersEquivalities, new PropositionalEq(predicateEq, true)));
+					constraints.add(ImpliesFormula.create(parametersEquivalities, PropositionalEq.create(predicateEq, true)));
 
 				}
 		}
@@ -286,7 +286,7 @@ public class Ackermann {
 						List<DomainTerm> list = new ArrayList<DomainTerm>();
 						list.add(params1.get(k));
 						list.add(params2.get(k));
-						parametersEq.add(new DomainEq(list, true));
+						parametersEq.add(DomainEq.create(list, true));
 					}
 					Formula parametersEquivalities = (parametersEq.size() > 1)
 					        ? AndFormula.generate(parametersEq)
@@ -296,7 +296,7 @@ public class Ackermann {
 					functionEq.add(instances.get(i));
 					functionEq.add(instances.get(j));
 					constraints.add(
-					        ImpliesFormula.create(parametersEquivalities, new DomainEq(functionEq, true)));
+					        ImpliesFormula.create(parametersEquivalities, DomainEq.create(functionEq, true)));
 
 				}
 		}

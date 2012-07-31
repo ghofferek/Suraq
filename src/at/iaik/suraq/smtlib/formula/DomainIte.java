@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -57,7 +58,7 @@ public class DomainIte extends DomainTerm {
      * @param elseBranch
      *            the value of the else-branch
      */
-    public DomainIte(Formula condition, DomainTerm thenBranch,
+    private DomainIte(Formula condition, DomainTerm thenBranch,
             DomainTerm elseBranch) {
         if (condition instanceof FormulaTerm)
             this.condition = ((FormulaTerm) condition).getFormula();
@@ -65,6 +66,12 @@ public class DomainIte extends DomainTerm {
             this.condition = condition;
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
+    }
+    
+    public static DomainIte create(Formula condition, DomainTerm thenBranch,
+            DomainTerm elseBranch) {
+        return (DomainIte) FormulaCache.domainTerm.put(new DomainIte(condition,
+                thenBranch, elseBranch));
     }
 
     /**
@@ -108,8 +115,9 @@ public class DomainIte extends DomainTerm {
      */
     @Override
     public DomainTerm deepTermCopy() {
-        return new DomainIte(condition.deepFormulaCopy(),
-                thenBranch.deepTermCopy(), elseBranch.deepTermCopy());
+        return this; // experimental
+        // return new DomainIte(condition.deepFormulaCopy(),
+        //        thenBranch.deepTermCopy(), elseBranch.deepTermCopy());
     }
 
     /**

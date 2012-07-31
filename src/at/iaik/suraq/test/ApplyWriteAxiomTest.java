@@ -32,7 +32,7 @@ public class ApplyWriteAxiomTest {
 
     @Test
     public void testApplyWriteAxiom() throws Throwable {
-        ArrayVariable arrayVar = new ArrayVariable("A");
+        ArrayVariable arrayVar = ArrayVariable.create("A");
         DomainVariable index = DomainVariable.create("i");
         DomainVariable value = DomainVariable.create("v");
 
@@ -42,7 +42,7 @@ public class ApplyWriteAxiomTest {
         List<ArrayTerm> list = new ArrayList<ArrayTerm>();
         list.add(arrayVar);
         list.add(arrayVar);
-        Formula topLevelFormula = new ArrayEq(list, true);
+        Formula topLevelFormula = ArrayEq.create(list, true);
 
         ArrayVariable newVar = write.applyWriteAxiom(topLevelFormula,
                 constraints, noDependenceVars);
@@ -74,7 +74,7 @@ public class ApplyWriteAxiomTest {
                 }
 
                 Assert.assertEquals(value, v);
-                ArrayRead expectedRead = new ArrayRead(newVar, index);
+                ArrayRead expectedRead = ArrayRead.create(newVar, index);
                 Assert.assertEquals(expectedRead, read);
 
             } else { // Array Property

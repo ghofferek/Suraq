@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.FormulaCache;
 
 /**
  * A class representing an array variable.
@@ -32,6 +33,27 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
 
     private final int hashCode;
 
+    
+    public static ArrayVariable create(String varName) {
+        return (ArrayVariable) FormulaCache.term
+                .put(new ArrayVariable(varName));
+    }
+
+    public static ArrayVariable create(Token name) {
+        return (ArrayVariable) FormulaCache.term.put(new ArrayVariable(name
+                .toString()));
+    }
+
+    public static ArrayVariable create(String varName, int assertPartition) {
+        return (ArrayVariable) FormulaCache.term.put(new ArrayVariable(varName,
+                assertPartition));
+    }
+
+    public static ArrayVariable create(Token name, int assertPartition) {
+        return (ArrayVariable) FormulaCache.term.put(new ArrayVariable(name
+                .toString(), assertPartition));
+    }
+    
     /**
      * 
      * Constructs a new <code>ArrayVariable</code>.
@@ -39,20 +61,8 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      * @param varName
      *            the name of the variable.
      */
-    public ArrayVariable(String varName) {
+    private ArrayVariable(String varName) {
         this.varName = varName;
-        hashCode = varName.hashCode();
-    }
-
-    /**
-     * 
-     * Constructs a new <code>ArrayVariable</code>.
-     * 
-     * @param name
-     *            the <code>Token</code> representing the variable name.
-     */
-    public ArrayVariable(Token name) {
-        this.varName = name.toString();
         hashCode = varName.hashCode();
     }
 
@@ -65,26 +75,12 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      * @param assertPartition
      *            the assert-partition of the variable
      */
-    public ArrayVariable(String name, int assertPartition) {
+    private ArrayVariable(String name, int assertPartition) {
         this.varName = name;
         this.assertPartition = assertPartition;
         hashCode = varName.hashCode();
     }
 
-    /**
-     * 
-     * Constructs a new <code>ArrayVariable</code>.
-     * 
-     * @param name
-     *            the <code>Token</code> representing the variable name.
-     * @param assertPartition
-     *            the assert-partition of the variable
-     */
-    public ArrayVariable(Token name, int assertPartition) {
-        this.varName = name.toString();
-        this.assertPartition = assertPartition;
-        hashCode = varName.hashCode();
-    }
 
     /**
      * Get the variable name.
@@ -123,7 +119,8 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      */
     @Override
     public Term deepTermCopy() {
-        return new ArrayVariable(new String(varName), this.assertPartition);
+        return this; // experimental
+        //return new ArrayVariable(new String(varName), this.assertPartition);
     }
 
     /**
@@ -263,7 +260,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      */
     @Override
     public Term flatten() {
-        return new ArrayVariable(varName);
+        return ArrayVariable.create(varName);
     }
 
     /**

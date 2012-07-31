@@ -118,8 +118,9 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public Formula deepFormulaCopy() {
-        return new PropositionalVariable(new String(varName),
-                this.assertPartition);
+        return this; // experimental
+        //return new PropositionalVariable(new String(varName),
+        //        this.assertPartition);
     }
 
     /**
@@ -127,8 +128,9 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public Term deepTermCopy() {
-        return new PropositionalVariable(new String(varName),
-                this.assertPartition);
+        return this; // experimental
+        //return new PropositionalVariable(new String(varName),
+        //        this.assertPartition);
     }
 
     /**
@@ -238,7 +240,8 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public PropositionalVariable flatten() {
-        return new PropositionalVariable(varName);
+        return this; // experimental
+        //return new PropositionalVariable(varName);
     }
 
     /**
@@ -375,7 +378,7 @@ public class PropositionalVariable extends PropositionalTerm implements
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
             Map<PropositionalVariable, Formula> encoding) {
-        return new PropositionalVariable(varName, assertPartition);
+        return PropositionalVariable.create(varName, assertPartition);
     }
     
 
