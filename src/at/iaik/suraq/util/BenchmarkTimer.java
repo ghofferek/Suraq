@@ -95,13 +95,21 @@ public class BenchmarkTimer {
   
     @Override
     public String toString() {
-        String out ="";// "Debug                                     ms  success    total       free       used    GC#  GCtime\n";
-        out +=  Measurement.header()+"\n";
-        //out +=       "---------------------------------------------------------------------------------------------------\n";
-        for(Measurement measurement : measurements)
-        {
-            out += measurement.toString()+"\n";
+        String out = "";
+        out += Measurement.header() + "\n";
+        for (Measurement measurement : measurements) {
+            out += measurement.toString() + "\n";
+        }
+        out += "\n\n"+toCSV();
+        return out;
+    }
+
+    public String toCSV() {
+        String out = "";
+        for (Measurement measurement : measurements) {
+            out += measurement.toCSV() + "\n";
         }
         return out;
     }
+
 }

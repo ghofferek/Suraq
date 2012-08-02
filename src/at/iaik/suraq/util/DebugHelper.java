@@ -54,6 +54,24 @@ public class DebugHelper
             _instance = new DebugHelper();
         return _instance;
     }
+    
+    String folder = "./";
+
+    public void setFolder(String folder) {
+        try {
+            File path = new File(folder);
+            if (!path.exists()) {
+                System.out.println("Folder " + folder + "created.");
+                path.mkdirs();
+            }
+            if (!path.isDirectory())
+                throw new RuntimeException("given folder is no path");
+            this.folder = folder;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
+    }
 
     public void formulaToFile(Formula formula, String filename)
     {
@@ -62,9 +80,9 @@ public class DebugHelper
     
     public void stringtoFile(String text, String filename)
     {
-        System.out.println("* File written to '" + filename + "'");
+        System.out.println("* File written to '" + folder+filename + "'");
         try{
-            File debugFile1 = new File(filename);
+            File debugFile1 = new File(folder+filename);
             FileWriter fstream = new FileWriter(debugFile1);
             fstream.write(text);
             fstream.close();

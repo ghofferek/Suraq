@@ -47,8 +47,8 @@ public final class SuraqOptions {
     /**
      * Default value for tseitin option.
      */
-    //private static final int tseitinDefault = SuraqOptions.TSEITIN_WITHOUT_Z3;
-    private static final int tseitinDefault = SuraqOptions.TSEITIN_WITH_Z3;
+    private static final int tseitinDefault = SuraqOptions.TSEITIN_WITHOUT_Z3;
+    //private static final int tseitinDefault = SuraqOptions.TSEITIN_WITH_Z3;
 
     /**
      * Default value for input option.

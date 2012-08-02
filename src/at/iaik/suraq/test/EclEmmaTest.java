@@ -13,7 +13,7 @@ import at.iaik.suraq.util.FormulaCache;
 public class EclEmmaTest {
 
     @Test
-    public void performFullSuraq3_no_readonly_pipeline_ex_suraq() { 
+    public void no_readonly_pipeline_example_suraq() { 
         setUp2();
         System.out.println("****************************************************");
         //Ackermann.setPredicateActive(false);

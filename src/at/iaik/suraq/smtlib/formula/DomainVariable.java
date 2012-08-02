@@ -50,7 +50,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
         return FormulaCache.domainVarFormula.put(new DomainVariable(varName, assertPartition));
     }   
     public static DomainVariable create(Token name, int assertPartition)
-    {
+    {// called > 2Mrd. times
         return FormulaCache.domainVarFormula.put(new DomainVariable(name.toString(), assertPartition));
     }
     
@@ -102,6 +102,12 @@ public class DomainVariable extends DomainTerm implements Serializable {
             return false;
         if (this.hashCode != ((DomainVariable) obj).hashCode)
             return false;
+        
+        // TODO: chillebold 01.08.2012
+        // added by chillebold:
+        //if(this.assertPartition != ((DomainVariable)obj).assertPartition)
+        //  return false;
+        
         return varName.equals(((DomainVariable) obj).varName);
     }
 

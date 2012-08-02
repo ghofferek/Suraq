@@ -201,7 +201,7 @@ public abstract class SMTLibParser extends Parser {
                 if (expression.getChildren().size() < 2)
                     throw new ParseError(expression,
                             "Expected at least 1 expression after 'and'.");
-                List<Formula> formulaList = new ArrayList<Formula>();
+                List<Formula> formulaList = new ArrayList<Formula>(expression.getChildren().size()-1);
                 for (SExpression child : expression.getChildren().subList(1,
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
@@ -213,7 +213,7 @@ public abstract class SMTLibParser extends Parser {
                 if (expression.getChildren().size() < 2)
                     throw new ParseError(expression,
                             "Expected at least 1 expression after 'or'.");
-                List<Formula> formulaList = new ArrayList<Formula>();
+                List<Formula> formulaList = new ArrayList<Formula>(expression.getChildren().size()-1);
                 for (SExpression child : expression.getChildren().subList(1,
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
@@ -225,7 +225,7 @@ public abstract class SMTLibParser extends Parser {
                 if (expression.getChildren().size() < 2)
                     throw new ParseError(expression,
                             "Expected at least 1 expression after 'xor'.");
-                List<Formula> formulaList = new ArrayList<Formula>();
+                List<Formula> formulaList = new ArrayList<Formula>(expression.getChildren().size()-1);
                 for (SExpression child : expression.getChildren().subList(1,
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
@@ -274,7 +274,7 @@ public abstract class SMTLibParser extends Parser {
                 throw new ParseError(expression,
                         "Unexpected internal parse error!");
 
-            List<Term> termList = new ArrayList<Term>();
+            List<Term> termList = new ArrayList<Term>(expression.getChildren().size()-1);
             for (SExpression child : expression.getChildren().subList(1,
                     expression.getChildren().size())) {
                 termList.add(parseTerm(child));

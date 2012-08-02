@@ -192,25 +192,22 @@ public abstract class FunctionMacro {
      * @return a define-fun expression for this macro.
      */
     public SExpression toSmtlibV2() {
-        SExpression result = new SExpression();
-
-        result.addChild(SExpressionConstants.DEFINE_FUN);
-        result.addChild(name);
-        SExpression allParametersExpression = new SExpression();
+        ArrayList<SExpression> tmp = new ArrayList<SExpression>();
+        tmp.add(SExpressionConstants.DEFINE_FUN);
+        tmp.add(name);
+        ArrayList<SExpression> allParametersExpression = new ArrayList<SExpression>();
         for (Token currentParam : parameters) {
-            SExpression currentParamExpression = new SExpression();
-            currentParamExpression.addChild(currentParam);
-            currentParamExpression.addChild(paramMap.get(currentParam));
-            allParametersExpression.addChild(currentParamExpression);
+            ArrayList<SExpression> tmp2 = new ArrayList<SExpression>();
+            tmp2.add(currentParam);
+            tmp2.add(paramMap.get(currentParam));
+            allParametersExpression.add(new SExpression(tmp2));
         }
 
-        result.addChild(allParametersExpression);
+        tmp.add(new SExpression(allParametersExpression));
+        tmp.add(getType());
+        tmp.add(getBodyExpression());
 
-        result.addChild(getType());
-
-        result.addChild(getBodyExpression());
-
-        return result;
+        return new SExpression(tmp);
     }
     
     /**

@@ -29,7 +29,6 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
-import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.Timer;
 
 /**
@@ -87,7 +86,6 @@ public class TseitinParser extends SMTLibParser {
      */
     @Override
     public void parse() throws ParseError {
-
         assert (rootExpr.getChildren().size() == 1);
         SExpression goalsExpr = rootExpr.getChildren().get(0);
         assert (goalsExpr.size() == 2);
@@ -112,9 +110,22 @@ public class TseitinParser extends SMTLibParser {
         goalExpr.removeChild(numChildren - 2);
         goalExpr.removeChild(numChildren - 3);
         goalExpr.removeChild(numChildren - 4);
+        //System.out.print(""+goalExpr.getChildren().size());
 
         List<Formula> clauses = new ArrayList<Formula>();
-        for (SExpression expr : goalExpr.getChildren()) {
+        List<SExpression> tmp = goalExpr.getChildren();
+        int size = tmp.size();
+        int step = size / 100 +1;
+        // FIXME: chillebold: here are to many saved reads (> 2Mrd.) on DomainVar
+        for (int i=0; i < size; i++)
+        {
+            if(i%step == 0)
+            {
+                System.out.print(" "+(i/step)+"%");
+                if((i/step)%10 == 9)
+                    System.out.print("\n");
+            }
+            SExpression expr = tmp.get(i);
             clauses.add(parseFormulaBody(expr));
         }
 
@@ -440,7 +451,7 @@ public class TseitinParser extends SMTLibParser {
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3Path());
         //DebugHelper.getInstance().stringtoFile(smtstr, "debug-tseitin-check.txt");
-        System.out.print('.');
+        //System.out.print('.');
         z3.solve(smtstr);
 
         switch (z3.getState()) {

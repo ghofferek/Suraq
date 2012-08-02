@@ -24,7 +24,7 @@ public class AckermannLarge {
     
 
     @Test
-    public void performFullSuraq2_simple_3_input_dependent_2_controllers() { 
+    public void dlx_no_domainITE_2_controllers() { 
         System.out.println("****************************************************");
         
         // change only this parameter for testing without ackermann

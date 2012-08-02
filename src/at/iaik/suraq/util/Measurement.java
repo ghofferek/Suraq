@@ -81,4 +81,12 @@ public class Measurement {
         return String.format(formatString, description, ms(), success(),
                 totalMemory, freeMemory, used(), gcRuns, gcTime);
     }
+    
+    public String toCSV()
+    {
+        String formatString = "%s;%d;%s;%d;%d;%d;%d;%d";
+        return String.format(formatString, description, ms(), success(),
+                totalMemory, freeMemory, used(), gcRuns, gcTime);
+        
+    }
 }

@@ -331,7 +331,6 @@ public class TermFunctionMacroInstance extends DomainTerm {
         // FIXME: this cannot work:
         
         throw new RuntimeException("Cannot work");
-        // FIXME: comment in
 //        Set<Formula> localConstraints = macro.removeArrayWrites(
 //                topLevelFormula, noDependenceVars);
 //        for (Formula localConstraint : localConstraints)

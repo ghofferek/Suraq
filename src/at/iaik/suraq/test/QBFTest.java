@@ -68,7 +68,7 @@ public class QBFTest {
         formula = ack.performAckermann(formula, t);
         
         ITEEquationReduction itered = new ITEEquationReduction();
-        formula = itered.performReduction(formula, t);
+        formula = itered.perform(formula, t);
         //formula = formula.removeDomainITE(formula, new HashSet<Token>());
         DebugHelper.getInstance().formulaToFile(formula, "debug_ite.txt");
         

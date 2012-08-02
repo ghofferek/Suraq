@@ -18,7 +18,6 @@ public class WrongFunctionTypeException extends SuraqException {
      * Constructs a new <code>WrongNumberOfParametersException</code>.
      */
     public WrongFunctionTypeException() {
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -29,7 +28,6 @@ public class WrongFunctionTypeException extends SuraqException {
      */
     public WrongFunctionTypeException(String message, Throwable cause) {
         super(message, cause);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -39,7 +37,6 @@ public class WrongFunctionTypeException extends SuraqException {
      */
     public WrongFunctionTypeException(String message) {
         super(message);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -49,7 +46,5 @@ public class WrongFunctionTypeException extends SuraqException {
      */
     public WrongFunctionTypeException(Throwable cause) {
         super(cause);
-        // TODO Auto-generated constructor stub
     }
-    // TODO implement!
 }

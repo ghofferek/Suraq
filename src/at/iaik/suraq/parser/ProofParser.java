@@ -76,13 +76,12 @@ public class ProofParser extends SMTLibParser {
     public void parse() throws ParseError {
 
         int start = 0;
-        // TODO: verify:
         // chillebold: workaround:
         // because proof looks like: ((set-logic QF_UF)(proof (let (($x131....
         if (rootExpr.getChildren().get(0).getChildren().get(0)
                 .equals(SExpressionConstants.SET_LOGIC_QF_UF)) {
             rootExpr = rootExpr.getChildren().get(0).getChildren().get(1);
-            // TODO: chillebold: startcounter changed from 0 to 1 in that case
+            // chillebold: startcounter changed from 0 to 1 in that case
             start = 1;
         }
         for (int count = start; count < rootExpr.getChildren().size(); count++) {

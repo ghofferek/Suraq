@@ -12,6 +12,7 @@ public class FormulaCache<T> {
 	// Else it would not be initialized before the other static variables
 	private static ArrayList<FormulaCache<?>> instances = new ArrayList<FormulaCache<?>>();
 
+	// do not cache token because token is a sexpression that has recursive problems??
 	public static FormulaCache<Token> token = new FormulaCache<Token>("Token", true);
 	public static FormulaCache<NotFormula> notFormula = new FormulaCache<NotFormula>("NOT", true);
 	public static FormulaCache<PropositionalVariable> propVar = new FormulaCache<PropositionalVariable>("PropVar", true);
@@ -32,18 +33,14 @@ public class FormulaCache<T> {
 	public boolean _isActive2 = true;
 	
 	// For statistics
-	private int cachedReads = 0;
-	private int cachedWrites = 0;
+	private long cachedReads = 0;
+	private long cachedWrites = 0;
 	
 	
 	// Sets are not possible, because they don't provide the get() method
-	
-	// WeakHashMap is not possible, because it does not use Hashes
-	// TODO: WeakHashMap compares keys with equals(==) instead of .hashCode!!!!
+	// WeakHashMap compares keys with equals(==) instead of .hashCode!!!!
 	// http://docs.oracle.com/javase/6/docs/api/java/util/WeakHashMap.html
 	
-	// Use a TreeMap, where the Key is the HashCode of the Objects
-	//private TreeMap<Integer, WeakReference<T>> cache = new TreeMap<Integer, WeakReference<T>>();
 	private WeakHashMap<T, WeakReference<T>> cache = new WeakHashMap<T, WeakReference<T>>();
     private String name; 
 	
@@ -89,7 +86,6 @@ public class FormulaCache<T> {
 	public void post(T object) throws ClassCastException
 	{
 		if(!_isActive || ! _isActive2) return;
-		//cache.put(object.hashCode(), new WeakReference<T>(object));
         cache.put(object, new WeakReference<T>(object));
         cachedWrites++;
 	}
@@ -105,23 +101,25 @@ public class FormulaCache<T> {
 	public T put(T object) throws ClassCastException
 	{
 		if(!_isActive || ! _isActive2) return object;
-		//int hash = object.hashCode();
 		
-		//if(cache.containsKey(hash))
         if(cache.containsKey(object))
 		{
-			//T result = cache.get(hash).get();
             T result = cache.get(object).get();
 			if(result != null)
 			{
 				if(result != object)
+				{
 					cachedReads++;
+					if(cachedReads % 10000000 == 0)
+			            this.printStatisticLine();
+				}
 				return result;
 			}
 		}
-		//cache.put(hash, new WeakReference<T>(object));
         cache.put(object, new WeakReference<T>(object));
         cachedWrites++;
+        if(cachedWrites % 100000 == 0)
+            this.printStatisticLine();
 		return object;
 	}
 	
@@ -135,11 +133,8 @@ public class FormulaCache<T> {
 	public T get(T reference) throws ClassCastException
 	{
 		if(!_isActive || ! _isActive2) return reference;
-		//int hash = reference.hashCode();
-		//if(cache.containsKey(hash))
         if(cache.containsKey(reference))
 		{
-			//T result = cache.get(hash).get();
             T result = cache.get(reference).get();
 			if(result != reference && result != null)
 				cachedReads++;
@@ -148,11 +143,11 @@ public class FormulaCache<T> {
 		return null;
 	}
 	
-	public int getCachedReads()
+	public long getCachedReads()
 	{
 		return cachedReads;
 	}
-    public int getCachedWrites()
+    public long getCachedWrites()
     {
         return cachedWrites;
     }
@@ -165,14 +160,23 @@ public class FormulaCache<T> {
 		return name;
 	}
 	
+	public void printStatisticLine()
+	{
+	    long reads = getCachedReads();
+        int elems = getCachedElements();
+        long writes = getCachedWrites();
+        String className = getName();
+        System.err.println("* saved "+ reads + " reads on " + elems + " elements of max. " + writes + ":" + className);
+	}
+	
 	public static void printStatistic()
 	{
 		System.out.println("************************************************");
 		for(FormulaCache<?> instance : instances)
 		{
-			int reads = instance.getCachedReads();
+		    long reads = instance.getCachedReads();
 			int elems = instance.getCachedElements();
-			int writes = instance.getCachedWrites();
+			long writes = instance.getCachedWrites();
 			String className = instance.getName();
 			System.out.println("* saved "+ reads + " reads on " + elems + " elements of max. " + writes + ":" + className);
 		}

@@ -22,13 +22,8 @@ public class QBFSolver {
     public void solve(String smtStr) {
         String executionPath = qbfPath;
 
-        
-        //if (System.getProperty("os.name").toLowerCase().contains("windows"))
-        //    executionPath = executionPath.concat(" /smt2 /in");
-        //else
-        //    executionPath = executionPath.concat(" -smt2 -in");
-
         System.out.println("starting external process...");
+        // This may take very long, even for medium examples!
         ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath, smtStr);
         System.out.println("i'm back...");
 
@@ -70,17 +65,16 @@ public class QBFSolver {
         }
     }
     
-    public int getState()
-    {
+    public int getState() {
         return state;
     }
 
-	public static boolean isActive() {
-		return isActive;
-	}
+    public static boolean isActive() {
+        return isActive;
+    }
 
-	public static void setActive(boolean _isActive) {
-		QBFSolver.isActive = _isActive;
-	}
-    
+    public static void setActive(boolean _isActive) {
+        QBFSolver.isActive = _isActive;
+    }
+
 }

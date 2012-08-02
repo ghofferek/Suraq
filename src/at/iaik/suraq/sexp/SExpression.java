@@ -33,7 +33,7 @@ public class SExpression {
     /**
      * The children of this (non-Token) S-expression.
      */
-    private List<SExpression> children;
+    private final List<SExpression> children;
 
     /**
      * Constructs a new <code>SExpression</code>.
@@ -42,8 +42,8 @@ public class SExpression {
      *            the subexpressions.
      */
     public SExpression(List<? extends SExpression> children) {
-        this.children = new ArrayList<SExpression>();
-        this.children.addAll(children);
+        this.children = new ArrayList<SExpression>(children);
+        //this.children.addAll(children);
     }
 
     /**
@@ -53,16 +53,17 @@ public class SExpression {
      *            the subexpressions.
      */
     public SExpression(SExpression[] children) {
-        this.children = new ArrayList<SExpression>();
+        ArrayList<SExpression> tmp = new ArrayList<SExpression>();
         for (SExpression child : children)
-            this.children.add(child);
+            tmp.add(child);
+        this.children = new ArrayList<SExpression>(tmp);
     }
 
     /**
      * Constructs a new, empty <code>SExpression</code>.
      */
     public SExpression() {
-        this.children = new ArrayList<SExpression>();
+        this.children = new ArrayList<SExpression>(new ArrayList<SExpression>());
     }
 
     /**
@@ -72,11 +73,12 @@ public class SExpression {
      *            the only child of this s-expression.
      */
     public SExpression(SExpression child) {
-        this.children = new ArrayList<SExpression>();
         if (child == null)
             throw new RuntimeException(
                     "empty child found! null is not allowed!");
-        this.children.add(child);
+        ArrayList<SExpression> tmp = new ArrayList<SExpression>();
+        tmp.add(child);
+        this.children = new ArrayList<SExpression>(tmp);
     }
 
     /**
@@ -89,15 +91,16 @@ public class SExpression {
      *            the second child
      */
     public SExpression(SExpression first, SExpression second) {
-        this.children = new ArrayList<SExpression>();
         if (first == null)
             throw new RuntimeException(
                     "empty child found! null is not allowed!");
         if (second == null)
             throw new RuntimeException(
                     "empty child found! null is not allowed!");
-        this.children.add(first);
-        this.children.add(second);
+        ArrayList<SExpression> tmp = new ArrayList<SExpression>();
+        tmp.add(first);
+        tmp.add(second);
+        this.children = new ArrayList<SExpression>(tmp);
     }
 
     /**
@@ -112,7 +115,6 @@ public class SExpression {
      *            the third child
      */
     public SExpression(SExpression first, SExpression second, SExpression third) {
-        this.children = new ArrayList<SExpression>();
         if (first == null)
             throw new RuntimeException(
                     "empty child found! null is not allowed!");
@@ -122,9 +124,11 @@ public class SExpression {
         if (third == null)
             throw new RuntimeException(
                     "empty child found! null is not allowed!");
-        this.children.add(first);
-        this.children.add(second);
-        this.children.add(third);
+        ArrayList<SExpression> tmp = new ArrayList<SExpression>();
+        tmp.add(first);
+        tmp.add(second);
+        tmp.add(third);
+        this.children = new ArrayList<SExpression>(tmp);
     }
 
     /**
@@ -199,6 +203,7 @@ public class SExpression {
         if (sexp == null)
             throw new RuntimeException(
                     "empty child found! null is not allowed!");
+        //children.set(position, sexp);
         children.add(position, sexp);
         children.remove(position + 1);
     }

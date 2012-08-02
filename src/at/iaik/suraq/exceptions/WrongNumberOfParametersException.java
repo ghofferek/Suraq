@@ -18,7 +18,6 @@ public class WrongNumberOfParametersException extends SuraqException {
      * Constructs a new <code>WrongNumberOfParametersException</code>.
      */
     public WrongNumberOfParametersException() {
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -29,7 +28,6 @@ public class WrongNumberOfParametersException extends SuraqException {
      */
     public WrongNumberOfParametersException(String message, Throwable cause) {
         super(message, cause);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -39,7 +37,6 @@ public class WrongNumberOfParametersException extends SuraqException {
      */
     public WrongNumberOfParametersException(String message) {
         super(message);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -49,7 +46,5 @@ public class WrongNumberOfParametersException extends SuraqException {
      */
     public WrongNumberOfParametersException(Throwable cause) {
         super(cause);
-        // TODO Auto-generated constructor stub
     }
-    // TODO implement!
 }

@@ -454,11 +454,10 @@ public class PropositionalFunctionMacroInstance implements Formula {
         PropositionalFunctionMacro macro = this.macro.makeArrayReadsSimple(
                 topLevelFormula, localConstraints, noDependenceVars);
         
-        // FIXME??? this may not work this way but it could... 
+        // TODO: does substituteFormula change the localConstraint object? i hope not
         for (Formula localConstraint : localConstraints)
             constraints.add(localConstraint.substituteFormula(paramMap));
 
-        //for (Term term : paramMap.values())
         Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token token : paramMap.keySet()) {
             paramMap2.put(

@@ -195,6 +195,8 @@ public class Suraq implements Runnable {
     }
 
     private String inputTransformations(File sourceFile) {
+        DebugHelper.getInstance().setFolder(sourceFile.getPath()+"_out/");
+        
         Suraq.extTimer.stopReset("<inputTransformations>");
         System.out.println("Starting to read " + sourceFile.getPath() + " ...");
         SuraqOptions options = SuraqOptions.getInstance();
@@ -333,6 +335,7 @@ public class Suraq implements Runnable {
                 tseitinPartitions = performTseitinEncodingWithZ3();
             }
             Suraq.extTimer.stopReset("after tseitin");
+            //DebugHelper.getInstance().stringtoFile(tseitinPartitions.toString(), "tseitin-all.txt");
     
             allPartitionsTimer.end();
             System.out.println("  All partitions done. (" + allPartitionsTimer
@@ -427,7 +430,8 @@ public class Suraq implements Runnable {
         for (int count = 1; count <= assertPartitionFormulas.size(); count++) {
             onePartitionTimer.reset();
             onePartitionTimer.start();
-            System.out.println("    Encoding partition " + count + "...");
+            System.out.println("    Encoding partition " + count + " of "
+                    + assertPartitionFormulas.size() + "...");
 
             Formula partitionFormula = assertPartitionFormulas.get(count);
 
@@ -809,7 +813,7 @@ public class Suraq implements Runnable {
         String proof = null;
         Z3Proof rootProof = null;
         SaveCache intermediateVars = null;
-
+        
         if (!useCachedResults) {
             System.out.println("start input transformations");
             Timer inputTransformationTimer = new Timer();
@@ -863,7 +867,6 @@ public class Suraq implements Runnable {
             System.out.println("finished proof calculation in "
                     + proofcalculationTimer + ".\n");
 
-            
             // write z3Proof to file
             if (z3.getState() == SMTSolver.UNSAT) {
                 Suraq.extTimer.stopReset("UNSAT :-)");
@@ -905,7 +908,12 @@ public class Suraq implements Runnable {
             z3 = null; // Allow this to be garbage collected
             
             assert(proof.length() > 0); // added by chillebold
-
+            
+            // FIXME: remove return; --> abort due to errors
+            int no_warnings = 1;
+            if(no_warnings==1)
+                return;
+            
             rootProof = parseProof(proof, propsitionalVars, domainVars,
                     arrayVars, uninterpretedFunctions);
 
@@ -913,6 +921,8 @@ public class Suraq implements Runnable {
 
             assert (rootProof != null);
 
+            
+            
             // write intermediate variables to file, if caching is enabled
             String filename;
             if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
@@ -1190,7 +1200,6 @@ public class Suraq implements Runnable {
      * 
      */
     private TseitinParser parseTseitinStr(String tseitinStr, int partition) {
-
         SExpParser sExpParser = new SExpParser(tseitinStr);
         try {
             sExpParser.parse();
@@ -1265,7 +1274,7 @@ public class Suraq implements Runnable {
     }
 
     //FIXME: can't find this function in current version
-    // maybe it was just removed
+    // maybe it can be removed:
     private String buildSMTDescriptionWithoutTsetin(
             String declarationStr) {
 
@@ -1479,7 +1488,7 @@ public class Suraq implements Runnable {
         // Reduction of var1 = ITE(cond, var2, var3) 
         //           to var1 = itevar & ITE(cond, itevar=var2, itevar=var3)
         ITEEquationReduction itered = new ITEEquationReduction();
-        formula = itered.performReduction(formula, noDependenceVars);
+        formula = itered.perform(formula, noDependenceVars);
         DebugHelper.getInstance().formulaToFile(formula, "./debug_ite.txt");
         Suraq.extTimer.stopReset("after ITE equality trans");
         
@@ -1534,10 +1543,10 @@ public class Suraq implements Runnable {
             //int state = qbfSolver.getState();
             //if(state == QBFSolver.SAT)
             System.err.println("System.exit(0) in Suraq.java(1518) because of QBF.");
+            Suraq.extTimer.stopReset("after QBF enc");
             System.exit(0);
             return null;
         }
-        Suraq.extTimer.stopReset("after QBF enc");
         
 
         System.err.println(Suraq.extTimer);
@@ -1664,12 +1673,12 @@ public class Suraq implements Runnable {
                 // but we didn't remove them from the noDependenceVarsCopies.
                 // If this is fixed, we can comment in that again:
                 // TODO: activate this
-                //else
+                else
                     //System.out.println( " This could be an exception: "+
-                   // throw new SuraqException(
-                    //        "noDependenceVar "
-                      //              + var.toString()
-                        //            + " is neither a variable nor an uninterpreted function.");
+                    throw new SuraqException(
+                            "noDependenceVar "
+                                    + var.toString()
+                                    + " is neither a variable nor an uninterpreted function.");
             }
 
             int currentCount = count;
@@ -2025,6 +2034,7 @@ public class Suraq implements Runnable {
      *            the parse error.
      */
     private void handleParseError(ParseError exc) {
+        exc.printStackTrace();
         System.err.println("PARSE ERROR!");
         System.err.println(exc.getMessage());
         System.err.println("Line: "

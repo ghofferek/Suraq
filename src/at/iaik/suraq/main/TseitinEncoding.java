@@ -14,6 +14,14 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.Timer;
 
+/**
+ * TseitinEncoding extracted to this method. It is not globally used in this
+ * project yet. But this TseitinEncoding should also work. Used in: - QBFTest -
+ * ONLY Before QBFEncoding in class Suraq
+ * 
+ * @author chillebold
+ * 
+ */
 public class TseitinEncoding {
     protected Map<PropositionalVariable, Formula> tseitinEncoding = new HashMap<PropositionalVariable, Formula>();
 
@@ -26,9 +34,10 @@ public class TseitinEncoding {
 
         List<OrFormula> clauses = new ArrayList<OrFormula>();
         Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
-        
+
         // the following code also changes the formula
-        PropositionalVariable tseitinVar = formula.tseitinEncode(clauses, encoding);
+        PropositionalVariable tseitinVar = formula.tseitinEncode(clauses,
+                encoding);
         tseitinEncoding.putAll(encoding);
         tseitinEncoding.put(tseitinVar, formula);
 
@@ -36,9 +45,10 @@ public class TseitinEncoding {
         disjuncts.add(tseitinVar);
         clauses.add(OrFormula.generate(disjuncts));
         Formula encodedFormula = AndFormula.generate(clauses);
-        
-        timer.end();        
-        DebugHelper.getInstance().formulaToFile(encodedFormula, "debug-tseitin-encoding.txt");
+
+        timer.end();
+        DebugHelper.getInstance().formulaToFile(encodedFormula,
+                "debug-tseitin-encoding.txt");
 
         System.out.println("      test if tseitin encoding is correct...");
         assert (TseitinParser.checkFormulaImplication(encodedFormula, formula2));
@@ -47,9 +57,8 @@ public class TseitinEncoding {
         System.out.println(" Done. (" + timer + ")");
         return encodedFormula;
     }
-    
-    public Set<PropositionalVariable> getPropositionalVariables()
-    {
+
+    public Set<PropositionalVariable> getPropositionalVariables() {
         return tseitinEncoding.keySet();
     }
 }

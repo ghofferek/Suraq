@@ -27,24 +27,38 @@ import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
 public class GraphReduction {
-
+    // this flag activates or deactivates the GraphReduction globally
     private static boolean _isActive = true;
-    
-    private static boolean _additionalCircles = false; // TODO: activate this for extended circle algorithm
+    // activates some unnessasary debug output - only use if you debug the GraphReduction
     private static boolean _debug = false;
+    // not used: activate this to activate circle finding after the basic algorithm.
+    private static boolean _additionalCircles = false;
+    // not used: finding additional Circles is implemented using MultiThreading to reduce execution time
     private static boolean _supportMultithreading = false;
-    private static int _maxThreads = 2;
-    protected Map<Token, PropositionalVariable> prop_cache = new HashMap<Token, PropositionalVariable>();
-    protected Map<EqualityFormula, String> replacements = null;
-    protected Stack<GraphElement> visitedDFS = null;
-    protected long circlecounter = 0;
-    protected final List<List<PropositionalVariable>> circles = new Vector<List<PropositionalVariable>>();
-    protected final List<List<PropositionalVariable>> circles2 = new Vector<List<PropositionalVariable>>();
-    
-
-    // Hash of Hashset is the sum of the Hashes
-    protected final HashSet<HashSet<PropositionalVariable>> hashCircles = new HashSet<HashSet<PropositionalVariable>>();
+    // not used: --"--
     protected List<GraphReductionThread> threads = null;
+    // not used: using Multithreading on finding additional circles there is a max. count of Threads
+    // this value is overwritten, if the cpu has more than 2 cores: we use n-1 threads!
+    private static int _maxThreads = 2;
+    
+    // a cache for PropositionalVariables using their name as a key
+    protected Map<String, PropositionalVariable> propCache = new HashMap<String, PropositionalVariable>();
+    // this stores the made replacements for further use
+    // maybe you want to invert this Map to Map<String, EqualityFormula>
+    protected Map<EqualityFormula, String> replacements = null;
+    
+    // not used: this is currently not used but still in the code for DepthFirstSearch in the Graph
+    protected Stack<GraphElement> visitedDFS = null;
+    // used for counting the found circles
+    protected long circlecounter = 0;
+    
+    // Store for all found circles
+    protected final List<List<PropositionalVariable>> circles = new Vector<List<PropositionalVariable>>();
+    // Temporary store for all found circles. Transfered to circles and cleaned.
+    protected final List<List<PropositionalVariable>> circles2 = new Vector<List<PropositionalVariable>>();
+    // Store for storing circles in a hashSet (so they should be unique). Hash of Hashset is the sum of the Hashes
+    // we could overthink this, but I think the HashSets should have the same order.
+    protected final HashSet<HashSet<PropositionalVariable>> hashCircles = new HashSet<HashSet<PropositionalVariable>>();
     
     
     /****************************************************************************************
@@ -57,18 +71,19 @@ public class GraphReduction {
      ****************************************************************************************/
     
     
-    
-    private PropositionalVariable generatePropositionalVariable(Token token) {
-        if (prop_cache.containsKey(token)) {
-            return prop_cache.get(token);
+    private PropositionalVariable generatePropositionalVariable(
+            String equivalenceName) {
+        if (propCache.containsKey(equivalenceName)) {
+            return propCache.get(equivalenceName);
         }
-        PropositionalVariable p = (PropositionalVariable) PropositionalVariable.create(token);
-        prop_cache.put(token, p);
+        PropositionalVariable p = (PropositionalVariable) PropositionalVariable
+                .create(equivalenceName);
+        propCache.put(equivalenceName, p);
         return p;
     }
 
     /**
-     * computes stats in O(vertices.size()) time and prints to System.out
+     * computes Statistics in O(vertices.size()) time and prints to System.out
      * @param vertices
      */
     protected void writeStats(Collection<GraphElement> vertices)
@@ -108,6 +123,13 @@ public class GraphReduction {
         }
     }
     
+    /**
+     * Performs the Graph Based Reduction to Propositional Logic
+     * @param formula
+     * @param noDependenceVars
+     * @return
+     * @throws IOException
+     */
     public Formula perform(Formula formula, Set<Token> noDependenceVars) throws IOException
     {
         // isActive & Intro
@@ -126,8 +148,6 @@ public class GraphReduction {
         // 1.3 set noDependenceVars for the replaced term if any containing term is noDepVar
         formula = formula.replaceEquivalences(formula, replacements, noDependenceVars);
         
-        
-        
         // 2.1 Build Graph
         Collection<GraphElement> vertices = generateGraph(replacements);
         
@@ -136,28 +156,27 @@ public class GraphReduction {
 
         Formula btrans = null;
         
-        int method = 2; // FIXME: define method here, 2 is the only one working
-        if(method == 1) // Try to find circles without making chord-free
+        int method = 2; // define method here, 2 is the only one working
+        if(method == 1) // Try to find circles without making chordal
         {
             System.out.println("GR: Try to find circles without making chord-free... ");
             btrans = generateBtransCircles(formula, vertices);
         }
-        else if(method == 2 || method == 3) // make graph chord-free and find all triangles
+        else if(method == 2 || method == 3) // make graph chordal and find all triangles
         {
             System.out.println("GR: Make the Graph chord-free... ");
-            makeChordFreeGraph(formula, vertices); // TODO: noDependenceVars setzen?
+            makeGraphChordal(formula, vertices);
             writeStats(vertices);
             
-
             int countTriangles = countTriangles(vertices);
             System.out.println("GR: There are " + countTriangles + " triangles.");
-            
             System.out.println("GR: Find all triangles and generate Btrans... ");
+            
             if(method == 2)
             {
                 btrans = generateBtrans(vertices);
             }
-            else if(method == 3)
+            else if(method == 3) // warning: this can easily be several GB...
             {
                 btrans = this.generateBtransToFile(vertices, "./btrans.txt");
             }
@@ -171,51 +190,61 @@ public class GraphReduction {
         return ImpliesFormula.create(btrans, formula);
     }
 
-    protected int countTriangles(Collection<GraphElement> vertices) //throws IOException
-    {
-        for(GraphElement vertex : vertices)
-        {
+    /**
+     * Counts all unique Triangle
+     * @param vertices
+     * @return
+     */
+    protected int countTriangles(Collection<GraphElement> vertices) {
+        // reset the visited flag of the vertices
+        for (GraphElement vertex : vertices) {
             resetVisited(vertex);
         }
-   
+
         int count = 0;
-        for(GraphElement vertex : vertices)
-        {
+        // go through all vertices and see if their neighbours are connected
+        for (GraphElement vertex : vertices) {
+            // "remove" the watched element by setting it visited.
             vertex.setVisited(true);
-            
+
             int size = vertex.getNeighbours().size();
             Object[] neighbours = vertex.getNeighbours().toArray();
-            
-            for(int i=0;i<size;i++)
-            {
-                GraphElement ni = (GraphElement)neighbours[i];
-                if(!ni.isVisited())
-                for(int j=i+1;j<size;j++)
-                {
-                    GraphElement nj = (GraphElement)neighbours[j];
-                    if(!nj.isVisited())
-                    if(ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
-                    {
-                        count++;
+
+            // are any two neighbours connected with each other?
+            // then we would have found a triangle
+            for (int i = 0; i < size; i++) {
+                GraphElement ni = (GraphElement) neighbours[i];
+                if (!ni.isVisited())
+                    for (int j = i + 1; j < size; j++) {
+                        GraphElement nj = (GraphElement) neighbours[j];
+                        if (!nj.isVisited())
+                            if (ni.isConnectedWith(nj)) {
+                                count++;
+                            }
                     }
-                }
             }
         }
-
         return count;
     }
+    
+    /**
+     * Generates the Btrans-Formula out of the given vertices that are chordal.
+     * All Vertices must be VISITED before calling this method!
+     * This method sets all vertices to UNVISITED again.
+     * @param vertices
+     * @return Btrans-Formula
+     */
     protected Formula generateBtrans(Collection<GraphElement> vertices) //throws IOException
     {
+        // for progress statistic during the algorithm:
         long step = vertices.size() / 100;
-        if(step==0) step=1;
+        if(step==0) step=1; // to avoid divide by zero error
         long cnt = 0;
+        
+        // collect all triangles
         ArrayList<Formula> btransparts = new ArrayList<Formula>();
         btransparts.ensureCapacity(3*vertices.size());
         
-        //File file = new File("./btrans.txt");
-        //FileWriter fstream = new FileWriter(file);
-        //fstream.write("and\n");
-
         for(GraphElement vertex : vertices)
         {
             if(cnt++ % step ==0)
@@ -223,7 +252,6 @@ public class GraphReduction {
                 System.out.println("GR: generateBtrans... (cur:" +btransparts.size() + ")" + cnt / step + "% von vertices#: "+vertices.size());
             }
             vertex.setVisited(false);
-            //Set<GraphElement> neighbours = vertex.getNeighbours();
             int size = vertex.getNeighbours().size();
             Object[] neighbours = vertex.getNeighbours().toArray();
             
@@ -238,51 +266,34 @@ public class GraphReduction {
                     if(ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
                     {
                         // found a triangle: vertex - ni - nj
-                        Token t1 = vertex.getToken(ni);
-                        Token t2 = vertex.getToken(nj);
-                        Token t3 = ni.getToken(nj);
+                        String t1 = vertex.getEquivalenceName(ni);
+                        String t2 = vertex.getEquivalenceName(nj);
+                        String t3 = ni.getEquivalenceName(nj);
                         btransparts.add(generateBtransElemCNF(t1, t2, t3));
                         btransparts.add(generateBtransElemCNF(t2, t3, t1));
                         btransparts.add(generateBtransElemCNF(t3, t1, t2));
                     }
                 }
             }
-            /*
-            // save to file because we have too less memory
-            try
-            {
-                // debug message
-                System.out.println("* btrans #"+cnt+"/"+vertices.size()+": "+btransparts.size()+", neighbors: "+size);
-                for(Formula formula : btransparts)
-                {
-                    fstream.write(formula.toString());
-                }
-                btransparts.clear();
-            }
-            catch(Exception ex)
-            {
-                ex.printStackTrace();
-                throw new RuntimeException("FileError.");
-            }
-            */
         }
-        //fstream.close();
         vertices = null;
         
-        // for small examples
-
-        // you can comment that in: only for debugging issues
+        // Statistic
         FormulaCache.printStatistic();
         
         return AndFormula.generate(btransparts);
         
-        // for large examples if the btrans matrix is written to a file.
-        //return new PropositionalVariable("Btrans");
-        
     } // generateBtrans
     
+    /**
+     * writes the Btrans-Formula out to a given file and returns a PropositionalVariable 'Btrans' instead.
+     * @param vertices
+     * @param filename output file of the Btrans-Formula
+     * @return a PropositionalVariable 'Btrans'
+     */
     protected PropositionalVariable generateBtransToFile(Collection<GraphElement> vertices, String filename)
     {
+        // for progress statistic during the algorithm:
         long step = vertices.size() / 1000;
         if(step==0) step=1;
         long cnt = 0;
@@ -303,7 +314,6 @@ public class GraphReduction {
                             (float)cnt / (float)step / 10.0 + "% von vertices#: "+vertices.size());
                 }
                 vertex.setVisited(false);
-                //Set<GraphElement> neighbours = vertex.getNeighbours();
                 int size = vertex.getNeighbours().size();
                 Object[] neighbours = vertex.getNeighbours().toArray();
                 
@@ -315,12 +325,12 @@ public class GraphReduction {
                     {
                         GraphElement nj = (GraphElement)neighbours[j];
                         if(nj.isVisited())
-                        if(ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
+                        if(ni.isConnectedWith(nj))
                         {
                             // found a triangle: vertex - ni - nj
-                            Token t1 = vertex.getToken(ni);
-                            Token t2 = vertex.getToken(nj);
-                            Token t3 = ni.getToken(nj);
+                            String t1 = vertex.getEquivalenceName(ni);
+                            String t2 = vertex.getEquivalenceName(nj);
+                            String t3 = ni.getEquivalenceName(nj);
                             btransparts.add(generateBtransElem(t1, t2, t3));
                             btransparts.add(generateBtransElem(t2, t3, t1));
                             btransparts.add(generateBtransElem(t3, t1, t2));
@@ -337,6 +347,7 @@ public class GraphReduction {
                     {
                         fstream.write(formula.toString());
                     }
+                    // and clear the buffer!!!
                     btransparts.clear();
                 }
                 catch(Exception ex)
@@ -369,7 +380,14 @@ public class GraphReduction {
         
     } // generateBtransToFile
     
-    protected OrFormula generateBtransElemCNF(Token a, Token b, Token c)
+    /**
+     * Helps to generate the Btrans-Formula out of a triangle in CNF (!a v !b v c)
+     * @param a
+     * @param b
+     * @param c
+     * @return
+     */
+    protected OrFormula generateBtransElemCNF(String a, String b, String c)
     {
         List<Formula> part1 = new ArrayList<Formula>(3);
         part1.add(NotFormula.create(generatePropositionalVariable(a)));
@@ -379,16 +397,198 @@ public class GraphReduction {
         return or;
     }
     
-    protected ImpliesFormula generateBtransElem(Token a, Token b, Token c)
-    {
+    /**
+     * Helps to generate the Btrans-Formula out of a triangle (a ^ b => c) 
+     * @param a
+     * @param b
+     * @param c
+     * @return
+     */
+    protected ImpliesFormula generateBtransElem(String a, String b, String c) {
         List<Formula> part1 = new ArrayList<Formula>(2);
         part1.add(generatePropositionalVariable(a));
         part1.add(generatePropositionalVariable(b));
         AndFormula and = AndFormula.generate(part1);
-        ImpliesFormula implies = ImpliesFormula.create(and, generatePropositionalVariable(c));
+        ImpliesFormula implies = ImpliesFormula.create(and,
+                generatePropositionalVariable(c));
         return implies;
     }
     
+    /**
+     * Resets the isVisited Flag of each vertex recursively
+     * @param current
+     */
+    protected void resetVisited(GraphElement current)
+    {
+        current.setVisited(false);
+        for(GraphElement neighbour : current.getNeighbours())
+        {
+            if(neighbour.isVisited())
+            {
+                resetVisited(neighbour);
+            }
+        }
+    }
+    
+    /**
+     * Makes the Graph chordal
+     * 
+     * @param topLevelFormula
+     * @param vertices
+     */
+    protected void makeGraphChordal(Formula topLevelFormula,
+            Collection<GraphElement> vertices) {
+        System.out.println("There are " + vertices.size() + " vertices.");
+
+        // for progress statistics during the algorithm:
+        long step = vertices.size() / 100 + 1;
+        long cnt = 0;
+
+        for (GraphElement vertex : vertices) {
+            if (cnt++ % step == 0) {
+                System.out.println("GR: makeChordFreeGraph... " + cnt / step
+                        + "%");
+            }
+            vertex.setVisited(true);
+            int size = vertex.getNeighbours().size();
+            Object[] neighbours = vertex.getNeighbours().toArray();
+            for (int i = 0; i < size; i++) {
+                GraphElement ni = (GraphElement) neighbours[i];
+                if (ni.isVisited()) // vertex was already "deleted" (visited)
+                    continue;
+
+                for (int j = i + 1; j < size; j++) {
+                    GraphElement nj = (GraphElement) neighbours[j];
+                    if (nj.isVisited()) // vertex was already "deleted"
+                        continue;
+
+                    if (!ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
+                    {
+                        // add a chord
+                        String token = getVarName(topLevelFormula,
+                                ni.getVarname(), nj.getVarname());
+                        ni.addNeighbour(nj, token);
+                        nj.addNeighbour(ni, token);
+                    }
+                }
+            }
+        }
+    } // makeChordFreeGraph
+
+    /**
+     * Generates a name for the Equivalence between the two variables ti and tj.
+     * The Result of this method is unique, regardless of the order of ti and tj.
+     * @param topLevelFormula
+     * @param ti name of the variable 1
+     * @param tj name of the variable 2
+     * @return name for the Equivalence between the two variables ti and tj
+     */
+    public static String getVarName(Formula topLevelFormula, String ti,
+            String tj) {
+        // sort the two strings, so that the result is everytime the same
+        if (ti.compareTo(tj) > 0) {
+            String help = tj;
+            tj = ti;
+            ti = help;
+        }
+        String newName = "eq_" + ti + "_" + tj;
+        return Util.freshVarNameCached(topLevelFormula, newName);
+    }
+    
+    /**
+     * Generates a Graph out of given replacements. The vertices of the graph
+     * are the former variables and the connections are the equalities. Every
+     * GraphElement in the Graph is a vertex and knows it's neighbours.
+     * 
+     * @param replacements
+     * @return a Collection of vertices (former Variables) that are connected
+     *         (former equalities)
+     */
+    protected Collection<GraphElement> generateGraph(
+            Map<EqualityFormula, String> replacements) {
+        Map<String, GraphElement> vertices = new HashMap<String, GraphElement>();
+        for (EqualityFormula replacement : replacements.keySet()) {
+            List<Term> terms = replacement.getTerms();
+            if (terms.size() < 2) {
+                throw new RuntimeException(
+                        "GR: An equality had less than two subterms.");
+            }
+            
+            // Look for a matching vertex for the first variable
+            String name1 = terms.get(0).toString();
+            GraphElement g1;
+            if (vertices.containsKey(name1)) {
+                g1 = vertices.get(name1);
+            } else {
+                g1 = new GraphElement(name1);
+                vertices.put(name1, g1);
+            }
+
+            // Look for a matching vertex for the second variable
+            String name2 = terms.get(1).toString();
+            GraphElement g2;
+            if (vertices.containsKey(name2)) {
+                g2 = vertices.get(name2);
+            } else {
+                g2 = new GraphElement(name2);
+                vertices.put(name2, g2);
+            }
+
+            String token = replacements.get(replacement);
+            g1.addNeighbour(g2, token);
+            g2.addNeighbour(g1, token);
+        }
+        return vertices.values();
+    } // generateGraph
+    
+
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    //// GETTER AND SETTER
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    
+    public static void setDebug(boolean isDebug) {
+        _debug = isDebug;
+    }
+
+    public static boolean isDebug() {
+        return _debug;
+    }
+
+    public static void setActive(boolean isActive) {
+        if (isActive == false)
+            System.err.println("GraphReduction was set inactive.");
+        else
+            System.err.println("GraphReduction was set active.");
+
+        _isActive = isActive;
+    }
+
+    public static boolean isActive() {
+        return _isActive;
+    }
+
+    public Map<EqualityFormula, String> getReplacements() {
+        return replacements;
+    }
+    
+    
+
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    //// Begin of Experimental Parts!!!
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Generates BtransCircles without making the Graph chordal.
+     * Unfortunatly we didn't either find enough circles or too many circles.
+     * This method uses DepthFirstSearch to find small circles first
+     * @param topLevelFormula
+     * @param vertices
+     * @return
+     */
     protected Formula generateBtransCircles(Formula topLevelFormula, Collection<GraphElement> vertices)
     {
         // search for circles with DFS
@@ -502,17 +702,6 @@ public class GraphReduction {
         return AndFormula.generate(btransList);
     } // generateBtransCircles
 
-    protected void resetVisited(GraphElement current)
-    {
-        current.setVisited(false);
-        for(GraphElement neighbour : current.getNeighbours())
-        {
-            if(neighbour.isVisited())
-            {
-                resetVisited(neighbour);
-            }
-        }
-    }
     
     /**
      * The idea of this Method is to compare each two circles found and find common strings.
@@ -618,7 +807,7 @@ public class GraphReduction {
                             
                             GraphElement circle_elem = visitedDFS.get(i);
                             GraphElement next_elem = visitedDFS.get(j);
-                            Token token =  circle_elem.getToken(next_elem);
+                            String token =  circle_elem.getEquivalenceName(next_elem);
                             PropositionalVariable pv = generatePropositionalVariable(token);
                             circle.add(pv);
                         }
@@ -679,7 +868,7 @@ public class GraphReduction {
                             
                             GraphElement circle_elem = visitedDFS.get(i);
                             GraphElement next_elem = visitedDFS.get(j);
-                            Token token =  circle_elem.getToken(next_elem);
+                            String token =  circle_elem.getEquivalenceName(next_elem);
                             PropositionalVariable pv = generatePropositionalVariable(token);
                             circle.add(pv);
                         }
@@ -710,176 +899,32 @@ public class GraphReduction {
         
     } // depthFirstSearch
     
-    protected void makeChordFreeGraph(Formula topLevelFormula, Collection<GraphElement> vertices)
-    {
-        System.out.println("There are "+vertices.size()+" vertices.");
-        long step = vertices.size() / 100 + 1;
-        long cnt = 0;
-        for(GraphElement vertex : vertices)
-        {
-            if(cnt++ % step ==0)
-            {
-                System.out.println("GR: makeChordFreeGraph... " + cnt / step + "%");
-            }
-            vertex.setVisited(true);
-            //Set<GraphElement> neighbours = vertex.getNeighbours();
-            int size = vertex.getNeighbours().size();
-            Object[] neighbours = vertex.getNeighbours().toArray();
-            for(int i=0;i<size;i++)
-            {
-                GraphElement ni = (GraphElement)neighbours[i];
-                if(ni.isVisited()) // vertex was already "deleted"
-                    continue;
-                // there is no such Vertex :-(
-                //if(ni.getNeighbours().size()<2)
-                //{
-                //	System.err.print('+');
-                //	continue;
-                //}
-                for(int j=i+1;j<size;j++)
-                {
-                    GraphElement nj = (GraphElement)neighbours[j];
-                    if(nj.isVisited()) // vertex was already "deleted"
-                        continue;
 
-                    // there is no such Vertex :-(
-                    //if(nj.getNeighbours().size()<2) // not nessasary to connect this one
-                    //{
-                    //	System.err.print('+');
-                    //	continue;
-                    //}
-                    if(!ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
-                    {
-                        // add a chord
-                        Token token = Token.generate(getVarName(topLevelFormula, ni.getVarname(), nj.getVarname()));
-                        ni.addNeighbour(nj, token);
-                        nj.addNeighbour(ni, token);
-                    }
-                }
-            }
-        }
-    } // makeChordFreeGraph
     
-    public static String getVarName(Formula topLevelFormula, String ti, String tj)
-    {
-        if(ti.compareTo(tj)>0)
-        {
-            String help = tj;
-            tj = ti;
-            ti = help;
-        }
-        String newName = "eq_"+ti+"_"+tj;
-        return Util.freshVarNameCached(topLevelFormula, newName);
-    }
-    
-    /**
-     * Generates a Graph out of given replacements. 
-     * The vertices of the graph are the former variables and the connections are the equalities.
-     * Every GraphElement in the Graph is a vertex and knows it's neighbours.
-     * @param replacements
-     * @return a Collection of vertices (former Variables) that are connected (former equalities)
-     */
-    protected Collection<GraphElement> generateGraph(Map<EqualityFormula, String> replacements)
-    {
-        Map<String, GraphElement> vertices = new HashMap<String, GraphElement>();
-        for(EqualityFormula replacement : replacements.keySet())
-        {
-            List<Term> terms = replacement.getTerms();
-            if(terms.size() < 2)
-            {
-                throw new RuntimeException("GR: An equality had less than two subterms.");
-            }
-            String name1 = terms.get(0).toString();
-            String name2 = terms.get(1).toString();
-            
-            GraphElement g1;
-            if(vertices.containsKey(name1))
-            {
-                g1 = vertices.get(name1);
-            }
-            else
-            {
-                g1 = new GraphElement(name1);
-                vertices.put(name1, g1);
-            }
-            
-            GraphElement g2;
-            if(vertices.containsKey(name2))
-            {
-                g2 = vertices.get(name2);
-            }
-            else
-            {
-                g2 = new GraphElement(name2);
-                vertices.put(name2, g2);
-            }
-            
-            Token token = Token.generate(replacements.get(replacement));
-            g1.addNeighbour(g2, token);
-            g2.addNeighbour(g1, token);
-        }
-        return vertices.values();
-    } // generateGraph
-    
-    
-    /** GETTER AND SETTER **/
-    public static void setDebug(boolean isDebug)
-    {
-        _debug = isDebug;
-    }
-    public static boolean isDebug()
-    {
-        return _debug;
-    }
-    public static void setActive(boolean isActive)
-    {
-        if(isActive == false)
-            System.err.println("GraphReduction was set inactive.");
-        else
-            System.err.println("GraphReduction was set active.");
-            
-        _isActive = isActive;
-    }
-    public static boolean isActive()
-    {
-        return _isActive;
-    }
-    public Map<EqualityFormula, String> getReplacements()
-    {
-        return replacements;
-    }
-    public synchronized List<List<PropositionalVariable>> getCircles()
-    {
+
+    protected synchronized List<List<PropositionalVariable>> getCircles() {
         return circles;
     }
-    public synchronized void addCircle(List<PropositionalVariable> circle)
-    {
+
+    protected synchronized void addCircle(List<PropositionalVariable> circle) {
         circlecounter++;
         circles2.add(circle);
-        if(circlecounter%10000==0)
+        if (circlecounter % 10000 == 0)
             System.out.print(" " + circlecounter);
-    }   
-    
-    private int stat_failed = 0;
-    public synchronized void addHashCircle(HashSet<PropositionalVariable> circle)
-    {
-        if(!hashCircles.contains(circle))
-        {
+    }
+
+    protected synchronized void addHashCircle(
+            HashSet<PropositionalVariable> circle) {
+        if (!hashCircles.contains(circle)) {
             circlecounter++;
             hashCircles.add(circle);
-            if(circlecounter%10000==0)
+            if (circlecounter % 10000 == 0)
                 System.out.print(" " + circlecounter);
         }
-        else
-        {
-            stat_failed++;
-            if(stat_failed%10000==0)
-                System.out.print(" [" + stat_failed+"]");
-        }
     }
-    public synchronized List<GraphReductionThread> getThreads()
-    {
+
+    protected synchronized List<GraphReductionThread> getThreads() {
         return threads;
     }
-    
+
 }
