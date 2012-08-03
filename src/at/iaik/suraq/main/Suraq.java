@@ -842,6 +842,17 @@ public class Suraq implements Runnable {
             System.out.println("start proof calculation.");
             Timer proofcalculationTimer = new Timer();
             proofcalculationTimer.start();
+            
+            if(VeriTSolver.isActive())
+            {
+                // TODO: chillebold: insert VeriTSolver here
+                VeriTSolver veriT = new VeriTSolver();
+                veriT.solve(z3InputStr);
+                System.out.println("new Solver. END!");
+                assert(false); // TODO: remove this!
+                
+                // END
+            }
 
             SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                     SuraqOptions.getZ3_4Path());
@@ -1245,14 +1256,15 @@ public class Suraq implements Runnable {
         StringBuffer smtStr = new StringBuffer();
 
         smtStr.append(SExpressionConstants.SET_LOGIC_QF_UF.toString());
-        smtStr.append(SExpressionConstants.AUTO_CONFIG_FALSE.toString());
-        smtStr.append(SExpressionConstants.PROOF_MODE_2.toString());
-        smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
-                .toString());
-        smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
-                .toString());
-        smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
-
+        if (!VeriTSolver.isActive()) {
+            smtStr.append(SExpressionConstants.AUTO_CONFIG_FALSE.toString());
+            smtStr.append(SExpressionConstants.PROOF_MODE_2.toString());
+            smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+                    .toString());
+            smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
+                    .toString());
+            smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
+        }
         smtStr.append(declarationStr);
 
         // declarations for tseitin variables
@@ -1266,28 +1278,32 @@ public class Suraq implements Runnable {
         }
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
-        smtStr.append(SExpressionConstants.GET_PROOF.toString());
+
+        if(!VeriTSolver.isActive())
+            smtStr.append(SExpressionConstants.GET_PROOF.toString());
         smtStr.append(SExpressionConstants.EXIT.toString());
         
 
         return smtStr.toString();
     }
 
-    //FIXME: can't find this function in current version
-    // maybe it can be removed:
     private String buildSMTDescriptionWithoutTsetin(
             String declarationStr) {
 
         StringBuffer smtStr = new StringBuffer();
 
+
         smtStr.append(SExpressionConstants.SET_LOGIC_QF_UF.toString());
-        smtStr.append(SExpressionConstants.AUTO_CONFIG_FALSE.toString());
+        if(!VeriTSolver.isActive())
+            smtStr.append(SExpressionConstants.AUTO_CONFIG_FALSE.toString());
         smtStr.append(SExpressionConstants.PROOF_MODE_2.toString());
-        smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
+        if(!VeriTSolver.isActive())
+            smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
                 .toString());
         smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
                 .toString());
-        smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
+        if(!VeriTSolver.isActive())
+            smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
 
         smtStr.append(declarationStr);
 
@@ -1299,6 +1315,10 @@ public class Suraq implements Runnable {
         }
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
+        if(!VeriTSolver.isActive())
+        {
+            
+        }
         smtStr.append(SExpressionConstants.GET_PROOF.toString());
         smtStr.append(SExpressionConstants.EXIT.toString());
 
