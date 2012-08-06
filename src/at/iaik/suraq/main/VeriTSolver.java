@@ -1,8 +1,12 @@
 package at.iaik.suraq.main;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 
+import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.ProcessResult;
 import at.iaik.suraq.util.ProcessUtil;
 
@@ -17,6 +21,7 @@ public class VeriTSolver {
     private int state = VeriTSolver.NOT_RUN;
 
     private String path = "./lib/veriT/veriT";
+    private File lastFile = null;
 
     public VeriTSolver() {
 
@@ -28,6 +33,7 @@ public class VeriTSolver {
                     .println("VeriTSolver didn't perform, because it was set inactive!");
             return;
         }
+        DebugHelper.getInstance().stringtoFile(smt2, "debug_before-verit.txt");
         
         if (smt2.indexOf("(get-proof)") != -1) {
             System.err.println("Unsupported elements in smt2: (get-proof)");
@@ -48,13 +54,14 @@ public class VeriTSolver {
                 + " --proof-prune" //
                 + " --input=smtlib2" //
                 + " --output=smtlib2" //
-                + " --disable-print-success" // would be ignored by this class
+                //+ " --disable-print-success" // 
                 + " --disable-banner" //
                 // + " --max-time=SECONDS" // max. execution time in seconds
                 // + " --disable-ackermann" // maybe?
         ;
 
         System.out.println("starting veriT: " + path);
+
         ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
                 smt2);
         System.out.println("i'm back from veriT...");
@@ -95,7 +102,20 @@ public class VeriTSolver {
             System.out.println("ERROR:     " + pResult.getErrorStream());
             System.out.println("OUTPUT:    " + output);
         }
-        ProcessUtil.runExternalProcess("gedit " + tmpOutFile);
+        //ProcessUtil.runExternalProcess("gedit " + tmpOutFile);
+        
+        if(tmpOutFile.exists())
+        {
+            lastFile = tmpOutFile;
+        }
+    }
+    
+    public BufferedReader getStream() throws FileNotFoundException {
+        if (lastFile != null) {
+            return new BufferedReader(new FileReader(lastFile));
+        }
+        throw new FileNotFoundException(
+                "You may not have called VeriTSolver::solve() first.");
     }
 
     public int getState() {
