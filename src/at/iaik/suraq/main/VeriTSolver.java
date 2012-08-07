@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import at.iaik.suraq.util.DebugHelper;
@@ -11,7 +12,7 @@ import at.iaik.suraq.util.ProcessResult;
 import at.iaik.suraq.util.ProcessUtil;
 
 public class VeriTSolver {
-    private static boolean isActive = false;
+    private static boolean isActive = true;
 
     public static final int NOT_RUN = 0;
     public static final int UNSAT = 1;
@@ -39,9 +40,15 @@ public class VeriTSolver {
             System.err.println("Unsupported elements in smt2: (get-proof)");
         }
         File tmpOutFile;
+        File tmpInFile;
         try {
             tmpOutFile = File.createTempFile("veriT-out", ".smt2");
-            System.out.println("Temporary file: "+tmpOutFile);
+            tmpInFile = File.createTempFile("veriT-in", ".smt2");
+            FileWriter fw = new FileWriter(tmpInFile);
+            fw.write(smt2);
+            fw.close();
+            System.out.println("Temporary Out file: "+tmpOutFile);
+            System.out.println("Temporary In  file: "+tmpInFile);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -58,12 +65,13 @@ public class VeriTSolver {
                 + " --disable-banner" //
                 // + " --max-time=SECONDS" // max. execution time in seconds
                 // + " --disable-ackermann" // maybe?
+                + " " + tmpInFile
         ;
 
         System.out.println("starting veriT: " + path);
 
-        ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
-                smt2);
+        //ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath, smt2);
+        ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath, "");
         System.out.println("i'm back from veriT...");
 
         String output = pResult.getOutputStream();

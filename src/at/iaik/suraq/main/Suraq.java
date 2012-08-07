@@ -25,6 +25,8 @@ import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.parser.TseitinParser;
+import at.iaik.suraq.parser.VeriTParser;
+import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -849,7 +851,17 @@ public class Suraq implements Runnable {
                 VeriTSolver veriT = new VeriTSolver();
                 veriT.solve(z3InputStr);
                 System.out.println("new Solver. END!");
-                assert(false); // TODO: remove this!
+                VeriTParser veriTParser; 
+                try {
+                    veriTParser = new VeriTParser(veriT.getStream(), mainFormula, tseitinEncoding.keySet(), noDependenceVarsCopies.values(), noDependenceFunctionsCopies);
+                    veriTParser.parse();
+                    VeritProof veritProof = veriTParser.getProof();
+                    DebugHelper.getInstance().stringtoFile(veritProof.toString(), "~parsed-verit-enc.txt");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+                return; // this is used to stop the further calculations
                 
                 // END
             }
@@ -1263,8 +1275,8 @@ public class Suraq implements Runnable {
                     .toString());
             smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
                     .toString());
-            smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
         }
+        smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
         smtStr.append(declarationStr);
 
         // declarations for tseitin variables
@@ -1302,7 +1314,7 @@ public class Suraq implements Runnable {
                 .toString());
         smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
                 .toString());
-        if(!VeriTSolver.isActive())
+        //if(!VeriTSolver.isActive())
             smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
 
         smtStr.append(declarationStr);
@@ -1674,10 +1686,17 @@ public class Suraq implements Runnable {
             throw new SuraqException("outputExpressions not initialized!");
 
         for (int count = 0; count < (1 << controlSignals.size()); count++) {
-            System.out.println("  Writing assert-partition number " + count);
-            Formula tempFormula = formula.deepFormulaCopy();
+            System.out.println("  Writing assert-partition number " + count +"<"+ (1 << controlSignals.size()));
+            Formula tempFormula = formula;//.deepFormulaCopy();
             Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
+            int step = noDependenceVars.size() / 100;
+            if(step == 0) step = 1;
+            System.out.println("There are "+noDependenceVars.size()+" nodepvars");
+            int i= 0;
             for (Token var : noDependenceVars) {
+                if (++i % step == 0) { // progress information by chillebold
+                    System.out.print((i / step) + "% ");
+                }
                 if (noDependenceVarsCopies.containsKey(var))
                     // it's a variable
                     variableSubstitutions.put(var,
@@ -1685,14 +1704,10 @@ public class Suraq implements Runnable {
                 else if (noDependenceFunctionsCopies.containsKey(var))
                 {
                     // it's an uninterpreted function
-                    System.err.println("There was a function (Ackerman didn't perform?)");
+                    //System.err.println("There was a function (Ackerman didn't perform?)");
                     tempFormula = tempFormula.substituteUninterpretedFunction(var,
                             noDependenceFunctionsCopies.get(var).get(count));
                 }
-                // This was commented out, because we don't use some variables
-                // but we didn't remove them from the noDependenceVarsCopies.
-                // If this is fixed, we can comment in that again:
-                // TODO: activate this
                 else
                     //System.out.println( " This could be an exception: "+
                     throw new SuraqException(

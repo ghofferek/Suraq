@@ -21,36 +21,29 @@ public class AckermannLarge {
         Z3Proof.setInstanceCounter(0);
     }
 
-    
-
     @Test
-    public void dlx_no_domainITE_2_controllers() { 
-        System.out.println("****************************************************");
-        
+    public void dlx_no_domainITE_2_controllers() {
+        System.out
+                .println("****************************************************");
+
         // change only this parameter for testing without ackermann
         // the output file will differ in both cases
         // the algorithm will be deactivated automatically.
-        boolean ackermannActive = true;
-        
-        String testfilename = null;
-        if(ackermannActive)
-            //testfilename = "./rsc/dlx/dlx_small.smt2";
-            testfilename = "./rsc/dlx/dlx_no_domainITE_2_controllers.smt2";
-        else
-            testfilename = "./rsc/dlx/dlx_small.smt2";
-            //testfilename = "./rsc/dlx/dlx_no_domainITE_2_controllers-noackermann.smt2";
-        Ackermann.setActive(ackermannActive);
-        Ackermann.setFunctionActive(true);
-        Ackermann.setPredicateActive(true);
 
-        ITEEquationReduction.setActive(true);
+        String testfilename = "./rsc/dlx/dlx_no_domainITE_2_controllers.smt2";
+
+        Ackermann.setActive(false);
+        // Ackermann.setFunctionActive(true);
+        // Ackermann.setPredicateActive(true);
+
+        ITEEquationReduction.setActive(false);
         GraphReduction.setActive(false);
         QBFEncoder.setActive(false);
-        
-        String[] args = { "-i", testfilename }; //, "-v", "--check-result"
+
+        String[] args = { "-i", testfilename }; // , "-v", "--check-result"
         Suraq suraq = new Suraq(args);
         suraq.run();
         Assert.assertTrue(suraq.success());
     }
-    
+
 }

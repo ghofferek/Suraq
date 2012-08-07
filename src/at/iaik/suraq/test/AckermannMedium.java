@@ -20,9 +20,9 @@ public class AckermannMedium {
             SuraqOptions.reset();
            // Z3Proof.setInstanceCounter(0);
 
-            Ackermann.setActive(true);
-            ITEEquationReduction.setActive(true);
-            GraphReduction.setActive(true);
+            Ackermann.setActive(false);
+            ITEEquationReduction.setActive(false);
+            GraphReduction.setActive(false);
             QBFEncoder.setActive(false);
         } catch (Throwable e) {
             e.printStackTrace();

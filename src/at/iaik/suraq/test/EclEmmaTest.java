@@ -7,7 +7,9 @@ import at.iaik.suraq.main.Ackermann;
 import at.iaik.suraq.main.GraphReduction;
 import at.iaik.suraq.main.ITEEquationReduction;
 import at.iaik.suraq.main.QBFEncoder;
+import at.iaik.suraq.main.QBFSolver;
 import at.iaik.suraq.main.Suraq;
+import at.iaik.suraq.main.VeriTSolver;
 import at.iaik.suraq.util.FormulaCache;
 
 public class EclEmmaTest {
@@ -31,10 +33,14 @@ public class EclEmmaTest {
             //SuraqOptions.reset();
            // Z3Proof.setInstanceCounter(0);
 
-            Ackermann.setActive(true);
-            ITEEquationReduction.setActive(true);
-            GraphReduction.setActive(true);
+            Ackermann.setActive(false);
+            ITEEquationReduction.setActive(false);
+            GraphReduction.setActive(false);
+            
+            VeriTSolver.setActive(true);
+            
             QBFEncoder.setActive(false);
+            QBFSolver.setActive(false);
             //QBFSolver.setActive(false);
         } catch (Throwable e) {
             e.printStackTrace();
