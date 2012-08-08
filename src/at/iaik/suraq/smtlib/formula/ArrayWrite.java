@@ -402,10 +402,9 @@ public class ArrayWrite extends ArrayTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
-            UninterpretedFunction newFunction) {
-        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
-        DomainTerm indexTerm = (DomainTerm)this.indexTerm.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm.substituteUninterpretedFunctionTerm(substitutions);
+        DomainTerm indexTerm = (DomainTerm)this.indexTerm.substituteUninterpretedFunctionTerm(substitutions);
         
         return ArrayWrite.create(arrayTerm, indexTerm, valueTerm);
     }

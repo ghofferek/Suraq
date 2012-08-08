@@ -455,12 +455,10 @@ public abstract class EqualityFormula implements Formula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
         List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
-            pairs.add(term.substituteUninterpretedFunctionTerm(oldFunction,
-                    newFunction));
+            pairs.add(term.substituteUninterpretedFunctionTerm(substitutions));
         try {
             return create(pairs, equal);
         } catch (Exception ex) {

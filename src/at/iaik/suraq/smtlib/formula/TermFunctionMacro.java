@@ -187,11 +187,9 @@ public class TermFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Term#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    public FunctionMacro substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public FunctionMacro substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
         try {
-            Term tmp = body.substituteUninterpretedFunctionTerm(oldFunction,
-                    newFunction);
+            Term tmp = body.substituteUninterpretedFunctionTerm(substitutions);
             return TermFunctionMacro.create(name, parameters, paramMap, tmp);
         } catch (InvalidParametersException e) {
             e.printStackTrace();

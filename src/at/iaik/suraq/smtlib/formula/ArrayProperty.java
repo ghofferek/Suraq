@@ -600,14 +600,12 @@ public class ArrayProperty implements Formula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
         Formula indexGuard = this.indexGuard;
         Formula valueConstraint = this.valueConstraint;
         
-        indexGuard = indexGuard.substituteUninterpretedFunction(oldFunction, newFunction);
-        valueConstraint = valueConstraint.substituteUninterpretedFunction(oldFunction,
-                newFunction);
+        indexGuard = indexGuard.substituteUninterpretedFunction(substitutions);
+        valueConstraint = valueConstraint.substituteUninterpretedFunction(substitutions);
 
         try {
             return ArrayProperty.create(uVars, indexGuard, valueConstraint);

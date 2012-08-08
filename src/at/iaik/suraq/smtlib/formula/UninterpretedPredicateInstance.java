@@ -285,19 +285,23 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
         UninterpretedFunction function = this.function;
         
-        if (function.getName().equals(oldFunction)) {
-            function = newFunction;
-            assert (newFunction.getType()
-                    .equals(SExpressionConstants.BOOL_TYPE));
+        if(substitutions.containsKey(function.getName()))
+        {
+            function = substitutions.get(function.getName());
+            assert((function.getType()).equals(SExpressionConstants.BOOL_TYPE));
         }
+//        if (function.getName().equals(oldFunction)) {
+//            function = newFunction;
+//            assert (newFunction.getType()
+//                    .equals(SExpressionConstants.BOOL_TYPE));
+//        }
 
         List<DomainTerm> paramNew = new ArrayList<DomainTerm>();
         for (Term term : parameters)
-            paramNew.add((DomainTerm)term.substituteUninterpretedFunctionTerm(oldFunction, newFunction));
+            paramNew.add((DomainTerm)term.substituteUninterpretedFunctionTerm(substitutions));
         
         try {
             return UninterpretedPredicateInstance.create(function, paramNew);
@@ -307,19 +311,23 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
         }
     }
     @Override
-    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
         UninterpretedFunction function = this.function;
         
-        if (function.getName().equals(oldFunction)) {
-            function = newFunction;
-            assert (newFunction.getType()
-                    .equals(SExpressionConstants.BOOL_TYPE));
+        if(substitutions.containsKey(function.getName()))
+        {
+            function = substitutions.get(function.getName());
+            assert((function.getType()).equals(SExpressionConstants.BOOL_TYPE));
         }
+//        if (function.getName().equals(oldFunction)) {
+//            function = newFunction;
+//            assert (newFunction.getType()
+//                    .equals(SExpressionConstants.BOOL_TYPE));
+//        }
 
         List<DomainTerm> paramNew = new ArrayList<DomainTerm>();
         for (Term term : parameters)
-            paramNew.add((DomainTerm)term.substituteUninterpretedFunctionTerm(oldFunction, newFunction));
+            paramNew.add((DomainTerm)term.substituteUninterpretedFunctionTerm(substitutions));
         
         try {
             return UninterpretedPredicateInstance.create(function, paramNew);

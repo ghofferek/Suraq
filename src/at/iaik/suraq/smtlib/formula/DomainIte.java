@@ -369,11 +369,10 @@ public class DomainIte extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
-            UninterpretedFunction newFunction) {
-        Formula condition = this.condition.substituteUninterpretedFunction(oldFunction, newFunction);
-        DomainTerm thenBranch = (DomainTerm) this.thenBranch.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
-        DomainTerm elseBranch = (DomainTerm) this.elseBranch.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+        Formula condition = this.condition.substituteUninterpretedFunction(substitutions);
+        DomainTerm thenBranch = (DomainTerm) this.thenBranch.substituteUninterpretedFunctionTerm(substitutions);
+        DomainTerm elseBranch = (DomainTerm) this.elseBranch.substituteUninterpretedFunctionTerm(substitutions);
         return DomainIte.create(condition, thenBranch, elseBranch);
     }
 

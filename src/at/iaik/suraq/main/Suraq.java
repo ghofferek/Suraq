@@ -1689,10 +1689,14 @@ public class Suraq implements Runnable {
             System.out.println("  Writing assert-partition number " + count +"<"+ (1 << controlSignals.size()));
             Formula tempFormula = formula;//.deepFormulaCopy();
             Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
+            Map<Token, UninterpretedFunction> ufSubstitutions = new HashMap<Token, UninterpretedFunction>();
+            
+            // Debug counters for progress statistics:
             int step = noDependenceVars.size() / 100;
             if(step == 0) step = 1;
             System.out.println("There are "+noDependenceVars.size()+" nodepvars");
             int i= 0;
+            
             for (Token var : noDependenceVars) {
                 if (++i % step == 0) { // progress information by chillebold
                     System.out.print((i / step) + "% ");
@@ -1705,8 +1709,13 @@ public class Suraq implements Runnable {
                 {
                     // it's an uninterpreted function
                     //System.err.println("There was a function (Ackerman didn't perform?)");
-                    tempFormula = tempFormula.substituteUninterpretedFunction(var,
-                            noDependenceFunctionsCopies.get(var).get(count));
+                    
+                    // old and slow:
+                    //tempFormula = tempFormula.substituteUninterpretedFunction(var,
+                    //        noDependenceFunctionsCopies.get(var).get(count));
+                    
+                    // new (chillebold):
+                    ufSubstitutions.put(var, noDependenceFunctionsCopies.get(var).get(count));
                 }
                 else
                     //System.out.println( " This could be an exception: "+
@@ -1715,6 +1724,8 @@ public class Suraq implements Runnable {
                                     + var.toString()
                                     + " is neither a variable nor an uninterpreted function.");
             }
+            
+            tempFormula = tempFormula.substituteUninterpretedFunction(ufSubstitutions);
 
             int currentCount = count;
             int mask = 1;

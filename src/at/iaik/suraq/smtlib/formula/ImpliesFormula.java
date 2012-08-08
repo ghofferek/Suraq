@@ -352,14 +352,11 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
         Formula rightSide = this.rightSide;
         Formula leftSide = this.leftSide;
-        leftSide = leftSide.substituteUninterpretedFunction(oldFunction,
-                newFunction);
-        rightSide = rightSide.substituteUninterpretedFunction(oldFunction,
-                newFunction);
+        leftSide = leftSide.substituteUninterpretedFunction(substitutions);
+        rightSide = rightSide.substituteUninterpretedFunction(substitutions);
         return ImpliesFormula.create(leftSide, rightSide);
     }
 

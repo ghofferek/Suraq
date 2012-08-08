@@ -250,13 +250,11 @@ public class PropositionalConstant extends PropositionalTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
         return this;
     }
     @Override
-    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
         return this;
     }
 

@@ -387,9 +387,8 @@ public class NotFormula extends BooleanCombinationFormula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
-        return NotFormula.create(formula.substituteUninterpretedFunction(oldFunction, newFunction));
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
+        return NotFormula.create(formula.substituteUninterpretedFunction(substitutions));
     }
 
     /**

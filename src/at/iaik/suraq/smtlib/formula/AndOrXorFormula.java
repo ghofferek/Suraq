@@ -375,11 +375,10 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
         List<Formula> children = new ArrayList<Formula>();
         for (Formula formula : formulas)
-            children.add(formula.substituteUninterpretedFunction(oldFunction, newFunction));
+            children.add(formula.substituteUninterpretedFunction(substitutions));
         return create(children);
     }
 

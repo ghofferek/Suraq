@@ -409,14 +409,13 @@ public class PropositionalIte extends BooleanCombinationFormula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
         Formula condition = this.condition.substituteUninterpretedFunction(
-                oldFunction, newFunction);
+                substitutions);
         Formula thenBranch = this.thenBranch.substituteUninterpretedFunction(
-                oldFunction, newFunction);
+                substitutions);
         Formula elseBranch = this.elseBranch.substituteUninterpretedFunction(
-                oldFunction, newFunction);
+                substitutions);
         return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 

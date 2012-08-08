@@ -226,9 +226,12 @@ public abstract class Term implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    public abstract Term substituteUninterpretedFunctionTerm(Token oldFunction,
-            UninterpretedFunction newFunction);
+    //public abstract Term substituteUninterpretedFunctionTerm(Token oldFunction,
+    //        UninterpretedFunction newFunction);
 
+    // chillebold:
+    public abstract Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions);
+    
     /**
      * 
      * @see java.lang.Object#toString()

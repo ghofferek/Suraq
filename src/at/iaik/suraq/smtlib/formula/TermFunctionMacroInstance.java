@@ -393,13 +393,12 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
-            UninterpretedFunction newFunction) {
-        TermFunctionMacro macro = (TermFunctionMacro) this.macro.substituteUninterpretedFunction(oldFunction, newFunction);
+    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+        TermFunctionMacro macro = (TermFunctionMacro) this.macro.substituteUninterpretedFunction(substitutions);
         
         Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token token : paramMap.keySet())
-            paramMap2.put(token, this.paramMap.get(token).substituteUninterpretedFunctionTerm(oldFunction, newFunction));
+            paramMap2.put(token, this.paramMap.get(token).substituteUninterpretedFunctionTerm(substitutions));
         
 
         try {

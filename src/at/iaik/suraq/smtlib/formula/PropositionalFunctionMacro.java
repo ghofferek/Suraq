@@ -299,11 +299,9 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    public PropositionalFunctionMacro substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public PropositionalFunctionMacro substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
 
-        Formula body = this.body.substituteUninterpretedFunction(oldFunction,
-                newFunction);
+        Formula body = this.body.substituteUninterpretedFunction(substitutions);
         try {
             return PropositionalFunctionMacro.create(name, parameters, paramMap,
                     body);

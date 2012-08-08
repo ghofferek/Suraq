@@ -368,15 +368,14 @@ public class ArrayIte extends ArrayTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Token oldFunction,
-            UninterpretedFunction newFunction) {
+    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
         Formula condition = this.condition;
         ArrayTerm thenBranch = this.thenBranch;
         ArrayTerm elseBranch = this.elseBranch;
         
-        condition = condition.substituteUninterpretedFunction(oldFunction, newFunction);
-        thenBranch = (ArrayTerm) thenBranch.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
-        elseBranch = (ArrayTerm) elseBranch.substituteUninterpretedFunctionTerm(oldFunction, newFunction);
+        condition = condition.substituteUninterpretedFunction(substitutions);
+        thenBranch = (ArrayTerm) thenBranch.substituteUninterpretedFunctionTerm(substitutions);
+        elseBranch = (ArrayTerm) elseBranch.substituteUninterpretedFunctionTerm(substitutions);
         
         return new ArrayIte(condition, thenBranch, elseBranch);
     }

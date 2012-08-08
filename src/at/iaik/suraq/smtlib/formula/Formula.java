@@ -117,8 +117,11 @@ public interface Formula extends SMTLibObject, Serializable {
      * @param newFunction
      *            the function to put in place.
      */
-    public Formula substituteUninterpretedFunction(Token oldFunction,
-            UninterpretedFunction newFunction);
+    //public Formula substituteUninterpretedFunction(Token oldFunction,
+    //        UninterpretedFunction newFunction);
+    
+    // chillebold: 
+    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions);
 
     /**
      * Replaces all array equalities in this formula by equivalent array
