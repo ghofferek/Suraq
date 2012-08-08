@@ -13,8 +13,9 @@ import java.util.Stack;
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
+import at.iaik.suraq.proof.VeriTToken;
 import at.iaik.suraq.proof.VeritProof;
-import at.iaik.suraq.proof.VeritProofSet;
+import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -29,24 +30,58 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
-import at.iaik.suraq.util.DebugHelper;
-
 
 public class VeriTParser extends Parser {
-    
+
     private final BufferedReader reader;
+    
+    // two macro buffers: for Formulas and Terms
     private final HashMap<String, Formula> macroBufferFormula = new HashMap<String, Formula>();
     private final HashMap<String, Term> macroBufferTerm = new HashMap<String, Term>();
 
-    //private final Formula oldTopLevelFormula;
+    // The constructor stores the objects in these functions.
+    // Therefore we know, which type they are.
     private final Set<PropositionalVariable> propositionalVariables;
     private final Set<DomainVariable> domainVariables;
     private final Set<String> uninterpretedFunctionNames;
     private final Set<UninterpretedFunction> uninterpretedFunctions;
-    
 
+    // Finally the Proof is stored here.
     private final VeritProof proof = new VeritProof();
+
+
+    // Stacks are used to store variables of several Layers
+    // a Layer is opened, when a ( occurs, and closed on )
+
+    // name of the macro, which is currently being defined
+    private final Stack<String> macroNameStack = new Stack<String>();
+    // name of the command of the current Stack (and, or, =)
+    private final Stack<String> commandStack = new Stack<String>();
+    // list of formulas of every stack, content of command
+    private final Stack<ArrayList<Formula>> formulaStack = new Stack<ArrayList<Formula>>();
+    // list of terms of every stack, content of command
+    private final Stack<ArrayList<Term>> termStack = new Stack<ArrayList<Term>>();
+    // the UninterpretedFunction defined on the current stack
+    private final Stack<UninterpretedFunction> uninterpretedStack = new Stack<UninterpretedFunction>();
     
+    // the current line for debug output or Exceptions
+    private int currentLine = 0;
+    
+    
+    /**
+     * The VeriTParser needsx all those Parameters to know which variable had
+     * which type. The current version will not work if two UF have the same
+     * name but an other count of parameters. In that case, please rename the
+     * function.
+     * 
+     * @param reader
+     *            a BufferedReader to Parse; it will be parsed line by line
+     * @param oldTopLevelFormula
+     *            we extract variables etc. out of this
+     * @param tseitinVars
+     * @param noDependenceVarsCopies
+     * @param noDependenceFunctionsCopies
+     */
     public VeriTParser(BufferedReader reader, Formula oldTopLevelFormula,
             Set<PropositionalVariable> tseitinVars,
             Collection<List<Term>> noDependenceVarsCopies,
@@ -54,7 +89,7 @@ public class VeriTParser extends Parser {
         assert (reader != null);
         this.reader = reader;
 
-        // this.oldTopLevelFormula = oldTopLevelFormula;
+        // extract all variables out of the old Formula
         this.domainVariables = oldTopLevelFormula.getDomainVariables();
         this.propositionalVariables = oldTopLevelFormula
                 .getPropositionalVariables();
@@ -63,7 +98,11 @@ public class VeriTParser extends Parser {
         this.uninterpretedFunctions = oldTopLevelFormula
                 .getUninterpretedFunctions();
 
+        // add the tseitinVars
         propositionalVariables.addAll(tseitinVars);
+
+        // look for noDependenceVarsCopies (DomainVariable,
+        // PropositionalVariable)
         for (List<Term> terms : noDependenceVarsCopies) {
             for (Term term : terms) {
                 if (term instanceof DomainVariable)
@@ -80,6 +119,7 @@ public class VeriTParser extends Parser {
             }
         }
 
+        // look for noDependenceFunctionCopies (UF, UP)
         for (List<UninterpretedFunction> ufs : noDependenceFunctionsCopies
                 .values()) {
             for (UninterpretedFunction uf : ufs) {
@@ -88,353 +128,385 @@ public class VeriTParser extends Parser {
             }
         }
     }
-    
-    
+
+    /**
+     * Parses the Proof line by line. Formula Expressions in the proof are
+     * parsed in the method parseConclusion(...)
+     */
     @Override
-    public void parse() 
-    {
-        int lines = 0;
+    public void parse() {
         try {
             String line = reader.readLine();
-            while(line != null)
-            {
-                lines++;
-                // parse here
-                if(!line.startsWith("(set ."))
-                    throw new ParseException(line, lines);
-                
-                
+            while (line != null) {
+                currentLine++; // count the lines
+
+                // every line has to start with (set .
+                if (!line.startsWith("(set ."))
+                    throw new ParseException(line, currentLine);
+
+                // Extract the name of the ProofNode
                 int pos_begin = "(set ".length();
-                int pos_end = line.indexOf(' ',pos_begin);
+                int pos_end = line.indexOf(' ', pos_begin);
                 String name = line.substring(pos_begin, pos_end);
-                // rest = (input :conclusion (#1:(and (not #2:(= lambda_....)) excl. surrounding brackets
-                String rest = line.substring(pos_end + 2, line.length()-1);
 
-                //System.out.println(" Line "+lines+ " contains '"+name+"' has length of "+ line.length());
-                //System.out.println(" Rest: '"+rest+"'");
-                pos_end = rest.indexOf(' ',0);
-                String type = rest.substring(0,pos_end); // input, and, or, resolution, eq_transitive,...
+                // extract the content of the ProofNode as 'rest'
+                // rest = (input :conclusion (#1:(and (not #2:(= lambda_....))
+                // excl. surrounding brackets
+                String rest = line.substring(pos_end + 2, line.length() - 1);
 
-                int pos_clauses = rest.indexOf(":clauses ",0);
-                int pos_iargs = rest.indexOf(":iargs ",0);
-                int pos_conclusion = rest.indexOf(":conclusion ",0);
-                
+                // Extract the type of the ProofNode
+                pos_end = rest.indexOf(' ', 0);
+                // input,and, or,resolution, eq_transitive,...
+                // you may add more types in VeriTToken
+                Token type = VeriTToken.parse(rest.substring(0, pos_end));
+
+                // find :clauses, :iargs and :conclusion if exists
+                int pos_clauses = rest.indexOf(":clauses ", 0);
+                int pos_iargs = rest.indexOf(":iargs ", 0);
+                int pos_conclusion = rest.indexOf(":conclusion ", 0);
+
+                // prepare parsing them
                 String clauses = null;
                 String[] parsed_clauses = null;
                 String iargs = null;
                 Integer parsed_iargs = null;
-                String conclusion = null;
-                ArrayList<VeritProofSet> parsed_clauses2 = null;
-                
-                // content of :* without :* and without brackets
-                if(pos_clauses > 0 )
-                {
-                    int until = (pos_iargs>0) ? pos_iargs : pos_conclusion;
-                    clauses = rest.substring(pos_clauses + ":clauses (".length(), until-2);
-                    parsed_clauses = clauses.split("\\s"); // \s=A whitespace character: [ \t\n\x0B\f\r]
-                    parsed_clauses2 = new ArrayList<VeritProofSet>();
-                    for(String parsed_clause : parsed_clauses)
-                    {
-                        parsed_clauses2.add(proof.getProofSet(parsed_clause));
+                ArrayList<VeritProofNode> parsed_clauses2 = null;
+                ArrayList<Formula> conclusions = null;
+
+                // if :clauses exists, parse them
+                if (pos_clauses > 0) {
+                    // the range of the :clauses depends on if a :iargs if found
+                    // after
+                    int until = (pos_iargs > 0) ? pos_iargs : pos_conclusion;
+                    // find the clauses and split them by whitespaces
+                    clauses = rest.substring(
+                            pos_clauses + ":clauses (".length(), until - 2);
+                    // REGEX: \s=A whitespace character: [ \t\n\x0B\f\r]
+                    parsed_clauses = clauses.split("\\s");
+                    // find the given clauses in already existing ProofNodes and
+                    parsed_clauses2 = new ArrayList<VeritProofNode>();
+                    for (String parsed_clause : parsed_clauses) {
+                        parsed_clauses2.add(proof.getProofNodes(parsed_clause));
                     }
                 }
-                if(pos_iargs > 0)
-                {
-                    iargs = rest.substring(pos_iargs + ":iargs (".length(), pos_conclusion-2);
+
+                // if :iargs exists, parse them
+                if (pos_iargs > 0) {
+                    iargs = rest.substring(pos_iargs + ":iargs (".length(),
+                            pos_conclusion - 2);
                     parsed_iargs = Integer.parseInt(iargs);
                 }
-                // conclusion WITH brackets!
-                conclusion = rest.substring(pos_conclusion + ":conclusion ".length(), rest.length()-1);
-                if(conclusion.length()==0)
+
+                // parse :conclusion
+                // parse conclusion WITH brackets, because they are needed by
+                // the parseConclusion(..)-Formula-Parser
+                String conclusion = rest.substring(pos_conclusion
+                        + ":conclusion ".length(), rest.length() - 1);
+
+                if (conclusion.length() == 0)
                     conclusion = null;
-                
-                //System.out.println(" clauses: '"+parsed_clauses+"'");
-                //System.out.println(" iargs: '"+parsed_iargs+"'");
-                //System.out.println(" conclusion: '"+conclusion+"'");
-                
-                ArrayList<Formula> conclusions = parseConclusion(conclusion, lines);
-                //System.out.println("Parsed Conclusions: "+ conclusions.toString());
-                
-                //DebugHelper.getInstance().stringtoFile(conclusions.toString(), "~verit_z"+lines+".tmp");
-                proof.addProofSet(name, type, conclusions, parsed_clauses2, parsed_iargs);
-                
+                else
+                    conclusions = parseConclusion(conclusion);
+
+                // System.out.println("Parsed Conclusions: "+
+                // conclusions.toString());
+                // DebugHelper.getInstance().stringtoFile(conclusions.toString(),
+                // "~verit_z"+lines+".tmp");
+
+                // Store the ProofNode to the Proof
+                proof.addProofSet(name, type, conclusions, parsed_clauses2,
+                        parsed_iargs);
+
                 // read next line
                 line = reader.readLine();
             }
             parsingSuccessfull = true;
-            
+
         } catch (Exception e) {
             parsingSuccessfull = false;
-            System.err.println("Error parsing line " + lines);
+            System.err.println("Error parsing line " + currentLine);
             e.printStackTrace();
             throw new RuntimeException(e);
-        }
-        finally
-        {
-            System.out.println("There were "+lines+" lines.");
+        } finally {
+            System.out.println("There were " + currentLine + " lines.");
         }
     }
+
     
-    private ArrayList<Formula> parseConclusion(String conclusion, int lineNumber) throws ParseException, IncomparableTermsException
-    {
-        try{
-        int length = conclusion.length();
-        ArrayList<Formula> conclusions = new ArrayList<Formula>();
-        boolean macro_name = false;
-        Stack<String> macronames = new Stack<String>();
-        Stack<String> commandStack = new Stack<String>();
-        Stack<ArrayList<Formula>> formulaStack = new Stack<ArrayList<Formula>>();
-        Stack<ArrayList<Term>> termStack = new Stack<ArrayList<Term>>();
-        Stack<UninterpretedFunction> uninterpretedStack = new Stack<UninterpretedFunction>();
-        StringBuilder str = new StringBuilder();
-        
-        for(int i=0;i<length; i++)
-        {
-            char cur = conclusion.charAt(i);
+    /**
+     * This is a non-iterative (sequential) attempt to parse a Formula. This is
+     * done to reduce the stack and to improve performance. Although the code is
+     * more complicated and not that easy to understand.
+     * 
+     * The formula can consist of And, Or, Equivalences, Not,
+     * PropositionalVariables, DomainVariables, UninterpretedFunctions and
+     * UninterpretedPredicates. It supports definitions of Function in the Form
+     * #1:(...). These definitions can be used by writing #1.
+     * 
+     * @param conclusion
+     *            the Formula to Parse
+     * @param lineNumber
+     *            LineNumber, used when an Exception is thrown
+     * @return
+     * @throws ParseException
+     * @throws IncomparableTermsException
+     */
+    private ArrayList<Formula> parseConclusion(String conclusion)
+            throws ParseException, IncomparableTermsException {
+        try {
+            // caches the length of the formula to oarse
+            int length = conclusion.length();
+            // tstore all conclusions on the TopLayer of the Formula
+            ArrayList<Formula> conclusions = new ArrayList<Formula>();
+            // if this flag is set, we are currently parsing a macro_name:
+            // -> the number between # and :)
+            boolean macro_name = false;
+            // a StringBuilder to store the current variable name
+            StringBuilder str = new StringBuilder();
 
-            if(cur == ' ' || cur == ')')
-            {
-                if(macro_name)
-                {
-                    // we got #12macroname
-                    // find a pre-defined formula, that originaly was defined by #12:...
-                    macro_name = false;
-                    Formula formula = macroBufferFormula.get(str.toString());
-                    Term term = macroBufferTerm.get(str.toString());
-                    if(formula != null)
-                    {
-                        formulaStack.peek().add(formula);
-                    }
-                    if(term != null)
-                    {
-                        termStack.peek().add(term);
-                    }
-                    if(term == null && formula == null)
-                    {
-                        throw new ParseException("Macro #"+str+" was not declared before (line="+lineNumber+").", lineNumber);
-                    }
-                }
-                else 
-                {
-                    // it's a variable or a command
-                    String tmp = str.toString();
-                    if(tmp.equals("and") || tmp.equals("or") || tmp.equals("=") || tmp.equals("not"))
-                    {
-                        // it is a command: and, or, =
-                        commandStack.pop();
-                        commandStack.push(tmp);
-                    }
-                    else if(tmp.length()>0)
-                    {
-                        if(uninterpretedFunctionNames.contains(tmp))
-                        {
-                            // its an uninterpreted function, save it
-                            uninterpretedStack.pop();
-                            uninterpretedStack.push(findUninterpretedFunction(tmp));
-                        }
-                        else
-                        {
-                            // its a variable
-                            Term term = findVariable(tmp);
-                            if(term instanceof PropositionalVariable)
-                                formulaStack.peek().add((PropositionalVariable)term);
-                            // DomainVariable and PropositionalVariable
-                            termStack.peek().add(term);
-                        }
-                    }
-                }
-            }
-            if(cur == ' ')
-            {
-                // handled above
-            }
-            else if(cur == '(')
-            {
-                formulaStack.push(new ArrayList<Formula>());
-                termStack.push(new ArrayList<Term>());
-                commandStack.push(null);
-                macronames.push(null);
-                uninterpretedStack.push(null);
-            }
-            else if(cur == ')')
-            {
-                String macroname = null;
-                macronames.pop();
-                if(macronames.size() != 0)
-                    macroname = macronames.peek();
-                String command = commandStack.pop();
-                
-                
-                boolean was_uf = false;
-                UninterpretedFunction uf = uninterpretedStack.pop();
-                if(uf != null)
-                {
-                    // generate a new UninterpretedFunctionInstance or UninterpretedPredicateInstance
-                    // with the parameters stored in formulaElements
-                    ArrayList<DomainTerm> formulaElements = new ArrayList<DomainTerm>();
-                    for(Term tmp3 : termStack.pop())
-                        formulaElements.add((DomainTerm)tmp3);
-                    formulaStack.pop();
-                    // formulaStack.push(new ArrayList<Formula>());
-                    
-                    Term newTerm = null;
-                    if(uf.getType().equalsString("Value"))
-                    {
-                        newTerm = UninterpretedFunctionInstance.create(uf, formulaElements);
+            // iterate each character
+            for (int i = 0; i < length; i++) {
+                char cur = conclusion.charAt(i);
 
-                        if(macroname != null)
-                        {
-                            System.out.println("[M] Stored macro #"+macroname);
-                            macroBufferTerm.put(macroname, (UninterpretedFunctionInstance)newTerm);
-                        }
-                    }
-                    else if(uf.getType().equalsString("Bool"))
-                    {
-                        newTerm = UninterpretedPredicateInstance.create(uf, formulaElements);
-                        //ArrayList<Formula> newFormulas = new ArrayList<Formula>();
-                        //newFormulas.add((UninterpretedPredicateInstance)newTerm);
-                        //formulaStack.push(newFormulas);
-                        formulaStack.peek().add((UninterpretedPredicateInstance)newTerm);
-
-                        if(macroname != null)
-                        {
-                            System.out.println("[M] Stored macro #"+macroname);
-                            macroBufferFormula.put(macroname, (UninterpretedPredicateInstance)newTerm);
-                            macroBufferTerm.put(macroname, (UninterpretedPredicateInstance)newTerm);
-                        }
-                    }
-                    else
-                        assert(false);
-                    // store to terms:
-                    //ArrayList<Term> newTerms = new ArrayList<Term>();
-                    //newTerms.add(newTerm);
-                    //termStack.push(newTerms);
-                    termStack.peek().add(newTerm);
-                    
-                    was_uf = true;
-                }
-                if(!was_uf)
-                {
-                    ArrayList<Formula> formulaElements = formulaStack.pop();
-                    ArrayList<Term> termElements = termStack.pop();
-                    if(command != null)
-                    {
-                        if(command.equals("not"))
-                        {
-                            if(formulaElements.size()!=1)
-                                throw new ParseException("Not has not 1 element. #Elements="+formulaElements.size(),lineNumber);
-                            formulaStack.peek().add(NotFormula.create(formulaElements.get(0)));
-                        }
-                        else if(command.equals("="))
-                        {
-                            EqualityFormula formula;
-                            formula = EqualityFormula.create(termElements, true);
+                // is this the end of a variable?
+                if (cur == ' ' || cur == ')') {
+                    // was this a macro_name? e.g. #12 or #12)
+                    if (macro_name) {
+                        // find a pre-defined formula, that was #12
+                        Formula formula = macroBufferFormula
+                                .get(str.toString());
+                        Term term = macroBufferTerm.get(str.toString());
+                        if (formula != null) {
                             formulaStack.peek().add(formula);
                         }
-                        else if(command.equals("and"))
-                        {
-                            formulaStack.peek().add(AndFormula.generate(formulaElements));
+                        if (term != null) {
+                            termStack.peek().add(term);
                         }
-                        else if(command.equals("or"))
-                        {
-                            formulaStack.peek().add(OrFormula.generate(formulaElements));
+                        // we didn't find the macro
+                        if (term == null && formula == null) {
+                            throw new ParseException("Macro #" + str
+                                    + " was not declared before (line="
+                                    + currentLine + ").", currentLine);
                         }
-                        else
-                        {
-                            throw new ParseException("Unknown Command", lineNumber);
-                        }
-                        if(macroname != null)
-                        {
-                            System.out.println("[M] Stored macro #"+macroname);
-                            macroBufferFormula.put(macroname,formulaStack.peek().get(formulaStack.peek().size()-1));
-                            if(formulaStack.peek().get(formulaStack.peek().size()-1) instanceof Term)
-                                macroBufferTerm.put(macroname,(Term)formulaStack.peek().get(formulaStack.peek().size()-1));
-                        }
+                        macro_name = false;
                     }
-                    else
-                    {
-                        // just a list of variables
-                        if(commandStack.size() == 0)
-                        {
-                            // this is the :conclusion layer
-                            conclusions.addAll(formulaElements);
+                    // it is a variable/UF/UP or a command
+                    else {
+                        String tmp = str.toString();
+                        // is it a command? and, or, =
+                        if (tmp.equals("and") || tmp.equals("or")
+                                || tmp.equals("=") || tmp.equals("not")) {
+                            commandStack.pop();
+                            commandStack.push(tmp);
                         }
-                        else
-                        {
-                            throw new ParseException("We have a list of Variables without command.", lineNumber);
+                        // is it a variable/UF/UP?
+                        else if (tmp.length() > 0) {
+                            if (uninterpretedFunctionNames.contains(tmp)) {
+                                // its an uninterpreted function, save it
+                                uninterpretedStack.pop();
+                                uninterpretedStack
+                                        .push(findUninterpretedFunction(tmp));
+                            } else {
+                                // its a variable
+                                Term term = findVariable(tmp);
+                                if (term instanceof PropositionalVariable)
+                                    formulaStack.peek().add(
+                                            (PropositionalVariable) term);
+                                // DomainVariable and PropositionalVariable
+                                termStack.peek().add(term);
+                            }
                         }
                     }
                 }
+                if (cur == ' ') {
+                    // variable end handled above
+                }
+                // we got an opening bracket
+                else if (cur == '(') {
+                    // extend all Stacks and init them with null or a List
+                    formulaStack.push(new ArrayList<Formula>());
+                    termStack.push(new ArrayList<Term>());
+                    commandStack.push(null);
+                    macroNameStack.push(null);
+                    uninterpretedStack.push(null);
+                }
+                // we got a closing bracket
+                else if (cur == ')') {
+                    // find out if this shall be stored to a macro:
+                    String macroname = null;
+                    macroNameStack.pop();
+                    if (macroNameStack.size() != 0) // stack could be empty
+                        macroname = macroNameStack.peek();
+
+                    // get the command
+                    String command = commandStack.pop();
+
+                    // find out if there was an UF/UP
+                    UninterpretedFunction uf = uninterpretedStack.pop();
+                    if (uf != null) {
+                        // pops the termStack and the formulaStack
+                        this.parseUF(uf, macroname);
+                    }
+                    // we got a closing bracket, and it is no UF/UP
+                    else {
+                        // we must have a command for each stack except the
+                        // first
+                        if (command != null) {
+                            // pops and peeks the formulaStack and the termStack
+                            this.parseCommand(command);
+
+                            // store macro if this was a macro
+                            if (macroname != null) {
+                                this.storeMacro(macroname, formulaStack.peek().get(
+                                        formulaStack.peek().size() - 1));
+                            }
+                        }
+                        // just a list of variables
+                        else {
+                            ArrayList<Formula> formulaElements = formulaStack.pop();
+                            if (commandStack.size() == 0) {
+                                // this is the :conclusion layer
+                                conclusions.addAll(formulaElements);
+                            } else {
+                                throw new ParseException(
+                                        "We have a list of Variables without command.",
+                                        currentLine);
+                            }
+                        }
+                    }
+                }
+                // this is the beginning of a macro-definition #2:
+                // or a beginning of a macro-usage: #2 
+                else if (cur == '#') 
+                {
+                    macro_name = true;
+                } 
+                // this is the end of a macro-definition (name)
+                else if (cur == ':') {
+                    macro_name = false;
+                    // store the macroname, so it can be stored when a closing
+                    // bracket is found
+                    macroNameStack.pop();
+                    macroNameStack.push(str.toString());
+                }
+                // a normal character
+                else {
+                    str.append(cur);
+                    continue;
+                }
+                // clear the buffer:
+                str.setLength(0);
             }
-            else if(cur == '#') // #2 or #2:
-            {
-                // define, that the following string (until : or space) will be a macro
-                macro_name = true;
-            }
-            else if(cur == ':')
-            {
-                macro_name = false;
-                // define a macro to be defined on that layer, when returning from (
-                macronames.pop();
-                macronames.push(str.toString());
-            }
-            else
-            {
-                str.append(cur);
-                continue;
-            }
-            // clear the buffer:
-            str.setLength(0);
-        }
-        return conclusions;
-        }
-        catch(Exception e)
-        {
+            return conclusions;
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
     
-    private UninterpretedFunction findUninterpretedFunction(String name)
-    {
-        if(this.uninterpretedFunctionNames.contains(name))
-        {
+    
+    private void parseUF(UninterpretedFunction uf, String macroname)
+            throws WrongNumberOfParametersException, WrongFunctionTypeException {
+        // generate a new UninterpretedFunctionInstance or
+        // UninterpretedPredicateInstance
+        // with the parameters stored in formulaElements
+        ArrayList<DomainTerm> formulaElements = new ArrayList<DomainTerm>();
+        for (Term tmp3 : termStack.pop())
+            formulaElements.add((DomainTerm) tmp3);
+        formulaStack.pop();
+
+        Term newTerm = null;
+        if (uf.getType().equalsString("Value")) {
+            newTerm = UninterpretedFunctionInstance.create(uf, formulaElements);
+
+            if (macroname != null) {
+                System.out.println("[M] Stored macro #" + macroname);
+                macroBufferTerm.put(macroname,
+                        (UninterpretedFunctionInstance) newTerm);
+            }
+        } else if (uf.getType().equalsString("Bool")) {
+            newTerm = UninterpretedPredicateInstance
+                    .create(uf, formulaElements);
+            // additionally add to formulaStack
+            formulaStack.peek().add((UninterpretedPredicateInstance) newTerm);
+
+            if (macroname != null) {
+                System.out.println("[M] Stored macro #" + macroname);
+                macroBufferFormula.put(macroname,
+                        (UninterpretedPredicateInstance) newTerm);
+                macroBufferTerm.put(macroname,
+                        (UninterpretedPredicateInstance) newTerm);
+            }
+        } else
+            assert (false);
+        // add UF/UP to termStack
+        termStack.peek().add(newTerm);
+    }
+    
+    private void parseCommand(String command) throws ParseException,
+            IncomparableTermsException {
+        ArrayList<Formula> formulaElements = formulaStack.pop();
+        ArrayList<Term> termElements = termStack.pop();
+        if (command.equals("not")) {
+            if (formulaElements.size() != 1)
+                throw new ParseException("Not has not 1 element. #Elements="
+                        + formulaElements.size(), currentLine);
+            formulaStack.peek().add(NotFormula.create(formulaElements.get(0)));
+        } else if (command.equals("=")) {
+            formulaStack.peek().add(EqualityFormula.create(termElements, true));
+        } else if (command.equals("and")) {
+            formulaStack.peek().add(AndFormula.generate(formulaElements));
+        } else if (command.equals("or")) {
+            formulaStack.peek().add(OrFormula.generate(formulaElements));
+        } else {
+            throw new ParseException("Unknown Command", currentLine);
+        }
+    }
+
+    private void storeMacro(String macroName, Formula formula) {
+        System.out.println("[M] Stored macro #" + macroName);
+        macroBufferFormula.put(macroName, formula);
+        if (formula instanceof Term)
+            macroBufferTerm.put(macroName, (Term) formula);
+    }
+
+    private UninterpretedFunction findUninterpretedFunction(String name) {
+        if (this.uninterpretedFunctionNames.contains(name)) {
             UninterpretedFunction uf = null;
-            for(UninterpretedFunction tmp : uninterpretedFunctions)
-            {
-                // NOTE: please do not use the same name for different count of parameters or different types
-                if(tmp.getName().equalsString(name))
-                {
-                    uf = UninterpretedFunction.create(tmp.getName(), tmp.getNumParams(), tmp.getType());
+            for (UninterpretedFunction tmp : uninterpretedFunctions) {
+                // NOTE: please do not use the same name for different count of
+                // parameters or different types
+                if (tmp.getName().equalsString(name)) {
+                    uf = UninterpretedFunction.create(tmp.getName(),
+                            tmp.getNumParams(), tmp.getType());
                     break;
                 }
             }
-            if(uf != null)
+            if (uf != null)
                 return uf;
         }
-        String err = "Unknown Variable '"+name+"' on parsing. Cannot decide if it is a propositional or domain variable.";
+        String err = "Unknown Variable '"
+                + name
+                + "' on parsing. Cannot decide if it is a propositional or domain variable.";
         System.err.println(err);
         throw new RuntimeException(err);
     }
-    
-    private Term findVariable(String name)
-    {
-        if(this.domainVariables.contains(DomainVariable.create(name)))
-        {
+
+    private Term findVariable(String name) {
+        if (this.domainVariables.contains(DomainVariable.create(name))) {
             return DomainVariable.create(name);
-        }
-        else if(this.propositionalVariables.contains(PropositionalVariable.create(name)))
-        {
+        } else if (this.propositionalVariables.contains(PropositionalVariable
+                .create(name))) {
             return PropositionalVariable.create(name);
         }
-        String err = "Unknown Variable '"+name+"' on parsing. Cannot decide if it is a propositional or domain variable.";
+        String err = "Unknown Variable '"
+                + name
+                + "' on parsing. Cannot decide if it is a propositional or domain variable.";
         System.err.println(err);
         throw new RuntimeException(err);
     }
-    
-    public VeritProof getProof()
-    {
+
+    public VeritProof getProof() {
         return proof;
     }
-    
-    
+
 }

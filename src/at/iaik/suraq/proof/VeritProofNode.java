@@ -3,7 +3,9 @@ package at.iaik.suraq.proof;
 import java.util.ArrayList;
 import java.util.List;
 
+import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.util.ImmutableArrayList;
 
 /**
@@ -14,13 +16,13 @@ import at.iaik.suraq.util.ImmutableArrayList;
  * @author chillebold
  * 
  */
-public class VeritProofSet {
+public class VeritProofNode {
     private final String name;
-    private final String type;
-    private final List<Formula> conclusions;
-    private final List<VeritProofSet> clauses;
+    private final Token type;
+    private final List<Formula> literalConclusions;
     private final Integer iargs;
-    private final List<VeritProofSet> parents = new ArrayList<VeritProofSet>();
+    private final List<VeritProofNode> subProofs;
+    private final List<VeritProofNode> parents;
 
     /**
      * Do not call this constructor by yourself. Use VeritProof to create this
@@ -33,15 +35,16 @@ public class VeritProofSet {
      * @param iargs
      */
     @Deprecated
-    protected VeritProofSet(String name, String type,
-            List<Formula> conclusions, List<VeritProofSet> clauses,
+    protected VeritProofNode(String name, Token type,
+            List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs) {
         this.name = name;
         this.type = type;
-        this.conclusions = conclusions == null ? null : new ArrayList<Formula>(
-                conclusions);
-        this.clauses = clauses == null ? null : new ArrayList<VeritProofSet>(
-                clauses);
+        this.literalConclusions = conclusions == null ? null
+                : new ArrayList<Formula>(conclusions);
+        this.subProofs = clauses == null ? null
+                : new ArrayList<VeritProofNode>(clauses);
+        this.parents = new ArrayList<VeritProofNode>();
         this.iargs = iargs;
     }
 
@@ -49,7 +52,7 @@ public class VeritProofSet {
         return name;
     }
 
-    public String getType() {
+    public Token getType() {
         return type;
     }
 
@@ -60,8 +63,8 @@ public class VeritProofSet {
      * 
      * @return
      */
-    public List<Formula> getConclusion() {
-        return conclusions;
+    public List<Formula> getLiteralConclusions() {
+        return literalConclusions;
     }
 
     /**
@@ -69,8 +72,17 @@ public class VeritProofSet {
      * 
      * @return a copied ArrayList of the conclusions
      */
-    public List<Formula> getConclusionCopy() {
-        return new ArrayList<Formula>(conclusions);
+    public List<Formula> getLiteralConclusionsCopy() {
+        return new ArrayList<Formula>(literalConclusions);
+    }
+
+    /**
+     * This method returns an OR-Formula of the literal conclusions
+     * 
+     * @return a copied ArrayList of the conclusions
+     */
+    public OrFormula getConclusions() {
+        return OrFormula.generate(literalConclusions);
     }
 
     /**
@@ -79,8 +91,8 @@ public class VeritProofSet {
      * 
      * @return
      */
-    public ImmutableArrayList<VeritProofSet> getClauses() {
-        return new ImmutableArrayList<VeritProofSet>(clauses);
+    public ImmutableArrayList<VeritProofNode> getSubProofs() {
+        return new ImmutableArrayList<VeritProofNode>(subProofs);
     }
 
     public Integer getIargs() {
@@ -93,47 +105,47 @@ public class VeritProofSet {
      * 
      * @return
      */
-    public ImmutableArrayList<VeritProofSet> getParents() {
-        return new ImmutableArrayList<VeritProofSet>(parents);
+    public ImmutableArrayList<VeritProofNode> getParents() {
+        return new ImmutableArrayList<VeritProofNode>(parents);
     }
 
     @Deprecated
-    protected void addParent(VeritProofSet parent) {
+    protected void addParent(VeritProofNode parent) {
         parents.add(parent);
     }
 
     @Deprecated
-    protected boolean removeParent(VeritProofSet parent) {
+    protected boolean removeParent(VeritProofNode parent) {
         return parents.remove(parent);
     }
 
     @Deprecated
-    protected void addClause(VeritProofSet clause) {
-        clauses.add(clause);
+    protected void addSubProof(VeritProofNode subProof) {
+        subProofs.add(subProof);
     }
 
     @Deprecated
-    protected boolean removeClause(VeritProofSet clause) {
-        return clauses.remove(clause);
+    protected boolean removeSubProof(VeritProofNode subProof) {
+        return subProofs.remove(subProof);
     }
 
     @Override
     public String toString() {
         String str = "(set " + name + " (" + type;
-        if (clauses != null) {
+        if (subProofs != null) {
             str += " :clauses (";
-            for (VeritProofSet clause : clauses)
+            for (VeritProofNode clause : subProofs)
                 str += clause.getName() + " ";
             str += ")";
         }
         if (iargs != null) {
             str += " :iargs (" + iargs + ")";
         }
-        if (conclusions != null) {
-            str+=" :conclusions (";
-            for (Formula conclusion : conclusions)
+        if (literalConclusions != null) {
+            str += " :conclusions (";
+            for (Formula conclusion : literalConclusions)
                 str += " " + conclusion.toString();
-            str+=")";
+            str += ")";
         }
         str += "))";
         return str;
