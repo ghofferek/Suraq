@@ -30,7 +30,7 @@ public class Ackermann {
 
     // these flags activate or deactivate Ackermann's reduction
     // you can separately deactivate it on predicates and functions.
-    private static boolean _isActive = true;
+    private static boolean _isActive = false;
     private static boolean _isPredicateActive = true;
     private static boolean _isFunctionActive = true;
     // active debug writes out some files to see what's going on

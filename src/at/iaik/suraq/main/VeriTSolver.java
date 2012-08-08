@@ -24,6 +24,9 @@ public class VeriTSolver {
     private String path = "./lib/veriT/veriT";
     private File lastFile = null;
 
+
+    private File proofFile = null;
+    
     public VeriTSolver() {
 
     }
@@ -39,15 +42,14 @@ public class VeriTSolver {
         if (smt2.indexOf("(get-proof)") != -1) {
             System.err.println("Unsupported elements in smt2: (get-proof)");
         }
-        File tmpOutFile;
         File tmpInFile;
         try {
-            tmpOutFile = File.createTempFile("veriT-out", ".smt2");
-            tmpInFile = File.createTempFile("veriT-in", ".smt2");
+            proofFile = File.createTempFile("veriT-proof", ".smt2", new File("./"));
+            tmpInFile = File.createTempFile("veriT-in", ".smt2", new File("./"));
             FileWriter fw = new FileWriter(tmpInFile);
             fw.write(smt2);
             fw.close();
-            System.out.println("Temporary Out file: "+tmpOutFile);
+            System.out.println("Temporary Out file: "+proofFile);
             System.out.println("Temporary In  file: "+tmpInFile);
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,7 +58,7 @@ public class VeriTSolver {
 
         String executionPath = path //
                 + " --proof-version=1" // 0|1
-                + " --proof=" + tmpOutFile // temporary file
+                + " --proof=" + proofFile // temporary file
                 + " --proof-with-sharing" //
                 + " --proof-prune" //
                 + " --input=smtlib2" //
@@ -112,9 +114,9 @@ public class VeriTSolver {
         }
         //ProcessUtil.runExternalProcess("gedit " + tmpOutFile);
         
-        if(tmpOutFile.exists())
+        if(proofFile.exists())
         {
-            lastFile = tmpOutFile;
+            lastFile = proofFile;
         }
     }
     
@@ -136,6 +138,10 @@ public class VeriTSolver {
 
     public static void setActive(boolean _isActive) {
         VeriTSolver.isActive = _isActive;
+    }
+
+    public String getProofFile() {
+        return proofFile.getPath();
     }
 
 }

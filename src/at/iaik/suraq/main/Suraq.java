@@ -183,6 +183,13 @@ public class Suraq implements Runnable {
     public static void main(String[] args) {
 
         try {
+            // TODO: chillebold - temporary config:
+//            Ackermann.setActive(false);
+//            ITEEquationReduction.setActive(false);
+//            GraphReduction.setActive(false);
+//            QBFEncoder.setActive(false);
+//            VeriTSolver.setActive(true);
+            
             Suraq.extTimer.start();
             Suraq.extTimer.stopReset("start");
             Suraq suraq = new Suraq(args);
@@ -761,13 +768,67 @@ public class Suraq implements Runnable {
         // if (pTst.takeControl())
         // return;
         // END: ASHUTOSH code
+        
+        
         printWelcome();
 
         SuraqOptions options = SuraqOptions.getInstance();
+        
+        
+        if(options.getVeriTVarsCache() != null)
+        {
+
+            Timer t = new Timer();
+            System.out.println("****************************************");
+            System.out.println("* I am using the Cached VeriT-Proof!!! *");
+            System.out.println("****************************************");
+
+            t.reset(); t.start();
+            SaveCache sc = SaveCache.loadSaveCacheFromFile(options.getVeriTVarsCache());
+
+            propsitionalVars = sc.getPropsitionalVars();
+            domainVars = sc.getDomainVars();
+            arrayVars = sc.getArrayVars();
+            uninterpretedFunctions = sc.getUninterpretedFunctions();
+            mainFormula = sc.getMainFormula();
+            assertPartitionFormulas = sc.getAssertPartitionFormulas();
+            tseitinEncoding = sc.getTseitinEncoding();
+            //controlVars = sc.getControlVars(); // are not set!
+            noDependenceVarsCopies = sc.getNoDependenceVarsCopies();
+            noDependenceFunctionsCopies = sc.getNoDependenceFunctionsCopies();
+            t.stop();
+            System.out.println("\nLoading Variable Cache. Needed: " + t);
+            t.reset(); t.start();
+            
+            VeriTParser veriTParser; 
+            try {
+                String filename = sc.getProofFile();
+                if(options.getVeriTFile() != null)
+                    filename = options.getVeriTFile();
+                
+                BufferedReader reader = new BufferedReader(new FileReader(filename));
+                veriTParser = new VeriTParser(reader, mainFormula, tseitinEncoding.keySet(), noDependenceVarsCopies.values(), noDependenceFunctionsCopies);
+
+                t.stop(); System.out.println("Prepared to parse the proof. Needed: " + t); t.reset(); t.start();
+                veriTParser.parse();
+                t.stop(); System.out.println("Parsed the proof. Needed: " + t); t.reset(); t.start();
+                VeritProof veritProof = veriTParser.getProof();
+                t.stop(); System.out.println("Got the proof. Needed: " + t); t.reset(); t.start();
+                DebugHelper.getInstance().stringtoFile(veritProof.toString(), "~parsed-verit-enc.txt");
+                t.stop(); System.out.println("Got the proof. Needed: " + t); t.reset(); t.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+            System.out.println("\nAborting the process. (This was the cached verit proof testing)");
+            return;
+        }
 
         File sourceFile = new File(options.getInput());
         if (options.isVerbose())
             System.out.println("Parsing input file " + sourceFile.toString());
+
+        
 
         File z3InputFile = new File(options.getZ3Input());
         File z3ProofFile = new File(options.getZ3Proof());
@@ -850,7 +911,24 @@ public class Suraq implements Runnable {
                 // TODO: chillebold: insert VeriTSolver here
                 VeriTSolver veriT = new VeriTSolver();
                 veriT.solve(z3InputStr);
-                System.out.println("new Solver. END!");
+                System.out.println("VeriTSolver returned!");
+                
+                @SuppressWarnings("unused")
+                SaveCache saveCache = new SaveCache(
+                        propsitionalVars, // 
+                        domainVars,  //
+                        arrayVars,  //
+                        uninterpretedFunctions,  //
+                        null, // control vars
+                        mainFormula, 
+                        assertPartitionFormulas,
+                        tseitinEncoding, 
+                        "verit-save-cache.tmp",
+                        veriT.getProofFile(), // filename
+                        noDependenceVarsCopies, //
+                        noDependenceFunctionsCopies
+                        );
+                
                 VeriTParser veriTParser; 
                 try {
                     veriTParser = new VeriTParser(veriT.getStream(), mainFormula, tseitinEncoding.keySet(), noDependenceVarsCopies.values(), noDependenceFunctionsCopies);
@@ -861,6 +939,9 @@ public class Suraq implements Runnable {
                     e.printStackTrace();
                     throw new RuntimeException(e);
                 }
+                
+                
+                
                 return; // this is used to stop the further calculations
                 
                 // END

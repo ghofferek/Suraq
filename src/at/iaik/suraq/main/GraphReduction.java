@@ -28,7 +28,7 @@ import at.iaik.suraq.util.Util;
 
 public class GraphReduction {
     // this flag activates or deactivates the GraphReduction globally
-    private static boolean _isActive = true;
+    private static boolean _isActive = false;
     // activates some unnessasary debug output - only use if you debug the GraphReduction
     private static boolean _debug = false;
     // not used: activate this to activate circle finding after the basic algorithm.

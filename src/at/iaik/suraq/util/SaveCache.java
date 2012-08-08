@@ -15,11 +15,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 
 /**
@@ -47,6 +49,14 @@ public class SaveCache implements Serializable {
     private final Map<PropositionalVariable, Formula> tseitinEncoding;
     private final Map<Set<?>, ImmutableSet<?>> immutableSetInstances;
     private final Map<Object, Object> immutableSetUniqueElements;
+    
+
+    private final Map<Token, List<Term>> noDependenceVarsCopies;
+    private final Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies;
+    
+    // added by chillebold
+    private final String veriTProofFile;
+    
 
     public SaveCache(Set<PropositionalVariable> propsitionalVars,
             Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
@@ -71,7 +81,44 @@ public class SaveCache implements Serializable {
         this.immutableSetInstances.putAll(immutableSetInstances);
         this.immutableSetUniqueElements = new HashMap<Object, Object>();
         this.immutableSetUniqueElements.putAll(immutableSetUniqueElements);
+        veriTProofFile = null;
+        noDependenceVarsCopies = null;
+        noDependenceFunctionsCopies = null;
+        
+        if (filename != null)
+            this.saveToFile(filename);
+    }
 
+    // chillebold: extended to meet requirements by VeriT-Proofs
+    public SaveCache(Set<PropositionalVariable> propsitionalVars,
+            Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
+            Set<UninterpretedFunction> uninterpretedFunctions, List<PropositionalVariable> controlVars,
+            Formula mainFormula,
+            Map<Integer, Formula> assertPartitionFormulas,
+            Map<PropositionalVariable, Formula> tseitinEncoding,
+            String filename, 
+            String veriTProofFile, 
+            Map<Token, List<Term>> noDependenceVarsCopies,
+            Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies
+            ) {
+        this.propsitionalVars = propsitionalVars;
+        this.domainVars = domainVars;
+        this.arrayVars = arrayVars;
+        this.uninterpretedFunctions = uninterpretedFunctions;
+        this.controlVars = controlVars;
+        this.instanceCounter = Z3Proof.getInstanceCounter();
+        this.mainFormula = mainFormula;
+        this.assertPartitionFormulas = assertPartitionFormulas;
+        this.tseitinEncoding = tseitinEncoding;
+        this.immutableSetInstances = new HashMap<Set<?>, ImmutableSet<?>>();
+        this.immutableSetInstances.putAll(immutableSetInstances);
+        this.immutableSetUniqueElements = new HashMap<Object, Object>();
+        this.immutableSetUniqueElements.putAll(immutableSetUniqueElements);
+        proof = null;
+        this.veriTProofFile = veriTProofFile;
+        this.noDependenceVarsCopies =  noDependenceVarsCopies;
+        this.noDependenceFunctionsCopies = noDependenceFunctionsCopies;
+        
         if (filename != null)
             this.saveToFile(filename);
     }
@@ -204,5 +251,19 @@ public class SaveCache implements Serializable {
         WeakHashMap<Object, Object> tmp = new WeakHashMap<Object, Object>();
         tmp.putAll(immutableSetUniqueElements);
         return tmp;
+    }
+    
+    public String getProofFile()
+    {
+        return veriTProofFile;
+    }
+
+    
+    public Map<Token, List<Term>> getNoDependenceVarsCopies() {
+        return noDependenceVarsCopies;
+    }
+
+    public Map<Token, List<UninterpretedFunction>> getNoDependenceFunctionsCopies() {
+        return noDependenceFunctionsCopies;
     }
 }

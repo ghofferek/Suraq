@@ -21,7 +21,7 @@ import at.iaik.suraq.smtlib.formula.ImpliesFormula;
  */
 public class ITEEquationReduction {
 
-    private static boolean _isActive = true;
+    private static boolean _isActive = false;
 
     public static void setActive(boolean isActive) {
         _isActive = isActive;

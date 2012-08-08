@@ -16,6 +16,12 @@ public class VeriTToken {
             .generate("eq_transitive");
     public final static Token EQ_CONGRUENT = VeriTToken
             .generate("eq_congruent");
+
+    public final static Token EQ_CONGRUENT_PRED = VeriTToken
+            .generate("eq_congruent_pred");
+    public final static Token EQ_REFLEXIVE = VeriTToken
+            .generate("eq_reflexive");
+    
     
     
     private static Token generate(String name) {
@@ -29,8 +35,8 @@ public class VeriTToken {
             return tokens.get(name);
         System.err.println("The Token '" + name
                 + "' was not found in VeriTToken.");
-        throw new RuntimeException("VeriTToken '" + name
-                + "' was not defined in VeriTToken.");
+        
+        return generate(name);
     }
 
 }

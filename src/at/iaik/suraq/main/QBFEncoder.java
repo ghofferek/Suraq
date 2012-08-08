@@ -20,7 +20,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
  */
 public class QBFEncoder {
 
-    private static boolean _isActive = true;
+    private static boolean _isActive = false;
     private String comment = null;
     protected int varcounter = 1;
     protected int clauses = 0;

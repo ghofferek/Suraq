@@ -1,6 +1,7 @@
 package at.iaik.suraq.parser;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -129,6 +130,25 @@ public class VeriTParser extends Parser {
         }
     }
 
+    private void cleanUp() {
+        try {
+            reader.close();
+        } catch (IOException e) {
+        }
+        macroBufferFormula.clear();
+        macroBufferTerm.clear();
+        propositionalVariables.clear();
+        domainVariables.clear();
+        uninterpretedFunctionNames.clear();
+        uninterpretedFunctions.clear();
+
+        macroNameStack.clear();
+        commandStack.clear();
+        formulaStack.clear();
+        termStack.clear();
+        uninterpretedStack.clear();
+    }
+
     /**
      * Parses the Proof line by line. Formula Expressions in the proof are
      * parsed in the method parseConclusion(...)
@@ -229,6 +249,7 @@ public class VeriTParser extends Parser {
             throw new RuntimeException(e);
         } finally {
             System.out.println("There were " + currentLine + " lines.");
+            cleanUp();
         }
     }
 
@@ -419,7 +440,7 @@ public class VeriTParser extends Parser {
             newTerm = UninterpretedFunctionInstance.create(uf, formulaElements);
 
             if (macroname != null) {
-                System.out.println("[M] Stored macro #" + macroname);
+                //System.out.println("[M] Stored macro #" + macroname);
                 macroBufferTerm.put(macroname,
                         (UninterpretedFunctionInstance) newTerm);
             }
@@ -430,7 +451,7 @@ public class VeriTParser extends Parser {
             formulaStack.peek().add((UninterpretedPredicateInstance) newTerm);
 
             if (macroname != null) {
-                System.out.println("[M] Stored macro #" + macroname);
+                //System.out.println("[M] Stored macro #" + macroname);
                 macroBufferFormula.put(macroname,
                         (UninterpretedPredicateInstance) newTerm);
                 macroBufferTerm.put(macroname,
@@ -463,7 +484,7 @@ public class VeriTParser extends Parser {
     }
 
     private void storeMacro(String macroName, Formula formula) {
-        System.out.println("[M] Stored macro #" + macroName);
+        //System.out.println("[M] Stored macro #" + macroName);
         macroBufferFormula.put(macroName, formula);
         if (formula instanceof Term)
             macroBufferTerm.put(macroName, (Term) formula);
