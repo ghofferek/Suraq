@@ -92,6 +92,8 @@ public class VeritProofNode {
      * @return
      */
     public ImmutableArrayList<VeritProofNode> getSubProofs() {
+        if(subProofs == null)
+            return null;
         return new ImmutableArrayList<VeritProofNode>(subProofs);
     }
 
@@ -106,6 +108,8 @@ public class VeritProofNode {
      * @return
      */
     public ImmutableArrayList<VeritProofNode> getParents() {
+        if(parents == null)
+            return null;
         return new ImmutableArrayList<VeritProofNode>(parents);
     }
 

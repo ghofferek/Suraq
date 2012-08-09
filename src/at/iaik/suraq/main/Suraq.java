@@ -51,6 +51,7 @@ import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.util.BenchmarkTimer;
 import at.iaik.suraq.util.DagOperationManager;
 import at.iaik.suraq.util.DebugHelper;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.SaveCache;
 import at.iaik.suraq.util.Timer;
@@ -783,7 +784,7 @@ public class Suraq implements Runnable {
             System.out.println("* I am using the Cached VeriT-Proof!!! *");
             System.out.println("****************************************");
 
-            t.reset(); t.start();
+            System.out.print("\nLoading Variable Cache... "); t.reset(); t.start();
             SaveCache sc = SaveCache.loadSaveCacheFromFile(options.getVeriTVarsCache());
 
             propsitionalVars = sc.getPropsitionalVars();
@@ -797,9 +798,32 @@ public class Suraq implements Runnable {
             noDependenceVarsCopies = sc.getNoDependenceVarsCopies();
             noDependenceFunctionsCopies = sc.getNoDependenceFunctionsCopies();
             t.stop();
-            System.out.println("\nLoading Variable Cache. Needed: " + t);
-            t.reset(); t.start();
+            System.out.println(" Needed: " + t);
             
+            System.out.println("Copying to FormulaCache... "); t.reset(); t.start();
+            for(PropositionalVariable tmp : propsitionalVars)
+                FormulaCache.propVar.post(tmp);
+            for(DomainVariable tmp : domainVars)
+                FormulaCache.domainVarFormula.post(tmp);
+            for(UninterpretedFunction tmp : uninterpretedFunctions)
+                FormulaCache.uninterpretedFunction.post(tmp);
+            for(List<Term> tmp2 : noDependenceVarsCopies.values())
+                for(Term tmp : tmp2)
+                {
+                    if(tmp instanceof DomainVariable)
+                        FormulaCache.domainVarFormula.post((DomainVariable)tmp);
+                    if(tmp instanceof PropositionalVariable)
+                        FormulaCache.propVar.post((PropositionalVariable)tmp);
+                }
+            for(List<UninterpretedFunction> tmp2 : noDependenceFunctionsCopies.values())
+                for(UninterpretedFunction tmp : tmp2)
+                    FormulaCache.uninterpretedFunction.post(tmp);
+            
+            
+            t.stop();
+            System.out.println(" Needed: " + t);
+            
+            System.out.print("Prepare to parse the proof..."); t.reset(); t.start();
             VeriTParser veriTParser; 
             try {
                 String filename = sc.getProofFile();
@@ -809,13 +833,35 @@ public class Suraq implements Runnable {
                 BufferedReader reader = new BufferedReader(new FileReader(filename));
                 veriTParser = new VeriTParser(reader, mainFormula, tseitinEncoding.keySet(), noDependenceVarsCopies.values(), noDependenceFunctionsCopies);
 
-                t.stop(); System.out.println("Prepared to parse the proof. Needed: " + t); t.reset(); t.start();
+                t.stop(); System.out.println(" Needed: " + t); 
+                
+                System.out.print("Parse the proof... "); t.reset(); t.start();
                 veriTParser.parse();
-                t.stop(); System.out.println("Parsed the proof. Needed: " + t); t.reset(); t.start();
+                t.stop(); System.out.println(" Needed: " + t);
+                
+                System.out.print("Get the proof... "); t.reset(); t.start();
                 VeritProof veritProof = veriTParser.getProof();
-                t.stop(); System.out.println("Got the proof. Needed: " + t); t.reset(); t.start();
-                DebugHelper.getInstance().stringtoFile(veritProof.toString(), "~parsed-verit-enc.txt");
-                t.stop(); System.out.println("Got the proof. Needed: " + t); t.reset(); t.start();
+                t.stop(); System.out.println(" Needed: " + t);
+                
+                //DebugHelper.getInstance().stringtoFile(veritProof.toString(), "~parsed-verit-enc.txt");
+                // t.stop();
+                // System.out.println("Written Proof to File. Needed: " + t);
+                // t.reset(); t.start();
+
+                VeriTProofAnalyzer vpa = new VeriTProofAnalyzer(veritProof);
+                /*System.out.print("Analyze Paritions... ");  t.reset(); t.start();
+                vpa.analyzePartitions(assertPartitionFormulas, new File(
+                        "./~verit-errors.txt"),// all errors in clauses
+                        new File("./~verit-errors-unique.txt"),// unique lines when error in clause
+                        new File("./~verit-errors-no-childs.txt") // only clauses without childs
+                );
+                t.stop(); System.out.println(" Needed: " + t);
+                */
+
+                System.out.print("analyzeBadLiteralsSat... ");  t.reset(); t.start();
+                vpa.analyzeBadLiteralsSat(new File("./~verit-errors-unsatliterals.txt"));
+                t.stop(); System.out.println(" Needed: " + t);
+                
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);

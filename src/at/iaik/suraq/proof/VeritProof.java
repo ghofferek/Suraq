@@ -1,5 +1,6 @@
 package at.iaik.suraq.proof;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,8 +36,13 @@ public class VeritProof {
             subproof.removeParent(proofNode);
     }
 
-    public VeritProofNode getProofNodes(String name) {
+    public VeritProofNode getProofNode(String name) {
         return proofSets.get(name);
+    }
+    
+    public Collection<VeritProofNode> getProofNodes()
+    {
+        return proofSets.values();
     }
 
     public ImmutableHashSet<VeritProofNode> getProofIterator() {

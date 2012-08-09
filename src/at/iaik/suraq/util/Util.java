@@ -547,7 +547,7 @@ public final class Util {
             return NotFormula.create(literal);
 
     }
-
+    
     /**
      * Checks if a given Formula is a literal. A literal is either an atom or a
      * negation of an atom. Also handles unit clauses.
@@ -567,8 +567,7 @@ public final class Util {
             formula = ((OrFormula) formula).getDisjuncts().get(0);
         }
         if (formula instanceof NotFormula) {
-            Formula negatedFormula = ((NotFormula) formula).getNegatedFormula();
-            return Util.isAtom(negatedFormula);
+            formula = ((NotFormula) formula).getNegatedFormula();
         }
         return Util.isAtom(formula);
     }

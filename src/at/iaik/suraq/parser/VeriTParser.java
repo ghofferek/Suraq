@@ -206,7 +206,7 @@ public class VeriTParser extends Parser {
                     // find the given clauses in already existing ProofNodes and
                     parsed_clauses2 = new ArrayList<VeritProofNode>();
                     for (String parsed_clause : parsed_clauses) {
-                        parsed_clauses2.add(proof.getProofNodes(parsed_clause));
+                        parsed_clauses2.add(proof.getProofNode(parsed_clause));
                     }
                 }
 
