@@ -858,8 +858,22 @@ public class Suraq implements Runnable {
                 t.stop(); System.out.println(" Needed: " + t);
                 */
 
+                System.out.println("------------------------------------------");
                 System.out.print("analyzeBadLiteralsSat... ");  t.reset(); t.start();
                 vpa.analyzeBadLiteralsSat(new File("./~verit-errors-unsatliterals.txt"));
+                t.stop(); System.out.println(" Needed: " + t);
+                
+
+                // TODO: test this here...
+                System.out.println("------------------------------------------");
+                System.out.print("Removing Bad Literals... ");  t.reset(); t.start();
+                vpa.removeBadLiterals();
+                t.stop(); System.out.println(" Needed: " + t);
+                
+
+                System.out.println("------------------------------------------");
+                System.out.print("analyzeBadLiteralsSat (2)... ");  t.reset(); t.start();
+                vpa.analyzeBadLiteralsSat(new File("./~verit-errors-unsatliterals2.txt"));
                 t.stop(); System.out.println(" Needed: " + t);
                 
             } catch (Exception e) {

@@ -30,10 +30,13 @@ public class VeritProof {
     }
 
     public void removeProofSet(VeritProofNode proofNode) {
-        for (VeritProofNode parent : proofNode.getParents())
-            parent.removeSubProof(proofNode);
-        for (VeritProofNode subproof : proofNode.getSubProofs())
-            subproof.removeParent(proofNode);
+        if (proofNode.getParents() != null)
+            for (VeritProofNode parent : proofNode.getParents())
+                parent.removeSubProof(proofNode);
+        if (proofNode.getSubProofs() != null)
+            for (VeritProofNode subproof : proofNode.getSubProofs())
+                subproof.removeParent(proofNode);
+        proofSets.remove(proofNode.getName());
     }
 
     public VeritProofNode getProofNode(String name) {

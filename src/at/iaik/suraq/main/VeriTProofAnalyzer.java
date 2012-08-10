@@ -2,13 +2,18 @@ package at.iaik.suraq.main;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.util.Util;
@@ -19,24 +24,113 @@ public class VeriTProofAnalyzer {
     {
         this.proof = proof;
     }
-    
-    
-    public void removeBadLiterals()
-    {
-        // true = subproofs are allowed
-        Set<Formula> badLiterals = this.findBadLiterals(true);
-        // we must know to which Proof the bad literals belong.
-        // therefore we must change the findBadLiteralsSearch.
+
+    public void removeBadLiterals() {
+
+        // in the first step, we only look for eq_transitive and eq_congruent,
+        // which only occurs as leafs (no subProofs)
+        // Set<Formula> badLiterals = this.findBadLiterals(false);
+        // Hashtable<Formula, List<VeritProofNode>> badLiterals =
+        // findBadLiteralsWithProofNode(false);
+        Hashtable<Formula, AbstractMap.SimpleEntry<VeritProofNode, List<Formula>>> implications = findImplicationDefinitionsWithBadLiteralsOnlyinPositiveForm(false);
+        System.out.println("Found "+implications.size()+" bad literals with no subProofs that only had bad literals in the positive form.");
         
-        
-        // FIXME: stopped here 2012-08-09 
+        for (Formula badLiteral : implications.keySet()) {
+            VeritProofNode start_node = implications.get(badLiteral).getKey();
+            // these nodes have no childs
+            List<Formula> conditions = implications.get(badLiteral).getValue();
+
+            // 1. propagate to the parents till the (positive) badLiteral vanishes
+            List<VeritProofNode> ends = new ArrayList<VeritProofNode>();
+            replaceBadLiteralToParents(start_node, conditions, badLiteral, ends);
+
+
+            // 2. propagate to the childs till the (negative) badLiteral vanishes
+            // TODO: split the result in several steps
+            NotFormula negatedBadLiteral = NotFormula.create(badLiteral);
+            for (VeritProofNode end : ends) {
+                replaceBadLiteralToSubProofs(end, conditions, negatedBadLiteral);
+            }
+            
+            // 3. delete current node from proof
+            proof.removeProofSet(start_node);
+
+            // FIXME: stopped here 2012-08-09, 2012-08-10
+        }
     }
     
+    private List<Formula> removeNotFormulas(List<Formula> formulas) {
+        ArrayList<Formula> tmp = new ArrayList<Formula>();
+        for (Formula formula : formulas) {
+            if (formula instanceof NotFormula)
+                tmp.add(((NotFormula) formula).getNegatedFormula());
+            else
+                tmp.add(formula);
+        }
+        return tmp;
+    }
     
+    /**
+     * Propagate to the childs
+     * 
+     * @param node
+     * @param conditions conditions in negated form
+     * @param badLiteral badLiteral in negated form
+     */
+    private void replaceBadLiteralToSubProofs(VeritProofNode node,
+            List<Formula> conditions, Formula badLiteral) {
+        if(node.getSubProofs() == null)
+            return;
+        for (VeritProofNode child : node.getSubProofs()) {
+            List<Formula> formulas = child.getLiteralConclusions(); // no copy!
+            int index = formulas.indexOf(badLiteral);
+            if(index == -1)
+            {
+                // the badLiteral does not occur any more :-)
+            }
+            else
+            {
+                System.out.print('-');
+                formulas.addAll(conditions);
+                replaceBadLiteralToSubProofs(child, conditions, badLiteral);
+            }
+        }
+    }
     
+    /**
+     * Propagate to the Parents
+     * @param node
+     * @param conditions
+     * @param badLiteral
+     * @param ends
+     */
+    private void replaceBadLiteralToParents(VeritProofNode node, List<Formula> conditions, Formula badLiteral, List<VeritProofNode> ends)
+    {
+        // badLiteral is in Positive Form, conditions are in Negated Form
+        if(node.getParents() == null)
+            return;
+        for(VeritProofNode parent : node.getParents())
+        {
+            List<Formula> formulas = parent.getLiteralConclusions(); // no copy!
+            int position = formulas.indexOf(badLiteral);
+            if(position != -1)
+            {
+                System.out.print('+');
+                //formulas.remove(position);
+                formulas.set(position, AndFormula.generate(removeNotFormulas(conditions)));
+                replaceBadLiteralToParents(parent, conditions, badLiteral, ends);
+            }
+            else
+            {
+                // we have reached the end of the downpropagation
+                ends.add(parent);
+            }
+        }
+    }
     
     public void analyzeBadLiteralsSat(File fileBadLiterals)
     {
+        
         Set<Formula> badLiterals = findBadLiterals(false);
         System.out.println("There were "+ badLiterals.size()+" bad literals.");
         badLiterals = satisfyBadLiterals(badLiterals);
@@ -68,6 +162,8 @@ public class VeriTProofAnalyzer {
             
         }
     }
+    
+    
     
     private boolean isDebugStop(Formula formula, String varname1, String varname2)
     {
@@ -121,7 +217,7 @@ public class VeriTProofAnalyzer {
         {
             if(isDebugStop(badLiteral,"marci3__copy_1","marci3__copy_4"))
             {
-                System.out.println("");
+                System.out.print("");
             }
             if(filteredBadLiterals.remove(badLiteral))
                 removed_elements++;
@@ -135,7 +231,92 @@ public class VeriTProofAnalyzer {
         return filteredBadLiterals;
     }
     
+    /**
+     * Finds bad literals and stores to each one, in which nodes it occured
+     * @param areSubproofsAllowed defines if found elements may contain subproofs
+     * @return
+     */
+    public Hashtable<Formula, List<VeritProofNode>> findBadLiteralsWithProofNode(boolean areSubproofsAllowed)
+    {
+        Hashtable<Formula, List<VeritProofNode>> badLiterals = new Hashtable<Formula, List<VeritProofNode>>();
+        for (VeritProofNode node : proof.getProofNodes()) {
+            for (Formula litConclusion : node.getLiteralConclusions()) {
+                Set<Integer> partitions = litConclusion
+                        .getPartitionsFromSymbols();
+                partitions.remove(-1);
+                if (partitions.size() > 1) {
+                    if (areSubproofsAllowed || node.getSubProofs() == null) {
+                        List<VeritProofNode> proofNodes = badLiterals.get(litConclusion);
+                        if(proofNodes == null)
+                        {
+                            proofNodes = new ArrayList<VeritProofNode>();
+                            badLiterals.put(litConclusion, proofNodes);
+                        }
+                        proofNodes.add(node);
+                    }
+                }
+                if(!Util.isLiteral(litConclusion))
+                {
+                    //throw new RuntimeException("litConclusion is no literal.");
+                    //System.err.println("litConclusion is no literal:"+litConclusion);
+                }
+            }
+        }
+        return badLiterals;
+    }
+    
+    public Hashtable<Formula, AbstractMap.SimpleEntry<VeritProofNode, List<Formula>>> findImplicationDefinitionsWithBadLiteralsOnlyinPositiveForm(
+            boolean areSubproofsAllowed) {
+        Hashtable<Formula, AbstractMap.SimpleEntry<VeritProofNode, List<Formula>>> implies = new Hashtable<Formula, AbstractMap.SimpleEntry<VeritProofNode, List<Formula>>>();
+        Set<Integer> partitions;
+        for (VeritProofNode node : proof.getProofNodes()) {
+            if (!areSubproofsAllowed && node.getSubProofs() != null)
+                continue;
+
+            boolean ok = true;
+            List<Formula> goodLiterals = new ArrayList<Formula>(
+                    node.getLiteralConclusions());
+            Formula badLiteral = goodLiterals.get(goodLiterals.size() - 1);
+
+            if (badLiteral instanceof NotFormula) {
+                continue;
+            }
+
+            // check if good literals are good:
+            for (Formula litConclusion : goodLiterals) {
+                if (litConclusion instanceof NotFormula) {
+                    ok = false;
+                    break;
+                }
+                partitions = litConclusion.getPartitionsFromSymbols();
+                partitions.remove(-1);
+                if (partitions.size() > 1) {
+                    ok = false;
+                    break;
+                }
+            }
+
+            // check if bad literal is bad:
+            partitions = badLiteral.getPartitionsFromSymbols();
+            partitions.remove(-1);
+            if (partitions.size() > 1) {
+                ok = false;
+            }
+
+            if (ok) {
+                implies.put(
+                        badLiteral,
+                        new AbstractMap.SimpleEntry<VeritProofNode, List<Formula>>(
+                                node, goodLiterals));
+            }
+        }
+        return implies;
+    }
+
     public Set<Formula> findBadLiterals(boolean areSubproofsAllowed) {
+        // should be equal to:
+        // findBadLiteralsWithProofNode(areSubproofsAllowed).keySet();
+        
         Set<Formula> badLiterals = new HashSet<Formula>();
         for (VeritProofNode node : proof.getProofNodes()) {
             for (Formula litConclusion : node.getLiteralConclusions()) {
