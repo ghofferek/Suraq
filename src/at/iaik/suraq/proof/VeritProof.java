@@ -28,6 +28,18 @@ public class VeritProof {
         }
         return tmp;
     }
+    
+    public int getLiteralConclusionsCount()
+    {
+        int size = 0;
+        for(VeritProofNode proofSet : proofSets.values())
+        {
+            List<Formula> litConclusions = proofSet.getLiteralConclusions();
+            if(litConclusions != null)
+                size += litConclusions.size();
+        }
+        return size;
+    }
 
     public void removeProofSet(VeritProofNode proofNode) {
         if (proofNode.getParents() != null)

@@ -850,13 +850,14 @@ public class Suraq implements Runnable {
 
                 VeriTProofAnalyzer vpa = new VeriTProofAnalyzer(veritProof);
                 /*System.out.print("Analyze Paritions... ");  t.reset(); t.start();
-                vpa.analyzePartitions(assertPartitionFormulas, new File(
+                vpa.analyzePartitions(new File(
                         "./~verit-errors.txt"),// all errors in clauses
                         new File("./~verit-errors-unique.txt"),// unique lines when error in clause
                         new File("./~verit-errors-no-childs.txt") // only clauses without childs
                 );
                 t.stop(); System.out.println(" Needed: " + t);
                 */
+                
 
                 System.out.println("------------------------------------------");
                 System.out.print("analyzeBadLiteralsSat... ");  t.reset(); t.start();
@@ -874,6 +875,14 @@ public class Suraq implements Runnable {
                 System.out.println("------------------------------------------");
                 System.out.print("analyzeBadLiteralsSat (2)... ");  t.reset(); t.start();
                 vpa.analyzeBadLiteralsSat(new File("./~verit-errors-unsatliterals2.txt"));
+                t.stop(); System.out.println(" Needed: " + t);
+                
+                System.out.print("Analyze Paritions... ");  t.reset(); t.start();
+                vpa.analyzePartitions(new File(
+                        "./~verit-errors.txt"),// all errors in clauses
+                        new File("./~verit-errors-unique.txt"),// unique lines when error in clause
+                        new File("./~verit-errors-no-childs.txt") // only clauses without childs
+                );
                 t.stop(); System.out.println(" Needed: " + t);
                 
             } catch (Exception e) {
