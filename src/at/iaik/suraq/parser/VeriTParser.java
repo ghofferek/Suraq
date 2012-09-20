@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
+import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.proof.VeriTToken;
@@ -35,8 +36,10 @@ import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 public class VeriTParser extends Parser {
 
     private final BufferedReader reader;
-    
-    // two macro buffers: for Formulas and Terms
+
+    /**
+     * two macro buffers: for Formulas and Terms
+     */
     private final HashMap<String, Formula> macroBufferFormula = new HashMap<String, Formula>();
     private final HashMap<String, Term> macroBufferTerm = new HashMap<String, Term>();
 
@@ -50,27 +53,41 @@ public class VeriTParser extends Parser {
     // Finally the Proof is stored here.
     private final VeritProof proof = new VeritProof();
 
-
     // Stacks are used to store variables of several Layers
     // a Layer is opened, when a ( occurs, and closed on )
 
-    // name of the macro, which is currently being defined
-    private final Stack<String> macroNameStack = new Stack<String>();
-    // name of the command of the current Stack (and, or, =)
-    private final Stack<String> commandStack = new Stack<String>();
-    // list of formulas of every stack, content of command
-    private final Stack<ArrayList<Formula>> formulaStack = new Stack<ArrayList<Formula>>();
-    // list of terms of every stack, content of command
-    private final Stack<ArrayList<Term>> termStack = new Stack<ArrayList<Term>>();
-    // the UninterpretedFunction defined on the current stack
-    private final Stack<UninterpretedFunction> uninterpretedStack = new Stack<UninterpretedFunction>();
-    
-    // the current line for debug output or Exceptions
-    private int currentLine = 0;
-    
-    
     /**
-     * The VeriTParser needsx all those Parameters to know which variable had
+     * name of the macro, which is currently being defined
+     */
+    private final Stack<String> macroNameStack = new Stack<String>();
+
+    /**
+     * name of the command of the current Stack (and, or, =)
+     */
+    private final Stack<String> commandStack = new Stack<String>();
+
+    /**
+     * list of formulas of every stack, content of command
+     */
+    private final Stack<ArrayList<Formula>> formulaStack = new Stack<ArrayList<Formula>>();
+
+    /**
+     * list of terms of every stack, content of command
+     */
+    private final Stack<ArrayList<Term>> termStack = new Stack<ArrayList<Term>>();
+
+    /**
+     * the UninterpretedFunction defined on the current stack
+     */
+    private final Stack<UninterpretedFunction> uninterpretedStack = new Stack<UninterpretedFunction>();
+
+    /**
+     * the current line for debug output or Exceptions
+     */
+    private int currentLine = 0;
+
+    /**
+     * The VeriTParser needs all those Parameters to know which variable had
      * which type. The current version will not work if two UF have the same
      * name but an other count of parameters. In that case, please rename the
      * function.
@@ -134,6 +151,7 @@ public class VeriTParser extends Parser {
         try {
             reader.close();
         } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         macroBufferFormula.clear();
         macroBufferTerm.clear();
@@ -162,7 +180,7 @@ public class VeriTParser extends Parser {
 
                 // every line has to start with (set .
                 if (!line.startsWith("(set ."))
-                    throw new ParseException(line, currentLine);
+                    throw new ParseError(currentLine, line);
 
                 // Extract the name of the ProofNode
                 int pos_begin = "(set ".length();
@@ -206,7 +224,10 @@ public class VeriTParser extends Parser {
                     // find the given clauses in already existing ProofNodes and
                     parsed_clauses2 = new ArrayList<VeritProofNode>();
                     for (String parsed_clause : parsed_clauses) {
-                        parsed_clauses2.add(proof.getProofNode(parsed_clause));
+                        VeritProofNode proofNode = proof
+                                .getProofNode(parsed_clause);
+                        assert (proofNode != null);
+                        parsed_clauses2.add(proofNode);
                     }
                 }
 
@@ -253,7 +274,6 @@ public class VeriTParser extends Parser {
         }
     }
 
-    
     /**
      * This is a non-iterative (sequential) attempt to parse a Formula. This is
      * done to reduce the stack and to improve performance. Although the code is
@@ -275,9 +295,9 @@ public class VeriTParser extends Parser {
     private ArrayList<Formula> parseConclusion(String conclusion)
             throws ParseException, IncomparableTermsException {
         try {
-            // caches the length of the formula to oarse
+            // caches the length of the formula to parse
             int length = conclusion.length();
-            // tstore all conclusions on the TopLayer of the Formula
+            // store all conclusions on the TopLayer of the Formula
             ArrayList<Formula> conclusions = new ArrayList<Formula>();
             // if this flag is set, we are currently parsing a macro_name:
             // -> the number between # and :)
@@ -378,13 +398,14 @@ public class VeriTParser extends Parser {
 
                             // store macro if this was a macro
                             if (macroname != null) {
-                                this.storeMacro(macroname, formulaStack.peek().get(
-                                        formulaStack.peek().size() - 1));
+                                this.storeMacro(macroname, formulaStack.peek()
+                                        .get(formulaStack.peek().size() - 1));
                             }
                         }
                         // just a list of variables
                         else {
-                            ArrayList<Formula> formulaElements = formulaStack.pop();
+                            ArrayList<Formula> formulaElements = formulaStack
+                                    .pop();
                             if (commandStack.size() == 0) {
                                 // this is the :conclusion layer
                                 conclusions.addAll(formulaElements);
@@ -397,11 +418,10 @@ public class VeriTParser extends Parser {
                     }
                 }
                 // this is the beginning of a macro-definition #2:
-                // or a beginning of a macro-usage: #2 
-                else if (cur == '#') 
-                {
+                // or a beginning of a macro-usage: #2
+                else if (cur == '#') {
                     macro_name = true;
-                } 
+                }
                 // this is the end of a macro-definition (name)
                 else if (cur == ':') {
                     macro_name = false;
@@ -423,8 +443,7 @@ public class VeriTParser extends Parser {
             throw new RuntimeException(e);
         }
     }
-    
-    
+
     private void parseUF(UninterpretedFunction uf, String macroname)
             throws WrongNumberOfParametersException, WrongFunctionTypeException {
         // generate a new UninterpretedFunctionInstance or
@@ -440,9 +459,8 @@ public class VeriTParser extends Parser {
             newTerm = UninterpretedFunctionInstance.create(uf, formulaElements);
 
             if (macroname != null) {
-                //System.out.println("[M] Stored macro #" + macroname);
-                macroBufferTerm.put(macroname,
-                        (UninterpretedFunctionInstance) newTerm);
+                // System.out.println("[M] Stored macro #" + macroname);
+                macroBufferTerm.put(macroname, newTerm);
             }
         } else if (uf.getType().equalsString("Bool")) {
             newTerm = UninterpretedPredicateInstance
@@ -451,18 +469,17 @@ public class VeriTParser extends Parser {
             formulaStack.peek().add((UninterpretedPredicateInstance) newTerm);
 
             if (macroname != null) {
-                //System.out.println("[M] Stored macro #" + macroname);
+                // System.out.println("[M] Stored macro #" + macroname);
                 macroBufferFormula.put(macroname,
                         (UninterpretedPredicateInstance) newTerm);
-                macroBufferTerm.put(macroname,
-                        (UninterpretedPredicateInstance) newTerm);
+                macroBufferTerm.put(macroname, newTerm);
             }
         } else
             assert (false);
         // add UF/UP to termStack
         termStack.peek().add(newTerm);
     }
-    
+
     private void parseCommand(String command) throws ParseException,
             IncomparableTermsException {
         ArrayList<Formula> formulaElements = formulaStack.pop();
@@ -484,7 +501,7 @@ public class VeriTParser extends Parser {
     }
 
     private void storeMacro(String macroName, Formula formula) {
-        //System.out.println("[M] Stored macro #" + macroName);
+        // System.out.println("[M] Stored macro #" + macroName);
         macroBufferFormula.put(macroName, formula);
         if (formula instanceof Term)
             macroBufferTerm.put(macroName, (Term) formula);

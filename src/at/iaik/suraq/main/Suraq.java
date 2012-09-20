@@ -66,8 +66,7 @@ import at.iaik.suraq.util.Util;
  */
 public class Suraq implements Runnable {
     public static final BenchmarkTimer extTimer = new BenchmarkTimer();
-    
-    
+
     /**
      * Timer for overall execution
      */
@@ -184,13 +183,6 @@ public class Suraq implements Runnable {
     public static void main(String[] args) {
 
         try {
-            // TODO: chillebold - temporary config:
-//            Ackermann.setActive(false);
-//            ITEEquationReduction.setActive(false);
-//            GraphReduction.setActive(false);
-//            QBFEncoder.setActive(false);
-//            VeriTSolver.setActive(true);
-            
             Suraq.extTimer.start();
             Suraq.extTimer.stopReset("start");
             Suraq suraq = new Suraq(args);
@@ -205,8 +197,8 @@ public class Suraq implements Runnable {
     }
 
     private String inputTransformations(File sourceFile) {
-        DebugHelper.getInstance().setFolder(sourceFile.getPath()+"_out/");
-        
+        DebugHelper.getInstance().setFolder(sourceFile.getPath() + "_out/");
+
         Suraq.extTimer.stopReset("<inputTransformations>");
         System.out.println("Starting to read " + sourceFile.getPath() + " ...");
         SuraqOptions options = SuraqOptions.getInstance();
@@ -271,12 +263,11 @@ public class Suraq implements Runnable {
 
         // build function and variable lists for parser
 
-        if(mainFormula == null)
-        {
+        if (mainFormula == null) {
             // abort (workaround not to crash for QBF-Enc)
             return null;
         }
-        
+
         System.out.println("  build function and variable lists for parser");
         propsitionalVars = mainFormula.getPropositionalVariables();
         domainVars = mainFormula.getDomainVariables();
@@ -307,23 +298,17 @@ public class Suraq implements Runnable {
                 .entrySet())
             uninterpretedFunctions.addAll(functionList.getValue());
 
-        
-
         // debug
-        try{
-            System.out.println("  Saving Debugfile ./debug_nodepvar.txt");
-            File debugFile1 = new File("./debug_nodepvar.txt");
-            FileWriter fstream = new FileWriter(debugFile1);
-            fstream.write(mainFormula.toString());
-            fstream.close();
-        }
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-        }
-        
-        
-        
+        // try {
+        // System.out.println("  Saving Debugfile ./debug_nodepvar.txt");
+        // File debugFile1 = new File("./debug_nodepvar.txt");
+        // FileWriter fstream = new FileWriter(debugFile1);
+        // fstream.write(mainFormula.toString());
+        // fstream.close();
+        // } catch (Exception ex) {
+        // ex.printStackTrace();
+        // }
+
         System.out
                 .println("  Simplifying assert-partitions and tseitin-cnf encoding...");
 
@@ -332,32 +317,33 @@ public class Suraq implements Runnable {
 
         boolean activetseitin = true;
         String z3InputStr = null;
-        if(activetseitin)
-        {
+        if (activetseitin) {
             List<String> tseitinPartitions = new ArrayList<String>();
-            
+
             Suraq.extTimer.stopReset("before tseitin");
             if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
-                System.out.println("  Performing tseitin encoding without Z3...");
+                System.out
+                        .println("  Performing tseitin encoding without Z3...");
                 tseitinPartitions = performTseitinEncodingWithoutZ3();
             } else {
                 System.out.println("  Performing tseitin encoding with Z3...");
                 tseitinPartitions = performTseitinEncodingWithZ3();
             }
             Suraq.extTimer.stopReset("after tseitin");
-            //DebugHelper.getInstance().stringtoFile(tseitinPartitions.toString(), "tseitin-all.txt");
-    
+            // DebugHelper.getInstance().stringtoFile(tseitinPartitions.toString(),
+            // "tseitin-all.txt");
+
             allPartitionsTimer.end();
             System.out.println("  All partitions done. (" + allPartitionsTimer
                     + ")");
-    
-            // make asserts out of tseitinPartitions (returns the inputstring for the z3)
+
+            // make asserts out of tseitinPartitions (returns the inputstring
+            // for the z3)
             z3InputStr = buildSMTDescriptionFromTseitinPartitions(
                     declarationStr, tseitinPartitions);
-            Suraq.extTimer.stopReset("after buildSMTDescriptionFromTseitinPartitions");
-        }
-        else
-        {
+            Suraq.extTimer
+                    .stopReset("after buildSMTDescriptionFromTseitinPartitions");
+        } else {
             z3InputStr = buildSMTDescriptionWithoutTsetin(declarationStr);
         }
         Suraq.extTimer.stopReset("</inputTransformations>");
@@ -387,29 +373,50 @@ public class Suraq implements Runnable {
 
             onePartitionTimer.reset();
             onePartitionTimer.start();
-            
+
             System.out.println("    Encoding partition " + count + "...");
-            
-            timer2.end(); System.out.println("T1: "+timer2); timer2.reset(); timer2.start();
+
+            timer2.end();
+            System.out.println("T1: " + timer2);
+            timer2.reset();
+            timer2.start();
             String smtStr = buildSMTDescriptionForTseitinEncoding(
                     declarationStr, assertPartition.toString());
-            timer2.end(); System.out.println("T2: "+timer2); timer2.reset(); timer2.start();
+            timer2.end();
+            System.out.println("T2: " + timer2);
+            timer2.reset();
+            timer2.start();
             String tseitingStr = z3.solve2(smtStr);
-            timer2.end(); System.out.println("T3: "+timer2); timer2.reset(); timer2.start();
+            timer2.end();
+            System.out.println("T3: " + timer2);
+            timer2.reset();
+            timer2.start();
 
             TseitinParser parser = parseTseitinStr(tseitingStr, count);
-            timer2.end(); System.out.println("T4: "+timer2); timer2.reset(); timer2.start();
+            timer2.end();
+            System.out.println("T4: " + timer2);
+            timer2.reset();
+            timer2.start();
             Formula partitionFormula = parser.getRootFormula();
-            timer2.end(); System.out.println("T5: "+timer2); timer2.reset(); timer2.start();
+            timer2.end();
+            System.out.println("T5: " + timer2);
+            timer2.reset();
+            timer2.start();
 
             tseitinPartitions.add(partitionFormula.toString());
-            timer2.end(); System.out.println("T6: "+timer2); timer2.reset(); timer2.start();
+            timer2.end();
+            System.out.println("T6: " + timer2);
+            timer2.reset();
+            timer2.start();
 
             System.out.println("      test if tseitin encoding is correct...");
             assert (TseitinParser.checkFormulaImplication(partitionFormula,
                     assertPartitionFormulas.get(count)));
             System.out.println("      ...test finished");
-            timer2.end(); System.out.println("T7: "+timer2); timer2.reset(); timer2.start();
+            timer2.end();
+            System.out.println("T7: " + timer2);
+            timer2.reset();
+            timer2.start();
 
             onePartitionTimer.stop();
             System.out.println(" Done. (" + onePartitionTimer + ")");
@@ -419,8 +426,6 @@ public class Suraq implements Runnable {
         return tseitinPartitions;
     }
 
-    
-   
     /**
      * Performs the tseitin encoding for each partition. This method does not
      * use the Z3 solver. Adds the encoding for each tseitin variable in the
@@ -430,7 +435,7 @@ public class Suraq implements Runnable {
      * 
      */
     private List<String> performTseitinEncodingWithoutZ3() {
-        
+
         Timer onePartitionTimer = new Timer();
         List<String> tseitinPartitions = new ArrayList<String>();
 
@@ -456,11 +461,11 @@ public class Suraq implements Runnable {
             smtStr += "(assert " + partitionFormula.toString() + " )";
             smtStr += "(apply (then (! simplify :elim-and true) skip))";
             smtStr += SExpressionConstants.EXIT.toString();
-            
+
             String simpleSmtStr = z3.solve2(smtStr);
 
             TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
-            //assert (parser.getTseitinVariables().size() == 0);
+            // assert (parser.getTseitinVariables().size() == 0);
 
             partitionFormula = parser.getRootFormula();
 
@@ -478,8 +483,9 @@ public class Suraq implements Runnable {
             disjuncts.add(tseitinVar);
             clauses.add(OrFormula.generate(disjuncts));
             Formula encodedPartitionFormula = AndFormula.generate(clauses);
-            
-            DebugHelper.getInstance().formulaToFile(encodedPartitionFormula, "debug-tseitin-encoding.txt");
+
+            DebugHelper.getInstance().formulaToFile(encodedPartitionFormula,
+                    "debug-tseitin-encoding.txt");
 
             System.out.println("      test if tseitin encoding is correct...");
             assert (TseitinParser.checkFormulaImplication(partitionFormula,
@@ -769,23 +775,23 @@ public class Suraq implements Runnable {
         // if (pTst.takeControl())
         // return;
         // END: ASHUTOSH code
-        
-        
+
         printWelcome();
 
         SuraqOptions options = SuraqOptions.getInstance();
-        
-        
-        if(options.getVeriTVarsCache() != null)
-        {
+
+        if (options.getVeriTVarsCache() != null) {
 
             Timer t = new Timer();
             System.out.println("****************************************");
             System.out.println("* I am using the Cached VeriT-Proof!!! *");
             System.out.println("****************************************");
 
-            System.out.print("\nLoading Variable Cache... "); t.reset(); t.start();
-            SaveCache sc = SaveCache.loadSaveCacheFromFile(options.getVeriTVarsCache());
+            System.out.print("\nLoading Variable Cache... ");
+            t.reset();
+            t.start();
+            SaveCache sc = SaveCache.loadSaveCacheFromFile(options
+                    .getVeriTVarsCache());
 
             propsitionalVars = sc.getPropsitionalVars();
             domainVars = sc.getDomainVars();
@@ -794,110 +800,147 @@ public class Suraq implements Runnable {
             mainFormula = sc.getMainFormula();
             assertPartitionFormulas = sc.getAssertPartitionFormulas();
             tseitinEncoding = sc.getTseitinEncoding();
-            //controlVars = sc.getControlVars(); // are not set!
+            // controlVars = sc.getControlVars(); // are not set!
             noDependenceVarsCopies = sc.getNoDependenceVarsCopies();
             noDependenceFunctionsCopies = sc.getNoDependenceFunctionsCopies();
             t.stop();
             System.out.println(" Needed: " + t);
-            
-            System.out.println("Copying to FormulaCache... "); t.reset(); t.start();
-            for(PropositionalVariable tmp : propsitionalVars)
+
+            System.out.println("Copying to FormulaCache... ");
+            t.reset();
+            t.start();
+            for (PropositionalVariable tmp : propsitionalVars)
                 FormulaCache.propVar.post(tmp);
-            for(DomainVariable tmp : domainVars)
+            for (DomainVariable tmp : domainVars)
                 FormulaCache.domainVarFormula.post(tmp);
-            for(UninterpretedFunction tmp : uninterpretedFunctions)
+            for (UninterpretedFunction tmp : uninterpretedFunctions)
                 FormulaCache.uninterpretedFunction.post(tmp);
-            for(List<Term> tmp2 : noDependenceVarsCopies.values())
-                for(Term tmp : tmp2)
-                {
-                    if(tmp instanceof DomainVariable)
-                        FormulaCache.domainVarFormula.post((DomainVariable)tmp);
-                    if(tmp instanceof PropositionalVariable)
-                        FormulaCache.propVar.post((PropositionalVariable)tmp);
+            for (List<Term> tmp2 : noDependenceVarsCopies.values())
+                for (Term tmp : tmp2) {
+                    if (tmp instanceof DomainVariable)
+                        FormulaCache.domainVarFormula
+                                .post((DomainVariable) tmp);
+                    if (tmp instanceof PropositionalVariable)
+                        FormulaCache.propVar.post((PropositionalVariable) tmp);
                 }
-            for(List<UninterpretedFunction> tmp2 : noDependenceFunctionsCopies.values())
-                for(UninterpretedFunction tmp : tmp2)
+            for (List<UninterpretedFunction> tmp2 : noDependenceFunctionsCopies
+                    .values())
+                for (UninterpretedFunction tmp : tmp2)
                     FormulaCache.uninterpretedFunction.post(tmp);
-            
-            
+
             t.stop();
             System.out.println(" Needed: " + t);
-            
-            System.out.print("Prepare to parse the proof..."); t.reset(); t.start();
-            VeriTParser veriTParser; 
+
+            System.out.print("Prepare to parse the proof...");
+            t.reset();
+            t.start();
+            VeriTParser veriTParser;
             try {
                 String filename = sc.getProofFile();
-                if(options.getVeriTFile() != null)
+                if (options.getVeriTFile() != null)
                     filename = options.getVeriTFile();
-                
-                BufferedReader reader = new BufferedReader(new FileReader(filename));
-                veriTParser = new VeriTParser(reader, mainFormula, tseitinEncoding.keySet(), noDependenceVarsCopies.values(), noDependenceFunctionsCopies);
 
-                t.stop(); System.out.println(" Needed: " + t); 
-                
-                System.out.print("Parse the proof... "); t.reset(); t.start();
+                BufferedReader reader = new BufferedReader(new FileReader(
+                        filename));
+                veriTParser = new VeriTParser(reader, mainFormula,
+                        tseitinEncoding.keySet(),
+                        noDependenceVarsCopies.values(),
+                        noDependenceFunctionsCopies);
+
+                t.stop();
+                System.out.println(" Needed: " + t);
+
+                System.out.print("Parse the proof... ");
+                t.reset();
+                t.start();
                 veriTParser.parse();
-                t.stop(); System.out.println(" Needed: " + t);
-                
-                System.out.print("Get the proof... "); t.reset(); t.start();
+                t.stop();
+                System.out.println(" Needed: " + t);
+
+                System.out.print("Get the proof... ");
+                t.reset();
+                t.start();
                 VeritProof veritProof = veriTParser.getProof();
-                t.stop(); System.out.println(" Needed: " + t);
-                
-                //DebugHelper.getInstance().stringtoFile(veritProof.toString(), "~parsed-verit-enc.txt");
+                t.stop();
+                System.out.println(" Needed: " + t);
+
+                // DebugHelper.getInstance().stringtoFile(veritProof.toString(),
+                // "~parsed-verit-enc.txt");
                 // t.stop();
                 // System.out.println("Written Proof to File. Needed: " + t);
                 // t.reset(); t.start();
 
                 VeriTProofAnalyzer vpa = new VeriTProofAnalyzer(veritProof);
-                /*System.out.print("Analyze Paritions... ");  t.reset(); t.start();
-                vpa.analyzePartitions(new File(
-                        "./~verit-errors.txt"),// all errors in clauses
-                        new File("./~verit-errors-unique.txt"),// unique lines when error in clause
-                        new File("./~verit-errors-no-childs.txt") // only clauses without childs
-                );
-                t.stop(); System.out.println(" Needed: " + t);
-                */
-                
+                /*
+                 * System.out.print("Analyze Paritions... "); t.reset();
+                 * t.start(); vpa.analyzePartitions(new File(
+                 * "./~verit-errors.txt"),// all errors in clauses new
+                 * File("./~verit-errors-unique.txt"),// unique lines when error
+                 * in clause new File("./~verit-errors-no-childs.txt") // only
+                 * clauses without childs ); t.stop();
+                 * System.out.println(" Needed: " + t);
+                 */
 
-                System.out.println("------------------------------------------");
-                System.out.print("analyzeBadLiteralsSat... ");  t.reset(); t.start();
-                vpa.analyzeBadLiteralsSat(new File("./~verit-errors-unsatliterals.txt"));
-                t.stop(); System.out.println(" Needed: " + t);
-                
+                System.out
+                        .println("------------------------------------------");
+                System.out.print("analyzeBadLiteralsSat... ");
+                t.reset();
+                t.start();
+                vpa.analyzeBadLiteralsSat(new File(
+                        "./~verit-errors-unsatliterals.txt"));
+                t.stop();
+                System.out.println(" Needed: " + t);
 
                 // TODO: test this here...
-                System.out.println("------------------------------------------");
-                System.out.print("Removing Bad Literals... ");  t.reset(); t.start();
+                System.out
+                        .println("------------------------------------------");
+                System.out.print("Removing Bad Literals... ");
+                t.reset();
+                t.start();
                 vpa.removeBadLiterals();
-                t.stop(); System.out.println(" Needed: " + t);
-                
+                t.stop();
+                System.out.println(" Needed: " + t);
 
-                System.out.println("------------------------------------------");
-                System.out.print("analyzeBadLiteralsSat (2)... ");  t.reset(); t.start();
-                vpa.analyzeBadLiteralsSat(new File("./~verit-errors-unsatliterals2.txt"));
-                t.stop(); System.out.println(" Needed: " + t);
-                
-                System.out.print("Analyze Paritions... ");  t.reset(); t.start();
-                vpa.analyzePartitions(new File(
-                        "./~verit-errors.txt"),// all errors in clauses
-                        new File("./~verit-errors-unique.txt"),// unique lines when error in clause
-                        new File("./~verit-errors-no-childs.txt") // only clauses without childs
+                System.out
+                        .println("------------------------------------------");
+                System.out.print("analyzeBadLiteralsSat (2)... ");
+                t.reset();
+                t.start();
+                vpa.analyzeBadLiteralsSat(new File(
+                        "./~verit-errors-unsatliterals2.txt"));
+                t.stop();
+                System.out.println(" Needed: " + t);
+
+                System.out.print("Analyze Paritions... ");
+                t.reset();
+                t.start();
+                vpa.analyzePartitions(new File("./~verit-errors.txt"),// all
+                                                                      // errors
+                                                                      // in
+                                                                      // clauses
+                        new File("./~verit-errors-unique.txt"),// unique lines
+                                                               // when error in
+                                                               // clause
+                        new File("./~verit-errors-no-childs.txt") // only
+                                                                  // clauses
+                                                                  // without
+                                                                  // childs
                 );
-                t.stop(); System.out.println(" Needed: " + t);
-                
+                t.stop();
+                System.out.println(" Needed: " + t);
+
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
-            System.out.println("\nAborting the process. (This was the cached verit proof testing)");
+            System.out
+                    .println("\nAborting the process. (This was the cached verit proof testing)");
             return;
-        }
+        } // End of using veriT in cache mode
 
         File sourceFile = new File(options.getInput());
         if (options.isVerbose())
             System.out.println("Parsing input file " + sourceFile.toString());
-
-        
 
         File z3InputFile = new File(options.getZ3Input());
         File z3ProofFile = new File(options.getZ3Proof());
@@ -945,14 +988,14 @@ public class Suraq implements Runnable {
         String proof = null;
         Z3Proof rootProof = null;
         SaveCache intermediateVars = null;
-        
+
         if (!useCachedResults) {
             System.out.println("start input transformations");
             Timer inputTransformationTimer = new Timer();
             inputTransformationTimer.start();
 
             String z3InputStr = inputTransformations(sourceFile);
-            if(z3InputStr == null) // abort (not to crash on QBF-Enc)
+            if (z3InputStr == null) // abort (not to crash on QBF-Enc)
                 return;
 
             inputTransformationTimer.stop();
@@ -974,45 +1017,42 @@ public class Suraq implements Runnable {
             System.out.println("start proof calculation.");
             Timer proofcalculationTimer = new Timer();
             proofcalculationTimer.start();
-            
-            if(VeriTSolver.isActive())
-            {
+
+            if (VeriTSolver.isActive()) {
                 // TODO: chillebold: insert VeriTSolver here
                 VeriTSolver veriT = new VeriTSolver();
                 veriT.solve(z3InputStr);
                 System.out.println("VeriTSolver returned!");
-                
+
                 @SuppressWarnings("unused")
                 SaveCache saveCache = new SaveCache(
-                        propsitionalVars, // 
-                        domainVars,  //
-                        arrayVars,  //
-                        uninterpretedFunctions,  //
+                        propsitionalVars, //
+                        domainVars, //
+                        arrayVars, //
+                        uninterpretedFunctions, //
                         null, // control vars
-                        mainFormula, 
-                        assertPartitionFormulas,
-                        tseitinEncoding, 
-                        "verit-save-cache.tmp",
-                        veriT.getProofFile(), // filename
+                        mainFormula, assertPartitionFormulas, tseitinEncoding,
+                        "verit-save-cache.tmp", veriT.getProofFile(), // filename
                         noDependenceVarsCopies, //
-                        noDependenceFunctionsCopies
-                        );
-                
-                VeriTParser veriTParser; 
+                        noDependenceFunctionsCopies);
+
+                VeriTParser veriTParser;
                 try {
-                    veriTParser = new VeriTParser(veriT.getStream(), mainFormula, tseitinEncoding.keySet(), noDependenceVarsCopies.values(), noDependenceFunctionsCopies);
+                    veriTParser = new VeriTParser(veriT.getStream(),
+                            mainFormula, tseitinEncoding.keySet(),
+                            noDependenceVarsCopies.values(),
+                            noDependenceFunctionsCopies);
                     veriTParser.parse();
                     VeritProof veritProof = veriTParser.getProof();
-                    DebugHelper.getInstance().stringtoFile(veritProof.toString(), "~parsed-verit-enc.txt");
+                    DebugHelper.getInstance().stringtoFile(
+                            veritProof.toString(), "~parsed-verit-enc.txt");
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new RuntimeException(e);
                 }
-                
-                
-                
+
                 return; // this is used to stop the further calculations
-                
+
                 // END
             }
 
@@ -1048,7 +1088,7 @@ public class Suraq implements Runnable {
 
                 try {
                     System.err.println(Suraq.extTimer);
-                    System.out.println("writing proof to: "+z3ProofFile);
+                    System.out.println("writing proof to: " + z3ProofFile);
                     FileWriter fstream = new FileWriter(z3ProofFile);
                     fstream.write(z3.getProof());
                     fstream.close();
@@ -1058,16 +1098,14 @@ public class Suraq implements Runnable {
                     exc.printStackTrace();
                     noErrors = false;
                 }
-            }
-            else
-            {
+            } else {
                 Suraq.extTimer.abortReset("SAT :-(");
                 System.out.println("SAT");
                 proof = z3.getProof();
 
                 try {
                     System.err.println(Suraq.extTimer);
-                    System.out.println("writing proof to: "+z3ProofFile);
+                    System.out.println("writing proof to: " + z3ProofFile);
                     FileWriter fstream = new FileWriter(z3ProofFile);
                     fstream.write(z3.getProof());
                     fstream.close();
@@ -1079,14 +1117,9 @@ public class Suraq implements Runnable {
                 }
             }
             z3 = null; // Allow this to be garbage collected
-            
-            assert(proof.length() > 0); // added by chillebold
-            
-            // FIXME: remove return; --> abort due to errors
-            int no_warnings = 1;
-            if(no_warnings==1)
-                return;
-            
+
+            assert (proof.length() > 0); // added by chillebold
+
             rootProof = parseProof(proof, propsitionalVars, domainVars,
                     arrayVars, uninterpretedFunctions);
 
@@ -1094,8 +1127,6 @@ public class Suraq implements Runnable {
 
             assert (rootProof != null);
 
-            
-            
             // write intermediate variables to file, if caching is enabled
             String filename;
             if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
@@ -1432,7 +1463,7 @@ public class Suraq implements Runnable {
         // declarations for tseitin variables
         for (PropositionalVariable var : tseitinEncoding.keySet())
             smtStr.append(SExpression.makeDeclareFun(
-            		Token.generate(var.getVarName()),
+                    Token.generate(var.getVarName()),
                     SExpressionConstants.BOOL_TYPE, 0));
 
         for (String tseitinPartition : tseitinPartitions) {
@@ -1441,53 +1472,46 @@ public class Suraq implements Runnable {
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
 
-        if(!VeriTSolver.isActive())
+        if (!VeriTSolver.isActive())
             smtStr.append(SExpressionConstants.GET_PROOF.toString());
         smtStr.append(SExpressionConstants.EXIT.toString());
-        
 
         return smtStr.toString();
     }
 
-    private String buildSMTDescriptionWithoutTsetin(
-            String declarationStr) {
+    private String buildSMTDescriptionWithoutTsetin(String declarationStr) {
 
         StringBuffer smtStr = new StringBuffer();
 
-
         smtStr.append(SExpressionConstants.SET_LOGIC_QF_UF.toString());
-        if(!VeriTSolver.isActive())
+        if (!VeriTSolver.isActive())
             smtStr.append(SExpressionConstants.AUTO_CONFIG_FALSE.toString());
         smtStr.append(SExpressionConstants.PROOF_MODE_2.toString());
-        if(!VeriTSolver.isActive())
+        if (!VeriTSolver.isActive())
             smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_BOOLEANS_FALSE
-                .toString());
+                    .toString());
         smtStr.append(SExpressionConstants.SET_OPTION_PROPAGATE_VALUES_FALSE
                 .toString());
-        //if(!VeriTSolver.isActive())
-            smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
+        // if(!VeriTSolver.isActive())
+        smtStr.append(SExpressionConstants.DECLARE_SORT_VALUE.toString());
 
         smtStr.append(declarationStr);
 
-       
-
         for (SExpression assertPartition : assertPartitionList) {
-            //smtStr.append("(assert " + assertPartition + ")");
+            // smtStr.append("(assert " + assertPartition + ")");
             smtStr.append(assertPartition);
         }
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
-        if(!VeriTSolver.isActive())
-        {
-            
+        if (!VeriTSolver.isActive()) {
+
         }
         smtStr.append(SExpressionConstants.GET_PROOF.toString());
         smtStr.append(SExpressionConstants.EXIT.toString());
 
         return smtStr.toString();
     }
-    
-    
+
     /**
      * Creates an SMT Description from the simplified assert partitions.
      * 
@@ -1587,13 +1611,15 @@ public class Suraq implements Runnable {
         System.out.println("  Making array reads simple...");
         timer.reset();
         timer.start();
-        formula = formula.makeArrayReadsSimple(formula, constraints, noDependenceVars);
+        formula = formula.makeArrayReadsSimple(formula, constraints,
+                noDependenceVars);
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         System.out.println("  Removing array writes...");
         timer.reset();
         timer.start();
-        formula = formula.removeArrayWrites(formula, constraints, noDependenceVars);
+        formula = formula.removeArrayWrites(formula, constraints,
+                noDependenceVars);
         if (constraints.size() > 0) {
             List<Formula> constraintsList = new ArrayList<Formula>();
             constraintsList.addAll(constraints);
@@ -1614,7 +1640,8 @@ public class Suraq implements Runnable {
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
 
-        lambda = DomainVariable.create(Util.freshVarNameCached(formula, "lambda"));
+        lambda = DomainVariable.create(Util.freshVarNameCached(formula,
+                "lambda"));
 
         List<Formula> lambdaDisequalities = new ArrayList<Formula>();
         for (DomainTerm index : indexSet) {
@@ -1627,7 +1654,8 @@ public class Suraq implements Runnable {
         indexSet.add(lambda);
         noDependenceVars.add(Token.generate(lambda.getVarName()));
 
-        System.out.println("  Converting array properties to finite conjunctions...");
+        System.out
+                .println("  Converting array properties to finite conjunctions...");
         timer.reset();
         timer.start();
         formula = formula.arrayPropertiesToFiniteConjunctions(indexSet);
@@ -1639,8 +1667,8 @@ public class Suraq implements Runnable {
         Set<Token> currentDependenceArrayVariables = new HashSet<Token>();
         for (ArrayVariable var : formula.getArrayVariables())
             if (!noDependenceVars.contains(Token.generate(var.getVarName())))
-                currentDependenceArrayVariables
-                        .add(Token.generate(var.getVarName()));
+                currentDependenceArrayVariables.add(Token.generate(var
+                        .getVarName()));
         System.out
                 .println("  Converting array reads to uninterpreted function calls...");
         timer.reset();
@@ -1651,10 +1679,9 @@ public class Suraq implements Runnable {
         System.out.println("    Done. (" + timer + ")");
         Suraq.extTimer.stopReset("after Array Reads to UF");
 
-        
-        ///////////////////////////////////////////////////
+        // /////////////////////////////////////////////////
         // Perform Ackermann
-        ///////////////////////////////////////////////////
+        // /////////////////////////////////////////////////
         System.out.println("  Perform Ackermann's Reduction...");
         timer.reset();
         timer.start();
@@ -1662,86 +1689,81 @@ public class Suraq implements Runnable {
         formula = ackermann.performAckermann(formula, noDependenceVars);
         timer.end();
         System.out.println("    Done. (" + timer + ")");
-        DebugHelper.getInstance().formulaToFile(formula, "./debug_ackermann.txt");
+        DebugHelper.getInstance().formulaToFile(formula,
+                "./debug_ackermann.txt");
         Suraq.extTimer.stopReset("after Ackermann");
-    
-        ///////////////////////////////////////////////////
 
-        // Reduction of var1 = ITE(cond, var2, var3) 
-        //           to var1 = itevar & ITE(cond, itevar=var2, itevar=var3)
+        // /////////////////////////////////////////////////
+
+        // Reduction of var1 = ITE(cond, var2, var3)
+        // to var1 = itevar & ITE(cond, itevar=var2, itevar=var3)
         ITEEquationReduction itered = new ITEEquationReduction();
         formula = itered.perform(formula, noDependenceVars);
         DebugHelper.getInstance().formulaToFile(formula, "./debug_ite.txt");
         Suraq.extTimer.stopReset("after ITE equality trans");
-        
-        ///////////////////////////////////////////////////
+
+        // /////////////////////////////////////////////////
         // Perform Graph Based Reduction
-        ///////////////////////////////////////////////////
+        // /////////////////////////////////////////////////
         System.out.println("  Perform Graph-Based Reduction...");
         timer.reset();
         timer.start();
         GraphReduction graphReduction = new GraphReduction();
-        try{
+        try {
             formula = graphReduction.perform(formula, noDependenceVars);
-        }catch(Exception ex)
-        {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         timer.end();
         System.out.println("    Done. (" + timer + ")");
         Suraq.extTimer.stopReset("after Graph reduction");
-    
-        ///////////////////////////////////////////////////
+
+        // /////////////////////////////////////////////////
         DebugHelper.getInstance().formulaToFile(formula, "./debug_graph.txt");
-        
+
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();
 
-
-        ///////////////////////////////////////////////////
+        // /////////////////////////////////////////////////
         // TSEITIN-Encoding + QBF Encoding
-        ///////////////////////////////////////////////////
+        // /////////////////////////////////////////////////
         boolean qbfsolver = QBFEncoder.isActive();
-        if(qbfsolver)
-        {
+        if (qbfsolver) {
             // debug:
-            //formula = NotFormula.create(formula);
-            
+            // formula = NotFormula.create(formula);
+
             TseitinEncoding tseitin = new TseitinEncoding();
             formula = tseitin.performTseitinEncodingWithoutZ3(formula);
-            DebugHelper.getInstance().formulaToFile(formula, "./debug_tseitin.txt");
-            
+            DebugHelper.getInstance().formulaToFile(formula,
+                    "./debug_tseitin.txt");
+
             QBFEncoder qbfEncoder = new QBFEncoder();
-            String qbf = qbfEncoder.encode(
-                    formula, 
-                    noDependenceVars, 
-                    controlSignals, 
-                    tseitin.getPropositionalVariables());
+            String qbf = qbfEncoder.encode(formula, noDependenceVars,
+                    controlSignals, tseitin.getPropositionalVariables());
             DebugHelper.getInstance().stringtoFile(qbf, "./debug_qbf.txt");
-            
-            
+
             QBFSolver qbfSolver = new QBFSolver();
             qbfSolver.solve(qbf);
-            //int state = qbfSolver.getState();
-            //if(state == QBFSolver.SAT)
-            System.err.println("System.exit(0) in Suraq.java(1518) because of QBF.");
+            // int state = qbfSolver.getState();
+            // if(state == QBFSolver.SAT)
+            System.err
+                    .println("System.exit(0) in Suraq.java(1518) because of QBF.");
             Suraq.extTimer.stopReset("after QBF enc");
             System.exit(0);
             return null;
         }
-        
 
         System.err.println(Suraq.extTimer);
 
-        ///////////////////////////////////////////////////
-        ///////////////////////////////////////////////////
-        ///////////////////////////////////////////////////
+        // /////////////////////////////////////////////////
+        // /////////////////////////////////////////////////
+        // /////////////////////////////////////////////////
 
         if (controlSignals.size() > 30) {
             throw new SuraqException(
                     "Current implementation cannot handle more than 30 control signals.");
         }
-        
+
         outputExpressions = new ArrayList<SExpression>();
         // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
 
@@ -1763,15 +1785,16 @@ public class Suraq implements Runnable {
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
-        // TODO: this seems not to work correctly for performFullSuraq3_no_readonly_pipeline_ex_suraq
+        // TODO: this seems not to work correctly for
+        // performFullSuraq3_no_readonly_pipeline_ex_suraq
         // TODO: outputExpressions?
-        
+
         // get declarations and functions
         ListIterator<SExpression> beginDeclarations = outputExpressions
                 .listIterator(beginDeclarationsIdx);
         while (beginDeclarations.hasNext()) {
             SExpression elem = beginDeclarations.next();
-            declarationStr += elem.toString(); 
+            declarationStr += elem.toString();
         }
 
         int beginAssertPartitionIdx = outputExpressions.size();
@@ -1791,28 +1814,18 @@ public class Suraq implements Runnable {
         outputExpressions.add(SExpressionConstants.GET_PROOF);
         outputExpressions.add(SExpressionConstants.EXIT);
 
-
         // debug:
-        /*try{
-            File debugFile1 = new File("./debug_assertPartitionList.txt");
-            FileWriter fstream = new FileWriter(debugFile1);
-            ListIterator<SExpression> tmp =  assertPartitionList.listIterator();
-            while (tmp.hasNext())
-            {
-                fstream.write(tmp.next().toString());
-            }
-            fstream.close();
-        }
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-        }*/
-                
+        /*
+         * try{ File debugFile1 = new File("./debug_assertPartitionList.txt");
+         * FileWriter fstream = new FileWriter(debugFile1);
+         * ListIterator<SExpression> tmp = assertPartitionList.listIterator();
+         * while (tmp.hasNext()) { fstream.write(tmp.next().toString()); }
+         * fstream.close(); } catch(Exception ex) { ex.printStackTrace(); }
+         */
 
         Suraq.extTimer.stopReset("</doMainWork>");
         return formula;
     }
-    
 
     /**
      * Writes the assert-partitions for the expanded formula to the
@@ -1836,17 +1849,20 @@ public class Suraq implements Runnable {
             throw new SuraqException("outputExpressions not initialized!");
 
         for (int count = 0; count < (1 << controlSignals.size()); count++) {
-            System.out.println("  Writing assert-partition number " + count +"<"+ (1 << controlSignals.size()));
-            Formula tempFormula = formula;//.deepFormulaCopy();
+            System.out.println("  Writing assert-partition number " + count
+                    + "<" + (1 << controlSignals.size()));
+            Formula tempFormula = formula;// .deepFormulaCopy();
             Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
             Map<Token, UninterpretedFunction> ufSubstitutions = new HashMap<Token, UninterpretedFunction>();
-            
+
             // Debug counters for progress statistics:
             int step = noDependenceVars.size() / 100;
-            if(step == 0) step = 1;
-            System.out.println("There are "+noDependenceVars.size()+" nodepvars");
-            int i= 0;
-            
+            if (step == 0)
+                step = 1;
+            System.out.println("There are " + noDependenceVars.size()
+                    + " nodepvars");
+            int i = 0;
+
             for (Token var : noDependenceVars) {
                 if (++i % step == 0) { // progress information by chillebold
                     System.out.print((i / step) + "% ");
@@ -1855,35 +1871,35 @@ public class Suraq implements Runnable {
                     // it's a variable
                     variableSubstitutions.put(var,
                             noDependenceVarsCopies.get(var).get(count));
-                else if (noDependenceFunctionsCopies.containsKey(var))
-                {
+                else if (noDependenceFunctionsCopies.containsKey(var)) {
                     // it's an uninterpreted function
-                    //System.err.println("There was a function (Ackerman didn't perform?)");
-                    
+                    // System.err.println("There was a function (Ackerman didn't perform?)");
+
                     // old and slow:
-                    //tempFormula = tempFormula.substituteUninterpretedFunction(var,
-                    //        noDependenceFunctionsCopies.get(var).get(count));
-                    
+                    // tempFormula =
+                    // tempFormula.substituteUninterpretedFunction(var,
+                    // noDependenceFunctionsCopies.get(var).get(count));
+
                     // new (chillebold):
-                    ufSubstitutions.put(var, noDependenceFunctionsCopies.get(var).get(count));
-                }
-                else
-                    //System.out.println( " This could be an exception: "+
+                    ufSubstitutions.put(var,
+                            noDependenceFunctionsCopies.get(var).get(count));
+                } else
+                    // System.out.println( " This could be an exception: "+
                     throw new SuraqException(
                             "noDependenceVar "
                                     + var.toString()
                                     + " is neither a variable nor an uninterpreted function.");
             }
-            
-            tempFormula = tempFormula.substituteUninterpretedFunction(ufSubstitutions);
+
+            tempFormula = tempFormula
+                    .substituteUninterpretedFunction(ufSubstitutions);
 
             int currentCount = count;
             int mask = 1;
             for (int signalCount = 0; signalCount < controlSignals.size(); signalCount++) {
-                variableSubstitutions
-                        .put(Token.generate(controlSignals.get(signalCount)
-                                .getVarName()), PropositionalConstant.create(
-                                (currentCount & mask) != 0));
+                variableSubstitutions.put(Token.generate(controlSignals.get(
+                        signalCount).getVarName()), PropositionalConstant
+                        .create((currentCount & mask) != 0));
                 currentCount = currentCount >> 1;
             }
 
@@ -1926,7 +1942,8 @@ public class Suraq implements Runnable {
                 SExpressionConstants.VALUE_TYPE);
         Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
 
-        System.out.println("   step 1: prop. vars: "+formula.getPropositionalVariables().size());
+        System.out.println("   step 1: prop. vars: "
+                + formula.getPropositionalVariables().size());
         for (PropositionalVariable var : formula.getPropositionalVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(Token.generate(var.getVarName()),
@@ -1938,7 +1955,8 @@ public class Suraq implements Runnable {
                             SExpressionConstants.BOOL_TYPE, 0));
         }
 
-        System.out.println("   step 2: domain vars: "+formula.getDomainVariables().size());
+        System.out.println("   step 2: domain vars: "
+                + formula.getDomainVariables().size());
         for (DomainVariable var : formula.getDomainVariables()) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(Token.generate(var.getVarName()),
@@ -1950,7 +1968,8 @@ public class Suraq implements Runnable {
                     0));
         }
 
-        System.out.println("   step 3: debug / Array Vars: "+formula.getArrayVariables().size());
+        System.out.println("   step 3: debug / Array Vars: "
+                + formula.getArrayVariables().size());
         // DEBUG
         // For debugging purposes, also handle array variables
         // (so that performing only some of the reductions can be tested)
@@ -1965,8 +1984,8 @@ public class Suraq implements Runnable {
                     0));
         } // end debug
 
-        System.out.println("   step 4: UF: "+formula
-                .getUninterpretedFunctions().size());
+        System.out.println("   step 4: UF: "
+                + formula.getUninterpretedFunctions().size());
         for (UninterpretedFunction function : formula
                 .getUninterpretedFunctions()) {
             if (noDependenceVars.contains(function.getName())) {
@@ -1981,27 +2000,27 @@ public class Suraq implements Runnable {
         }
 
         long _cnt = noDependenceVars.size();
-        long stepsize = _cnt/100+1;
-        System.out.println("   step 5: no dep vars: there are #"+_cnt+"; numControlSignals="+numControlSignals);
+        long stepsize = _cnt / 100 + 1;
+        System.out.println("   step 5: no dep vars: there are #" + _cnt
+                + "; numControlSignals=" + numControlSignals);
         // Now dealing with noDependenceVars
         noDependenceVarsCopies = new HashMap<Token, List<Term>>();
         noDependenceFunctionsCopies = new HashMap<Token, List<UninterpretedFunction>>();
         long cnt = 0;
         int numCopies = (1 << numControlSignals);
-             
+
         // info: Performance improved by factor #noDependenceVars
-     
-        
+
         for (Token var : noDependenceVars) {
-            
+
             // debug output:
-            if(cnt++ % stepsize == 0 )
-                System.out.print((100*cnt) / _cnt + "% ");
-            
+            if (cnt++ % stepsize == 0)
+                System.out.print((100 * cnt) / _cnt + "% ");
+
             SExpression type = varTypes.get(var);
-            if(type==null)
-            {
-                System.err.println("Type is null for '"+var+"'. Strange...");
+            if (type == null) {
+                System.err
+                        .println("Type is null for '" + var + "'. Strange...");
             }
             assert (type != null);
             int numParams = 0;
@@ -2024,27 +2043,26 @@ public class Suraq implements Runnable {
             if (numParams > 0)
                 noDependenceFunctionsCopies.put(var, listOfFunctionCopies);
 
-            for (int count = 1; count <= numCopies; count++)
-            {
-                
-                String name = Util.freshVarNameCached(formula, var.toString() + "_copy_" + count);
-                outputExpressions.add(SExpression.makeDeclareFun(Token.generate(name), type, numParams));
-                if (numParams == 0)
-                {
+            for (int count = 1; count <= numCopies; count++) {
+
+                String name = Util.freshVarNameCached(formula, var.toString()
+                        + "_copy_" + count);
+                outputExpressions.add(SExpression.makeDeclareFun(
+                        Token.generate(name), type, numParams));
+                if (numParams == 0) {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))
-                        listOfVarCopies.add(PropositionalVariable.create(name, count));
+                        listOfVarCopies.add(PropositionalVariable.create(name,
+                                count));
                     else if (type.equals(SExpressionConstants.VALUE_TYPE))
                         listOfVarCopies.add(DomainVariable.create(name, count));
-                    else
-                    {
+                    else {
                         assert (type.equals(SExpressionConstants.ARRAY_TYPE));
                         listOfVarCopies.add(ArrayVariable.create(name, count));
                     }
-                } 
-                else
-                {
+                } else {
                     assert (type instanceof Token);
-                    listOfFunctionCopies.add(UninterpretedFunction.create(name, numParams, (Token) type, count));
+                    listOfFunctionCopies.add(UninterpretedFunction.create(name,
+                            numParams, (Token) type, count));
                 }
             }
         }
