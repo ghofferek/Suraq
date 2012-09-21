@@ -914,6 +914,7 @@ public class Suraq implements Runnable {
                 System.out.print("Analyze Paritions... ");
                 t.reset();
                 t.start();
+                
                 vpa.analyzePartitions(new File("./~verit-errors.txt"),// all
                                                                       // errors
                                                                       // in

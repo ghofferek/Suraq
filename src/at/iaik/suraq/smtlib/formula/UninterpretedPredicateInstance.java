@@ -15,7 +15,6 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
-import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
@@ -209,7 +208,6 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     @Override
     public Set<String> getUninterpretedFunctionNames() {
         Set<String> result = new HashSet<String>();
-        DebugHelper.predicates.add(function.getName());
         if(method)
             result.add(function.getName().toString());
         for (Term term : parameters)
