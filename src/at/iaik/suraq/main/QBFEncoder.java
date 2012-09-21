@@ -1,3 +1,6 @@
+/**
+ * Author: Christoph Hillebold <c.hillebold@student.tugraz.at>
+ */
 package at.iaik.suraq.main;
 
 import java.util.HashMap;
@@ -21,13 +24,30 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 public class QBFEncoder {
 
     private static boolean _isActive = false;
+
+    /**
+     * Optional comment for QBF-Inputfile
+     */
     private String comment = null;
+
+    /**
+     * Number of variables
+     */
     protected int varcounter = 1;
+
+    /**
+     * Number of clauses (lines in QBF)
+     */
     protected int clauses = 0;
 
-    // cache for the unique integer replacements
+    /**
+     * cache for the unique variable-integer replacements
+     */
     protected final Map<String, Integer> mapping = new HashMap<String, Integer>();
 
+    /**
+     * Empty public constructor
+     */
     public QBFEncoder() {
     }
 
@@ -78,6 +98,15 @@ public class QBFEncoder {
         return header.append(sb.toString()).toString();
     }
 
+    /**
+     * generates the quantors and returns a StringBuilder
+     * 
+     * @param formula
+     * @param noDependenceVars
+     * @param controlSignals
+     * @param tseitinEncoding
+     * @return
+     */
     protected StringBuilder makeQuantors(Formula formula,
             Set<Token> noDependenceVars,
             List<PropositionalVariable> controlSignals,

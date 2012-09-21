@@ -1,3 +1,6 @@
+/**
+ * Author: Christoph Hillebold <c.hillebold@student.tugraz.at>
+ */
 package at.iaik.suraq.parser;
 
 import java.io.BufferedReader;
@@ -50,7 +53,9 @@ public class VeriTParser extends Parser {
     private final Set<String> uninterpretedFunctionNames;
     private final Set<UninterpretedFunction> uninterpretedFunctions;
 
-    // Finally the Proof is stored here.
+    /**
+     *  Finally the Proof is stored here.
+     */
     private final VeritProof proof = new VeritProof();
 
     // Stacks are used to store variables of several Layers
@@ -444,6 +449,13 @@ public class VeriTParser extends Parser {
         }
     }
 
+    /**
+     * parses an UninterpretedFunction
+     * @param uf the Uninterpreted Function to parse
+     * @param macroname null or the name of the UF, how it is stored
+     * @throws WrongNumberOfParametersException
+     * @throws WrongFunctionTypeException
+     */
     private void parseUF(UninterpretedFunction uf, String macroname)
             throws WrongNumberOfParametersException, WrongFunctionTypeException {
         // generate a new UninterpretedFunctionInstance or
@@ -480,6 +492,12 @@ public class VeriTParser extends Parser {
         termStack.peek().add(newTerm);
     }
 
+    /**
+     * Parses a command/expression/? (=, and, or, not)
+     * @param command one of ["=", "and", "or", "not"]
+     * @throws ParseException
+     * @throws IncomparableTermsException
+     */
     private void parseCommand(String command) throws ParseException,
             IncomparableTermsException {
         ArrayList<Formula> formulaElements = formulaStack.pop();
@@ -500,6 +518,11 @@ public class VeriTParser extends Parser {
         }
     }
 
+    /**
+     * Stores a Macro to the Buffer
+     * @param macroName name of the Macro
+     * @param formula Formula, by which the macro is defined
+     */
     private void storeMacro(String macroName, Formula formula) {
         // System.out.println("[M] Stored macro #" + macroName);
         macroBufferFormula.put(macroName, formula);
@@ -507,6 +530,11 @@ public class VeriTParser extends Parser {
             macroBufferTerm.put(macroName, (Term) formula);
     }
 
+    /**
+     * finds an UninterpretedFunction by searching in the already existing variables.
+     * @param name
+     * @return
+     */
     private UninterpretedFunction findUninterpretedFunction(String name) {
         if (this.uninterpretedFunctionNames.contains(name)) {
             UninterpretedFunction uf = null;
@@ -529,6 +557,11 @@ public class VeriTParser extends Parser {
         throw new RuntimeException(err);
     }
 
+    /**
+     * find a variable in the already given variables
+     * @param name name of the variable
+     * @return
+     */
     private Term findVariable(String name) {
         if (this.domainVariables.contains(DomainVariable.create(name))) {
             return DomainVariable.create(name);
@@ -543,6 +576,10 @@ public class VeriTParser extends Parser {
         throw new RuntimeException(err);
     }
 
+    /**
+     * Returns the finally parsed Proof as a VeriTProof.
+     * @return
+     */
     public VeritProof getProof() {
         return proof;
     }

@@ -1,3 +1,6 @@
+/**
+ * Author: Christoph Hillebold <c.hillebold@student.tugraz.at>
+ */
 package at.iaik.suraq.main;
 
 import java.util.HashMap;
