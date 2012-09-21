@@ -891,7 +891,6 @@ public class Suraq implements Runnable {
                 t.stop();
                 System.out.println(" Needed: " + t);
 
-                // TODO: test this here...
                 System.out
                         .println("------------------------------------------");
                 System.out.print("Removing Bad Literals... ");
@@ -1786,9 +1785,8 @@ public class Suraq implements Runnable {
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
 
-        // TODO: this seems not to work correctly for
+        // this seems not to work correctly for
         // performFullSuraq3_no_readonly_pipeline_ex_suraq
-        // TODO: outputExpressions?
 
         // get declarations and functions
         ListIterator<SExpression> beginDeclarations = outputExpressions

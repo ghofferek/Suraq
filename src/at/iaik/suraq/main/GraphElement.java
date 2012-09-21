@@ -15,15 +15,25 @@ import java.util.Set;
  * 
  */
 public class GraphElement {
-    // iterating through the GraphElement, it is useful to know which elements
-    // already are visited
+    
+    /**
+     *  iterating through the GraphElement, it is useful to know which elements already are visited
+     */
     private boolean visited = false;
-    // it could also help to know if this Vertex was visited anytime before
+    
+    /**
+     *  it could also help to know if this Vertex was visited anytime before
+     */
     private boolean visited_once = false;
-    // the neighbours of the GraphElement (equivalences with other variables in
-    // the formula)
+    
+    /**
+     *  the neighbours of the GraphElement (equivalences with other variables in the formula)
+     */
     private Map<GraphElement, String> neighbours = new HashMap<GraphElement, String>();
-    // The varname of the vertex (it is truely a variable in the formula)
+    
+    /**
+     *  The varname of the vertex (it is a variable in the formula)
+     */
     private String varname;
 
     /**

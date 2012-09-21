@@ -20,11 +20,34 @@ import at.iaik.suraq.util.ImmutableArrayList;
  * 
  */
 public class VeritProofNode {
+    /**
+     * The name of the VeritProofNode. E.g. ".c11"
+     */
     private final String name;
+    
+    /**
+     * The type of the VeritProofNode. It should be one of the Types defined in VeriTToken. E.g. VeriTToken.EQ_TRANSITIVE
+     */
     private final Token type;
+    
+    /**
+     * A list of literalConclusions (Formulas)
+     */
     private final List<Formula> literalConclusions;
+    
+    /**
+     * iargs (Integer)
+     */
     private final Integer iargs;
+    
+    /**
+     * A list of SubProofs/Conclusions
+     */
     private final List<VeritProofNode> subProofs;
+    
+    /**
+     * A list of Parents 
+     */
     private final List<VeritProofNode> parents;
 
     /**

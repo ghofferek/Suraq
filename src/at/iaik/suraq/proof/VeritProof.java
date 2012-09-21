@@ -11,11 +11,31 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.util.ImmutableHashSet;
 
+/**
+ * This Proof consists of several VeritProofNodes.
+ * You shall not try to modify the parents/childs of these VeritProofNodes on your own.
+ * Use this class to add/remove ProofNodes(=ProofSets)
+ * @author chillebold
+ *
+ */
 @SuppressWarnings("deprecation")
 public class VeritProof {
 
+    /**
+     * ProofSets = ProofNodes. The key is the name (e.g. ".c44")
+     */
     protected final HashMap<String, VeritProofNode> proofSets = new HashMap<String, VeritProofNode>();
 
+    /**
+     * Generates and returns a new VeritProofNode. It is automatically attached to its clauses (as a Parent).
+     * Then the generated VeritProofNode is returned.
+     * @param name name of the Node (e.g. ".c22")
+     * @param type type of the Node (e.g. VeriTToken.EQ_TRANSITIVE,...)
+     * @param conclusions a list of Formulas
+     * @param clauses a list of VeritProofNodes that are the clauses(=children) of the currently added
+     * @param iargs a number as an Integer (e.g. 1)
+     * @return
+     */
     public VeritProofNode addProofSet(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs) {
@@ -32,6 +52,10 @@ public class VeritProof {
         return tmp;
     }
     
+    /**
+     * get the number of literal Conclusions in all VeriTProofNodes attached to this VeritProof
+     * @return the number of literal Conclusions in all VeriTProofNodes attached to this VeritProof
+     */
     public int getLiteralConclusionsCount()
     {
         int size = 0;
@@ -44,6 +68,10 @@ public class VeritProof {
         return size;
     }
 
+    /**
+     * removes a proofSet in the VeritProof. It is detached from all its children and from all its parents.
+     * @param proofNode
+     */
     public void removeProofSet(VeritProofNode proofNode) {
         if (proofNode.getParents() != null)
             for (VeritProofNode parent : proofNode.getParents())
@@ -54,19 +82,37 @@ public class VeritProof {
         proofSets.remove(proofNode.getName());
     }
 
+    /**
+     * returns the VeritProofNode defined by a given name (e.g. ".c99")
+     * @param name the name of a VeritProofNode (e.g ".c99")
+     * @return the VeritProofNode
+     */
     public VeritProofNode getProofNode(String name) {
         return proofSets.get(name);
     }
     
+    /**
+     * returns all VeritProofNodes in a Collection.
+     * @return
+     */
     public Collection<VeritProofNode> getProofNodes()
     {
         return proofSets.values();
     }
 
+    /**
+     * Returns a non-Mutable HashSet of ProofSets
+     * @return
+     */
     public ImmutableHashSet<VeritProofNode> getProofIterator() {
         return new ImmutableHashSet<VeritProofNode>(proofSets.values());
     }
 
+
+    /**
+     * prints the content of this VeritProof in Verit-Format as readed into a String.
+     * @return the Verit-Format of this VeritProof
+     */
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();

@@ -11,7 +11,6 @@ import java.util.Arrays;
 public class Measurement {
     private static final String SEP = " ";
 
-    // TODO hack! I don't like static counting
     private static final String DESC_HEAD = "description";
     private static int maxLen = DESC_HEAD.length();
 

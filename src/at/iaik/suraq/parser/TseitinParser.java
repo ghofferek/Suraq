@@ -116,7 +116,7 @@ public class TseitinParser extends SMTLibParser {
         List<SExpression> tmp = goalExpr.getChildren();
         int size = tmp.size();
         int step = size / 100 +1;
-        // FIXME: chillebold: here are to many saved reads (> 2Mrd.) on DomainVar
+        // chillebold: here are to many saved reads (> 2Mrd.) on DomainVar
         for (int i=0; i < size; i++)
         {
             if(i%step == 0)

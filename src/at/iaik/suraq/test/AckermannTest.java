@@ -44,7 +44,7 @@ public class AckermannTest {
 		//options = SuraqOptions.getInstance();
 	}
 	
-	// TODO: AckermannPredicatesTest has better testfunction. use this later!!!
+	//  AckermannPredicatesTest has better testfunction!!!!
 	
 	@Before
 	public void setUp() {

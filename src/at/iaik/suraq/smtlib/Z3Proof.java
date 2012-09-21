@@ -101,7 +101,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     protected boolean axiom = false;
 
-    // FIXME: merge -> probably added (until merge end)
     private static int instanceCounter = 1;
 
     /**
@@ -148,7 +147,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
      */
     protected static long hypModCount = 0;
 
-    // FIXME: merge end
     private static final Timer debugGetHypothesesTimer = new Timer();
 
     private static long debugGetHypothesesCallCounter = 0;
@@ -636,7 +634,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
     }
 
     public Set<Z3Proof> getHypotheses() {
-    	// FIXME: merge -> .working (probably should be here)
         Z3Proof.debugGetHypothesesCallCounter++;
         Z3Proof.debugGetHypothesesTimer.start();
 
@@ -649,12 +646,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 return hypothesesCache;
             }
         }
-        // FIXME merge -> end
         
         long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> result = this.getHypothesesRecursion(operationId);
         DagOperationManager.endDAGOperation(operationId);
-        // FIXME: merge ->.working (probably should be here)
         if (!result.equals(hypothesesCache) || hypothesesCache == null
                 || hypothesisFormulasCache == null) {
             hypothesesCache = ImmutableSet.create(result);
@@ -665,7 +660,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
             this.markHypCacheDirty();
         }
         this.hypCacheModCount = Z3Proof.hypModCount;
-        // FIXME: merge -> end
         
         this.hypCacheDirty = false;
         Z3Proof.debugGetHypothesesTimer.stop();

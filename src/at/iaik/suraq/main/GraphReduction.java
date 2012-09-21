@@ -833,7 +833,7 @@ public class GraphReduction {
                                     }
                                 }
                                 this.addCircle(new_circle);
-                                // TODO: evtl. return hier?
+                                // evtl. return hier?
                                 // return null; // seems to work for median
                                 // tests
                             }

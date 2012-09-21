@@ -367,7 +367,7 @@ public class VeriTProofAnalyzer {
             if (badLiteral instanceof NotFormula) {
                 filteredBadLiterals.add(Util.makeLiteralPositive(badLiteral));
             } else if (!Util.isLiteral(badLiteral)) {
-                // TODO: very bad "literals"!!!
+                //  very bad "literals"!!!
                 if (badLiteral instanceof NotFormula) {
                     filteredBadLiterals.add(((NotFormula) badLiteral)
                             .getNegatedFormula());
