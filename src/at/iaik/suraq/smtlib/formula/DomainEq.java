@@ -42,10 +42,11 @@ public class DomainEq extends EqualityFormula {
     private DomainEq(Collection<? extends DomainTerm> domainTerms, boolean equal) {
         super(domainTerms, equal);
     }
-    
-    public static DomainEq create(Collection<? extends DomainTerm> domainTerms, boolean equal)
-    {
-        return (DomainEq)FormulaCache.equalityFormula.put(new DomainEq(domainTerms, equal));
+
+    public static DomainEq create(Collection<? extends DomainTerm> domainTerms,
+            boolean equal) {
+        return (DomainEq) FormulaCache.equalityFormula.put(new DomainEq(
+                domainTerms, equal));
     }
 
     /**
@@ -67,12 +68,10 @@ public class DomainEq extends EqualityFormula {
     public Formula deepFormulaCopy() {
         return this; // experimental
         /*
-        List<DomainTerm> terms = new ArrayList<DomainTerm>();
-        for (Term term : this.terms) {
-            terms.add((DomainTerm) term.deepTermCopy());
-        }
-        return FormulaCache.equalityFormula.put(new DomainEq(terms, equal));
-        */
+         * List<DomainTerm> terms = new ArrayList<DomainTerm>(); for (Term term
+         * : this.terms) { terms.add((DomainTerm) term.deepTermCopy()); } return
+         * FormulaCache.equalityFormula.put(new DomainEq(terms, equal));
+         */
     }
 
     /**
@@ -107,7 +106,7 @@ public class DomainEq extends EqualityFormula {
             }
         }
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -150,7 +149,6 @@ public class DomainEq extends EqualityFormula {
         return tseitinVar;
 
     }
-    
 
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
@@ -180,7 +178,7 @@ public class DomainEq extends EqualityFormula {
                         noDependenceVars));
         }
         try {
-            return DomainEq.create(terms2, equal);
+            return EqualityFormula.create(terms2, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);

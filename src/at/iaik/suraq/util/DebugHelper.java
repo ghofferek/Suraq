@@ -26,7 +26,7 @@ public class DebugHelper {
      * Private Constructor
      */
     private DebugHelper() {
-
+        //
     }
 
     /**
@@ -35,9 +35,9 @@ public class DebugHelper {
      * @return
      */
     public static DebugHelper getInstance() {
-        if (_instance == null)
-            _instance = new DebugHelper();
-        return _instance;
+        if (DebugHelper._instance == null)
+            DebugHelper._instance = new DebugHelper();
+        return DebugHelper._instance;
     }
 
     /**

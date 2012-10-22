@@ -18,6 +18,7 @@ public class WrongFunctionTypeException extends SuraqException {
      * Constructs a new <code>WrongNumberOfParametersException</code>.
      */
     public WrongFunctionTypeException() {
+        super();
     }
 
     /**

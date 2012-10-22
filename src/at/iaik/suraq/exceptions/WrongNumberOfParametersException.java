@@ -18,6 +18,7 @@ public class WrongNumberOfParametersException extends SuraqException {
      * Constructs a new <code>WrongNumberOfParametersException</code>.
      */
     public WrongNumberOfParametersException() {
+        super();
     }
 
     /**

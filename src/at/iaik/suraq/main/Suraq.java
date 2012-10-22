@@ -913,7 +913,7 @@ public class Suraq implements Runnable {
                 System.out.print("Analyze Paritions... ");
                 t.reset();
                 t.start();
-                
+
                 vpa.analyzePartitions(new File("./~verit-errors.txt"),// all
                                                                       // errors
                                                                       // in
@@ -1504,7 +1504,7 @@ public class Suraq implements Runnable {
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
         if (!VeriTSolver.isActive()) {
-
+            // ???
         }
         smtStr.append(SExpressionConstants.GET_PROOF.toString());
         smtStr.append(SExpressionConstants.EXIT.toString());

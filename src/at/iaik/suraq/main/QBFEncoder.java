@@ -49,6 +49,7 @@ public class QBFEncoder {
      * Empty public constructor
      */
     public QBFEncoder() {
+        //
     }
 
     // List<PropositionalVariable> controlSignals =
@@ -182,7 +183,7 @@ public class QBFEncoder {
      * @return
      */
     public boolean checkFormulaReady(Formula formula) {
-        if (!_isActive) {
+        if (!QBFEncoder._isActive) {
             System.err.println("QBFEncoder: QBFEncoder is inactive!");
             return false;
         }
@@ -214,11 +215,11 @@ public class QBFEncoder {
     }
 
     public static void setActive(boolean isActive) {
-        _isActive = isActive;
+        QBFEncoder._isActive = isActive;
     }
 
     public static boolean isActive() {
-        return _isActive;
+        return QBFEncoder._isActive;
     }
 
     public String getComment() {

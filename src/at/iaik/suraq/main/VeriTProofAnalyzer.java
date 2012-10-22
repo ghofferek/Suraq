@@ -165,8 +165,12 @@ public class VeriTProofAnalyzer {
     }
 
     /**
-     * Gets a List of Formulas, if there are NotFormulas inside, they are removed.
-     * @param formulas a list of negated Formulas (still positive if they was positive) 
+     * Gets a List of Formulas, if there are NotFormulas inside, they are
+     * removed.
+     * 
+     * @param formulas
+     *            a list of negated Formulas (still positive if they was
+     *            positive)
      * @return a list of positive Formulas
      */
     private List<Formula> removeNotFormulas(List<Formula> formulas) {
@@ -306,14 +310,16 @@ public class VeriTProofAnalyzer {
 
     /**
      * Prints some statistics about badLiterals into a file.
-     * @param fileBadLiterals file to print the statistics.
+     * 
+     * @param fileBadLiterals
+     *            file to print the statistics.
      */
     public void analyzeBadLiteralsSat(File fileBadLiterals) {
 
         Set<Formula> badLiterals = findBadLiterals(false);
         System.out.println("\nThere were " + badLiterals.size()
                 + " unique bad literals. Hash: " + badLiterals.hashCode());
-        
+
         // remove badLiterals, that are once positive and once negative defined.
         // keep badLiterals that are no Literals!
         Set<Formula> badLiterals2 = satisfyBadLiterals(badLiterals);
@@ -351,13 +357,13 @@ public class VeriTProofAnalyzer {
     }
 
     /**
-     * ONLY FOR DEBUG & STATISTICS.
-     * Returns badLiterals that are "no literals" and negative bad literals that
-     * does not occur as positive bad literals somewhere
+     * ONLY FOR DEBUG & STATISTICS. Returns badLiterals that are "no literals"
+     * and negative bad literals that does not occur as positive bad literals
+     * somewhere
      * 
      * @param badLiterals
      * @return badLiterals that are "no literals" and negative bad literals that
-     * does not occur as positive bad literals somewhere
+     *         does not occur as positive bad literals somewhere
      */
     public Set<Formula> satisfyBadLiterals(Set<Formula> badLiterals) {
         Set<Formula> filteredBadLiterals = new HashSet<Formula>();
@@ -367,7 +373,7 @@ public class VeriTProofAnalyzer {
             if (badLiteral instanceof NotFormula) {
                 filteredBadLiterals.add(Util.makeLiteralPositive(badLiteral));
             } else if (!Util.isLiteral(badLiteral)) {
-                //  very bad "literals"!!!
+                // very bad "literals"!!!
                 if (badLiteral instanceof NotFormula) {
                     filteredBadLiterals.add(((NotFormula) badLiteral)
                             .getNegatedFormula());
@@ -650,7 +656,8 @@ public class VeriTProofAnalyzer {
                 if (fstream_nochildren != null)
                     fstream_nochildren.close();
             } catch (Exception ex) {
-
+                ex.printStackTrace();
+                throw new RuntimeException(ex);
             }
         }
 

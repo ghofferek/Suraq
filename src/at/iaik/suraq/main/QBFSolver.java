@@ -52,6 +52,7 @@ public class QBFSolver {
      * Empty public constructor
      */
     public QBFSolver() {
+        //
     }
 
     /**
@@ -106,7 +107,7 @@ public class QBFSolver {
     }
 
     public static boolean isActive() {
-        return isActive;
+        return QBFSolver.isActive;
     }
 
     public static void setActive(boolean _isActive) {
