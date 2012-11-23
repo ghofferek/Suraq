@@ -26,6 +26,7 @@ import at.iaik.suraq.util.Util;
  * @author chillebold
  * 
  */
+@Deprecated
 public class VeriTProofAnalyzer {
     /**
      * The internal stored proof, set by the constructor.

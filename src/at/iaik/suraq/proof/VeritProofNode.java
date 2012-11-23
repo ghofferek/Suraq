@@ -24,29 +24,31 @@ public class VeritProofNode {
      * The name of the VeritProofNode. E.g. ".c11"
      */
     private final String name;
-    
+
     /**
-     * The type of the VeritProofNode. It should be one of the Types defined in VeriTToken. E.g. VeriTToken.EQ_TRANSITIVE
+     * The type of the VeritProofNode. It should be one of the Types defined in
+     * VeriTToken. E.g. VeriTToken.EQ_TRANSITIVE
      */
     private final Token type;
-    
+
     /**
-     * A list of literalConclusions (Formulas)
+     * A list of literalConclusions (Formulas). The contents of this list should
+     * not be changed!
      */
     private final List<Formula> literalConclusions;
-    
+
     /**
      * iargs (Integer)
      */
     private final Integer iargs;
-    
+
     /**
      * A list of SubProofs/Conclusions
      */
     private final List<VeritProofNode> subProofs;
-    
+
     /**
-     * A list of Parents 
+     * A list of Parents
      */
     private final List<VeritProofNode> parents;
 
@@ -89,6 +91,7 @@ public class VeritProofNode {
      * 
      * @return
      */
+    @Deprecated
     public List<Formula> getLiteralConclusions() {
         return literalConclusions;
     }
@@ -118,7 +121,7 @@ public class VeritProofNode {
      * @return
      */
     public ImmutableArrayList<VeritProofNode> getSubProofs() {
-        if(subProofs == null)
+        if (subProofs == null)
             return null;
         return new ImmutableArrayList<VeritProofNode>(subProofs);
     }
@@ -134,7 +137,7 @@ public class VeritProofNode {
      * @return
      */
     public ImmutableArrayList<VeritProofNode> getParents() {
-        if(parents == null)
+        if (parents == null)
             return null;
         return new ImmutableArrayList<VeritProofNode>(parents);
     }
@@ -179,6 +182,19 @@ public class VeritProofNode {
         }
         str += "))";
         return str;
+    }
+
+    /**
+     * Checks if the current proof node's conclusion is correctly derived from
+     * all its sub-proofs.
+     * 
+     * @return <code>true</code> if this node is a valid deduction,
+     *         <code>false</code> otherwise.
+     */
+    public boolean checkProofNode() {
+        // TODO
+        assert (false);
+        return false;
     }
 
 }
