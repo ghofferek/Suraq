@@ -10,6 +10,7 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.util.ImmutableArrayList;
+import at.iaik.suraq.util.Util;
 
 /**
  * VeritProofSet is a single set-line in the proof. You shall not use this class
@@ -195,6 +196,49 @@ public class VeritProofNode {
         // TODO
         assert (false);
         return false;
+    }
+
+    /**
+     * 
+     * @return <code>true</code>, if the conclusion of this node contains a bad
+     *         literal.
+     */
+    public boolean containsBadLiteral() {
+        for (Formula literal : literalConclusions) {
+            if (Util.isBadLiteral(literal))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the conclusion of this node is an axiom that introduces a new
+     * bad literal based solely on good literals.
+     * 
+     * @return <code>true</code> if this node is a leaf with a conclusion that
+     *         has one positive bad literal and only negative good literals.
+     */
+    public boolean isGoodDefinitionOfBadLiteral() {
+        if (subProofs.size() > 0)
+            return false; // Not a leaf
+
+        if (literalConclusions.size() < 2)
+            return false; // Not a definition if there is just one literal
+
+        for (Formula literal : literalConclusions) {
+            if (Util.isNegativeLiteral(literal)) {
+                if (Util.isBadLiteral(literal))
+                    return false; // bad literal should occur positive
+            } else if (Util.isLiteral(literal)) {
+                if (!Util.isBadLiteral(literal))
+                    return false; // positive literal should be bad
+            } else {
+                // This means we have something that is not a literal.
+                // That should not happen.
+                assert (false);
+            }
+        }
+        return true;
     }
 
 }

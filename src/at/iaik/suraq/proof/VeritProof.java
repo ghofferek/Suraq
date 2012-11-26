@@ -33,7 +33,7 @@ public class VeritProof {
      * bad literal. E.g. a!=b v b!=c v a=c, for a=c being a bad literal and a=b,
      * b=c being good literals.
      */
-    private final HashSet<VeritProofNode> leafsDefiningBadLiteralViaGoodLiterals = new HashSet<VeritProofNode>();
+    private final HashSet<VeritProofNode> goodDefinitionsOfBadLiterals = new HashSet<VeritProofNode>();
 
     /**
      * Generates and returns a new VeritProofNode. It is automatically attached
@@ -67,8 +67,10 @@ public class VeritProof {
             }
         }
 
-        // TODO check for leaf defining bad literal; if so, add to corresponding
-        // set
+        if (tmp.isGoodDefinitionOfBadLiteral()) {
+            assert (!goodDefinitionsOfBadLiterals.contains(tmp));
+            goodDefinitionsOfBadLiterals.add(tmp);
+        }
 
         return tmp;
     }
@@ -104,8 +106,11 @@ public class VeritProof {
             for (VeritProofNode subproof : proofNode.getSubProofs())
                 subproof.removeParent(proofNode);
 
-        // TODO check for leaf defining bad literal; if so, remove from
-        // corresponding set
+        if (proofNode.isGoodDefinitionOfBadLiteral()) {
+            assert (goodDefinitionsOfBadLiterals.contains(proofNode));
+            goodDefinitionsOfBadLiterals.remove(proofNode);
+            assert (!goodDefinitionsOfBadLiterals.contains(proofNode));
+        }
         proofSets.remove(proofNode.getName());
     }
 
@@ -136,6 +141,16 @@ public class VeritProof {
      */
     public ImmutableHashSet<VeritProofNode> getProofIterator() {
         return new ImmutableHashSet<VeritProofNode>(proofSets.values());
+    }
+
+    /**
+     * 
+     * @return an immutable copy of the set of all nodes where a bad literal is
+     *         defined in terms of good ones.
+     */
+    public ImmutableHashSet<VeritProofNode> getGoodDefinitionsOfBadLiterals() {
+        return new ImmutableHashSet<VeritProofNode>(
+                goodDefinitionsOfBadLiterals);
     }
 
     /**
