@@ -4,12 +4,14 @@
 package at.iaik.suraq.proof;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.util.ImmutableArrayList;
+import at.iaik.suraq.util.ImmutableHashSet;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -239,6 +241,48 @@ public class VeritProofNode {
             }
         }
         return true;
+    }
+
+    /**
+     * @return <code>true</code> if this is a leaf.
+     */
+    public boolean isLeaf() {
+        return subProofs.size() == 0;
+    }
+
+    /**
+     * 
+     * @return the defined bad literal, or <code>null</code> if this node does
+     *         not define a bad literal by good ones.
+     */
+    public Formula getDefinedBadLiteral() {
+        if (!isGoodDefinitionOfBadLiteral())
+            return null;
+        for (Formula literal : literalConclusions) {
+            assert (Util.isLiteral(literal));
+            if (Util.isBadLiteral(literal))
+                return literal;
+        }
+        assert (false);
+        return null;
+    }
+
+    /**
+     * 
+     * @return the set of good literals defining a bad one, or <code>null</code>
+     *         if this node is not a good definition of a bad literal
+     */
+    public ImmutableHashSet<Formula> getDefiningGoodLiteral() {
+        if (!isGoodDefinitionOfBadLiteral())
+            return null;
+        HashSet<Formula> tmp = new HashSet<Formula>();
+        for (Formula literal : literalConclusions) {
+            assert (Util.isLiteral(literal));
+            if (!Util.isBadLiteral(literal))
+                tmp.add(literal);
+        }
+        assert (!tmp.isEmpty());
+        return new ImmutableHashSet<Formula>(tmp);
     }
 
 }

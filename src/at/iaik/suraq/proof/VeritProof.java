@@ -3,7 +3,6 @@
  */
 package at.iaik.suraq.proof;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +10,7 @@ import java.util.List;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.util.ImmutableHashSet;
+import at.iaik.suraq.util.Util;
 
 /**
  * This Proof consists of several VeritProofNodes. You shall not try to modify
@@ -126,20 +126,11 @@ public class VeritProof {
     }
 
     /**
-     * returns all VeritProofNodes in a Collection.
-     * 
-     * @return
-     */
-    public Collection<VeritProofNode> getProofNodes() {
-        return proofSets.values();
-    }
-
-    /**
      * Returns a non-Mutable HashSet of ProofSets
      * 
-     * @return
+     * @return an immutable set of all nodes of this proof
      */
-    public ImmutableHashSet<VeritProofNode> getProofIterator() {
+    public ImmutableHashSet<VeritProofNode> getProofNodes() {
         return new ImmutableHashSet<VeritProofNode>(proofSets.values());
     }
 
@@ -154,6 +145,16 @@ public class VeritProof {
     }
 
     /**
+     * 
+     * @return one good definition of a bad literal occurring in this proof, or
+     *         <code>null</code> if no such node exists.
+     */
+    public VeritProofNode getOneGoodDefinitionOfBadLiteral() {
+        return goodDefinitionsOfBadLiterals.isEmpty() ? null
+                : goodDefinitionsOfBadLiterals.iterator().next();
+    }
+
+    /**
      * prints the content of this VeritProof in Verit-Format as readed into a
      * String.
      * 
@@ -162,9 +163,35 @@ public class VeritProof {
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        for (VeritProofNode proof : getProofIterator())
+        for (VeritProofNode proof : getProofNodes())
             str = str.append(proof.toString() + "\n");
         return str.toString();
+    }
+
+    /**
+     * @return <code>true</code> if this proof does not contain bad literals
+     */
+    public boolean isClean() {
+        for (VeritProofNode node : proofSets.values()) {
+            for (Formula literal : node.getLiteralConclusionsCopy()) {
+                assert (Util.isLiteral(literal));
+                if (Util.isBadLiteral(literal))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return <code>true</code> if all nodes in this proof are correct
+     *         deductions.
+     */
+    public boolean checkProof() {
+        for (VeritProofNode node : proofSets.values()) {
+            if (!node.checkProofNode())
+                return false;
+        }
+        return true;
     }
 
 }
