@@ -10,13 +10,12 @@ import java.util.Set;
 
 public class ImmutableHashMap<E, V> implements Map<E, V> {
 
-    protected final HashMap<E,V> internalMap;
-    
-    public ImmutableHashMap(Map<E,V> map)
-    {
-        internalMap = new HashMap<E,V>(map);
+    protected final HashMap<E, V> internalMap;
+
+    public ImmutableHashMap(Map<E, V> map) {
+        internalMap = new HashMap<E, V>(map);
     }
-    
+
     @Override
     @Deprecated
     public void clear() {
@@ -34,8 +33,8 @@ public class ImmutableHashMap<E, V> implements Map<E, V> {
     }
 
     @Override
-    public Set<Entry<E,V>> entrySet() {
-        return new ImmutableHashSet<Entry<E,V>>(internalMap.entrySet());
+    public Set<Entry<E, V>> entrySet() {
+        return ImmutableSet.create((internalMap.entrySet()));
     }
 
     @Override
@@ -50,7 +49,7 @@ public class ImmutableHashMap<E, V> implements Map<E, V> {
 
     @Override
     public Set<E> keySet() {
-        return new ImmutableHashSet<E>(internalMap.keySet());
+        return ImmutableSet.create(internalMap.keySet());
     }
 
     @Override
@@ -63,7 +62,7 @@ public class ImmutableHashMap<E, V> implements Map<E, V> {
     @Deprecated
     public void putAll(@SuppressWarnings("rawtypes") Map m) {
         throw new UnsupportedOperationException("putAll on immutable map");
-        
+
     }
 
     @Override
@@ -81,6 +80,5 @@ public class ImmutableHashMap<E, V> implements Map<E, V> {
     public Collection<V> values() {
         return new ImmutableArrayList<V>(internalMap.values());
     }
-    
 
 }

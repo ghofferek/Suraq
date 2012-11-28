@@ -11,7 +11,7 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.util.ImmutableArrayList;
-import at.iaik.suraq.util.ImmutableHashSet;
+import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -272,7 +272,7 @@ public class VeritProofNode {
      * @return the set of good literals defining a bad one, or <code>null</code>
      *         if this node is not a good definition of a bad literal
      */
-    public ImmutableHashSet<Formula> getDefiningGoodLiteral() {
+    public ImmutableSet<Formula> getDefiningGoodLiteral() {
         if (!isGoodDefinitionOfBadLiteral())
             return null;
         HashSet<Formula> tmp = new HashSet<Formula>();
@@ -282,7 +282,7 @@ public class VeritProofNode {
                 tmp.add(literal);
         }
         assert (!tmp.isEmpty());
-        return new ImmutableHashSet<Formula>(tmp);
+        return ImmutableSet.create(tmp);
     }
 
 }

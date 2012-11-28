@@ -9,7 +9,7 @@ import java.util.List;
 
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
-import at.iaik.suraq.util.ImmutableHashSet;
+import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -130,8 +130,8 @@ public class VeritProof {
      * 
      * @return an immutable set of all nodes of this proof
      */
-    public ImmutableHashSet<VeritProofNode> getProofNodes() {
-        return new ImmutableHashSet<VeritProofNode>(proofSets.values());
+    public ImmutableSet<VeritProofNode> getProofNodes() {
+        return ImmutableSet.create(proofSets.values());
     }
 
     /**
@@ -139,9 +139,8 @@ public class VeritProof {
      * @return an immutable copy of the set of all nodes where a bad literal is
      *         defined in terms of good ones.
      */
-    public ImmutableHashSet<VeritProofNode> getGoodDefinitionsOfBadLiterals() {
-        return new ImmutableHashSet<VeritProofNode>(
-                goodDefinitionsOfBadLiterals);
+    public ImmutableSet<VeritProofNode> getGoodDefinitionsOfBadLiterals() {
+        return ImmutableSet.create(goodDefinitionsOfBadLiterals);
     }
 
     /**

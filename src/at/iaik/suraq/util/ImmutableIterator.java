@@ -40,6 +40,7 @@ public class ImmutableIterator<E> implements Iterator<E> {
      * @see java.util.Iterator#remove()
      */
     @Override
+    @Deprecated
     public void remove() {
         throw new UnsupportedOperationException(
                 "'remove' called on immutable iterator!");

@@ -61,7 +61,7 @@ public class VeriTProofCleaner {
         Formula badLiteral = currentLeaf.getDefinedBadLiteral();
         assert (badLiteral != null);
 
-        Set<Formula> resolvedDefiningLiteral = new HashSet<Formula>();
+        Set<Formula> resolvedDefiningLiterals = new HashSet<Formula>();
 
         // TODO
         // Search for resolution of bad literal
