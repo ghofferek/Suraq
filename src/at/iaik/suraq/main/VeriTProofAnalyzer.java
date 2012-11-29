@@ -626,7 +626,7 @@ public class VeriTProofAnalyzer {
                                     "' of type '" + node.getType()
                                     + "'. Conclusion (in OR-Format):\n");
                             fstream_more
-                                    .write(node.getConclusions().toString());
+                                    .write(node.getConclusionsAsOrFormula().toString());
 
                             if (node.getSubProofs() == null) {
                                 errors_no_childs++;

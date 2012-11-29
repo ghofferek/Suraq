@@ -172,7 +172,7 @@ public class VeritProof {
      */
     public boolean isClean() {
         for (VeritProofNode node : proofSets.values()) {
-            for (Formula literal : node.getLiteralConclusionsCopy()) {
+            for (Formula literal : node.getLiteralConclusions()) {
                 assert (Util.isLiteral(literal));
                 if (Util.isBadLiteral(literal))
                     return false;

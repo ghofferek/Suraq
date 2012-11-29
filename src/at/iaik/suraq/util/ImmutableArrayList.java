@@ -18,7 +18,7 @@ import java.util.Set;
 public class ImmutableArrayList<E> implements List<E>, Serializable {
 
     private static final long serialVersionUID = 8782268576752007764L;
-    private final ArrayList<E> internalSet;
+    private final ArrayList<E> internalList;
     private final int hashCode;
 
     /**
@@ -28,15 +28,22 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
      */
     public ImmutableArrayList(List<? extends E> set) {
         assert (set != null);
-        internalSet = new ArrayList<E>(set);
-        this.hashCode = internalSet.hashCode();
+        internalList = new ArrayList<E>(set);
+        this.hashCode = internalList.hashCode();
     }
-    
 
     public ImmutableArrayList(Collection<? extends E> set) {
         assert (set != null);
-        internalSet = new ArrayList<E>(set);
-        this.hashCode = internalSet.hashCode();
+        internalList = new ArrayList<E>(set);
+        this.hashCode = internalList.hashCode();
+    }
+
+    /**
+     * Constructs an empty <code>ImmutableArrayList</code>.
+     */
+    public ImmutableArrayList() {
+        internalList = new ArrayList<E>();
+        this.hashCode = internalList.hashCode();
     }
 
     /**
@@ -45,7 +52,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     @Override
     public int size() {
 
-        return internalSet.size();
+        return internalList.size();
     }
 
     /**
@@ -54,7 +61,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     @Override
     public boolean isEmpty() {
 
-        return internalSet.isEmpty();
+        return internalList.isEmpty();
     }
 
     /**
@@ -63,7 +70,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     @Override
     public boolean contains(Object o) {
 
-        return internalSet.contains(o);
+        return internalList.contains(o);
     }
 
     /**
@@ -72,7 +79,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     @Override
     public Iterator<E> iterator() {
 
-        return new ImmutableIterator<E>(internalSet.iterator());
+        return new ImmutableIterator<E>(internalList.iterator());
     }
 
     /**
@@ -80,7 +87,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
      */
     @Override
     public Object[] toArray() {
-        return internalSet.toArray();
+        return internalList.toArray();
     }
 
     /**
@@ -88,7 +95,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
      */
     @Override
     public <T> T[] toArray(T[] a) {
-        return internalSet.toArray(a);
+        return internalList.toArray(a);
     }
 
     /**
@@ -120,7 +127,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
      */
     @Override
     public boolean containsAll(Collection<?> c) {
-        return internalSet.containsAll(c);
+        return internalList.containsAll(c);
     }
 
     /**
@@ -180,7 +187,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
      * @return <code>this</code> union <code>element</code>.
      */
     public ImmutableArrayList<E> addToCopy(E element) {
-        ArrayList<E> tmp = new ArrayList<E>(internalSet);
+        ArrayList<E> tmp = new ArrayList<E>(internalList);
         tmp.add(element);
         return new ImmutableArrayList<E>(tmp);
     }
@@ -196,9 +203,9 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     public ImmutableArrayList<E> addAllToCopy(Collection<? extends E> set) {
         if (set == null)
             return this;
-        ArrayList<E> tmp = new ArrayList<E>(internalSet);
+        ArrayList<E> tmp = new ArrayList<E>(internalList);
         tmp.addAll(set);
-        return new  ImmutableArrayList<E>(tmp);
+        return new ImmutableArrayList<E>(tmp);
     }
 
     /**
@@ -211,7 +218,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
      * @return <code>this</code> union <code>element</code>.
      */
     public ImmutableArrayList<E> removeFromCopy(E element) {
-        ArrayList<E> tmp = new ArrayList<E>(internalSet);
+        ArrayList<E> tmp = new ArrayList<E>(internalList);
         tmp.remove(element);
         return new ImmutableArrayList<E>(tmp);
     }
@@ -228,14 +235,14 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     public ImmutableArrayList<E> removeAllFromCopy(Collection<? extends E> set) {
         if (set == null)
             return this;
-        ArrayList<E> tmp = new ArrayList<E>(internalSet);
+        ArrayList<E> tmp = new ArrayList<E>(internalList);
         tmp.removeAll(set);
         return new ImmutableArrayList<E>(tmp);
     }
 
     @Override
     public String toString() {
-        return internalSet.toString();
+        return internalList.toString();
     }
 
     /**
@@ -258,7 +265,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
         if (this.hashCode != obj.hashCode())
             return false;
 
-        return internalSet.equals(obj);
+        return internalList.equals(obj);
     }
 
     @Override
@@ -266,7 +273,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     public void add(int arg0, E arg1) {
         throw new UnsupportedOperationException(
                 "'add' called on immutable list!");
-        
+
     }
 
     @Override
@@ -278,29 +285,29 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
 
     @Override
     public E get(int arg0) {
-        return internalSet.get(arg0);
+        return internalList.get(arg0);
     }
 
     @Override
     public int indexOf(Object arg0) {
-        return internalSet.indexOf(arg0);
+        return internalList.indexOf(arg0);
     }
 
     @Override
     public int lastIndexOf(Object arg0) {
-        return internalSet.lastIndexOf(arg0);
+        return internalList.lastIndexOf(arg0);
     }
 
     @Override
     public ListIterator<E> listIterator() {
         // TODO: make Immutableiterator
-        return internalSet.listIterator();
+        return internalList.listIterator();
     }
 
     @Override
     public ListIterator<E> listIterator(int arg0) {
         // TODO: make Immutableiterator
-        return internalSet.listIterator(arg0);
+        return internalList.listIterator(arg0);
     }
 
     @Override
@@ -319,7 +326,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
 
     @Override
     public List<E> subList(int arg0, int arg1) {
-        return new ImmutableArrayList<E>(internalSet.subList(arg0, arg1));
+        return new ImmutableArrayList<E>(internalList.subList(arg0, arg1));
     }
 
 }

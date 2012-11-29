@@ -38,7 +38,7 @@ public class VeritProofNode {
      * A list of literalConclusions (Formulas). The contents of this list should
      * not be changed!
      */
-    private final List<Formula> literalConclusions;
+    private final ImmutableArrayList<Formula> literalConclusions;
 
     /**
      * iargs (Integer)
@@ -65,15 +65,14 @@ public class VeritProofNode {
      * @param clauses
      * @param iargs
      */
-    @Deprecated
     protected VeritProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs) {
         this.name = name;
         this.type = type;
-        this.literalConclusions = conclusions == null ? null
-                : new ArrayList<Formula>(conclusions);
-        this.subProofs = clauses == null ? null
+        this.literalConclusions = conclusions == null ? new ImmutableArrayList<Formula>()
+                : new ImmutableArrayList<Formula>(conclusions);
+        this.subProofs = clauses == null ? new ArrayList<VeritProofNode>()
                 : new ArrayList<VeritProofNode>(clauses);
         this.parents = new ArrayList<VeritProofNode>();
         this.iargs = iargs;
@@ -88,24 +87,13 @@ public class VeritProofNode {
     }
 
     /**
-     * This method returns the inner conclusions-List. If you modify elements in
-     * this list or the list itself, also this object changes! Notice the method
-     * getConclusionCopy()
+     * This method returns the inner conclusions-List.
      * 
-     * @return
+     * @return the list of literals in the conclusions.
      */
-    @Deprecated
-    public List<Formula> getLiteralConclusions() {
-        return literalConclusions;
-    }
 
-    /**
-     * This method returns a copy of the inner conclusions-List.
-     * 
-     * @return a copied ArrayList of the conclusions
-     */
-    public List<Formula> getLiteralConclusionsCopy() {
-        return new ArrayList<Formula>(literalConclusions);
+    public ImmutableArrayList<Formula> getLiteralConclusions() {
+        return literalConclusions;
     }
 
     /**
@@ -113,15 +101,16 @@ public class VeritProofNode {
      * 
      * @return a copied ArrayList of the conclusions
      */
-    public OrFormula getConclusions() {
+    public OrFormula getConclusionsAsOrFormula() {
         return OrFormula.generate(literalConclusions);
     }
 
     /**
      * returns an immutable copy of clauses. You cannot modify the list
-     * direclty. Use the VeritProof-Class instead!
+     * directly. Use the VeritProof-Class instead!
      * 
-     * @return
+     * @return an immutable copy of the subproofs, or <code>null</code> if this
+     *         is a leaf.
      */
     public ImmutableArrayList<VeritProofNode> getSubProofs() {
         if (subProofs == null)
@@ -129,6 +118,11 @@ public class VeritProofNode {
         return new ImmutableArrayList<VeritProofNode>(subProofs);
     }
 
+    /**
+     * 
+     * @return the <code>iargs</code> property, or <code>null</code> if not
+     *         present.
+     */
     public Integer getIargs() {
         return iargs;
     }
@@ -137,22 +131,42 @@ public class VeritProofNode {
      * returns an immutable copy of parents. You cannot modify the list
      * directly. Use the VeritProof-Class instead!
      * 
-     * @return
+     * @return an immutable copy of parents. Will be empty if this is a/the root
+     *         node.
      */
     public ImmutableArrayList<VeritProofNode> getParents() {
-        if (parents == null)
-            return null;
+        assert (parents != null);
         return new ImmutableArrayList<VeritProofNode>(parents);
     }
 
-    @Deprecated
+    /**
+     * Adds a node to the list of parents of <code>this</code> node.
+     * <code>this</code> node has to be in the <code>subProofs</code> of the
+     * given <code>parent</code>.
+     * 
+     * @param parent
+     *            a parent of this node
+     */
     protected void addParent(VeritProofNode parent) {
+        assert (parent.subProofs.contains(this));
         parents.add(parent);
     }
 
-    @Deprecated
-    protected boolean removeParent(VeritProofNode parent) {
-        return parents.remove(parent);
+    /**
+     * Removes the given <code>parent</code> from the list of parents.
+     * <code>this</code> node may not show up in the <code>subProofs</code> of
+     * the <code>parent</code>. If the given <code>parent</code> is not present
+     * in the current list of parents, nothing happens.
+     * 
+     * @param parent
+     *            the parent to remove
+     */
+    protected void removeParent(VeritProofNode parent) {
+        if (parents.contains(parent)) {
+            assert (!parent.subProofs.contains(this));
+            parents.remove(parent);
+        }
+
     }
 
     @Deprecated
@@ -247,6 +261,7 @@ public class VeritProofNode {
      * @return <code>true</code> if this is a leaf.
      */
     public boolean isLeaf() {
+        assert (subProofs != null);
         return subProofs.size() == 0;
     }
 
