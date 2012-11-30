@@ -97,6 +97,16 @@ public class VeritProofNode {
     }
 
     /**
+     * This method returns the inner conclusions-List as a set.
+     * 
+     * @return the list of literals in the conclusions in set representation.
+     */
+
+    public ImmutableSet<Formula> getLiteralConclusionsAsSet() {
+        return ImmutableSet.create(literalConclusions);
+    }
+
+    /**
      * This method returns an OR-Formula of the literal conclusions
      * 
      * @return a copied ArrayList of the conclusions
@@ -172,11 +182,76 @@ public class VeritProofNode {
     @Deprecated
     protected void addSubProof(VeritProofNode subProof) {
         subProofs.add(subProof);
+        assert (this.checkProofNode());
     }
 
     @Deprecated
-    protected boolean removeSubProof(VeritProofNode subProof) {
-        return subProofs.remove(subProof);
+    protected void removeSubProof(VeritProofNode subProof) {
+        subProofs.remove(subProof);
+        assert (this.checkProofNode());
+    }
+
+    /**
+     * Replaces <code>oldSubProof</code> with <code>newSubProof</code> in the
+     * subproofs of <code>this</code>. The conclusion of
+     * <code>oldSubProof</code> and <code>newSubProof</code> have to be the
+     * same. None of the parameters may be <code>null</code>.
+     * 
+     * @param oldSubProof
+     *            the subproof to remove
+     * @param newSubProof
+     *            the subproof to put it instead
+     */
+    public boolean updateProofNode(VeritProofNode oldSubProof,
+            VeritProofNode newSubProof) {
+        assert (oldSubProof != null);
+        assert (newSubProof != null);
+        assert (oldSubProof.getParents().contains(this));
+
+        if (!((this.subProofs.contains(oldSubProof)) && (oldSubProof
+                .getLiteralConclusionsAsSet().equals(newSubProof
+                .getLiteralConclusionsAsSet())))) {
+            return false;
+        }
+
+        subProofs.set(subProofs.indexOf(oldSubProof), newSubProof);
+
+        assert (checkProofNode());
+
+        oldSubProof.removeParent(this);
+        newSubProof.addParent(this);
+        return true;
+    }
+
+    /**
+     * Updates the subproofs of <code>this</code> node to the given ones. The
+     * node is checked after replacement. If the check fails, changes are
+     * reverted and <code>false</code> is returned. Parent relations are also
+     * updated accordingly, if update is successful.
+     * 
+     * @param newSubProofs
+     *            the new subproofs to set.
+     * @return <code>true</code> if replacement was successful and actually
+     *         done; <code>false</code> if replacement failed and changes have
+     *         been reverted.
+     */
+    public boolean updateProofNode(List<VeritProofNode> newSubProofs) {
+        List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>(
+                subProofs);
+        subProofs.clear();
+        subProofs.addAll(newSubProofs);
+        if (!checkProofNode()) {
+            subProofs.clear();
+            subProofs.addAll(tmpSubProofs);
+            return false;
+        }
+
+        for (VeritProofNode oldSubProof : tmpSubProofs)
+            oldSubProof.removeParent(this);
+
+        for (VeritProofNode newSubProof : subProofs)
+            newSubProof.addParent(this);
+        return true;
     }
 
     @Override

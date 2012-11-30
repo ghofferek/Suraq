@@ -20,7 +20,7 @@ import at.iaik.suraq.util.Util;
  * @author chillebold
  * 
  */
-@SuppressWarnings("deprecation")
+
 public class VeritProof {
 
     /**
@@ -98,6 +98,7 @@ public class VeritProof {
      * 
      * @param proofNode
      */
+    @Deprecated
     public void removeProofSet(VeritProofNode proofNode) {
         if (proofNode.getParents() != null)
             for (VeritProofNode parent : proofNode.getParents())
