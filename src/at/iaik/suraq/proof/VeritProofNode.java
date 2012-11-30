@@ -56,6 +56,11 @@ public class VeritProofNode {
     private final List<VeritProofNode> parents;
 
     /**
+     * The proof this node belongs to.
+     */
+    private final VeritProof proof;
+
+    /**
      * Do not call this constructor by yourself. Use VeritProof to create this
      * class.
      * 
@@ -64,10 +69,11 @@ public class VeritProofNode {
      * @param conclusions
      * @param clauses
      * @param iargs
+     * @param proof
      */
     protected VeritProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
-            Integer iargs) {
+            Integer iargs, VeritProof proof) {
         this.name = name;
         this.type = type;
         this.literalConclusions = conclusions == null ? new ImmutableArrayList<Formula>()
@@ -76,6 +82,7 @@ public class VeritProofNode {
                 : new ArrayList<VeritProofNode>(clauses);
         this.parents = new ArrayList<VeritProofNode>();
         this.iargs = iargs;
+        this.proof = proof;
     }
 
     public String getName() {
@@ -175,8 +182,26 @@ public class VeritProofNode {
         if (parents.contains(parent)) {
             assert (!parent.subProofs.contains(this));
             parents.remove(parent);
+            if (parents.isEmpty())
+                this.kill();
         }
 
+    }
+
+    /**
+     * Clears the subproofs, removes <code>this</code> from the parents of all
+     * subproofs, and removes this dangling node from its proof. <strong>Only
+     * call on nodes without parents!</strong>
+     */
+    private void kill() {
+        assert (parents.isEmpty());
+        this.proof.removeDanglingProofNode(this);
+        List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>(
+                subProofs);
+        subProofs.clear();
+        for (VeritProofNode subProof : tmpSubProofs) {
+            subProof.removeParent(this);
+        }
     }
 
     @Deprecated
@@ -202,7 +227,7 @@ public class VeritProofNode {
      * @param newSubProof
      *            the subproof to put it instead
      */
-    public boolean updateProofNode(VeritProofNode oldSubProof,
+    protected boolean updateProofNode(VeritProofNode oldSubProof,
             VeritProofNode newSubProof) {
         assert (oldSubProof != null);
         assert (newSubProof != null);
@@ -235,7 +260,7 @@ public class VeritProofNode {
      *         done; <code>false</code> if replacement failed and changes have
      *         been reverted.
      */
-    public boolean updateProofNode(List<VeritProofNode> newSubProofs) {
+    protected boolean updateProofNode(List<VeritProofNode> newSubProofs) {
         List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>(
                 subProofs);
         subProofs.clear();

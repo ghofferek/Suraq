@@ -3,9 +3,11 @@
  */
 package at.iaik.suraq.proof;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.WeakHashMap;
 
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -27,6 +29,12 @@ public class VeritProof {
      * ProofSets = ProofNodes. The key is the name (e.g. ".c44")
      */
     protected final HashMap<String, VeritProofNode> proofSets = new HashMap<String, VeritProofNode>();
+
+    /**
+     * A cache of nodes, indexed by their conclusions (represented as sets,
+     * since order is immaterial).
+     */
+    private final WeakHashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>> nodeCache = new WeakHashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>>();
 
     /**
      * This stores all <em>leaf</em> nodes where several good literals define a
@@ -51,28 +59,69 @@ public class VeritProof {
      *            the currently added
      * @param iargs
      *            a number as an Integer (e.g. 1)
-     * @return
+     * @return the newly created proof node
      */
     public VeritProofNode addProofSet(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs) {
-        VeritProofNode tmp = new VeritProofNode(name, type, conclusions,
-                clauses, iargs);
+        return addProofSet(name, type, conclusions, clauses, iargs, false);
+    }
 
-        proofSets.put(name, tmp);
+    /**
+     * Returns a (new) <code>VeritProofNode</code>. It is automatically attached
+     * to its clauses (as a Parent). Then the generated VeritProofNode is
+     * returned. If <code>checkCache</code> is set to <code>true</code>, the
+     * <code>nodeCache</code> is checked for a fitting node before a new one is
+     * created.
+     * 
+     * @param name
+     *            name of the Node (e.g. ".c22")
+     * @param type
+     *            type of the Node (e.g. VeriTToken.EQ_TRANSITIVE,...)
+     * @param conclusions
+     *            a list of Formulas
+     * @param clauses
+     *            a list of VeritProofNodes that are the clauses(=children) of
+     *            the currently added
+     * @param iargs
+     *            a number as an Integer (e.g. 1)
+     * @param checkCache
+     *            check the cache for a fitting existing node, before creating a
+     *            new one.
+     * @return the requested proof node.
+     */
+    public VeritProofNode addProofSet(String name, Token type,
+            List<Formula> conclusions, List<VeritProofNode> clauses,
+            Integer iargs, boolean checkCache) {
+
+        VeritProofNode node = null;
+        if (checkCache) {
+            WeakReference<VeritProofNode> reference = nodeCache
+                    .get(ImmutableSet.create(conclusions));
+            if (reference != null) {
+                node = reference.get();
+            }
+        }
+        if (node == null)
+            node = new VeritProofNode(name, type, conclusions, clauses, iargs,
+                    this);
+
+        proofSets.put(name, node);
+        nodeCache.put(ImmutableSet.create(conclusions),
+                new WeakReference<VeritProofNode>(node));
 
         if (clauses != null) {
             for (VeritProofNode clause : clauses) {
-                clause.addParent(tmp);
+                clause.addParent(node);
             }
         }
 
-        if (tmp.isGoodDefinitionOfBadLiteral()) {
-            assert (!goodDefinitionsOfBadLiterals.contains(tmp));
-            goodDefinitionsOfBadLiterals.add(tmp);
+        if (node.isGoodDefinitionOfBadLiteral()) {
+            assert (!goodDefinitionsOfBadLiterals.contains(node));
+            goodDefinitionsOfBadLiterals.add(node);
         }
 
-        return tmp;
+        return node;
     }
 
     /**
@@ -113,6 +162,37 @@ public class VeritProof {
             assert (!goodDefinitionsOfBadLiterals.contains(proofNode));
         }
         proofSets.remove(proofNode.getName());
+    }
+
+    /**
+     * Removes a (parentless) node from this proof. If its subproofs have no
+     * other parents, they will be removed as well.
+     * 
+     * @param node
+     *            the (parentless) node to remove.
+     */
+    protected void removeDanglingProofNode(VeritProofNode node) {
+        assert (node.getParents().isEmpty());
+        proofSets.remove(node.getName());
+        goodDefinitionsOfBadLiterals.remove(node);
+        removeFromCache(node);
+    }
+
+    /**
+     * Removes the given <code>node</code> from the <code>nodeCache</code> if it
+     * is there.
+     * 
+     * @param node
+     */
+    private void removeFromCache(VeritProofNode node) {
+        assert (node != null);
+        if (!nodeCache.keySet().contains(node.getLiteralConclusionsAsSet()))
+            return;
+        VeritProofNode cacheEntry = nodeCache.get(
+                node.getLiteralConclusionsAsSet()).get();
+        if (cacheEntry == node) {
+            nodeCache.remove(node.getLiteralConclusionsAsSet());
+        }
     }
 
     /**
