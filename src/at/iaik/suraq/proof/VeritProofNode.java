@@ -8,8 +8,13 @@ import java.util.HashSet;
 import java.util.List;
 
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.DomainTerm;
+import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
@@ -309,9 +314,164 @@ public class VeritProofNode {
      *         <code>false</code> otherwise.
      */
     public boolean checkProofNode() {
-        // TODO
+
+        // General pre-tests
+
+        for (Formula literal : literalConclusions) {
+            if (!Util.isLiteral(literal))
+                return false;
+        }
+
+        // Type specific tests
+
+        if (this.type.equals(VeriTToken.INPUT)) {
+            if (subProofs.size() != 0)
+                return false;
+            return true;
+        }
+
+        if (this.type.equals(VeriTToken.AND)) {
+            // This type should not occur
+            assert (false);
+            return false;
+        }
+
+        if (this.type.equals(VeriTToken.OR)) {
+            // This type should not occur
+            assert (false);
+            return false;
+        }
+
+        if (this.type.equals(VeriTToken.EQ_REFLEXIVE)) {
+            if (subProofs.size() != 0)
+                return false;
+            if (literalConclusions.size() != 1)
+                return false;
+            assert (literalConclusions.size() == 1);
+            Formula literal = literalConclusions.get(0);
+            return Util.isReflexivity(literal);
+        }
+
+        if (this.type.equals(VeriTToken.EQ_CONGRUENT)) {
+            return checkCongruence();
+        }
+
+        if (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED)) {
+            return checkCongruence();
+        }
+
+        if (this.type.equals(VeriTToken.RESOLUTION)) {
+
+        }
+
+        // unknown node type
         assert (false);
         return false;
+    }
+
+    /**
+     * Call only on nodes with type <code>EQ_CONGRUENT</code> or
+     * <code>EQ_CONGRUENT_PRED</code>.
+     * 
+     * @return <code>true</code>, iff this is a valid congruence axiom
+     *         instantiation.
+     */
+    private boolean checkCongruence() {
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT) || this.type
+                .equals(VeriTToken.EQ_CONGRUENT_PRED));
+
+        if (literalConclusions.size() < 2)
+            return false;
+
+        if (subProofs.size() != 0)
+            return false;
+
+        // Taking the assumption that the "implied literal" is the last one.
+        Formula impliedLiteral = literalConclusions.get(literalConclusions
+                .size() - 1);
+        if (Util.isNegativeLiteral(impliedLiteral))
+            return false;
+
+        if (!(impliedLiteral instanceof EqualityFormula))
+            return false;
+
+        if (!((EqualityFormula) impliedLiteral).isEqual())
+            return false;
+
+        Term[] terms = (Term[]) ((EqualityFormula) impliedLiteral).getTerms()
+                .toArray();
+
+        if (terms.length != 2)
+            return false;
+
+        List<DomainTerm> terms1 = null;
+        List<DomainTerm> terms2 = null;
+
+        if (terms[0] instanceof UninterpretedFunctionInstance) {
+            if (!(terms[1] instanceof UninterpretedFunctionInstance))
+                return false;
+            terms1 = ((UninterpretedFunctionInstance) terms[0]).getParameters();
+            terms2 = ((UninterpretedFunctionInstance) terms[1]).getParameters();
+            assert (terms1 != null);
+            assert (terms2 != null);
+            if (terms1.size() != terms2.size())
+                return false;
+            if (!((UninterpretedFunctionInstance) terms[0]).getFunction()
+                    .equals(((UninterpretedFunctionInstance) terms[1])
+                            .getFunction()))
+                return false;
+        }
+        if (terms[0] instanceof UninterpretedPredicateInstance) {
+            if (!(terms[1] instanceof UninterpretedPredicateInstance))
+                return false;
+            terms1 = ((UninterpretedPredicateInstance) terms[0])
+                    .getParameters();
+            terms2 = ((UninterpretedPredicateInstance) terms[1])
+                    .getParameters();
+            assert (terms1 != null);
+            assert (terms2 != null);
+            if (terms1.size() != terms2.size())
+                return false;
+            if (!((UninterpretedPredicateInstance) terms[0]).getFunction()
+                    .equals(((UninterpretedPredicateInstance) terms[1])
+                            .getFunction()))
+                return false;
+        }
+
+        assert (terms1 != null);
+        assert (terms2 != null);
+        assert (terms1.size() == terms2.size());
+
+        if (terms1.size() != literalConclusions.size() - 1)
+            return false;
+
+        // Taking the assumption that equalities in the axiom instantiation
+        // occur in the same order as they occur as parameters to the
+        // uninterpreted function
+        for (int count = 0; count < terms1.size(); count++) {
+            Formula literal = literalConclusions.get(count);
+            if (!Util.isLiteral(literal))
+                return false;
+            if (!Util.isNegativeLiteral(literal))
+                return false;
+            assert (Util.makeLiteralPositive(literal) instanceof EqualityFormula);
+            EqualityFormula eqLiteral = (EqualityFormula) Util
+                    .makeLiteralPositive(literal);
+            if (!eqLiteral.isEqual())
+                return false;
+            Term[] literalTerms = (Term[]) eqLiteral.getTerms().toArray();
+            if (literalTerms.length != 2)
+                return false;
+
+            // Taking the assumption that the first term of the equality
+            // corresponds
+            // to a parameter on the first term of the impliedLiteral
+            if (!terms1.get(count).equals(literalTerms[0]))
+                return false;
+            if (!terms2.get(count).equals(literalTerms[1]))
+                return false;
+        }
+        return true;
     }
 
     /**
