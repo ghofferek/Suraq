@@ -360,6 +360,10 @@ public class VeritProofNode {
             return checkCongruence();
         }
 
+        if (this.type.equals(VeriTToken.EQ_TRANSITIVE)) {
+            return checkTransitive();
+        }
+
         if (this.type.equals(VeriTToken.RESOLUTION)) {
 
         }
@@ -367,6 +371,68 @@ public class VeritProofNode {
         // unknown node type
         assert (false);
         return false;
+    }
+
+    /**
+     * Call only on nodes with type <code>EQ_TRANSITIVE</code>.
+     * 
+     * @return <code>true</code> iff this is a valid transitivity axiom
+     *         instantiation.
+     */
+    private boolean checkTransitive() {
+        assert (this.type.equals(VeriTToken.EQ_TRANSITIVE));
+        if (literalConclusions.size() < 3)
+            return false;
+        if (subProofs.size() != 0)
+            return false;
+
+        // Taking the assumption that the implied literal is the last one
+        Formula impliedLiteral = literalConclusions.get(literalConclusions
+                .size() - 1);
+        if (Util.isNegativeLiteral(impliedLiteral))
+            return false;
+        if (!(impliedLiteral instanceof EqualityFormula))
+            return false;
+        if (!((EqualityFormula) impliedLiteral).isEqual())
+            return false;
+        Term[] terms = (Term[]) ((EqualityFormula) impliedLiteral).getTerms()
+                .toArray();
+        if (terms.length != 2)
+            return false;
+
+        for (Formula literal : literalConclusions.subList(0,
+                literalConclusions.size() - 2)) {
+            if (!Util.isLiteral(literal))
+                return false;
+            if (Util.isNegativeLiteral(literal))
+                return false;
+            if (!(literal instanceof EqualityFormula))
+                return false;
+            if (!((EqualityFormula) literal).isEqual())
+                return false;
+            if (((EqualityFormula) literal).getTerms().size() != 2)
+                return false;
+        }
+
+        // Taking the assumption that the literals already form
+        // a nice transitivity chain
+        if (!((EqualityFormula) literalConclusions.get(0)).getTerms().get(1)
+                .equals(terms[0]))
+            return false;
+
+        Term currentLink = ((EqualityFormula) literalConclusions.get(0))
+                .getTerms().get(1);
+        for (int count = 1; count < literalConclusions.size() - 1; count++) {
+            if (!currentLink.equals(((EqualityFormula) literalConclusions
+                    .get(count)).getTerms().get(0)))
+                return false;
+            currentLink = ((EqualityFormula) literalConclusions.get(count))
+                    .getTerms().get(1);
+        }
+        if (!currentLink.equals(terms[1]))
+            return false;
+
+        return true;
     }
 
     /**
@@ -382,7 +448,6 @@ public class VeritProofNode {
 
         if (literalConclusions.size() < 2)
             return false;
-
         if (subProofs.size() != 0)
             return false;
 
