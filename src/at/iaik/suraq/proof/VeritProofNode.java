@@ -365,12 +365,60 @@ public class VeritProofNode {
         }
 
         if (this.type.equals(VeriTToken.RESOLUTION)) {
-
+            return checkResolution();
         }
 
         // unknown node type
         assert (false);
         return false;
+    }
+
+    /**
+     * Call only on nodes with type <code>RESOLUTION</code>.
+     * 
+     * @return <code>true</code> iff this is a valid resolution step
+     */
+    private boolean checkResolution() {
+
+        assert (this.type.equals(VeriTToken.RESOLUTION));
+
+        // Taking the assumption that only resolution with two children occurs.
+
+        if (subProofs.size() != 2)
+            return false;
+
+        boolean resolvingLiteralFound = false;
+        for (Formula literal : subProofs.get(0).literalConclusions) {
+            if (!literalConclusions.contains(literal)) {
+                if (resolvingLiteralFound)
+                    return false;
+                Formula invertedLiteral = Util.invertLiteral(literal);
+                if (!subProofs.get(1).literalConclusions
+                        .contains(invertedLiteral))
+                    return false;
+                else
+                    resolvingLiteralFound = true;
+            }
+        }
+        resolvingLiteralFound = false;
+        for (Formula literal : subProofs.get(1).literalConclusions) {
+            if (!literalConclusions.contains(literal)) {
+                if (resolvingLiteralFound)
+                    return false;
+                Formula invertedLiteral = Util.invertLiteral(literal);
+                if (!subProofs.get(0).literalConclusions
+                        .contains(invertedLiteral))
+                    return false;
+                else
+                    resolvingLiteralFound = true;
+            }
+        }
+        for (Formula literal : literalConclusions) {
+            if (!subProofs.get(0).literalConclusions.contains(literal)
+                    && !subProofs.get(1).literalConclusions.contains(literal))
+                return false;
+        }
+        return true;
     }
 
     /**
