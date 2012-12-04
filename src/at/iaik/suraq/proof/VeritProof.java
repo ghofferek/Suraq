@@ -340,6 +340,11 @@ public class VeritProof {
                     throw new RuntimeException(
                             "Unreachable node has non-unreachable parent. This should not happen.");
             }
+            for (VeritProofNode child : unreachableNode.getSubProofs()) {
+                child.removeParent(unreachableNode);
+                assert (!child.getParents().isEmpty() || unreachableNodes
+                        .contains(child));
+            }
             // removing the node
             assert (proofSets.get(unreachableNode.getName()) == unreachableNode);
             proofSets.remove(unreachableNode.getName());
