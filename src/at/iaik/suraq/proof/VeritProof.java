@@ -7,6 +7,7 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import at.iaik.suraq.sexp.Token;
@@ -29,6 +30,11 @@ public class VeritProof {
      * ProofSets = ProofNodes. The key is the name (e.g. ".c44")
      */
     protected final HashMap<String, VeritProofNode> proofSets = new HashMap<String, VeritProofNode>();
+
+    /**
+     * The root of the proof. Can only be set once.
+     */
+    protected VeritProofNode root = null;
 
     /**
      * A cache of nodes, indexed by their conclusions (represented as sets,
@@ -93,6 +99,9 @@ public class VeritProof {
     public VeritProofNode addProofSet(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs, boolean checkCache) {
+
+        if (proofSets.keySet().contains(name))
+            throw new RuntimeException("Name of proof node is not unique.");
 
         VeritProofNode node = null;
         if (checkCache) {
@@ -272,6 +281,104 @@ public class VeritProof {
                 return false;
         }
         return true;
+    }
+
+    /**
+     * 
+     * @return the <code>root</code> of this proof. (Can be <code>null</code>,
+     *         if it was not set yet.)
+     */
+    public VeritProofNode getRoot() {
+        return root;
+    }
+
+    /**
+     * Sets the root of this proof, unless it is already set.
+     * 
+     * @param root
+     *            the root to set. Must be a node of this proof and may not have
+     *            parents.
+     * @return <code>true</code> if the given root was set, <code>false</code>
+     *         if a root was already set earlier, or the given root does not
+     *         belong to this proof, or has parents, and thus no change was
+     *         done.
+     */
+    public boolean setRoot(VeritProofNode root) {
+        if (this.root == null) {
+            if (!proofSets.values().contains(root))
+                return false;
+            if (!root.getParents().isEmpty())
+                return false;
+            this.root = root;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Removes all nodes which are not reachable from the root. If the root is
+     * <code>null</code>, nothing is done.
+     */
+    public void removeUnreachableNodes() {
+        if (root == null)
+            return;
+
+        Set<VeritProofNode> reachableNodes = getReachableNodes();
+        Set<VeritProofNode> unreachableNodes = new HashSet<VeritProofNode>(
+                proofSets.values());
+        unreachableNodes.removeAll(reachableNodes);
+
+        for (VeritProofNode unreachableNode : unreachableNodes) {
+            // Sanity check
+            assert (unreachableNode != root);
+            assert (unreachableNode != null);
+            for (VeritProofNode parent : unreachableNode.getParents()) {
+                if (reachableNodes.contains(parent))
+                    throw new RuntimeException(
+                            "Unreachable node has reachable parent. This should not happen.");
+                if (!unreachableNodes.contains(parent))
+                    throw new RuntimeException(
+                            "Unreachable node has non-unreachable parent. This should not happen.");
+            }
+            // removing the node
+            assert (proofSets.get(unreachableNode.getName()) == unreachableNode);
+            proofSets.remove(unreachableNode.getName());
+            goodDefinitionsOfBadLiterals.remove(unreachableNode);
+            removeFromCache(unreachableNode);
+        }
+        // Done. Just some final assertions.
+        assert (proofSets.size() == reachableNodes.size());
+        assert (proofSets.values().equals(reachableNodes));
+    }
+
+    /**
+     * 
+     * @return the set of nodes reachable from <code>root</code>, or
+     *         <code>null</code> if <code>root</code> is <code>null</code>.
+     */
+    protected Set<VeritProofNode> getReachableNodes() {
+        if (root == null)
+            return null;
+
+        Set<VeritProofNode> result = new HashSet<VeritProofNode>();
+        result.add(root);
+        for (VeritProofNode child : root.getSubProofs())
+            getReachableNodes(result, child);
+
+        return result;
+    }
+
+    /**
+     * @param result
+     * @param child
+     */
+    private void getReachableNodes(Set<VeritProofNode> result,
+            VeritProofNode node) {
+        for (VeritProofNode child : node.getSubProofs()) {
+            if (!result.contains(child))
+                getReachableNodes(result, child);
+        }
+        result.add(node);
     }
 
 }
