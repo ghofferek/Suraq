@@ -272,14 +272,24 @@ public class VeritProof {
     }
 
     /**
-     * @return <code>true</code> if all nodes in this proof are correct
-     *         deductions.
+     * Performs the following checks on this proof.
+     * <ul>
+     * <li>Each node is a correct deduction</li>
+     * <li>The parent-child-relations match</li>
+     * <li>All nodes claim to belong to this proof</li>
+     * <li>All nodes in the cache and the goodDefinitionOfBadLiterals are also
+     * in the proofSets</li>
+     * <li>The root is not <code>null</code>, and belongs to the proofSets</li>
+     * </ul>
+     * 
+     * @return <code>true</code> if this proof checks out correct.
      */
     public boolean checkProof() {
         for (VeritProofNode node : proofSets.values()) {
             if (!node.checkProofNode())
                 return false;
         }
+        // TODO other checks mentioned above
         return true;
     }
 
