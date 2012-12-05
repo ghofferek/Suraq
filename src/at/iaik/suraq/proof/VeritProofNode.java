@@ -6,6 +6,7 @@ package at.iaik.suraq.proof;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -418,6 +419,25 @@ public class VeritProofNode {
                     && !subProofs.get(1).literalConclusions.contains(literal))
                 return false;
         }
+
+        Set<Formula> literal1 = new HashSet<Formula>(subProofs.get(0)
+                .getLiteralConclusionsAsSet());
+        literal1.removeAll(literalConclusions);
+
+        Set<Formula> literal2 = new HashSet<Formula>(subProofs.get(1)
+                .getLiteralConclusionsAsSet());
+        literal2.removeAll(literalConclusions);
+
+        if (literal1.size() != 1 || literal2.size() != 1)
+            return false;
+
+        if (Util.makeLiteralPositive(literal1.iterator().next()).equals(
+                Util.makeLiteralPositive(literal2.iterator().next())))
+            return false;
+        if (!(Util.isNegativeLiteral(literal1.iterator().next()) ^ Util
+                .isNegativeLiteral(literal2.iterator().next())))
+            return false;
+
         return true;
     }
 
@@ -657,20 +677,21 @@ public class VeritProofNode {
 
     /**
      * 
-     * @return the set of good literals defining a bad one, or <code>null</code>
-     *         if this node is not a good definition of a bad literal
+     * @return the list of good literals defining a bad one, or
+     *         <code>null</code> if this node is not a good definition of a bad
+     *         literal
      */
-    public ImmutableSet<Formula> getDefiningGoodLiteral() {
+    public List<Formula> getDefiningGoodLiterals() {
         if (!isGoodDefinitionOfBadLiteral())
             return null;
-        HashSet<Formula> tmp = new HashSet<Formula>();
+        ArrayList<Formula> tmp = new ArrayList<Formula>();
         for (Formula literal : literalConclusions) {
             assert (Util.isLiteral(literal));
             if (!Util.isBadLiteral(literal))
                 tmp.add(literal);
         }
         assert (!tmp.isEmpty());
-        return ImmutableSet.create(tmp);
+        return tmp;
     }
 
     /**
@@ -680,4 +701,60 @@ public class VeritProofNode {
         return proof;
     }
 
+    /**
+     * Checks whether this node resolves on the given <code>literal</code>.
+     * 
+     * @param literal
+     *            must be a literal!
+     * @return <code>true</code> if this node resolves on the given
+     *         <code>literal</code>. <code>false</code> otherwise; in particular
+     *         if this is not a resolution node.
+     */
+    public boolean resolvesOn(Formula literal) {
+        assert (Util.isLiteral(literal));
+        if (!this.type.equals(VeriTToken.RESOLUTION))
+            return false;
+        Formula resolvingLiteral = this.findResolvingLiteral();
+        assert (Util.isLiteral(resolvingLiteral));
+        assert (!Util.isNegativeLiteral(resolvingLiteral));
+        return Util.makeLiteralPositive(literal).equals(resolvingLiteral);
+    }
+
+    /**
+     * Only call on resolution nodes!
+     * 
+     * @return the resolving literal (in positive form)
+     */
+    public Formula findResolvingLiteral() {
+        assert (checkResolution());
+        Set<Formula> literal1 = new HashSet<Formula>(subProofs.get(0)
+                .getLiteralConclusionsAsSet());
+        literal1.removeAll(literalConclusions);
+        return Util.makeLiteralPositive(literal1.iterator().next());
+    }
+
+    /**
+     * If this node resolves on the given <code>literal</code>, returns the
+     * child that has the literal in the opposite polarity as the given one.
+     * 
+     * @param literal
+     * @return the child of this node which has the given literal in opposite
+     *         polarity.
+     */
+    public VeritProofNode getChildWithLiteralInOppositePolarity(Formula literal) {
+        assert (this.resolvesOn(literal));
+        assert (subProofs.size() == 2);
+        if (subProofs.get(0).getLiteralConclusionsAsSet().contains(literal)) {
+            assert (subProofs.get(1).getLiteralConclusionsAsSet().contains(Util
+                    .invertLiteral(literal)));
+            return subProofs.get(1);
+        }
+        if (subProofs.get(1).getLiteralConclusionsAsSet().contains(literal)) {
+            assert (subProofs.get(0).getLiteralConclusionsAsSet().contains(Util
+                    .invertLiteral(literal)));
+            return subProofs.get(0);
+        }
+        assert (false);
+        return null;
+    }
 }

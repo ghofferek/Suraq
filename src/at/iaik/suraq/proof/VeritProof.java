@@ -4,15 +4,18 @@
 package at.iaik.suraq.proof;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.util.ImmutableSet;
+import at.iaik.suraq.util.Stack;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -226,19 +229,10 @@ public class VeritProof {
 
     /**
      * 
-     * @return an immutable copy of the set of all nodes where a bad literal is
-     *         defined in terms of good ones.
-     */
-    public ImmutableSet<VeritProofNode> getGoodDefinitionsOfBadLiterals() {
-        return ImmutableSet.create(goodDefinitionsOfBadLiterals);
-    }
-
-    /**
-     * 
      * @return one good definition of a bad literal occurring in this proof, or
      *         <code>null</code> if no such node exists.
      */
-    public VeritProofNode getOneGoodDefinitionOfBadLiteral() {
+    private VeritProofNode getOneGoodDefinitionOfBadLiteral() {
         return goodDefinitionsOfBadLiterals.isEmpty() ? null
                 : goodDefinitionsOfBadLiterals.iterator().next();
     }
@@ -366,6 +360,8 @@ public class VeritProof {
                 return false;
             if (!root.getParents().isEmpty())
                 return false;
+            if (root.getProof() != this)
+                return false;
             this.root = root;
             return true;
         }
@@ -452,5 +448,94 @@ public class VeritProof {
         WeakReference<VeritProofNode> reference = nodeCache.get(ImmutableSet
                 .create(new HashSet<Formula>()));
         return reference == null ? null : reference.get();
+    }
+
+    /**
+     * Cleans the proof of bad literals
+     */
+    public void cleanProof() {
+        VeritProofNode currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
+        while (currentLeaf != null) {
+            cleanProof(currentLeaf);
+            assert (!this.proofSets.values().contains(currentLeaf));
+            assert (!this.goodDefinitionsOfBadLiterals.contains(currentLeaf));
+            currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
+        }
+        assert (this.isClean());
+        assert (this.checkProof());
+    }
+
+    /**
+     * Rewrites the proof to get rid of the given bad literal definition.
+     * 
+     * @param currentLeaf
+     *            a good definition of a bad literal
+     */
+    private void cleanProof(VeritProofNode currentLeaf) {
+        assert (currentLeaf.isLeaf());
+        assert (currentLeaf.isGoodDefinitionOfBadLiteral());
+
+        Formula badLiteral = currentLeaf.getDefinedBadLiteral();
+        assert (badLiteral != null);
+        Formula inverseBadLiteral = Util.invertLiteral(badLiteral);
+        List<Formula> definingLiterals = currentLeaf.getDefiningGoodLiterals();
+        assert (definingLiterals != null);
+
+        Map<Formula, VeritProofNode> resolvedDefiningLiterals = new HashMap<Formula, VeritProofNode>();
+
+        // Search for resolution of bad literal
+        VeritProofNode currentNode = currentLeaf;
+        while (!currentNode.resolvesOn(badLiteral)) {
+            assert (!currentNode.getParents().isEmpty());
+
+            Formula resolvingLiteral = currentNode.findResolvingLiteral();
+            Formula definingLiteral = null;
+            if (definingLiterals.contains(resolvingLiteral))
+                definingLiteral = resolvingLiteral;
+            if (definingLiterals.contains(Util.invertLiteral(resolvingLiteral)))
+                definingLiteral = Util.invertLiteral(resolvingLiteral);
+            if (definingLiteral != null) {
+                // Record which definition literals are resolved along the path
+                if (currentNode.resolvesOn(definingLiteral))
+                    resolvedDefiningLiterals
+                            .put(definingLiteral,
+                                    currentNode
+                                            .getChildWithLiteralInOppositePolarity(definingLiteral));
+            }
+            currentNode = currentNode.getParents().get(0);
+        }
+
+        // Go back up the other way, record the path
+        Stack<VeritProofNode> path = new Stack<VeritProofNode>();
+        while (!currentNode.getSubProofs().isEmpty()) {
+            for (VeritProofNode currentChild : currentNode.getSubProofs()) {
+                if (currentChild.getLiteralConclusionsAsSet().contains(
+                        inverseBadLiteral)) {
+                    currentNode = currentChild;
+                    path.push(currentNode);
+                    break;
+                }
+            }
+        }
+        assert (currentNode.getSubProofs().isEmpty());
+
+        // Replace nodes on the path
+        currentNode = path.pop();
+        while (!path.isEmpty()) {
+            VeritProofNode nextNode = path.pop();
+
+            List<Formula> newConclusion = new ArrayList<Formula>();
+            for (Formula literal : currentNode.getLiteralConclusions()) {
+                if (literal.equals(inverseBadLiteral))
+                    newConclusion.addAll(definingLiterals);
+                else
+                    newConclusion.add(literal);
+            }
+
+            // TODO
+
+            currentNode = nextNode;
+        }
+
     }
 }
