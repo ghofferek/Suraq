@@ -673,4 +673,11 @@ public class VeritProofNode {
         return ImmutableSet.create(tmp);
     }
 
+    /**
+     * @return the <code>proof</code>
+     */
+    public VeritProof getProof() {
+        return proof;
+    }
+
 }

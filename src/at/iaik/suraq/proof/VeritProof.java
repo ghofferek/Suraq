@@ -272,7 +272,7 @@ public class VeritProof {
     }
 
     /**
-     * Performs the following checks on this proof.
+     * Performs the following checks on this proof:
      * <ul>
      * <li>Each node is a correct deduction</li>
      * <li>The parent-child-relations match</li>
@@ -280,16 +280,63 @@ public class VeritProof {
      * <li>All nodes in the cache and the goodDefinitionOfBadLiterals are also
      * in the proofSets</li>
      * <li>The root is not <code>null</code>, and belongs to the proofSets</li>
+     * <li>The root has no parents</li>
+     * <li>All nodes, except the root, have at least one parent</li>
+     * <li>For each node in the proofSets, there is a node with the same
+     * conclusion in the nodeCache</li>
      * </ul>
+     * Easy checks are performed first (early fail strategy).
      * 
      * @return <code>true</code> if this proof checks out correct.
      */
     public boolean checkProof() {
+        if (root == null)
+            return false;
+        if (!root.getParents().isEmpty())
+            return false;
+        if (proofSets.get(root.getName()) != root)
+            return false;
+
         for (VeritProofNode node : proofSets.values()) {
+            for (VeritProofNode child : node.getSubProofs()) {
+                if (!child.getParents().contains(node))
+                    return false;
+            }
+            for (VeritProofNode parent : node.getParents()) {
+                if (!parent.getSubProofs().contains(node))
+                    return false;
+            }
+
+            if (node.getProof() != this)
+                return false;
+
+            if (node != root) {
+                if (node.getParents().isEmpty())
+                    return false;
+            }
+
+            if (nodeCache.get(node.getLiteralConclusionsAsSet()) == null)
+                return false;
+            else if (nodeCache.get(node.getLiteralConclusionsAsSet()).get() == null)
+                return false;
+
             if (!node.checkProofNode())
                 return false;
         }
-        // TODO other checks mentioned above
+
+        for (VeritProofNode node : goodDefinitionsOfBadLiterals) {
+            if (proofSets.get(node.getName()) != node)
+                return false;
+        }
+
+        for (WeakReference<VeritProofNode> reference : nodeCache.values()) {
+            if (reference.get() != null) {
+                if (proofSets.get(reference.get().getName()) != reference.get())
+                    return false;
+            }
+        }
+
+        // All checks passed
         return true;
     }
 
@@ -396,4 +443,14 @@ public class VeritProof {
         result.add(node);
     }
 
+    /**
+     * 
+     * @return a node in this proof that proves <code>false</code>, or
+     *         <code>null</code> if no such node exists
+     */
+    public VeritProofNode findNodeProvingFalse() {
+        WeakReference<VeritProofNode> reference = nodeCache.get(ImmutableSet
+                .create(new HashSet<Formula>()));
+        return reference == null ? null : reference.get();
+    }
 }
