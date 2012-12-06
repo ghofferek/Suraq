@@ -59,7 +59,7 @@ public class VeritProofNode {
     /**
      * A list of Parents
      */
-    private final List<VeritProofNode> parents;
+    private final Set<VeritProofNode> parents;
 
     /**
      * The proof this node belongs to.
@@ -86,9 +86,13 @@ public class VeritProofNode {
                 : new ImmutableArrayList<Formula>(conclusions);
         this.subProofs = clauses == null ? new ArrayList<VeritProofNode>()
                 : new ArrayList<VeritProofNode>(clauses);
-        this.parents = new ArrayList<VeritProofNode>();
+        for (VeritProofNode child : subProofs)
+            child.addParent(this);
+        this.parents = new HashSet<VeritProofNode>();
         this.iargs = iargs;
         this.proof = proof;
+
+        assert (this.checkProofNode());
     }
 
     public String getName() {
@@ -157,9 +161,9 @@ public class VeritProofNode {
      * @return an immutable copy of parents. Will be empty if this is a/the root
      *         node.
      */
-    public ImmutableArrayList<VeritProofNode> getParents() {
+    public ImmutableSet<VeritProofNode> getParents() {
         assert (parents != null);
-        return new ImmutableArrayList<VeritProofNode>(parents);
+        return ImmutableSet.create(parents);
     }
 
     /**

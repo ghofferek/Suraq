@@ -481,29 +481,32 @@ public class VeritProof {
         List<Formula> definingLiterals = currentLeaf.getDefiningGoodLiterals();
         assert (definingLiterals != null);
 
-        Map<Formula, VeritProofNode> resolvedDefiningLiterals = new HashMap<Formula, VeritProofNode>();
+        Map<Formula, VeritProofNode> resolvedLiterals = new HashMap<Formula, VeritProofNode>();
 
         // Search for resolution of bad literal
         VeritProofNode currentNode = currentLeaf;
+        VeritProofNode previousNode = null;
         while (!currentNode.resolvesOn(badLiteral)) {
             assert (!currentNode.getParents().isEmpty());
 
-            Formula resolvingLiteral = currentNode.findResolvingLiteral();
-            Formula definingLiteral = null;
-            if (definingLiterals.contains(resolvingLiteral))
-                definingLiteral = resolvingLiteral;
-            if (definingLiterals.contains(Util.invertLiteral(resolvingLiteral)))
-                definingLiteral = Util.invertLiteral(resolvingLiteral);
-            if (definingLiteral != null) {
-                // Record which definition literals are resolved along the path
-                if (currentNode.resolvesOn(definingLiteral))
-                    resolvedDefiningLiterals
-                            .put(definingLiteral,
-                                    currentNode
-                                            .getChildWithLiteralInOppositePolarity(definingLiteral));
+            // Record which literals are resolved along the path
+            if (previousNode != null) {
+                Formula resolvingLiteral = currentNode.findResolvingLiteral();
+                if (!previousNode.getLiteralConclusionsAsSet().contains(
+                        resolvingLiteral)) {
+                    resolvingLiteral = Util.invertLiteral(resolvingLiteral);
+                    assert (previousNode.getLiteralConclusionsAsSet()
+                            .contains(resolvingLiteral));
+                }
+                resolvedLiterals
+                        .put(Util.makeLiteralPositive(resolvingLiteral),
+                                currentNode
+                                        .getChildWithLiteralInOppositePolarity(resolvingLiteral));
             }
-            currentNode = currentNode.getParents().get(0);
+            previousNode = currentNode;
+            currentNode = currentNode.getParents().iterator().next();
         }
+        VeritProofNode turningPoint = currentNode;
 
         // Go back up the other way, record the path
         Stack<VeritProofNode> path = new Stack<VeritProofNode>();
@@ -520,10 +523,10 @@ public class VeritProof {
         assert (currentNode.getSubProofs().isEmpty());
 
         // Replace nodes on the path
+        VeritProofNode oldPreviousNode = null;
+        VeritProofNode newPreviousNode = null;
         currentNode = path.pop();
-        while (!path.isEmpty()) {
-            VeritProofNode nextNode = path.pop();
-
+        while (true) {
             List<Formula> newConclusion = new ArrayList<Formula>();
             for (Formula literal : currentNode.getLiteralConclusions()) {
                 if (literal.equals(inverseBadLiteral))
@@ -532,10 +535,90 @@ public class VeritProof {
                     newConclusion.add(literal);
             }
 
-            // TODO
+            List<VeritProofNode> newClauses = new ArrayList<VeritProofNode>();
+            for (VeritProofNode node : currentNode.getSubProofs()) {
+                if (node == oldPreviousNode) {
+                    assert (newPreviousNode != null);
+                    newClauses.add(newPreviousNode);
+                } else
+                    newClauses.add(node);
+            }
 
-            currentNode = nextNode;
+            // check node cache for an existing node
+            VeritProofNode newNode = null;
+            WeakReference<VeritProofNode> reference = nodeCache
+                    .get(ImmutableSet.create(newConclusion));
+            if (reference != null)
+                newNode = reference.get();
+
+            if (newNode == null) {
+                newNode = new VeritProofNode("rep" + currentNode.getName(),
+                        currentNode.getType(), newConclusion, newClauses,
+                        currentNode.getIargs(), this);
+                nodeCache.put(ImmutableSet.create(newConclusion),
+                        new WeakReference<VeritProofNode>(newNode));
+            }
+
+            // update variables
+            newPreviousNode = newNode;
+            oldPreviousNode = currentNode;
+            if (path.isEmpty())
+                break;
+            else
+                currentNode = path.pop();
         }
 
+        assert (currentNode == turningPoint);
+
+        // Resolve literals that should already have been resolved before the
+        // turning point
+        while (true) {
+            Set<Formula> literalsToResolve = new HashSet<Formula>();
+            literalsToResolve.addAll(currentNode.getLiteralConclusionsAsSet());
+            literalsToResolve.removeAll(turningPoint
+                    .getLiteralConclusionsAsSet());
+            if (literalsToResolve.isEmpty())
+                break;
+
+            Formula literalToResolve = literalsToResolve.iterator().next();
+            assert (resolvedLiterals.containsKey(Util
+                    .makeLiteralPositive(literalToResolve)));
+
+            List<Formula> newConclusion = new ArrayList<Formula>();
+            newConclusion.addAll(currentNode.getLiteralConclusions());
+            newConclusion.addAll(resolvedLiterals.get(
+                    Util.makeLiteralPositive(literalToResolve))
+                    .getLiteralConclusionsAsSet());
+            newConclusion.remove(literalsToResolve);
+            newConclusion.remove(Util.invertLiteral(literalToResolve));
+
+            List<VeritProofNode> newClauses = new ArrayList<VeritProofNode>(2);
+            newClauses.add(resolvedLiterals.get(Util
+                    .makeLiteralPositive(literalToResolve)));
+            newClauses.add(currentNode);
+
+            VeritProofNode newNode = null;
+
+            WeakReference<VeritProofNode> reference = nodeCache
+                    .get(ImmutableSet.create(newConclusion));
+            if (reference != null)
+                newNode = reference.get();
+            if (newNode == null) {
+                newNode = new VeritProofNode("res."
+                        + newClauses.get(0).getName() + "."
+                        + newClauses.get(1).getName(), VeriTToken.RESOLUTION,
+                        newConclusion, newClauses, null, this);
+                nodeCache.put(ImmutableSet.create(newConclusion),
+                        new WeakReference<VeritProofNode>(newNode));
+            }
+            currentNode = newNode;
+        }
+
+        // Update parents of turning point
+        assert (turningPoint.getLiteralConclusionsAsSet().equals(currentNode
+                .getLiteralConclusionsAsSet()));
+        for (VeritProofNode parent : turningPoint.getParents()) {
+            parent.updateProofNode(turningPoint, currentNode);
+        }
     }
 }
