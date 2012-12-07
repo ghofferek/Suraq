@@ -501,6 +501,37 @@ public class Suraq implements Runnable {
     }
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
+            VeritProof proof, List<PropositionalVariable> controlVars) {
+
+        Timer timer = new Timer();
+        System.out.println("  Cleaning veriT proof...");
+        timer.start();
+        proof.cleanProof();
+        timer.stop();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+        assert (proof.isClean());
+
+        System.out.println("  Reordering resolution proof...");
+        timer.start();
+        TransformedZ3Proof recoveredProof = proof.reorderResolutionSteps();
+        timer.stop();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+
+        // create ITE-tree for every control signal
+        System.out.println("  Compute interpolants...");
+        timer.start();
+        Map<PropositionalVariable, Formula> iteTrees = recoveredProof
+                .createITETrees(controlVars, tseitinEncoding);
+        timer.stop();
+        System.out.println("    Done. (" + timer + ")");
+        timer.reset();
+
+        return iteTrees;
+    }
+
+    private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
             Z3Proof rootProof, List<PropositionalVariable> controlVars) {
 
         Timer timer = new Timer();
@@ -779,6 +810,8 @@ public class Suraq implements Runnable {
         printWelcome();
 
         SuraqOptions options = SuraqOptions.getInstance();
+        Map<PropositionalVariable, Formula> iteTrees = null;
+        File sourceFile = new File(options.getInput());
 
         if (options.getVeriTVarsCache() != null) {
 
@@ -834,7 +867,7 @@ public class Suraq implements Runnable {
             System.out.print("Prepare to parse the proof...");
             t.reset();
             t.start();
-            VeriTParser veriTParser;
+            VeriTParser veriTParser = null;
             try {
                 String filename = sc.getProofFile();
                 if (options.getVeriTFile() != null)
@@ -857,392 +890,321 @@ public class Suraq implements Runnable {
                 t.stop();
                 System.out.println(" Needed: " + t);
 
-                System.out.print("Get the proof... ");
+                System.out
+                        .print("Get the proof and remove unreachable nodes... ");
                 t.reset();
                 t.start();
                 VeritProof veritProof = veriTParser.getProof();
+                veritProof.removeUnreachableNodes();
                 t.stop();
                 System.out.println(" Needed: " + t);
-
-                // DebugHelper.getInstance().stringtoFile(veritProof.toString(),
-                // "~parsed-verit-enc.txt");
-                // t.stop();
-                // System.out.println("Written Proof to File. Needed: " + t);
-                // t.reset(); t.start();
-
-                VeriTProofAnalyzer vpa = new VeriTProofAnalyzer(veritProof);
-                /*
-                 * System.out.print("Analyze Paritions... "); t.reset();
-                 * t.start(); vpa.analyzePartitions(new File(
-                 * "./~verit-errors.txt"),// all errors in clauses new
-                 * File("./~verit-errors-unique.txt"),// unique lines when error
-                 * in clause new File("./~verit-errors-no-childs.txt") // only
-                 * clauses without childs ); t.stop();
-                 * System.out.println(" Needed: " + t);
-                 */
-
-                System.out
-                        .println("------------------------------------------");
-                System.out.print("analyzeBadLiteralsSat... ");
-                t.reset();
-                t.start();
-                vpa.analyzeBadLiteralsSat(new File(
-                        "./~verit-errors-unsatliterals.txt"));
-                t.stop();
-                System.out.println(" Needed: " + t);
-
-                System.out
-                        .println("------------------------------------------");
-                System.out.print("Removing Bad Literals... ");
-                t.reset();
-                t.start();
-                vpa.removeBadLiterals();
-                t.stop();
-                System.out.println(" Needed: " + t);
-
-                System.out
-                        .println("------------------------------------------");
-                System.out.print("analyzeBadLiteralsSat (2)... ");
-                t.reset();
-                t.start();
-                vpa.analyzeBadLiteralsSat(new File(
-                        "./~verit-errors-unsatliterals2.txt"));
-                t.stop();
-                System.out.println(" Needed: " + t);
-
-                System.out.print("Analyze Paritions... ");
-                t.reset();
-                t.start();
-
-                vpa.analyzePartitions(new File("./~verit-errors.txt"),// all
-                                                                      // errors
-                                                                      // in
-                                                                      // clauses
-                        new File("./~verit-errors-unique.txt"),// unique lines
-                                                               // when error in
-                                                               // clause
-                        new File("./~verit-errors-no-childs.txt") // only
-                                                                  // clauses
-                                                                  // without
-                                                                  // childs
-                );
-                t.stop();
-                System.out.println(" Needed: " + t);
-
+                iteTrees = proofTransformationAndInterpolation(veritProof,
+                        sc.getControlVars());
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
-            System.out
-                    .println("\nAborting the process. (This was the cached verit proof testing)");
-            return;
         } // End of using veriT in cache mode
+        else {
+            if (options.isVerbose())
+                System.out.println("Parsing input file "
+                        + sourceFile.toString());
 
-        File sourceFile = new File(options.getInput());
-        if (options.isVerbose())
-            System.out.println("Parsing input file " + sourceFile.toString());
+            File z3InputFile = new File(options.getZ3Input());
+            File z3ProofFile = new File(options.getZ3Proof());
+            File saveCacheFile = new File(options.getCacheFile());
+            File saveCacheSerial = new File(options.getCacheFileSerial());
 
-        File z3InputFile = new File(options.getZ3Input());
-        File z3ProofFile = new File(options.getZ3Proof());
-        File saveCacheFile = new File(options.getCacheFile());
-        File saveCacheSerial = new File(options.getCacheFileSerial());
+            boolean useCachedResults = false;
 
-        boolean useCachedResults = false;
+            if (z3InputFile.exists() && z3ProofFile.exists()
+                    && options.getCacheType() == SuraqOptions.CACHE_FILE
+                    && saveCacheFile.exists()) {
 
-        if (z3InputFile.exists() && z3ProofFile.exists()
-                && options.getCacheType() == SuraqOptions.CACHE_FILE
-                && saveCacheFile.exists()) {
+                Date inputFileDate = new Date(sourceFile.lastModified());
+                Date z3InputFileDate = new Date(z3InputFile.lastModified());
+                Date z3ProofFileDate = new Date(z3ProofFile.lastModified());
 
-            Date inputFileDate = new Date(sourceFile.lastModified());
-            Date z3InputFileDate = new Date(z3InputFile.lastModified());
-            Date z3ProofFileDate = new Date(z3ProofFile.lastModified());
+                if ((inputFileDate.getTime() <= z3InputFileDate.getTime())
+                        && (z3InputFileDate.getTime() <= z3ProofFileDate
+                                .getTime())) {
 
-            if ((inputFileDate.getTime() <= z3InputFileDate.getTime())
-                    && (z3InputFileDate.getTime() <= z3ProofFileDate.getTime())) {
-
-                useCachedResults = true;
-                System.out
-                        .println("INFO: using FILE cached intermediate results.");
-                System.out.println(z3ProofFile.toString());
-            }
-        }
-
-        if (z3InputFile.exists()
-                && options.getCacheType() == SuraqOptions.CACHE_SERIAL
-                && saveCacheSerial.exists()) {
-
-            Date inputFileDate = new Date(sourceFile.lastModified());
-            Date z3InputFileDate = new Date(z3InputFile.lastModified());
-            Date cacheFileDate = new Date(saveCacheSerial.lastModified());
-
-            if ((inputFileDate.getTime() <= z3InputFileDate.getTime())
-                    && (z3InputFileDate.getTime() <= cacheFileDate.getTime())) {
-
-                useCachedResults = true;
-                System.out
-                        .println("INFO: using SERIAL cached intermediate results.");
-                System.out.println(saveCacheSerial.toString());
-            }
-        }
-
-        String proof = null;
-        Z3Proof rootProof = null;
-        SaveCache intermediateVars = null;
-
-        if (!useCachedResults) {
-            System.out.println("start input transformations");
-            Timer inputTransformationTimer = new Timer();
-            inputTransformationTimer.start();
-
-            String z3InputStr = inputTransformations(sourceFile);
-            if (z3InputStr == null) // abort (not to crash on QBF-Enc)
-                return;
-
-            inputTransformationTimer.stop();
-            System.out.println("finished input transformations in "
-                    + inputTransformationTimer + ".\n");
-
-            // write z3Input to file //only if not read already from file
-            try {
-                FileWriter fstream = new FileWriter(z3InputFile);
-                fstream.write(z3InputStr);
-                fstream.close();
-            } catch (IOException exc) {
-                System.err.println("Error while writing to z3InputFile: "
-                        + options.getZ3Input());
-                exc.printStackTrace();
-                noErrors = false;
-            }
-
-            System.out.println("start proof calculation.");
-            Timer proofcalculationTimer = new Timer();
-            proofcalculationTimer.start();
-
-            if (VeriTSolver.isActive()) {
-                // TODO: chillebold: insert VeriTSolver here
-                VeriTSolver veriT = new VeriTSolver();
-                veriT.solve(z3InputStr);
-                System.out.println("VeriTSolver returned!");
-
-                @SuppressWarnings("unused")
-                SaveCache saveCache = new SaveCache(
-                        propsitionalVars, //
-                        domainVars, //
-                        arrayVars, //
-                        uninterpretedFunctions, //
-                        null, // control vars
-                        mainFormula, assertPartitionFormulas, tseitinEncoding,
-                        "verit-save-cache.tmp", veriT.getProofFile(), // filename
-                        noDependenceVarsCopies, //
-                        noDependenceFunctionsCopies);
-
-                VeriTParser veriTParser;
-                try {
-                    veriTParser = new VeriTParser(veriT.getStream(),
-                            mainFormula, tseitinEncoding.keySet(),
-                            noDependenceVarsCopies.values(),
-                            noDependenceFunctionsCopies);
-                    veriTParser.parse();
-                    VeritProof veritProof = veriTParser.getProof();
-                    DebugHelper.getInstance().stringtoFile(
-                            veritProof.toString(), "~parsed-verit-enc.txt");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
+                    useCachedResults = true;
+                    System.out
+                            .println("INFO: using FILE cached intermediate results.");
+                    System.out.println(z3ProofFile.toString());
                 }
-
-                return; // this is used to stop the further calculations
-
-                // END
             }
 
-            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
-                    SuraqOptions.getZ3_4Path());
-            z3.solve(z3InputStr);
-            z3InputStr = null; // Allow this to be garbage collected
+            if (z3InputFile.exists()
+                    && options.getCacheType() == SuraqOptions.CACHE_SERIAL
+                    && saveCacheSerial.exists()) {
 
-            switch (z3.getState()) {
-            case SMTSolver.UNSAT:
-                break;
-            case SMTSolver.SAT:
-                noErrors = false;
-                System.err.println("Z3 tells us SAT.");
-                throw (new RuntimeException("Z3 tells us SAT."));
-            default:
-                noErrors = false;
-                System.out
-                        .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
-                throw (new RuntimeException(
-                        "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+                Date inputFileDate = new Date(sourceFile.lastModified());
+                Date z3InputFileDate = new Date(z3InputFile.lastModified());
+                Date cacheFileDate = new Date(saveCacheSerial.lastModified());
+
+                if ((inputFileDate.getTime() <= z3InputFileDate.getTime())
+                        && (z3InputFileDate.getTime() <= cacheFileDate
+                                .getTime())) {
+
+                    useCachedResults = true;
+                    System.out
+                            .println("INFO: using SERIAL cached intermediate results.");
+                    System.out.println(saveCacheSerial.toString());
+                }
             }
 
-            proofcalculationTimer.stop();
-            System.out.println("finished proof calculation in "
-                    + proofcalculationTimer + ".\n");
+            String proof = null;
+            Z3Proof rootProof = null;
+            SaveCache intermediateVars = null;
 
-            // write z3Proof to file
-            if (z3.getState() == SMTSolver.UNSAT) {
-                Suraq.extTimer.stopReset("UNSAT :-)");
-                System.out.println("UNSAT");
-                proof = z3.getProof();
+            if (!useCachedResults) {
+                System.out.println("start input transformations");
+                Timer inputTransformationTimer = new Timer();
+                inputTransformationTimer.start();
 
+                String z3InputStr = inputTransformations(sourceFile);
+                if (z3InputStr == null) // abort (not to crash on QBF-Enc)
+                    return;
+
+                inputTransformationTimer.stop();
+                System.out.println("finished input transformations in "
+                        + inputTransformationTimer + ".\n");
+
+                // write z3Input to file //only if not read already from file
                 try {
-                    System.err.println(Suraq.extTimer);
-                    System.out.println("writing proof to: " + z3ProofFile);
-                    FileWriter fstream = new FileWriter(z3ProofFile);
-                    fstream.write(z3.getProof());
+                    FileWriter fstream = new FileWriter(z3InputFile);
+                    fstream.write(z3InputStr);
                     fstream.close();
                 } catch (IOException exc) {
-                    System.err.println("Error while writing to z3ProofFile: "
-                            + options.getZ3Proof());
+                    System.err.println("Error while writing to z3InputFile: "
+                            + options.getZ3Input());
                     exc.printStackTrace();
                     noErrors = false;
                 }
-            } else {
-                Suraq.extTimer.abortReset("SAT :-(");
-                System.out.println("SAT");
-                proof = z3.getProof();
 
-                try {
-                    System.err.println(Suraq.extTimer);
-                    System.out.println("writing proof to: " + z3ProofFile);
-                    FileWriter fstream = new FileWriter(z3ProofFile);
-                    fstream.write(z3.getProof());
-                    fstream.close();
-                } catch (IOException exc) {
-                    System.err.println("Error while writing to z3ProofFile: "
-                            + options.getZ3Proof());
-                    exc.printStackTrace();
-                    noErrors = false;
-                }
-            }
-            z3 = null; // Allow this to be garbage collected
+                System.out.println("start proof calculation.");
+                Timer proofcalculationTimer = new Timer();
+                proofcalculationTimer.start();
 
-            assert (proof.length() > 0); // added by chillebold
-
-            rootProof = parseProof(proof, propsitionalVars, domainVars,
-                    arrayVars, uninterpretedFunctions);
-
-            proof = null; // Allow this to be garbage collected
-
-            assert (rootProof != null);
-
-            // write intermediate variables to file, if caching is enabled
-            String filename;
-            if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
-                filename = saveCacheFile.getPath();
-                intermediateVars = new SaveCache(propsitionalVars, domainVars,
-                        arrayVars, uninterpretedFunctions,
-                        logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, tseitinEncoding, null,
-                        ImmutableSet.getInstances(),
-                        ImmutableSet.getUniqueElements(), filename);
-            } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
-                filename = saveCacheSerial.getPath();
-                intermediateVars = new SaveCache(propsitionalVars, domainVars,
-                        arrayVars, uninterpretedFunctions,
-                        logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, tseitinEncoding, rootProof,
-                        ImmutableSet.getInstances(),
-                        ImmutableSet.getUniqueElements(), filename);
-            } else {
-                intermediateVars = new SaveCache(propsitionalVars, domainVars,
-                        arrayVars, uninterpretedFunctions,
-                        logicParser.getControlVariables(), mainFormula,
-                        assertPartitionFormulas, tseitinEncoding, null,
-                        ImmutableSet.getInstances(),
-                        ImmutableSet.getUniqueElements(), null);
-            }
-
-            logicParser = null; // Allow this to be garbage collected
-            assertPartitionFormulas = null; // Allow this to be garbage
-                                            // collected
-
-        } else { // use cached files
-            try {
-
-                if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
-                    // read proof from file
-
-                    Timer loadTimer = new Timer();
-                    loadTimer.start();
-
-                    FileReader reader = new FileReader(z3ProofFile);
-                    BufferedReader bufferedReader = new BufferedReader(reader);
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String currentLine = bufferedReader.readLine();
-                    String ls = System.getProperty("line.separator");
-                    while (currentLine != null) {
-                        stringBuilder.append(currentLine);
-                        stringBuilder.append(ls);
-                        currentLine = bufferedReader.readLine();
+                if (VeriTSolver.isActive()) {
+                    VeriTSolver veriT = new VeriTSolver();
+                    veriT.solve(z3InputStr);
+                    System.out.println("VeriTSolver returned!");
+                    VeriTParser veriTParser;
+                    try {
+                        veriTParser = new VeriTParser(veriT.getStream(),
+                                mainFormula, tseitinEncoding.keySet(),
+                                noDependenceVarsCopies.values(),
+                                noDependenceFunctionsCopies);
+                        veriTParser.parse();
+                        VeritProof veritProof = veriTParser.getProof();
+                        veritProof.removeUnreachableNodes();
+                        DebugHelper.getInstance().stringtoFile(
+                                veritProof.toString(), "~parsed-verit-enc.txt");
+                        iteTrees = proofTransformationAndInterpolation(
+                                veritProof, logicParser.getControlVariables());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
-                    bufferedReader.close();
-                    reader.close();
 
-                    proof = stringBuilder.toString();
+                    // END
+                }
 
-                    intermediateVars = SaveCache
-                            .loadSaveCacheFromFile(saveCacheFile.getPath());
+                SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                        SuraqOptions.getZ3_4Path());
+                z3.solve(z3InputStr);
+                z3InputStr = null; // Allow this to be garbage collected
 
-                    mainFormula = intermediateVars.getMainFormula();
-                    // assertPartitionFormulas = intermediateVars
-                    // .getAssertPartitionFormulas();
-                    tseitinEncoding = intermediateVars.getTseitinEncoding();
+                switch (z3.getState()) {
+                case SMTSolver.UNSAT:
+                    break;
+                case SMTSolver.SAT:
+                    noErrors = false;
+                    System.err.println("Z3 tells us SAT.");
+                    throw (new RuntimeException("Z3 tells us SAT."));
+                default:
+                    noErrors = false;
+                    System.out
+                            .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
+                    throw (new RuntimeException(
+                            "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+                }
 
-                    rootProof = parseProof(proof,
-                            intermediateVars.getPropsitionalVars(),
-                            intermediateVars.getDomainVars(),
-                            intermediateVars.getArrayVars(),
-                            intermediateVars.getUninterpretedFunctions());
-                    loadTimer.stop();
-                    System.out.println("Cached proof loaded and parsed in: "
-                            + loadTimer);
-                    assert (rootProof != null);
+                proofcalculationTimer.stop();
+                System.out.println("finished proof calculation in "
+                        + proofcalculationTimer + ".\n");
 
+                // write z3Proof to file
+                if (z3.getState() == SMTSolver.UNSAT) {
+                    Suraq.extTimer.stopReset("UNSAT :-)");
+                    System.out.println("UNSAT");
+                    proof = z3.getProof();
+
+                    try {
+                        System.err.println(Suraq.extTimer);
+                        System.out.println("writing proof to: " + z3ProofFile);
+                        FileWriter fstream = new FileWriter(z3ProofFile);
+                        fstream.write(z3.getProof());
+                        fstream.close();
+                    } catch (IOException exc) {
+                        System.err
+                                .println("Error while writing to z3ProofFile: "
+                                        + options.getZ3Proof());
+                        exc.printStackTrace();
+                        noErrors = false;
+                    }
+                } else {
+                    Suraq.extTimer.abortReset("SAT :-(");
+                    System.out.println("SAT");
+                    proof = z3.getProof();
+
+                    try {
+                        System.err.println(Suraq.extTimer);
+                        System.out.println("writing proof to: " + z3ProofFile);
+                        FileWriter fstream = new FileWriter(z3ProofFile);
+                        fstream.write(z3.getProof());
+                        fstream.close();
+                    } catch (IOException exc) {
+                        System.err
+                                .println("Error while writing to z3ProofFile: "
+                                        + options.getZ3Proof());
+                        exc.printStackTrace();
+                        noErrors = false;
+                    }
+                }
+                z3 = null; // Allow this to be garbage collected
+
+                assert (proof.length() > 0); // added by chillebold
+
+                rootProof = parseProof(proof, propsitionalVars, domainVars,
+                        arrayVars, uninterpretedFunctions);
+
+                proof = null; // Allow this to be garbage collected
+
+                assert (rootProof != null);
+
+                // write intermediate variables to file, if caching is enabled
+                String filename;
+                if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
+                    filename = saveCacheFile.getPath();
+                    intermediateVars = new SaveCache(propsitionalVars,
+                            domainVars, arrayVars, uninterpretedFunctions,
+                            logicParser.getControlVariables(), mainFormula,
+                            assertPartitionFormulas, tseitinEncoding, null,
+                            ImmutableSet.getInstances(),
+                            ImmutableSet.getUniqueElements(), filename);
                 } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
-                    Timer loadTimer = new Timer();
-                    loadTimer.start();
-                    intermediateVars = SaveCache
-                            .loadSaveCacheFromFile(saveCacheSerial.getPath());
+                    filename = saveCacheSerial.getPath();
+                    intermediateVars = new SaveCache(propsitionalVars,
+                            domainVars, arrayVars, uninterpretedFunctions,
+                            logicParser.getControlVariables(), mainFormula,
+                            assertPartitionFormulas, tseitinEncoding,
+                            rootProof, ImmutableSet.getInstances(),
+                            ImmutableSet.getUniqueElements(), filename);
+                } else {
+                    intermediateVars = new SaveCache(propsitionalVars,
+                            domainVars, arrayVars, uninterpretedFunctions,
+                            logicParser.getControlVariables(), mainFormula,
+                            assertPartitionFormulas, tseitinEncoding, null,
+                            ImmutableSet.getInstances(),
+                            ImmutableSet.getUniqueElements(), null);
+                }
 
-                    mainFormula = intermediateVars.getMainFormula();
-                    // assertPartitionFormulas = intermediateVars
-                    // .getAssertPartitionFormulas();
-                    tseitinEncoding = intermediateVars.getTseitinEncoding();
+                logicParser = null; // Allow this to be garbage collected
+                assertPartitionFormulas = null; // Allow this to be garbage
+                                                // collected
 
-                    loadTimer.stop();
-                    System.out.println("Serialized cache loaded in: "
-                            + loadTimer);
-                    rootProof = intermediateVars.getProof();
+            } else { // use cached files
+                try {
 
-                    assert (rootProof != null);
+                    if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
+                        // read proof from file
 
-                } else
-                    throw new RuntimeException(
-                            "loading from cache, but cache not enabled!!");
+                        Timer loadTimer = new Timer();
+                        loadTimer.start();
 
-            } catch (IOException exc) {
-                System.out.println("ERROR: Could not read cached proof!");
+                        FileReader reader = new FileReader(z3ProofFile);
+                        BufferedReader bufferedReader = new BufferedReader(
+                                reader);
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String currentLine = bufferedReader.readLine();
+                        String ls = System.getProperty("line.separator");
+                        while (currentLine != null) {
+                            stringBuilder.append(currentLine);
+                            stringBuilder.append(ls);
+                            currentLine = bufferedReader.readLine();
+                        }
+                        bufferedReader.close();
+                        reader.close();
+
+                        proof = stringBuilder.toString();
+
+                        intermediateVars = SaveCache
+                                .loadSaveCacheFromFile(saveCacheFile.getPath());
+
+                        mainFormula = intermediateVars.getMainFormula();
+                        // assertPartitionFormulas = intermediateVars
+                        // .getAssertPartitionFormulas();
+                        tseitinEncoding = intermediateVars.getTseitinEncoding();
+
+                        rootProof = parseProof(proof,
+                                intermediateVars.getPropsitionalVars(),
+                                intermediateVars.getDomainVars(),
+                                intermediateVars.getArrayVars(),
+                                intermediateVars.getUninterpretedFunctions());
+                        loadTimer.stop();
+                        System.out
+                                .println("Cached proof loaded and parsed in: "
+                                        + loadTimer);
+                        assert (rootProof != null);
+
+                    } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
+                        Timer loadTimer = new Timer();
+                        loadTimer.start();
+                        intermediateVars = SaveCache
+                                .loadSaveCacheFromFile(saveCacheSerial
+                                        .getPath());
+
+                        mainFormula = intermediateVars.getMainFormula();
+                        // assertPartitionFormulas = intermediateVars
+                        // .getAssertPartitionFormulas();
+                        tseitinEncoding = intermediateVars.getTseitinEncoding();
+
+                        loadTimer.stop();
+                        System.out.println("Serialized cache loaded in: "
+                                + loadTimer);
+                        rootProof = intermediateVars.getProof();
+
+                        assert (rootProof != null);
+
+                    } else
+                        throw new RuntimeException(
+                                "loading from cache, but cache not enabled!!");
+
+                } catch (IOException exc) {
+                    System.out.println("ERROR: Could not read cached proof!");
+                }
             }
+
+            System.out
+                    .println("start proof transformations and interpolation calculations.");
+            Timer interpolationTimer = new Timer();
+            interpolationTimer.start();
+
+            List<PropositionalVariable> controlVars = intermediateVars
+                    .getControlVars();
+            intermediateVars = null; // Allow this to be garbage collected
+            iteTrees = proofTransformationAndInterpolation(rootProof,
+                    controlVars);
+            rootProof = null; // Allow this to be garbage collected
+            interpolationTimer.stop();
+            System.out
+                    .println("finished proof transformations and interpolation calculations in "
+                            + interpolationTimer + ".\n");
         }
-
-        System.out
-                .println("start proof transformations and interpolation calculations.");
-        Timer interpolationTimer = new Timer();
-        interpolationTimer.start();
-
-        List<PropositionalVariable> controlVars = intermediateVars
-                .getControlVars();
-        intermediateVars = null; // Allow this to be garbage collected
-        Map<PropositionalVariable, Formula> iteTrees = proofTransformationAndInterpolation(
-                rootProof, controlVars);
-        rootProof = null; // Allow this to be garbage collected
-        interpolationTimer.stop();
-        System.out
-                .println("finished proof transformations and interpolation calculations in "
-                        + interpolationTimer + ".\n");
-
         String outputStr = createOutputString(sourceFile, iteTrees);
 
         if (options.isCheckResult()) {

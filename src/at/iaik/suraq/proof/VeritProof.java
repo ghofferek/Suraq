@@ -79,7 +79,7 @@ public class VeritProof {
     public VeritProofNode addProofSet(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs) {
-        return addProofSet(name, type, conclusions, clauses, iargs, false);
+        return addProofSet(name, type, conclusions, clauses, iargs, true);
     }
 
     /**
@@ -119,6 +119,11 @@ public class VeritProof {
             if (reference != null) {
                 node = reference.get();
             }
+        }
+        if (type.equals(VeriTToken.AND) || type.equals(VeriTToken.OR)) {
+            type = VeriTToken.INPUT;
+            clauses = new ArrayList<VeritProofNode>();
+            iargs = null;
         }
         if (node == null)
             node = new VeritProofNode(name, type, conclusions, clauses, iargs,
