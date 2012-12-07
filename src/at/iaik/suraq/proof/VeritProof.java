@@ -12,8 +12,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import at.iaik.suraq.resProof.Lit;
+import at.iaik.suraq.resProof.ResNode;
+import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Stack;
 import at.iaik.suraq.util.Util;
@@ -620,5 +626,135 @@ public class VeritProof {
         for (VeritProofNode parent : turningPoint.getParents()) {
             parent.updateProofNode(turningPoint, currentNode);
         }
+    }
+
+    /**
+     * Reorders the resolutions steps in this proof so that locals come first.
+     * 
+     * @return the recovered proof, after reordering
+     */
+    public TransformedZ3Proof reorderResolutionSteps() {
+        ResProof resProof = new ResProof();
+
+        Map<String, Integer> literalsID = new HashMap<String, Integer>();
+        Map<VeritProofNode, ResNode> resNodes = new HashMap<VeritProofNode, ResNode>();
+        Map<Integer, Formula> literalMap = new HashMap<Integer, Formula>();
+
+        ResNode rootNode = createResProofRecursive(this.root, resProof,
+                literalsID, literalMap, resNodes);
+        resProof.setRoot(rootNode);
+
+        resProof.checkProof(false);
+        resProof.rmDoubleLits();
+        resProof.deLocalizeProof();
+        resProof.checkProof(false);
+        resProof.tranformResProofs();
+
+        TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
+                resProof.getRoot(), literalMap);
+
+        return recoveredProof;
+    }
+
+    /**
+     * @param node
+     *            the node to convert
+     * @param resProof
+     * @param literalsID
+     * @param literalMap
+     * @param resNodes
+     * @return the <code>ResNode</code> corresponding to the given
+     *         <code>node</code>.
+     */
+    private ResNode createResProofRecursive(VeritProofNode node,
+            ResProof resProof, Map<String, Integer> literalsID,
+            Map<Integer, Formula> literalMap,
+            Map<VeritProofNode, ResNode> resNodes) {
+
+        ResNode result = resNodes.get(node);
+        if (result != null)
+            return result;
+
+        Token proofType = node.getType();
+
+        if (proofType.equals(VeriTToken.INPUT)) {
+
+            OrFormula clause = node.getConclusionsAsOrFormula();
+            List<Lit> resClause = new ArrayList<Lit>();
+            // TODO: check if correct
+            Set<Integer> resClausePartitions = new HashSet<Integer>();
+
+            for (Formula literal : clause.getDisjuncts()) {
+                // assign literal IDs
+                Formula posLiteral = Util.makeLiteralPositive(literal);
+                assert (Util.isLiteral(posLiteral));
+                assert (Util.isAtom(posLiteral));
+                if (posLiteral.equals(PropositionalConstant.create(false))) {
+                    resClausePartitions.add(-1);
+                    continue;
+                }
+                Integer resLiteralID = literalsID.get(Util
+                        .makeIdString(posLiteral));
+                Set<Integer> partitions = literal.getPartitionsFromSymbols();
+                if (partitions.size() == 2)
+                    partitions.remove(-1);
+                assert (partitions.size() == 1);
+                int partition = partitions.iterator().next();
+                if (resLiteralID == null) {
+                    resLiteralID = literalsID.size() + 1;
+                    assert (!literalsID
+                            .containsValue(new Integer(resLiteralID)));
+                    literalsID.put(Util.makeIdString(posLiteral), resLiteralID);
+                    literalMap.put(resLiteralID, posLiteral);
+                    resProof.var_part[resLiteralID] = partition < 0 ? 0
+                            : partition;
+                }
+                resClause
+                        .add(new Lit(resLiteralID, Util.getSignValue(literal)));
+                resClausePartitions.add(partition);
+            }
+
+            // build leaf ResNodes
+            ResNode resLeafNode = resNodes.get(node);
+            if (resLeafNode == null) {
+                if (resClausePartitions.size() == 2)
+                    resClausePartitions.remove(-1);
+                assert (resClausePartitions.size() == 1);
+                int leafPartition = resClausePartitions.iterator().next();
+                if (node.isAxiom())
+                    leafPartition = 0; // axioms should go to 0
+                else if (leafPartition < 0)
+                    leafPartition = 1; // arbitrary choice
+                resLeafNode = resProof.addLeaf(resClause, leafPartition);
+                resNodes.put(node, resLeafNode);
+            }
+            return resLeafNode;
+
+        } else if (proofType.equals(VeriTToken.RESOLUTION)) {
+            assert (node.getSubProofs().size() == 2);
+            ResNode resIntNode = resNodes.get(node);
+            if (resIntNode == null) {
+                VeritProofNode child1 = node.getSubProofs().get(0);
+                VeritProofNode child2 = node.getSubProofs().get(1);
+                ResNode resNode1 = createResProofRecursive(child1, resProof,
+                        literalsID, literalMap, resNodes);
+                ResNode resNode2 = createResProofRecursive(child2, resProof,
+                        literalsID, literalMap, resNodes);
+
+                // build literal of resolution
+                Formula posLiteral = Util.makeLiteralPositive(node
+                        .findResolvingLiteral());
+                Integer literalID = literalsID.get(Util
+                        .makeIdString(posLiteral));
+                assert (literalID != null);
+                resIntNode = resProof.addIntNode(null, resNode1, resNode2,
+                        literalID);
+                resNodes.put(node, resIntNode);
+            }
+            return resIntNode;
+
+        } else
+            throw new RuntimeException(
+                    "Proof should only consist of input and resolution elements");
     }
 }

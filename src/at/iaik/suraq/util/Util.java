@@ -109,9 +109,10 @@ public final class Util {
         }
         throw new RuntimeException("Could not create fresh variable name.");
     }
-    
+
     @Deprecated
-    public static final String freshVarName(Formula formula, String prefix, Set<String> instances) {
+    public static final String freshVarName(Formula formula, String prefix,
+            Set<String> instances) {
         Set<ArrayVariable> arrayVars = formula.getArrayVariables();
         Set<DomainVariable> domainVars = formula.getDomainVariables();
         Set<PropositionalVariable> propVars = formula
@@ -132,8 +133,8 @@ public final class Util {
                 continue;
             if (macroNames.contains(name))
                 continue;
-            if(instances.contains(name))
-            	continue;
+            if (instances.contains(name))
+                continue;
             return name;
         }
         throw new RuntimeException("Could not create fresh variable name.");
@@ -143,32 +144,32 @@ public final class Util {
     static Set<Object> lostNames = new HashSet<Object>();
 
     public static final String freshVarNameCached(Formula formula, String prefix) {
-        return freshVarNameCached(formula, prefix, null);
+        return Util.freshVarNameCached(formula, prefix, null);
     }
 
     public static final String freshVarNameCached(Formula formula,
             String prefix, Set<String> instances) {
-        if (lastFormula != formula) {
+        if (Util.lastFormula != formula) {
             System.out.println("*** New Formula detected. Building lostNames.");
-            lastFormula = formula;
-            lostNames.clear();
+            Util.lastFormula = formula;
+            Util.lostNames.clear();
             // hashcode must be varname.hashcode() !!!
-            lostNames.addAll(formula.getArrayVariables());
-            lostNames.addAll(formula.getDomainVariables());
-            lostNames.addAll(formula.getPropositionalVariables());
-            lostNames.addAll(formula.getUninterpretedFunctionNames());
-            lostNames.addAll(formula.getFunctionMacroNames());
+            Util.lostNames.addAll(formula.getArrayVariables());
+            Util.lostNames.addAll(formula.getDomainVariables());
+            Util.lostNames.addAll(formula.getPropositionalVariables());
+            Util.lostNames.addAll(formula.getUninterpretedFunctionNames());
+            Util.lostNames.addAll(formula.getFunctionMacroNames());
         }
 
         int count = -1;
         while (++count >= 0) {
             String name = prefix + (count > 0 ? ("_fresh" + count) : "");
 
-            if (lostNames.contains(name))
+            if (Util.lostNames.contains(name))
                 continue;
             if (instances != null && instances.contains(name))
                 continue;
-            lostNames.add(name);
+            Util.lostNames.add(name);
             return name;
         }
         throw new RuntimeException("Could not create fresh variable name.");
@@ -547,7 +548,7 @@ public final class Util {
             return NotFormula.create(literal);
 
     }
-    
+
     /**
      * Checks if a given Formula is a literal. A literal is either an atom or a
      * negation of an atom. Also handles unit clauses.
@@ -621,9 +622,9 @@ public final class Util {
                                 .makeLiteralPositive(inverseLiteral)));
                 Formula reverseInverseLiteral = null;
                 if (Util.isNegativeLiteral(inverseLiteral))
-                    reverseInverseLiteral = Util
-                            .getSingleLiteral((NotFormula.create(reverseLiteral))
-                                    .transformToConsequentsForm());
+                    reverseInverseLiteral = Util.getSingleLiteral((NotFormula
+                            .create(reverseLiteral))
+                            .transformToConsequentsForm());
                 else
                     reverseInverseLiteral = Util
                             .getSingleLiteral(reverseLiteral
@@ -692,7 +693,15 @@ public final class Util {
         }
     }
 
-    private static String makeIdString(Formula formula) {
+    /**
+     * Makes an ID string for the given positive literal, so that (a=b) (a!=b)
+     * (b!=a) (b=a) all have the same ID.
+     * 
+     * @param formula
+     *            a (positive!) literal
+     * @return the ID string for <code>formula</code>.
+     */
+    public static String makeIdString(Formula formula) {
 
         assert (!(formula instanceof NotFormula));
         assert (Util.isLiteral(formula));
@@ -712,7 +721,14 @@ public final class Util {
                     .replaceAll("\\s{2,}", " ");
     }
 
-    private static boolean getSignValue(Formula literal) {
+    /**
+     * Determines the sign of a given literal.
+     * 
+     * @param literal
+     *            the literal to check
+     * @return the sign value of <code>literal</code>.
+     */
+    public static boolean getSignValue(Formula literal) {
 
         assert (Util.isLiteral(literal));
         boolean sign = true;

@@ -13,6 +13,7 @@ import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
@@ -129,6 +130,11 @@ public class VeritProofNode {
      * @return a copied ArrayList of the conclusions
      */
     public OrFormula getConclusionsAsOrFormula() {
+        if (literalConclusions.isEmpty()) {
+            List<Formula> list = new ArrayList<Formula>(1);
+            list.add(PropositionalConstant.create(false));
+            return OrFormula.generate(list);
+        }
         return OrFormula.generate(literalConclusions);
     }
 
@@ -760,5 +766,21 @@ public class VeritProofNode {
         }
         assert (false);
         return null;
+    }
+
+    /**
+     * @return <code>true</code> if this is an axiom.
+     */
+    public boolean isAxiom() {
+        if (type.equals(VeriTToken.EQ_CONGRUENT))
+            return true;
+        if (type.equals(VeriTToken.EQ_CONGRUENT_PRED))
+            return true;
+        if (type.equals(VeriTToken.EQ_REFLEXIVE))
+            return true;
+        if (type.equals(VeriTToken.EQ_TRANSITIVE))
+            return true;
+
+        return false;
     }
 }
