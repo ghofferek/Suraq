@@ -1105,4 +1105,27 @@ public final class Util {
     public static String formulaToStringWithoutNewlines(Formula formula) {
         return formula.toString().replaceAll("\\s{2,}", " ").replace("\n", "");
     }
+
+    /**
+     * Compares to clauses for (logical) equality. I.e., the order or literals
+     * is immaterial.
+     * 
+     * @param clause1
+     * @param clause2
+     * @return <code>true</code> if both given formulas are clauses and they are
+     *         logically equivalent.
+     */
+    public static boolean equalClauses(Formula clause1, Formula clause2) {
+        if (!(clause1 instanceof OrFormula))
+            return false;
+        if (!(clause2 instanceof OrFormula))
+            return false;
+
+        if (clause1.equals(clause2))
+            return true;
+
+        return (new HashSet<Formula>(((OrFormula) clause1).getDisjuncts()))
+                .equals((new HashSet<Formula>(((OrFormula) clause2)
+                        .getDisjuncts())));
+    }
 }

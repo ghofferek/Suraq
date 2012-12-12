@@ -659,7 +659,7 @@ public class TransformedZ3Proof extends Z3Proof {
                         .getNodeWithConsequent(subProof.consequent,
                                 subProof.getHypothesisFormulas(),
                                 newObsoleteLiterals).getConsequent();
-                
+
                 if (subProof != update) {
                     subProof.removeParent(this);
                     this.subProofs.set(count, update);
@@ -1025,7 +1025,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     this.subProofs.set(count, newProof);
                     newProof.addParent(this);
                     newProof.setHasBeenMadeLocal();
-                    
+
                     Z3Proof.hypModCount++;
                     this.markHypCacheDirty();
                     TransformedZ3Proof.annotatedNodesStack.peekFirst().add(
@@ -1341,8 +1341,8 @@ public class TransformedZ3Proof extends Z3Proof {
                     SExpressionConstants.SYMMETRY, subProofs,
                     z3Proof.consequent);
 
-            //assert (z3Proof.getHypotheses().size() == result.getHypotheses()
-            //       .size()); // DEBUG
+            // assert (z3Proof.getHypotheses().size() == result.getHypotheses()
+            // .size()); // DEBUG
             return result;
         }
 
@@ -1889,10 +1889,10 @@ public class TransformedZ3Proof extends Z3Proof {
         EqualityFormula consequent = null;
         if (function.getType().equals(SExpressionConstants.VALUE_TYPE)) {
             try {
-                UninterpretedFunctionInstance leftInstance = UninterpretedFunctionInstance.create(
-                        function, leftParams);
-                UninterpretedFunctionInstance rightInstance = UninterpretedFunctionInstance.create(
-                        function, rightParams);
+                UninterpretedFunctionInstance leftInstance = UninterpretedFunctionInstance
+                        .create(function, leftParams);
+                UninterpretedFunctionInstance rightInstance = UninterpretedFunctionInstance
+                        .create(function, rightParams);
                 List<DomainTerm> functionInstances = new ArrayList<DomainTerm>();
                 functionInstances.add(leftInstance);
                 functionInstances.add(rightInstance);
@@ -1913,10 +1913,10 @@ public class TransformedZ3Proof extends Z3Proof {
         } else {
             assert (function.getType().equals(SExpressionConstants.BOOL_TYPE));
             try {
-                UninterpretedPredicateInstance leftInstance = UninterpretedPredicateInstance.create(
-                        function, leftParams);
-                UninterpretedPredicateInstance rightInstance = UninterpretedPredicateInstance.create(
-                        function, rightParams);
+                UninterpretedPredicateInstance leftInstance = UninterpretedPredicateInstance
+                        .create(function, leftParams);
+                UninterpretedPredicateInstance rightInstance = UninterpretedPredicateInstance
+                        .create(function, rightParams);
                 List<UninterpretedPredicateInstance> functionInstances = new ArrayList<UninterpretedPredicateInstance>();
                 functionInstances.add(leftInstance);
                 functionInstances.add(rightInstance);
@@ -2102,17 +2102,17 @@ public class TransformedZ3Proof extends Z3Proof {
             assert (this.subProofs.get(0) instanceof TransformedZ3Proof);
             TransformedZ3Proof hypotheticalProof = (TransformedZ3Proof) this.subProofs
                     .get(0);
-            assert (hypotheticalProof.consequent
-                    .equals((PropositionalConstant.create(false))
-                            .transformToConsequentsForm()) || hypotheticalProof.consequent
-                    .equals(this.consequent));
+            assert (hypotheticalProof.consequent.equals((PropositionalConstant
+                    .create(false)).transformToConsequentsForm()) || Util
+                    .equalClauses(this.consequent, hypotheticalProof.consequent));
 
-            if (hypotheticalProof.consequent.equals(PropositionalConstant.create(
-                    false).transformToConsequentsForm())) {
+            if (hypotheticalProof.consequent.equals(PropositionalConstant
+                    .create(false).transformToConsequentsForm())) {
                 hypotheticalProof.toResolutionProofRecursion(operationId);
                 hypotheticalProof.removeHypotheses();
             } else {
-                assert (hypotheticalProof.consequent.equals(this.consequent));
+                assert (Util.equalClauses(this.consequent,
+                        hypotheticalProof.consequent));
             }
 
             this.takeValuesFrom(hypotheticalProof);

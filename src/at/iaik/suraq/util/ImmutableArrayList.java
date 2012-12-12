@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Set;
 
 /**
  * @author Christoph Hillebold <c.hillebold@student.tugraz.at>
@@ -260,7 +259,7 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (!(obj instanceof Set))
+        if (!(obj instanceof ImmutableArrayList))
             return false;
         if (this.hashCode != obj.hashCode())
             return false;
