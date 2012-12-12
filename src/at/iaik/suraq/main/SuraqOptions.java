@@ -28,13 +28,12 @@ public final class SuraqOptions {
      */
     public static final int TSEITIN_WITH_Z3 = 0;
     public static final int TSEITIN_WITHOUT_Z3 = 1;
-    
+
     private static final boolean performAckermannDefault = false;
     private static final boolean performITEEquationReductionDefault = false;
     private static final boolean performGraphReductionDefault = false;
     private static final boolean performQBFEncoderDefault = false;
     private static final boolean performVeriTSolverDefault = false;
-
 
     /**
      * Default value for verbose option.
@@ -55,7 +54,7 @@ public final class SuraqOptions {
      * Default value for tseitin option.
      */
     private static final int tseitinDefault = SuraqOptions.TSEITIN_WITHOUT_Z3;
-    //private static final int tseitinDefault = SuraqOptions.TSEITIN_WITH_Z3;
+    // private static final int tseitinDefault = SuraqOptions.TSEITIN_WITH_Z3;
 
     /**
      * Default value for input option.
@@ -71,13 +70,16 @@ public final class SuraqOptions {
      * Default value for z3proof option.
      */
     private static String z3ProofDefault = "suraq_z3_proof.smt2";
-    
+
     /**
      * Default value for output option.
      */
     private static String outputDefault = "suraq_output.smt2";
-    
 
+    /**
+     * Default value for solver option.
+     */
+    private static final String solverDefault = "veriT";
 
     /**
      * The cache file name.
@@ -89,7 +91,6 @@ public final class SuraqOptions {
      */
     private static String cacheFileSerial = "savecache.serial.db";
 
-
     private final Boolean performAckermann;
     private final Boolean performITEEquationReduction;
     private final Boolean performGraphReduction;
@@ -98,7 +99,7 @@ public final class SuraqOptions {
 
     private final String veriTVars;
     private final String veriTFile;
-    
+
     /**
      * The value of the verbose option.
      */
@@ -140,6 +141,11 @@ public final class SuraqOptions {
     private final String outputValue;
 
     /**
+     * The value of the solver option.
+     */
+    private final String solverValue;
+
+    /**
      * The parser that stores the (parsed) command-line options.
      */
     private final CmdLineParser cmdLineParser = new CmdLineParser();
@@ -159,8 +165,7 @@ public final class SuraqOptions {
      */
     private static final String z3_4Path = "lib/z3-4.0/bin/z3";
 
-    public static void reset()
-    {   
+    public static void reset() {
         SuraqOptions.inputDefault = "suraq_input.smt2";
         SuraqOptions.z3InputDefault = "suraq_z3_input.smt2";
         SuraqOptions.z3ProofDefault = "suraq_z3_proof.smt2";
@@ -168,7 +173,7 @@ public final class SuraqOptions {
         SuraqOptions.cacheFile = "savecache.db";
         SuraqOptions.cacheFileSerial = "savecache.serial.db";
     }
-    
+
     /**
      * 
      * Constructs the singleton <code>SuraqOptions</code> instance.
@@ -195,30 +200,37 @@ public final class SuraqOptions {
                 .addBooleanOption("check_result");
         Option cacheOption = cmdLineParser.addIntegerOption('c', "cache");
         Option tseitinOption = cmdLineParser.addIntegerOption("tseitin");
-        
 
-        Option ackermannOption = cmdLineParser.addBooleanOption("perform-ackermann");
-        Option itereductionOption = cmdLineParser.addBooleanOption("perform-itereduction");
-        Option graphReductionOption = cmdLineParser.addBooleanOption("perform-graphreduction");
+        Option ackermannOption = cmdLineParser
+                .addBooleanOption("perform-ackermann");
+        Option itereductionOption = cmdLineParser
+                .addBooleanOption("perform-itereduction");
+        Option graphReductionOption = cmdLineParser
+                .addBooleanOption("perform-graphreduction");
         Option qbfOption = cmdLineParser.addBooleanOption("perform-qbf");
         Option veriTOption = cmdLineParser.addBooleanOption("perform-verit");
-        
+
         Option veriTVarsCache = cmdLineParser.addStringOption("veriTVarsCache");
         Option veriTFileOption = cmdLineParser.addStringOption("veriTFile");
-        
+
+        Option solverOption = cmdLineParser.addStringOption("solver");
+
         try {
             cmdLineParser.parse(args);
         } catch (OptionException exc) {
             throw new SuraqException("Error in parsing options.", exc);
         }
 
-
-        performAckermann = (Boolean) cmdLineParser.getOptionValue(ackermannOption);
-        performITEEquationReduction = (Boolean) cmdLineParser.getOptionValue(itereductionOption);
-        performGraphReduction = (Boolean) cmdLineParser.getOptionValue(graphReductionOption);
+        performAckermann = (Boolean) cmdLineParser
+                .getOptionValue(ackermannOption);
+        performITEEquationReduction = (Boolean) cmdLineParser
+                .getOptionValue(itereductionOption);
+        performGraphReduction = (Boolean) cmdLineParser
+                .getOptionValue(graphReductionOption);
         performQBFEncoder = (Boolean) cmdLineParser.getOptionValue(qbfOption);
-        performVeriTSolver = (Boolean) cmdLineParser.getOptionValue(veriTOption);
-        
+        performVeriTSolver = (Boolean) cmdLineParser
+                .getOptionValue(veriTOption);
+
         inputValue = (String) cmdLineParser.getOptionValue(inputOption);
         z3InputValue = (String) cmdLineParser.getOptionValue(z3InputOption);
         z3ProofValue = (String) cmdLineParser.getOptionValue(z3ProofOption);
@@ -228,9 +240,11 @@ public final class SuraqOptions {
                 .getOptionValue(checkResultOption);
         cacheValue = (Integer) cmdLineParser.getOptionValue(cacheOption);
         tseitinValue = (Integer) cmdLineParser.getOptionValue(tseitinOption);
-        
+
         veriTVars = (String) cmdLineParser.getOptionValue(veriTVarsCache);
         veriTFile = (String) cmdLineParser.getOptionValue(veriTFileOption);
+
+        solverValue = (String) cmdLineParser.getOptionValue(solverOption);
 
         int end = getInput().lastIndexOf(".");
 
@@ -397,48 +411,46 @@ public final class SuraqOptions {
         return SuraqOptions.z3_4Path;
     }
 
-    
-    
-
-    
     public Boolean getPerformAckermann() {
-        if(performAckermann == null)
+        if (performAckermann == null)
             return SuraqOptions.performAckermannDefault;
         return performAckermann;
     }
 
     public Boolean getPerformITEEquationReduction() {
-        if(performITEEquationReduction == null)
+        if (performITEEquationReduction == null)
             return SuraqOptions.performITEEquationReductionDefault;
         return performITEEquationReduction;
     }
 
     public Boolean getPerformGraphReduction() {
-        if(performGraphReduction == null)
+        if (performGraphReduction == null)
             return SuraqOptions.performGraphReductionDefault;
         return performGraphReduction;
     }
 
     public Boolean getPerformQBFEncoder() {
-        if(performQBFEncoder == null)
+        if (performQBFEncoder == null)
             return SuraqOptions.performQBFEncoderDefault;
         return performQBFEncoder;
     }
 
     public Boolean getPerformVeriTSolver() {
-        if(performVeriTSolver == null)
+        if (performVeriTSolver == null)
             return SuraqOptions.performVeriTSolverDefault;
         return performVeriTSolver;
     }
 
-    public String getVeriTVarsCache()
-    {
+    public String getVeriTVarsCache() {
         return veriTVars;
     }
-    
-    public String getVeriTFile()
-    {
+
+    public String getVeriTFile() {
         return veriTFile;
     }
-    
+
+    public String getSolver() {
+        return solverValue == null ? SuraqOptions.solverDefault : solverValue;
+    }
+
 }

@@ -812,6 +812,16 @@ public class Suraq implements Runnable {
         SuraqOptions options = SuraqOptions.getInstance();
         Map<PropositionalVariable, Formula> iteTrees = null;
         File sourceFile = new File(options.getInput());
+        if (options.getSolver().toLowerCase().equals("z3")) {
+            VeriTSolver.setActive(false);
+        } else if (options.getSolver().toLowerCase().equals("verit")) {
+            VeriTSolver.setActive(true);
+        } else {
+            System.out.println("WARNING: Unknown solver \""
+                    + options.getSolver()
+                    + "\" selected. Using veriT per default.");
+            VeriTSolver.setActive(true);
+        }
 
         if (options.getVeriTVarsCache() != null) {
 
