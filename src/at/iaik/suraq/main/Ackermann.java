@@ -26,8 +26,9 @@ import at.iaik.suraq.util.DebugHelper;
 
 /**
  * This class is used to perform Ackermann's reduction to a given formula.
+ * 
  * @author Hillebold Christoph
- *
+ * 
  */
 public class Ackermann {
 
@@ -38,24 +39,25 @@ public class Ackermann {
     private static boolean _isFunctionActive = true;
     // active debug writes out some files to see what's going on
     private static boolean _debug = true;
-    
-	/**
-	 * performs the Ackermann's reduction and removes Functions and Predicates
-	 * This method adds noDependenceVars (DomainVars) to the noDependenceVars-List
-	 * and removes Functions and Predicates from the noDependenceVars-List
-	 * @param topLevelFormula formula to work with
-	 * @param noDependenceVars
-	 * @return
-	 */
+
+    /**
+     * performs the Ackermann's reduction and removes Functions and Predicates
+     * This method adds noDependenceVars (DomainVars) to the
+     * noDependenceVars-List and removes Functions and Predicates from the
+     * noDependenceVars-List
+     * 
+     * @param topLevelFormula
+     *            formula to work with
+     * @param noDependenceVars
+     * @return
+     */
     public Formula performAckermann(Formula topLevelFormula,
             Set<Token> noDependenceVars) {
         // For Debugging issues you can deactivate the Ackermann's reduction by
         // calling Ackermann.setActive(false);
-        if (!_isActive) {
-            System.err
-                    .println("* WARNING: Didn't perform Ackermann, because it was deactivated.");
-            System.err
-                    .println("* Use Ackermamnn.setActive(true) to activate the Ackermann's reduction.");
+        if (!Ackermann._isActive) {
+            System.out
+                    .println("* INFO: Didn't perform Ackermann, because it was deactivated.");
             return topLevelFormula;
         }
 
@@ -63,8 +65,8 @@ public class Ackermann {
         System.out.println("   Ackermann: getUninterpretedFunctionNames()");
         Set<Token> currentUninterpretedFunctions = new HashSet<Token>();
 
-        UninterpretedPredicateInstance.method = _isPredicateActive;
-        UninterpretedFunctionInstance.method = _isFunctionActive;
+        UninterpretedPredicateInstance.method = Ackermann._isPredicateActive;
+        UninterpretedFunctionInstance.method = Ackermann._isFunctionActive;
         for (String var : topLevelFormula.getUninterpretedFunctionNames())
             currentUninterpretedFunctions.add(Token.generate(var));
         UninterpretedPredicateInstance.method = true;
@@ -73,20 +75,20 @@ public class Ackermann {
 
         // //////////////////////////////////////////////////////////
         // Substitute UF by Variables
-        if (_isFunctionActive) {
+        if (Ackermann._isFunctionActive) {
             System.out
                     .println("   Ackermann: uninterpretedFunctionsToAuxiliaryVariables(...)");
             Map<String, List<DomainVariable>> functionInstances = new HashMap<String, List<DomainVariable>>();
             Map<DomainVariable, List<DomainTerm>> instanceParameters = new HashMap<DomainVariable, List<DomainTerm>>();
 
-            if (_debug)
+            if (Ackermann._debug)
                 DebugHelper.getInstance().formulaToFile(topLevelFormula,
                         "./debug_aux_func_before.txt");
             topLevelFormula = topLevelFormula
                     .uninterpretedFunctionsToAuxiliaryVariables(
                             topLevelFormula, functionInstances,
                             instanceParameters, noDependenceVars);
-            if (_debug)
+            if (Ackermann._debug)
                 DebugHelper.getInstance().formulaToFile(topLevelFormula,
                         "./debug_aux_func_after.txt");
 
@@ -118,7 +120,7 @@ public class Ackermann {
 
         // //////////////////////////////////////////////////////////
 
-        if (_isPredicateActive) {
+        if (Ackermann._isPredicateActive) {
             // Init for UP
             // constraintsList = new ArrayList<Formula>();
 
@@ -128,14 +130,14 @@ public class Ackermann {
             Map<String, List<PropositionalVariable>> predicateInstances = new HashMap<String, List<PropositionalVariable>>();
             Map<PropositionalVariable, List<DomainTerm>> instanceParametersPredicates = new HashMap<PropositionalVariable, List<DomainTerm>>();
 
-            if (_debug)
+            if (Ackermann._debug)
                 DebugHelper.getInstance().formulaToFile(topLevelFormula,
                         "./debug_aux_pred_before.txt");
             topLevelFormula = topLevelFormula
                     .uninterpretedPredicatesToAuxiliaryVariables(
                             topLevelFormula, predicateInstances,
                             instanceParametersPredicates, noDependenceVars);
-            if (_debug)
+            if (Ackermann._debug)
                 DebugHelper.getInstance().formulaToFile(topLevelFormula,
                         "./debug_aux_pred_after.txt");
 
@@ -170,7 +172,7 @@ public class Ackermann {
         }
 
         // debug check:
-        if (_isPredicateActive && _isFunctionActive) {
+        if (Ackermann._isPredicateActive && Ackermann._isFunctionActive) {
             System.out.println("Count of UF: "
                     + topLevelFormula.getUninterpretedFunctions().size());
             assert (topLevelFormula.getUninterpretedFunctions().size() == 0);
@@ -193,122 +195,128 @@ public class Ackermann {
         System.out.println("   Ackermann: done - return.");
         return topLevelFormula;
     }
-	
-    
-	/**
-	 * Adds Ackermann constraints according to predicate-instance and
-	 * instance-parameter mappings to the constraints.
-	 * 
-	 * @param formula
-	 *            the main formula to expand
-	 * @param constraints
-	 *            the formula's constraints.
-	 * @param predicatPropositionalVariableeInstances
-	 *            map containing mapping from predicate names to auxiliary
-	 *            variables.
-	 * @param instanceParameters
-	 *            map containing mapping from auxiliary variables to predicate
-	 *            instance parameters.
-	 */
-	private void addAckermannPredicateConstraints(Formula formula,
+
+    /**
+     * Adds Ackermann constraints according to predicate-instance and
+     * instance-parameter mappings to the constraints.
+     * 
+     * @param formula
+     *            the main formula to expand
+     * @param constraints
+     *            the formula's constraints.
+     * @param predicatPropositionalVariableeInstances
+     *            map containing mapping from predicate names to auxiliary
+     *            variables.
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to predicate
+     *            instance parameters.
+     */
+    private void addAckermannPredicateConstraints(Formula formula,
             List<Formula> constraints,
-			Map<String, List<PropositionalVariable>> predicateInstances,
-			Map<PropositionalVariable, List<DomainTerm>> instanceParameters) {
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters) {
 
-		for (Map.Entry<String, List<PropositionalVariable>> entry : predicateInstances.entrySet()) {
+        for (Map.Entry<String, List<PropositionalVariable>> entry : predicateInstances
+                .entrySet()) {
 
-			List<PropositionalVariable> instances = entry.getValue();
+            List<PropositionalVariable> instances = entry.getValue();
 
-			for (int i = 0; i < instances.size(); i++)
-				for (int j = (i + 1); j < instances.size(); j++) {
+            for (int i = 0; i < instances.size(); i++)
+                for (int j = (i + 1); j < instances.size(); j++) {
 
-					List<DomainTerm> params1 = instanceParameters.get(instances.get(i));
-					List<DomainTerm> params2 = instanceParameters.get(instances.get(j));
+                    List<DomainTerm> params1 = instanceParameters.get(instances
+                            .get(i));
+                    List<DomainTerm> params2 = instanceParameters.get(instances
+                            .get(j));
 
-					List<Formula> parametersEq = new ArrayList<Formula>();
-					for (int k = 0; k < params1.size(); k++) {
+                    List<Formula> parametersEq = new ArrayList<Formula>();
+                    for (int k = 0; k < params1.size(); k++) {
 
-						// Compute functional consistency constraints
-						List<DomainTerm> list = new ArrayList<DomainTerm>();
-						list.add(params1.get(k));
-						list.add(params2.get(k));
-						parametersEq.add(DomainEq.create(list, true));
+                        // Compute functional consistency constraints
+                        List<DomainTerm> list = new ArrayList<DomainTerm>();
+                        list.add(params1.get(k));
+                        list.add(params2.get(k));
+                        parametersEq.add(DomainEq.create(list, true));
 
-					}
-					Formula parametersEquivalities;
-					if (parametersEq.size() > 1)
-						parametersEquivalities = AndFormula.generate(parametersEq);
-					else
-						parametersEquivalities = parametersEq.iterator().next();
+                    }
+                    Formula parametersEquivalities;
+                    if (parametersEq.size() > 1)
+                        parametersEquivalities = AndFormula
+                                .generate(parametersEq);
+                    else
+                        parametersEquivalities = parametersEq.iterator().next();
 
-					List<PropositionalTerm> predicateEq = new ArrayList<PropositionalTerm>();
-					predicateEq.add(instances.get(i));
-					predicateEq.add(instances.get(j));
-					constraints.add(ImpliesFormula.create(parametersEquivalities, PropositionalEq.create(predicateEq, true)));
+                    List<PropositionalTerm> predicateEq = new ArrayList<PropositionalTerm>();
+                    predicateEq.add(instances.get(i));
+                    predicateEq.add(instances.get(j));
+                    constraints.add(ImpliesFormula.create(
+                            parametersEquivalities,
+                            PropositionalEq.create(predicateEq, true)));
 
-				}
-		}
-	}
-    
-    
-	/**
-	 * Adds Ackermann constraints according to function-instance and
-	 * instance-parameter mappings to the constraints.
-	 * 
-	 * @param formula
-	 *            the main formula to expand
-	 * @param constraints
-	 *            the formula's constraints.
-	 * @param functionInstances
-	 *            map containing mapping from function names to auxiliary
-	 *            variables.
-	 * @param instanceParameters
-	 *            map containing mapping from auxiliary variables to function
-	 *            instance parameters.
-	 */
-	private void addAckermannFunctionConstraints(Formula formula,
-			List<Formula> constraints,
-			Map<String, List<DomainVariable>> functionInstances,
-			Map<DomainVariable, List<DomainTerm>> instanceParameters) {
+                }
+        }
+    }
 
-		for (Map.Entry<String, List<DomainVariable>> entry : functionInstances.entrySet())
-		{
-			List<DomainVariable> instances = entry.getValue();
+    /**
+     * Adds Ackermann constraints according to function-instance and
+     * instance-parameter mappings to the constraints.
+     * 
+     * @param formula
+     *            the main formula to expand
+     * @param constraints
+     *            the formula's constraints.
+     * @param functionInstances
+     *            map containing mapping from function names to auxiliary
+     *            variables.
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function
+     *            instance parameters.
+     */
+    private void addAckermannFunctionConstraints(Formula formula,
+            List<Formula> constraints,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters) {
 
-			for (int i = 0; i < instances.size(); i++)
-				for (int j = (i + 1); j < instances.size(); j++) {
-					// System.out.println(""+instances.get(i).getVarName()+" with "+instances.get(j).getVarName());
+        for (Map.Entry<String, List<DomainVariable>> entry : functionInstances
+                .entrySet()) {
+            List<DomainVariable> instances = entry.getValue();
 
-					List<DomainTerm> params1 = instanceParameters.get(instances.get(i));
-					List<DomainTerm> params2 = instanceParameters.get(instances.get(j));
+            for (int i = 0; i < instances.size(); i++)
+                for (int j = (i + 1); j < instances.size(); j++) {
+                    // System.out.println(""+instances.get(i).getVarName()+" with "+instances.get(j).getVarName());
 
-					List<Formula> parametersEq = new ArrayList<Formula>();
-					for (int k = 0; k < params1.size(); k++)
-					{
-						// System.out.println("   "+t1.get(k)+"^"+t2.get(k));
+                    List<DomainTerm> params1 = instanceParameters.get(instances
+                            .get(i));
+                    List<DomainTerm> params2 = instanceParameters.get(instances
+                            .get(j));
 
-						// Compute functional consistency constraints
-						List<DomainTerm> list = new ArrayList<DomainTerm>();
-						list.add(params1.get(k));
-						list.add(params2.get(k));
-						parametersEq.add(DomainEq.create(list, true));
-					}
-					Formula parametersEquivalities = (parametersEq.size() > 1)
-					        ? AndFormula.generate(parametersEq)
-					        : parametersEq.iterator().next();
-					
-					List<DomainTerm> functionEq = new ArrayList<DomainTerm>();
-					functionEq.add(instances.get(i));
-					functionEq.add(instances.get(j));
-					constraints.add(
-					        ImpliesFormula.create(parametersEquivalities, DomainEq.create(functionEq, true)));
+                    List<Formula> parametersEq = new ArrayList<Formula>();
+                    for (int k = 0; k < params1.size(); k++) {
+                        // System.out.println("   "+t1.get(k)+"^"+t2.get(k));
 
-				}
-		}
-	}
+                        // Compute functional consistency constraints
+                        List<DomainTerm> list = new ArrayList<DomainTerm>();
+                        list.add(params1.get(k));
+                        list.add(params2.get(k));
+                        parametersEq.add(DomainEq.create(list, true));
+                    }
+                    Formula parametersEquivalities = (parametersEq.size() > 1) ? AndFormula
+                            .generate(parametersEq) : parametersEq.iterator()
+                            .next();
+
+                    List<DomainTerm> functionEq = new ArrayList<DomainTerm>();
+                    functionEq.add(instances.get(i));
+                    functionEq.add(instances.get(j));
+                    constraints.add(ImpliesFormula.create(
+                            parametersEquivalities,
+                            DomainEq.create(functionEq, true)));
+
+                }
+        }
+    }
 
     public static boolean isFunctionActive() {
-        return _isFunctionActive;
+        return Ackermann._isFunctionActive;
     }
 
     public static void setFunctionActive(boolean _isFunctionActive) {
@@ -316,7 +324,7 @@ public class Ackermann {
     }
 
     public static boolean isPredicateActive() {
-        return _isPredicateActive;
+        return Ackermann._isPredicateActive;
     }
 
     public static void setPredicateActive(boolean _isPredicateActive) {
@@ -324,19 +332,19 @@ public class Ackermann {
     }
 
     public static void setActive(boolean isActive) {
-        _isActive = isActive;
+        Ackermann._isActive = isActive;
     }
 
     public static boolean isActive() {
-        return _isActive;
+        return Ackermann._isActive;
     }
-    
+
     public static void setDebug(boolean isDebugEnabled) {
-        _debug = isDebugEnabled;
+        Ackermann._debug = isDebugEnabled;
     }
 
     public static boolean isDebug() {
-        return _debug;
+        return Ackermann._debug;
     }
-    
+
 }

@@ -31,8 +31,9 @@ import at.iaik.suraq.util.Util;
 
 /**
  * Graph-based Reduction to Propositional Logic.
+ * 
  * @author chillebold
- *
+ * 
  */
 public class GraphReduction {
     /**
@@ -169,7 +170,7 @@ public class GraphReduction {
         System.out
                 .println("***************************************************");
 
-        if (_debug) {
+        if (GraphReduction._debug) {
             for (GraphElement vertex : vertices) {
                 System.out.println("Vertex: " + vertex);
             }
@@ -187,9 +188,9 @@ public class GraphReduction {
     public Formula perform(Formula formula, Set<Token> noDependenceVars)
             throws IOException {
         // isActive & Intro
-        if (!_isActive) {
-            System.err
-                    .println("GR: Didn't perform Graph-Based Reduction to Propositional Logic, because it is inactive.");
+        if (!GraphReduction._isActive) {
+            System.out
+                    .println("INFO: Didn't perform Graph-Based Reduction to Propositional Logic, because it is inactive.");
             return formula;
         }
         System.out
@@ -526,8 +527,9 @@ public class GraphReduction {
                     if (!ni.isConnectedWith(nj)) // && || nj.isConnectedWith(ni)
                     {
                         // add a chord
-                        String token = getVarName(topLevelFormula,
-                                ni.getVarname(), nj.getVarname());
+                        String token = GraphReduction.getVarName(
+                                topLevelFormula, ni.getVarname(),
+                                nj.getVarname());
                         ni.addNeighbour(nj, token);
                         nj.addNeighbour(ni, token);
                     }
@@ -613,11 +615,11 @@ public class GraphReduction {
     // ///////////////////////////////////////////////////////////////////////
 
     public static void setDebug(boolean isDebug) {
-        _debug = isDebug;
+        GraphReduction._debug = isDebug;
     }
 
     public static boolean isDebug() {
-        return _debug;
+        return GraphReduction._debug;
     }
 
     public static void setActive(boolean isActive) {
@@ -626,11 +628,11 @@ public class GraphReduction {
         else
             System.err.println("GraphReduction was set active.");
 
-        _isActive = isActive;
+        GraphReduction._isActive = isActive;
     }
 
     public static boolean isActive() {
-        return _isActive;
+        return GraphReduction._isActive;
     }
 
     public Map<EqualityFormula, String> getReplacements() {
@@ -680,28 +682,29 @@ public class GraphReduction {
         // Runtime: O(circles^2 * elementspercircle^2)
         // Memory: O(circles^2 * elementspercircle)
         int circlesize = circles.size();
-        if (_additionalCircles) {
-            if (_supportMultithreading) {
+        if (GraphReduction._additionalCircles) {
+            if (GraphReduction._supportMultithreading) {
                 int cpus = Runtime.getRuntime().availableProcessors();
-                if (cpus > _maxThreads)
-                    _maxThreads = cpus - 1;
+                if (cpus > GraphReduction._maxThreads)
+                    GraphReduction._maxThreads = cpus - 1;
 
-                int singleSize = circlesize / _maxThreads;
+                int singleSize = circlesize / GraphReduction._maxThreads;
                 int last_index = 0;
                 threads = new ArrayList<GraphReductionThread>();
-                for (int i = 1; i <= _maxThreads; i++) {
+                for (int i = 1; i <= GraphReduction._maxThreads; i++) {
                     int index = singleSize * i;
-                    if (i == _maxThreads) // the last Thread takes the rest
+                    if (i == GraphReduction._maxThreads) // the last Thread
+                                                         // takes the rest
                         index = circlesize;
                     threads.add(new GraphReductionThread(this, last_index,
                             index));
                     last_index = index;
                 }
-                for (int i = 0; i < _maxThreads; i++) {
+                for (int i = 0; i < GraphReduction._maxThreads; i++) {
                     System.out.println("Starting Thread...");
                     threads.get(i).start();
                 }
-                for (int i = 0; i < _maxThreads; i++) {
+                for (int i = 0; i < GraphReduction._maxThreads; i++) {
                     try {
                         threads.get(i).join();
                         System.out.println("Thread joined");
@@ -799,7 +802,7 @@ public class GraphReduction {
                                     i++;
                                     j += forward;
                                 }
-                                if (_debug)
+                                if (GraphReduction._debug)
                                     System.out
                                             .println("Found duplicate circle of size "
                                                     + circle_size);

@@ -27,11 +27,11 @@ public class ITEEquationReduction {
     private static boolean _isActive = false;
 
     public static void setActive(boolean isActive) {
-        _isActive = isActive;
+        ITEEquationReduction._isActive = isActive;
     }
 
     public static boolean isActive() {
-        return _isActive;
+        return ITEEquationReduction._isActive;
     }
 
     /**
@@ -43,8 +43,11 @@ public class ITEEquationReduction {
      * @return
      */
     public Formula perform(Formula topLevelFormula, Set<Token> noDependenceVars) {
-        if (!_isActive)
+        if (!ITEEquationReduction._isActive) {
+            System.err
+                    .println("INFO: Didn't perform ITE Reduction, because it is inactive.");
             return topLevelFormula;
+        }
         List<Formula> andPreList = new ArrayList<Formula>();
         Formula main = topLevelFormula.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
