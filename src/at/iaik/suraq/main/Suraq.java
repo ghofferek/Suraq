@@ -1011,6 +1011,7 @@ public class Suraq implements Runnable {
                                 noDependenceFunctionsCopies);
                         veriTParser.parse();
                         VeritProof veritProof = veriTParser.getProof();
+                        veritProof.setRoot(veritProof.findNodeProvingFalse());
                         veritProof.removeUnreachableNodes();
                         DebugHelper.getInstance().stringtoFile(
                                 veritProof.toString(), "~parsed-verit-enc.txt");

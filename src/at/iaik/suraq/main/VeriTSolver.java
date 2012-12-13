@@ -131,13 +131,13 @@ public class VeriTSolver {
                 + " --proof-prune" //
                 + " --input=smtlib2" //
                 + " --output=smtlib2" //
-                // + " --disable-print-success" //
+                + " --disable-print-success" //
                 + " --disable-banner" //
                 // + " --max-time=SECONDS" // max. execution time in seconds
                 // + " --disable-ackermann" // maybe?
                 + " " + tmpInFile;
 
-        System.out.println("starting veriT: " + path);
+        System.out.println("starting veriT: " + executionPath);
 
         // ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
         // smt2);
@@ -160,11 +160,11 @@ public class VeriTSolver {
             } else if (line.equalsIgnoreCase("sat")) {
                 state = QBFSolver.SAT;
                 System.out.println("\nVeriT/SAT");
-                break;
+                continue;
             } else if (line.equalsIgnoreCase("unsat")) {
                 state = QBFSolver.UNSAT;
                 System.out.println("\nVeriT/UNSAT");
-                break;
+                continue;
             }
 
             // for pipes this would be working:

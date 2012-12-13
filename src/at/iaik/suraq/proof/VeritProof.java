@@ -303,6 +303,13 @@ public class VeritProof {
             return false;
 
         for (VeritProofNode node : proofSets.values()) {
+
+            if (node.getType().equals(VeriTToken.AND)
+                    || node.getType().equals(VeriTToken.OR))
+                // AND and OR should not occur in "real" proofs.
+                // They are removed during/after parsing.
+                return false;
+
             for (VeritProofNode child : node.getSubProofs()) {
                 if (!child.getParents().contains(node))
                     return false;

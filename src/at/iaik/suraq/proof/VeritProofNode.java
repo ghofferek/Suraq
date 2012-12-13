@@ -83,14 +83,63 @@ public class VeritProofNode {
             Integer iargs, VeritProof proof) {
         this.name = name;
         this.type = type;
-        this.literalConclusions = conclusions == null ? new ImmutableArrayList<Formula>()
-                : new ImmutableArrayList<Formula>(conclusions);
-        this.subProofs = clauses == null ? new ArrayList<VeritProofNode>()
-                : new ArrayList<VeritProofNode>(clauses);
+
+        List<VeritProofNode> tmpSubProofs = null;
+        ImmutableArrayList<Formula> tmpLiteralConclusions = null;
+
+        if (this.type.equals(VeriTToken.RESOLUTION) && clauses.size() > 2) {
+            VeritProofNode nonUnitClauseNode = null;
+            for (VeritProofNode node : clauses) {
+                if (node.getLiteralConclusions().size() != 1) {
+                    assert (nonUnitClauseNode == null);
+                    assert (getLiteralConclusions().size() > 1);
+                    nonUnitClauseNode = node;
+                }
+            }
+            int count = 0;
+            VeritProofNode intermediateNode = nonUnitClauseNode;
+            for (int loopCount = 0; loopCount < clauses.size(); loopCount++) {
+                VeritProofNode node = clauses.get(loopCount);
+                count++;
+                if (node == nonUnitClauseNode)
+                    continue;
+                assert (node.getLiteralConclusions().size() == 1);
+                List<Formula> intermediateConclusions = new ArrayList<Formula>(
+                        intermediateNode.getLiteralConclusions());
+                boolean removed = intermediateConclusions.remove(Util
+                        .invertLiteral(node.getLiteralConclusions().get(0)));
+                assert (removed);
+                List<VeritProofNode> intermediateClauses = new ArrayList<VeritProofNode>();
+                intermediateClauses.add(intermediateNode);
+                intermediateClauses.add(node);
+
+                if (loopCount != clauses.size() - 2) {
+                    intermediateNode = new VeritProofNode(name + "i" + count,
+                            VeriTToken.RESOLUTION, intermediateConclusions,
+                            intermediateClauses, null, proof);
+                } else {
+                    tmpSubProofs = intermediateClauses;
+                    tmpLiteralConclusions = new ImmutableArrayList<Formula>(
+                            intermediateConclusions);
+                }
+            }
+
+        } else {
+            tmpLiteralConclusions = conclusions == null ? new ImmutableArrayList<Formula>()
+                    : new ImmutableArrayList<Formula>(conclusions);
+            tmpSubProofs = clauses == null ? new ArrayList<VeritProofNode>()
+                    : new ArrayList<VeritProofNode>(clauses);
+        }
+
+        assert (tmpLiteralConclusions != null);
+        assert (tmpSubProofs != null);
+        this.subProofs = tmpSubProofs;
+        this.literalConclusions = tmpLiteralConclusions;
+
         for (VeritProofNode child : subProofs)
             child.addParent(this);
         this.parents = new HashSet<VeritProofNode>();
-        this.iargs = iargs;
+        this.iargs = iargs == null ? null : new Integer(iargs);
         this.proof = proof;
 
         assert (this.checkProofNode());
@@ -326,13 +375,6 @@ public class VeritProofNode {
      */
     public boolean checkProofNode() {
 
-        // General pre-tests
-
-        for (Formula literal : literalConclusions) {
-            if (!Util.isLiteral(literal))
-                return false;
-        }
-
         // Type specific tests
 
         if (this.type.equals(VeriTToken.INPUT)) {
@@ -342,15 +384,22 @@ public class VeritProofNode {
         }
 
         if (this.type.equals(VeriTToken.AND)) {
-            // This type should not occur
-            assert (false);
-            return false;
+            // This type will be removed after parsing.
+            // --> not detailed checks
+            return true;
         }
 
         if (this.type.equals(VeriTToken.OR)) {
-            // This type should not occur
-            assert (false);
-            return false;
+            // This type will be removed after parsing.
+            // --> not detailed checks
+            return true;
+        }
+
+        // Remaining types should have only literals in their conclusions
+
+        for (Formula literal : literalConclusions) {
+            if (!Util.isLiteral(literal))
+                return false;
         }
 
         if (this.type.equals(VeriTToken.EQ_REFLEXIVE)) {
@@ -441,7 +490,7 @@ public class VeritProofNode {
         if (literal1.size() != 1 || literal2.size() != 1)
             return false;
 
-        if (Util.makeLiteralPositive(literal1.iterator().next()).equals(
+        if (!Util.makeLiteralPositive(literal1.iterator().next()).equals(
                 Util.makeLiteralPositive(literal2.iterator().next())))
             return false;
         if (!(Util.isNegativeLiteral(literal1.iterator().next()) ^ Util
