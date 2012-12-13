@@ -20,6 +20,7 @@ import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
+import at.iaik.suraq.util.graph.Graph;
 
 /**
  * VeritProofSet is a single set-line in the proof. You shall not use this class
@@ -100,9 +101,10 @@ public class VeritProofNode {
             VeritProofNode intermediateNode = nonUnitClauseNode;
             for (int loopCount = 0; loopCount < clauses.size(); loopCount++) {
                 VeritProofNode node = clauses.get(loopCount);
-                count++;
                 if (node == nonUnitClauseNode)
                     continue;
+                else
+                    count++;
                 assert (node.getLiteralConclusions().size() == 1);
                 List<Formula> intermediateConclusions = new ArrayList<Formula>(
                         intermediateNode.getLiteralConclusions());
@@ -113,7 +115,7 @@ public class VeritProofNode {
                 intermediateClauses.add(intermediateNode);
                 intermediateClauses.add(node);
 
-                if (loopCount != clauses.size() - 2) {
+                if (loopCount != clauses.size() - 1) {
                     intermediateNode = new VeritProofNode(name + "i" + count,
                             VeriTToken.RESOLUTION, intermediateConclusions,
                             intermediateClauses, null, proof);
@@ -136,7 +138,7 @@ public class VeritProofNode {
         this.subProofs = tmpSubProofs;
         this.literalConclusions = tmpLiteralConclusions;
 
-        for (VeritProofNode child : subProofs)
+        for (VeritProofNode child : this.subProofs)
             child.addParent(this);
         this.parents = new HashSet<VeritProofNode>();
         this.iargs = iargs == null ? null : new Integer(iargs);
@@ -522,42 +524,42 @@ public class VeritProofNode {
             return false;
         if (!((EqualityFormula) impliedLiteral).isEqual())
             return false;
-        Term[] terms = (Term[]) ((EqualityFormula) impliedLiteral).getTerms()
-                .toArray();
+        Term[] terms = ((EqualityFormula) impliedLiteral).getTerms().toArray(
+                new Term[0]);
         if (terms.length != 2)
             return false;
 
+        Graph<Term, Formula> equalityGraph = new Graph<Term, Formula>();
         for (Formula literal : literalConclusions.subList(0,
-                literalConclusions.size() - 2)) {
+                literalConclusions.size() - 1)) {
             if (!Util.isLiteral(literal))
                 return false;
-            if (Util.isNegativeLiteral(literal))
+            if (!Util.isNegativeLiteral(literal))
                 return false;
-            if (!(literal instanceof EqualityFormula))
+            if (!(Util.makeLiteralPositive(literal) instanceof EqualityFormula))
                 return false;
-            if (!((EqualityFormula) literal).isEqual())
+            if (!((EqualityFormula) Util.makeLiteralPositive(literal))
+                    .isEqual())
                 return false;
-            if (((EqualityFormula) literal).getTerms().size() != 2)
+            if (((EqualityFormula) Util.makeLiteralPositive(literal))
+                    .getTerms().size() != 2)
                 return false;
+
+            Term[] currentTerms = ((EqualityFormula) Util
+                    .makeLiteralPositive(literal)).getTerms().toArray(
+                    new Term[0]);
+            assert (currentTerms.length == 2);
+            equalityGraph.addNode(currentTerms[0]);
+            equalityGraph.addNode(currentTerms[1]);
+            equalityGraph.addEdge(currentTerms[0], currentTerms[1], literal);
         }
 
-        // Taking the assumption that the literals already form
-        // a nice transitivity chain
-        if (!((EqualityFormula) literalConclusions.get(0)).getTerms().get(1)
-                .equals(terms[0]))
+        List<Formula> path = equalityGraph.findPath(terms[0], terms[1]);
+        if (path == null)
             return false;
 
-        Term currentLink = ((EqualityFormula) literalConclusions.get(0))
-                .getTerms().get(1);
-        for (int count = 1; count < literalConclusions.size() - 1; count++) {
-            if (!currentLink.equals(((EqualityFormula) literalConclusions
-                    .get(count)).getTerms().get(0)))
-                return false;
-            currentLink = ((EqualityFormula) literalConclusions.get(count))
-                    .getTerms().get(1);
-        }
-        if (!currentLink.equals(terms[1]))
-            return false;
+        assert (literalConclusions.containsAll(path));
+        assert (path.size() == literalConclusions.size() - 1);
 
         return true;
     }
@@ -590,8 +592,8 @@ public class VeritProofNode {
         if (!((EqualityFormula) impliedLiteral).isEqual())
             return false;
 
-        Term[] terms = (Term[]) ((EqualityFormula) impliedLiteral).getTerms()
-                .toArray();
+        Term[] terms = ((EqualityFormula) impliedLiteral).getTerms().toArray(
+                new Term[0]);
 
         if (terms.length != 2)
             return false;
@@ -651,17 +653,20 @@ public class VeritProofNode {
                     .makeLiteralPositive(literal);
             if (!eqLiteral.isEqual())
                 return false;
-            Term[] literalTerms = (Term[]) eqLiteral.getTerms().toArray();
+            Term[] literalTerms = eqLiteral.getTerms().toArray(new Term[0]);
             if (literalTerms.length != 2)
                 return false;
 
             // Taking the assumption that the first term of the equality
             // corresponds
             // to a parameter on the first term of the impliedLiteral
-            if (!terms1.get(count).equals(literalTerms[0]))
+            if (!terms1.get(count).equals(literalTerms[0])
+                    && !terms2.get(count).equals(literalTerms[0]))
                 return false;
-            if (!terms2.get(count).equals(literalTerms[1]))
+            if (!terms1.get(count).equals(literalTerms[1])
+                    && !terms2.get(count).equals(literalTerms[1]))
                 return false;
+
         }
         return true;
     }

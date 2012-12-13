@@ -135,12 +135,6 @@ public class VeritProof {
         nodeCache.put(ImmutableSet.create(conclusions),
                 new WeakReference<VeritProofNode>(node));
 
-        if (clauses != null) {
-            for (VeritProofNode clause : clauses) {
-                clause.addParent(node);
-            }
-        }
-
         if (node.isGoodDefinitionOfBadLiteral()) {
             assert (!goodDefinitionsOfBadLiterals.contains(node));
             goodDefinitionsOfBadLiterals.add(node);

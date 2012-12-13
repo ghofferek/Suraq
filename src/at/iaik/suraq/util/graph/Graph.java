@@ -61,7 +61,7 @@ public class Graph<N, A> {
      * @param src
      * @param dst
      * @return Annotations along a path from <code>src</code> to
-     *         <code>dst</code>, or null if no such path exists.
+     *         <code>dst</code>, or <code>null</code> if no such path exists.
      */
     public List<A> findPath(N src, N dst) {
         List<AnnotatedEdge<N, A>> path = new ArrayList<AnnotatedEdge<N, A>>();
