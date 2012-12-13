@@ -54,7 +54,7 @@ public class VeriTParser extends Parser {
     private final Set<UninterpretedFunction> uninterpretedFunctions;
 
     /**
-     *  Finally the Proof is stored here.
+     * Finally the Proof is stored here.
      */
     private final VeritProof proof = new VeritProof();
 
@@ -260,6 +260,7 @@ public class VeriTParser extends Parser {
                 // "~verit_z"+lines+".tmp");
 
                 // Store the ProofNode to the Proof
+                assert (conclusions != null);
                 proof.addProofSet(name, type, conclusions, parsed_clauses2,
                         parsed_iargs);
 
@@ -451,8 +452,11 @@ public class VeriTParser extends Parser {
 
     /**
      * parses an UninterpretedFunction
-     * @param uf the Uninterpreted Function to parse
-     * @param macroname null or the name of the UF, how it is stored
+     * 
+     * @param uf
+     *            the Uninterpreted Function to parse
+     * @param macroname
+     *            null or the name of the UF, how it is stored
      * @throws WrongNumberOfParametersException
      * @throws WrongFunctionTypeException
      */
@@ -494,7 +498,9 @@ public class VeriTParser extends Parser {
 
     /**
      * Parses a command/expression/? (=, and, or, not)
-     * @param command one of ["=", "and", "or", "not"]
+     * 
+     * @param command
+     *            one of ["=", "and", "or", "not"]
      * @throws ParseException
      * @throws IncomparableTermsException
      */
@@ -520,8 +526,11 @@ public class VeriTParser extends Parser {
 
     /**
      * Stores a Macro to the Buffer
-     * @param macroName name of the Macro
-     * @param formula Formula, by which the macro is defined
+     * 
+     * @param macroName
+     *            name of the Macro
+     * @param formula
+     *            Formula, by which the macro is defined
      */
     private void storeMacro(String macroName, Formula formula) {
         // System.out.println("[M] Stored macro #" + macroName);
@@ -531,7 +540,9 @@ public class VeriTParser extends Parser {
     }
 
     /**
-     * finds an UninterpretedFunction by searching in the already existing variables.
+     * finds an UninterpretedFunction by searching in the already existing
+     * variables.
+     * 
      * @param name
      * @return
      */
@@ -559,7 +570,9 @@ public class VeriTParser extends Parser {
 
     /**
      * find a variable in the already given variables
-     * @param name name of the variable
+     * 
+     * @param name
+     *            name of the variable
      * @return
      */
     private Term findVariable(String name) {
@@ -578,6 +591,7 @@ public class VeriTParser extends Parser {
 
     /**
      * Returns the finally parsed Proof as a VeriTProof.
+     * 
      * @return
      */
     public VeritProof getProof() {

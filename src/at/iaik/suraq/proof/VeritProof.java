@@ -109,6 +109,8 @@ public class VeritProof {
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs, boolean checkCache) {
 
+        assert (conclusions != null);
+
         if (proofSets.keySet().contains(name))
             throw new RuntimeException("Name of proof node is not unique.");
 

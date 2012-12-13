@@ -92,7 +92,7 @@ public class VeritProofNode {
             for (VeritProofNode node : clauses) {
                 if (node.getLiteralConclusions().size() != 1) {
                     assert (nonUnitClauseNode == null);
-                    assert (getLiteralConclusions().size() > 1);
+                    assert (node.getLiteralConclusions().size() > 1);
                     nonUnitClauseNode = node;
                 }
             }
