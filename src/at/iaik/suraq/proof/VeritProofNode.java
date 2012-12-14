@@ -4,6 +4,7 @@
 package at.iaik.suraq.proof;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -85,58 +86,62 @@ public class VeritProofNode {
         this.name = name;
         this.type = type;
 
-        List<VeritProofNode> tmpSubProofs = null;
-        ImmutableArrayList<Formula> tmpLiteralConclusions = null;
+        List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>();
+        ArrayList<Formula> tmpLiteralConclusions = new ArrayList<Formula>();
 
         if (this.type.equals(VeriTToken.RESOLUTION) && clauses.size() > 2) {
-            VeritProofNode nonUnitClauseNode = null;
-            for (VeritProofNode node : clauses) {
-                if (node.getLiteralConclusions().size() != 1) {
-                    assert (nonUnitClauseNode == null);
-                    assert (node.getLiteralConclusions().size() > 1);
-                    nonUnitClauseNode = node;
-                }
-            }
-            int count = 0;
-            VeritProofNode intermediateNode = nonUnitClauseNode;
-            for (int loopCount = 0; loopCount < clauses.size(); loopCount++) {
-                VeritProofNode node = clauses.get(loopCount);
-                if (node == nonUnitClauseNode)
-                    continue;
-                else
-                    count++;
-                assert (node.getLiteralConclusions().size() == 1);
-                List<Formula> intermediateConclusions = new ArrayList<Formula>(
-                        intermediateNode.getLiteralConclusions());
-                boolean removed = intermediateConclusions.remove(Util
-                        .invertLiteral(node.getLiteralConclusions().get(0)));
-                assert (removed);
-                List<VeritProofNode> intermediateClauses = new ArrayList<VeritProofNode>();
-                intermediateClauses.add(intermediateNode);
-                intermediateClauses.add(node);
+            List<VeritProofNode> remainingClauses = new ArrayList<VeritProofNode>(
+                    clauses);
+            assert (!remainingClauses.isEmpty());
+            tmpSubProofs.add(remainingClauses.remove(0));
 
-                if (loopCount != clauses.size() - 1) {
-                    intermediateNode = new VeritProofNode(name + "i" + count,
-                            VeriTToken.RESOLUTION, intermediateConclusions,
-                            intermediateClauses, null, proof);
-                } else {
-                    tmpSubProofs = intermediateClauses;
-                    tmpLiteralConclusions = new ImmutableArrayList<Formula>(
-                            intermediateConclusions);
-                }
+            int count = 0;
+            while (true) {
+                count++;
+                assert (!remainingClauses.isEmpty());
+                assert (tmpSubProofs.size() == 1);
+                assert (tmpLiteralConclusions.isEmpty());
+
+                Formula literal = pickAndUseFittingClause(remainingClauses,
+                        tmpSubProofs, conclusions);
+                assert (tmpSubProofs.size() == 2);
+                assert (literal != null);
+
+                tmpLiteralConclusions.addAll(tmpSubProofs.get(0)
+                        .getLiteralConclusions());
+                tmpLiteralConclusions.addAll(tmpSubProofs.get(1)
+                        .getLiteralConclusions());
+                tmpLiteralConclusions.remove(literal);
+                tmpLiteralConclusions.remove(Util.invertLiteral(literal));
+
+                if ((new HashSet<Formula>(tmpLiteralConclusions))
+                        .equals(new HashSet<Formula>(conclusions)))
+                    break;
+
+                VeritProofNode intermediateNode = new VeritProofNode(name
+                        + "_i" + count, VeriTToken.RESOLUTION,
+                        tmpLiteralConclusions, tmpSubProofs, null, proof);
+                tmpSubProofs.clear();
+                tmpSubProofs.add(intermediateNode);
+                tmpLiteralConclusions.clear();
             }
+            assert (remainingClauses.isEmpty());
 
         } else {
-            tmpLiteralConclusions = conclusions == null ? new ImmutableArrayList<Formula>()
-                    : new ImmutableArrayList<Formula>(conclusions);
+            tmpLiteralConclusions = conclusions == null ? new ArrayList<Formula>()
+                    : new ArrayList<Formula>(conclusions);
             tmpSubProofs = clauses == null ? new ArrayList<VeritProofNode>()
                     : new ArrayList<VeritProofNode>(clauses);
         }
 
         assert (tmpLiteralConclusions != null);
         assert (tmpSubProofs != null);
+        assert (tmpSubProofs.size() == 2);
+        assert ((new HashSet<Formula>(tmpLiteralConclusions))
+                .equals(new HashSet<Formula>(conclusions)));
         this.subProofs = tmpSubProofs;
-        this.literalConclusions = tmpLiteralConclusions;
+        this.literalConclusions = new ImmutableArrayList<Formula>(
+                tmpLiteralConclusions);
 
         for (VeritProofNode child : this.subProofs)
             child.addParent(this);
@@ -145,6 +150,51 @@ public class VeritProofNode {
         this.proof = proof;
 
         assert (this.checkProofNode());
+    }
+
+    /**
+     * Picks a fitting proof node from <code>remainingClauses</code> to resolve
+     * on the clause given in <code>tmpSubProofs</code>. The node is removed
+     * from <code>remainingClauses</code> and added to <code>tmpSubProofs</code>
+     * .
+     * 
+     * @param remainingClauses
+     *            list of nodes to be searched for a resolving node.
+     *            <em>Will be modified!</em>
+     * @param tmpSubProofs
+     *            list to add the found node to. Must have exactly one element
+     *            first!
+     * @param conclusions
+     *            the literals that occur in the final conclusion, after all
+     *            intermediate steps
+     * @return the literal on which resolution is done, in arbitrary polarity.
+     */
+    private Formula pickAndUseFittingClause(
+            List<VeritProofNode> remainingClauses,
+            List<VeritProofNode> tmpSubProofs, Collection<Formula> conclusions) {
+        assert (remainingClauses != null);
+        assert (tmpSubProofs != null);
+        assert (conclusions != null);
+        assert (!remainingClauses.isEmpty());
+        assert (tmpSubProofs.size() == 1);
+
+        List<Formula> literals = tmpSubProofs.get(0).getLiteralConclusions();
+        literals.removeAll(conclusions);
+        assert (!literals.isEmpty());
+        for (Formula literal : literals) {
+            for (int clauseCount = 0; clauseCount < remainingClauses.size(); clauseCount++) {
+                Formula inverseLiteral = Util.invertLiteral(literal);
+                if (remainingClauses.get(clauseCount).getLiteralConclusions()
+                        .contains(inverseLiteral)) {
+                    tmpSubProofs.add(remainingClauses.remove(clauseCount));
+                    return literal;
+                }
+            }
+        }
+        // If we reach here, we found no clause to resolve with.
+        // This should not happen.
+        assert (false);
+        return null;
     }
 
     public String getName() {
