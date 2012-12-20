@@ -5,6 +5,7 @@ package at.iaik.suraq.proof;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,12 +39,18 @@ public class VeritProof {
     /**
      * ProofSets = ProofNodes. The key is the name (e.g. ".c44")
      */
-    protected final HashMap<String, VeritProofNode> proofSets = new HashMap<String, VeritProofNode>();
+    private final HashMap<String, VeritProofNode> proofSets = new HashMap<String, VeritProofNode>();
+
+    /**
+     * Maps names of nodes that are duplicates of others to their unique
+     * representation.
+     */
+    private final HashMap<String, WeakReference<VeritProofNode>> synonyms = new HashMap<String, WeakReference<VeritProofNode>>();
 
     /**
      * The root of the proof. Can only be set once.
      */
-    protected VeritProofNode root = null;
+    private VeritProofNode root = null;
 
     /**
      * A cache of nodes, indexed by their conclusions (represented as sets,
@@ -127,12 +134,41 @@ public class VeritProof {
             clauses = new ArrayList<VeritProofNode>();
             iargs = null;
         }
-        if (node == null)
+        if (node == null) {
             node = new VeritProofNode(name, type, conclusions, clauses, iargs,
                     this);
+            assert (node != null);
+        } else
+            synonyms.put(name, new WeakReference<VeritProofNode>(node));
+        assert (node != null);
+        assert (nodeCache.size() == proofSets.size());
+        return node;
+    }
 
-        proofSets.put(name, node);
-        nodeCache.put(ImmutableSet.create(conclusions),
+    /**
+     * Adds the given node to this proof. The node must already claim to belong
+     * to this proof. This method is intended for adding intermediate nodes that
+     * are created during addition of another node. (I.e., nodes that split
+     * multi-resolution in single resolutions.
+     * 
+     * @param node
+     */
+    protected void addProofNode(VeritProofNode node) {
+        assert (node.getProof() == this);
+        addNodeToInternalDataStructures(node);
+    }
+
+    /**
+     * Adds the given node to the internal data structures (cache, etc.).
+     * 
+     * @param node
+     */
+    private void addNodeToInternalDataStructures(VeritProofNode node) {
+        assert (proofSets.get(node.getName()) == null);
+        assert (nodeCache.get(ImmutableSet.create(node
+                .getLiteralConclusionsAsSet())) == null);
+        proofSets.put(node.getName(), node);
+        nodeCache.put(ImmutableSet.create(node.getLiteralConclusionsAsSet()),
                 new WeakReference<VeritProofNode>(node));
 
         if (node.isGoodDefinitionOfBadLiteral()) {
@@ -140,7 +176,6 @@ public class VeritProof {
             goodDefinitionsOfBadLiterals.add(node);
         }
 
-        return node;
     }
 
     /**
@@ -181,6 +216,7 @@ public class VeritProof {
             assert (!goodDefinitionsOfBadLiterals.contains(proofNode));
         }
         proofSets.remove(proofNode.getName());
+        removeFromCache(proofNode);
     }
 
     /**
@@ -195,6 +231,9 @@ public class VeritProof {
         proofSets.remove(node.getName());
         goodDefinitionsOfBadLiterals.remove(node);
         removeFromCache(node);
+
+        // TODO what about the subproofs??
+        assert (nodeCache.size() == proofSets.size());
     }
 
     /**
@@ -222,7 +261,12 @@ public class VeritProof {
      * @return the VeritProofNode
      */
     public VeritProofNode getProofNode(String name) {
-        return proofSets.get(name);
+        VeritProofNode node = proofSets.get(name);
+        if (node == null) {
+            node = synonyms.get(name) == null ? null : synonyms.get(name).get();
+        }
+        assert (node != null);
+        return node;
     }
 
     /**
@@ -395,6 +439,8 @@ public class VeritProof {
                 proofSets.values());
         unreachableNodes.removeAll(reachableNodes);
 
+        Set<VeritProofNode> parentlessUnreachableNodes = new HashSet<VeritProofNode>();
+
         for (VeritProofNode unreachableNode : unreachableNodes) {
             // Sanity check
             assert (unreachableNode != root);
@@ -407,20 +453,16 @@ public class VeritProof {
                     throw new RuntimeException(
                             "Unreachable node has non-unreachable parent. This should not happen.");
             }
-            for (VeritProofNode child : unreachableNode.getSubProofs()) {
-                child.removeParent(unreachableNode);
-                assert (!child.getParents().isEmpty() || unreachableNodes
-                        .contains(child));
-            }
-            // removing the node
-            assert (proofSets.get(unreachableNode.getName()) == unreachableNode);
-            proofSets.remove(unreachableNode.getName());
-            goodDefinitionsOfBadLiterals.remove(unreachableNode);
-            removeFromCache(unreachableNode);
+            if (unreachableNode.getParents().isEmpty())
+                parentlessUnreachableNodes.add(unreachableNode);
         }
+        for (VeritProofNode node : parentlessUnreachableNodes)
+            this.removeDanglingProofNode(node);
+
         // Done. Just some final assertions.
         assert (proofSets.size() == reachableNodes.size());
-        assert (proofSets.values().equals(reachableNodes));
+        assert ((new HashSet<VeritProofNode>(proofSets.values()))
+                .equals(reachableNodes));
     }
 
     /**
@@ -462,6 +504,17 @@ public class VeritProof {
         WeakReference<VeritProofNode> reference = nodeCache.get(ImmutableSet
                 .create(new HashSet<Formula>()));
         return reference == null ? null : reference.get();
+    }
+
+    /**
+     * 
+     * @param conclusions
+     * @return a node with the given <code>conclusions</code> or
+     *         <code>null</code> if no such node is in the cache.
+     */
+    public VeritProofNode cacheLookup(Collection<Formula> conclusions) {
+        ImmutableSet<Formula> set = ImmutableSet.create(conclusions);
+        return nodeCache.get(set) == null ? null : nodeCache.get(set).get();
     }
 
     /**

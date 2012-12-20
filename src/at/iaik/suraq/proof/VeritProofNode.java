@@ -83,6 +83,10 @@ public class VeritProofNode {
     protected VeritProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs, VeritProof proof) {
+
+        if (proof != null)
+            assert (proof.cacheLookup(conclusions) == null);
+
         this.name = name;
         this.type = type;
 
@@ -102,15 +106,32 @@ public class VeritProofNode {
                 assert (tmpSubProofs.size() == 1);
                 assert (tmpLiteralConclusions.isEmpty());
 
-                Formula literal = pickAndUseFittingClause(remainingClauses,
-                        tmpSubProofs, conclusions);
+                Formula literal = null;
+
+                // Try using the "next" remaining clause
+                literal = findResolvingLiteral(tmpSubProofs.get(0)
+                        .getLiteralConclusions(), remainingClauses.get(0)
+                        .getLiteralConclusions());
+                if (literal != null) {
+                    tmpSubProofs.add(remainingClauses.remove(0));
+                } else { // Pick an arbitrary clause for resolution
+                    literal = pickAndUseFittingClause(remainingClauses,
+                            tmpSubProofs, conclusions);
+                }
                 assert (tmpSubProofs.size() == 2);
                 assert (literal != null);
 
-                tmpLiteralConclusions.addAll(tmpSubProofs.get(0)
-                        .getLiteralConclusions());
-                tmpLiteralConclusions.addAll(tmpSubProofs.get(1)
-                        .getLiteralConclusions());
+                assert (tmpLiteralConclusions.isEmpty());
+                for (Formula currentLiteral : tmpSubProofs.get(0)
+                        .getLiteralConclusions()) {
+                    if (!tmpLiteralConclusions.contains(currentLiteral))
+                        tmpLiteralConclusions.add(currentLiteral);
+                }
+                for (Formula currentLiteral : tmpSubProofs.get(1)
+                        .getLiteralConclusions()) {
+                    if (!tmpLiteralConclusions.contains(currentLiteral))
+                        tmpLiteralConclusions.add(currentLiteral);
+                }
                 tmpLiteralConclusions.remove(literal);
                 tmpLiteralConclusions.remove(Util.invertLiteral(literal));
 
@@ -118,9 +139,18 @@ public class VeritProofNode {
                         .equals(new HashSet<Formula>(conclusions)))
                     break;
 
-                VeritProofNode intermediateNode = new VeritProofNode(name
-                        + "_i" + count, VeriTToken.RESOLUTION,
-                        tmpLiteralConclusions, tmpSubProofs, null, proof);
+                VeritProofNode intermediateNode = null;
+
+                // cache lookup
+                if (proof != null) {
+                    intermediateNode = proof.cacheLookup(tmpLiteralConclusions);
+                }
+                if (intermediateNode == null) {
+                    intermediateNode = new VeritProofNode(name + "_i" + count,
+                            VeriTToken.RESOLUTION, tmpLiteralConclusions,
+                            tmpSubProofs, null, proof);
+                }
+                assert (intermediateNode != null);
                 tmpSubProofs.clear();
                 tmpSubProofs.add(intermediateNode);
                 tmpLiteralConclusions.clear();
@@ -136,7 +166,7 @@ public class VeritProofNode {
 
         assert (tmpLiteralConclusions != null);
         assert (tmpSubProofs != null);
-        assert (tmpSubProofs.size() == 2);
+        assert (tmpSubProofs.size() == 2 || !type.equals(VeriTToken.RESOLUTION));
         assert ((new HashSet<Formula>(tmpLiteralConclusions))
                 .equals(new HashSet<Formula>(conclusions)));
         this.subProofs = tmpSubProofs;
@@ -150,6 +180,29 @@ public class VeritProofNode {
         this.proof = proof;
 
         assert (this.checkProofNode());
+        assert (proof != null);
+        proof.addProofNode(this);
+    }
+
+    /**
+     * Returns the literal that resolved the two given clauses, as it occurs in
+     * <code>clause1</code>. A sanity check (that no other literals would be
+     * resolving literals is <em>not</em> done.
+     * 
+     * @param clause1
+     * @param clause2
+     * @return the resolving literal (as it occurs in <code>clause1</code>
+     *         polarity), or <code>null</code> if none exists
+     */
+    private Formula findResolvingLiteral(List<Formula> clause1,
+            List<Formula> clause2) {
+        for (Formula literal : clause1) {
+            assert (Util.isLiteral(literal));
+            Formula invertedLiteral = Util.invertLiteral(literal);
+            if (clause2.contains(invertedLiteral))
+                return literal;
+        }
+        return null;
     }
 
     /**
@@ -178,7 +231,8 @@ public class VeritProofNode {
         assert (!remainingClauses.isEmpty());
         assert (tmpSubProofs.size() == 1);
 
-        List<Formula> literals = tmpSubProofs.get(0).getLiteralConclusions();
+        List<Formula> literals = tmpSubProofs.get(0).getLiteralConclusions()
+                .editableCopy();
         literals.removeAll(conclusions);
         assert (!literals.isEmpty());
         for (Formula literal : literals) {

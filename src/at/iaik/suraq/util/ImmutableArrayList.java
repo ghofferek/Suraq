@@ -328,4 +328,11 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
         return new ImmutableArrayList<E>(internalList.subList(arg0, arg1));
     }
 
+    /**
+     * @return an editable copy of this list.
+     */
+    public List<E> editableCopy() {
+        return new ArrayList<E>(internalList);
+    }
+
 }
