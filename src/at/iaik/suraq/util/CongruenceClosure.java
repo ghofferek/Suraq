@@ -3,9 +3,9 @@
  */
 package at.iaik.suraq.util;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -26,7 +26,7 @@ public class CongruenceClosure {
     /**
      * The list of equivalence classes
      */
-    private final Set<Set<Term>> equivClasses = new HashSet<Set<Term>>();
+    private final Set<Set<Term>> equivClasses = new CopyOnWriteArraySet<Set<Term>>();
 
     public CongruenceClosure() {
         // nothing to do here
@@ -57,7 +57,7 @@ public class CongruenceClosure {
             }
         }
 
-        Set<Term> newClass = new HashSet<Term>();
+        Set<Term> newClass = new CopyOnWriteArraySet<Term>();
         newClass.add(term1);
         newClass.add(term2);
         equivClasses.add(newClass);
@@ -105,8 +105,10 @@ public class CongruenceClosure {
 
         // Merging based on common terms
         for (Set<Term> equivClass1 : equivClasses) {
+            assert (equivClasses.contains(equivClass1));
             for (Term term : equivClass1) {
                 for (Set<Term> equivClass2 : equivClasses) {
+                    assert (equivClasses.contains(equivClass2));
                     if (equivClass1 == equivClass2)
                         continue;
                     if (equivClass2.contains(term)) {

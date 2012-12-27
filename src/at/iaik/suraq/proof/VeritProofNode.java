@@ -660,11 +660,11 @@ public class VeritProofNode {
         if (path == null) {
             if (!CongruenceClosure.checkVeritProofNode(this))
                 return false;
+        } else {
+
+            assert (literalConclusions.containsAll(path));
+            assert (path.size() == literalConclusions.size() - 1);
         }
-
-        assert (literalConclusions.containsAll(path));
-        assert (path.size() == literalConclusions.size() - 1);
-
         return true;
     }
 

@@ -765,7 +765,7 @@ public class VeritProof {
 
         Token proofType = node.getType();
 
-        if (proofType.equals(VeriTToken.INPUT)) {
+        if (proofType.equals(VeriTToken.INPUT) || node.isAxiom()) {
 
             OrFormula clause = node.getConclusionsAsOrFormula();
             List<Lit> resClause = new ArrayList<Lit>();
