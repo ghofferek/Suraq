@@ -9,15 +9,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.util.CongruenceClosure;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
@@ -83,9 +86,6 @@ public class VeritProofNode {
     protected VeritProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs, VeritProof proof) {
-
-        if (proof != null)
-            assert (proof.cacheLookup(conclusions) == null);
 
         this.name = name;
         this.type = type;
@@ -341,17 +341,15 @@ public class VeritProofNode {
     }
 
     /**
-     * Removes the given <code>parent</code> from the list of parents.
-     * <code>this</code> node may not show up in the <code>subProofs</code> of
-     * the <code>parent</code>. If the given <code>parent</code> is not present
-     * in the current list of parents, nothing happens.
+     * Removes the given <code>parent</code> from the list of parents. If the
+     * given <code>parent</code> is not present in the current list of parents,
+     * nothing happens.
      * 
      * @param parent
      *            the parent to remove
      */
     protected void removeParent(VeritProofNode parent) {
         if (parents.contains(parent)) {
-            assert (!parent.subProofs.contains(this));
             parents.remove(parent);
             if (parents.isEmpty())
                 this.kill();
@@ -659,8 +657,10 @@ public class VeritProofNode {
         }
 
         List<Formula> path = equalityGraph.findPath(terms[0], terms[1]);
-        if (path == null)
-            return false;
+        if (path == null) {
+            if (!CongruenceClosure.checkVeritProofNode(this))
+                return false;
+        }
 
         assert (literalConclusions.containsAll(path));
         assert (path.size() == literalConclusions.size() - 1);
@@ -740,37 +740,80 @@ public class VeritProofNode {
         assert (terms2 != null);
         assert (terms1.size() == terms2.size());
 
-        if (terms1.size() != literalConclusions.size() - 1)
+        if (terms1.size() > literalConclusions.size() - 1) // There can be more
+                                                           // literals, due to
+                                                           // replacement during
+                                                           // cleaning.
             return false;
 
         // Taking the assumption that equalities in the axiom instantiation
         // occur in the same order as they occur as parameters to the
         // uninterpreted function
         for (int count = 0; count < terms1.size(); count++) {
-            Formula literal = literalConclusions.get(count);
-            if (!Util.isLiteral(literal))
-                return false;
-            if (!Util.isNegativeLiteral(literal))
-                return false;
-            assert (Util.makeLiteralPositive(literal) instanceof EqualityFormula);
-            EqualityFormula eqLiteral = (EqualityFormula) Util
-                    .makeLiteralPositive(literal);
-            if (!eqLiteral.isEqual())
-                return false;
-            Term[] literalTerms = eqLiteral.getTerms().toArray(new Term[0]);
-            if (literalTerms.length != 2)
-                return false;
 
-            // Taking the assumption that the first term of the equality
-            // corresponds
-            // to a parameter on the first term of the impliedLiteral
-            if (!terms1.get(count).equals(literalTerms[0])
-                    && !terms2.get(count).equals(literalTerms[0]))
-                return false;
-            if (!terms1.get(count).equals(literalTerms[1])
-                    && !terms2.get(count).equals(literalTerms[1]))
-                return false;
+            // For each parameter (-pair), search for negated equality.
+            List<DomainTerm> eqTerms = new ArrayList<DomainTerm>(2);
+            eqTerms.add(terms1.get(count));
+            eqTerms.add(terms2.get(count));
+            Formula literal;
+            try {
+                literal = EqualityFormula.create(eqTerms, true);
+            } catch (IncomparableTermsException exc) {
+                throw new RuntimeException(exc);
+            }
+            literal = NotFormula.create(literal);
+            if (literalConclusions.contains(literal))
+                continue;
 
+            // Try other order of terms
+            eqTerms.clear();
+            eqTerms.add(terms2.get(count));
+            eqTerms.add(terms1.get(count));
+            try {
+                literal = EqualityFormula.create(eqTerms, true);
+            } catch (IncomparableTermsException exc) {
+                throw new RuntimeException(exc);
+            }
+            literal = NotFormula.create(literal);
+            if (literalConclusions.contains(literal))
+                continue;
+
+            // Try via transitivity chain
+            Graph<Term, Formula> equalityGraph = new Graph<Term, Formula>();
+            for (Formula currentLiteral : literalConclusions.subList(0,
+                    literalConclusions.size() - 1)) {
+                if (!Util.isLiteral(currentLiteral))
+                    return false;
+                if (!Util.isNegativeLiteral(currentLiteral))
+                    return false;
+                if (!(Util.makeLiteralPositive(currentLiteral) instanceof EqualityFormula))
+                    return false;
+                if (!((EqualityFormula) Util
+                        .makeLiteralPositive(currentLiteral)).isEqual())
+                    return false;
+                if (((EqualityFormula) Util.makeLiteralPositive(currentLiteral))
+                        .getTerms().size() != 2)
+                    return false;
+
+                Term[] currentTerms = ((EqualityFormula) Util
+                        .makeLiteralPositive(currentLiteral)).getTerms()
+                        .toArray(new Term[0]);
+                assert (currentTerms.length == 2);
+                equalityGraph.addNode(currentTerms[0]);
+                equalityGraph.addNode(currentTerms[1]);
+                equalityGraph.addEdge(currentTerms[0], currentTerms[1],
+                        currentLiteral);
+            }
+
+            List<Formula> path = equalityGraph.findPath(terms1.get(count),
+                    terms2.get(count));
+            if (path != null) {
+                assert (literalConclusions.containsAll(path));
+                continue;
+            }
+
+            // Not found any matching equality.
+            return false;
         }
         return true;
     }
@@ -802,6 +845,7 @@ public class VeritProofNode {
         if (literalConclusions.size() < 2)
             return false; // Not a definition if there is just one literal
 
+        boolean badLiteralFound = false;
         for (Formula literal : literalConclusions) {
             if (Util.isNegativeLiteral(literal)) {
                 if (Util.isBadLiteral(literal))
@@ -814,8 +858,13 @@ public class VeritProofNode {
                 // That should not happen.
                 assert (false);
             }
+            if (Util.isBadLiteral(literal)) {
+                if (badLiteralFound)
+                    return false; // more than one bad literal found
+                badLiteralFound = true;
+            }
         }
-        return true;
+        return badLiteralFound;
     }
 
     /**

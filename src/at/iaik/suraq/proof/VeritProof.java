@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 import at.iaik.suraq.resProof.Lit;
 import at.iaik.suraq.resProof.ResNode;
@@ -56,7 +55,7 @@ public class VeritProof {
      * A cache of nodes, indexed by their conclusions (represented as sets,
      * since order is immaterial).
      */
-    private final WeakHashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>> nodeCache = new WeakHashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>>();
+    private final HashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>> nodeCache = new HashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>>();
 
     /**
      * This stores all <em>leaf</em> nodes where several good literals define a
@@ -165,8 +164,6 @@ public class VeritProof {
      */
     private void addNodeToInternalDataStructures(VeritProofNode node) {
         assert (proofSets.get(node.getName()) == null);
-        assert (nodeCache.get(ImmutableSet.create(node
-                .getLiteralConclusionsAsSet())) == null);
         proofSets.put(node.getName(), node);
         nodeCache.put(ImmutableSet.create(node.getLiteralConclusionsAsSet()),
                 new WeakReference<VeritProofNode>(node));
@@ -232,8 +229,13 @@ public class VeritProof {
         goodDefinitionsOfBadLiterals.remove(node);
         removeFromCache(node);
 
-        // TODO what about the subproofs??
-        assert (nodeCache.size() == proofSets.size());
+        for (VeritProofNode child : node.getSubProofs()) {
+            child.removeParent(node);
+            if (child.getParents().isEmpty())
+                removeDanglingProofNode(child);
+        }
+
+        assert (nodeCache.size() <= proofSets.size());
     }
 
     /**
@@ -340,6 +342,9 @@ public class VeritProof {
         if (!root.getParents().isEmpty())
             return false;
         if (proofSets.get(root.getName()) != root)
+            return false;
+
+        if (nodeCache.size() > proofSets.size())
             return false;
 
         for (VeritProofNode node : proofSets.values()) {
@@ -521,11 +526,14 @@ public class VeritProof {
      * Cleans the proof of bad literals
      */
     public void cleanProof() {
+        assert (this.checkProof());
+        System.out.println("Number of bad leafs to clean: "
+                + this.goodDefinitionsOfBadLiterals.size());
         VeritProofNode currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
         while (currentLeaf != null) {
+            System.out.println("  Cleaning leaf " + currentLeaf.getName());
             cleanProof(currentLeaf);
-            assert (!this.proofSets.values().contains(currentLeaf));
-            assert (!this.goodDefinitionsOfBadLiterals.contains(currentLeaf));
+            removeUnreachableNodes();
             currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
         }
         assert (this.isClean());
@@ -577,15 +585,19 @@ public class VeritProof {
 
         // Go back up the other way, record the path
         Stack<VeritProofNode> path = new Stack<VeritProofNode>();
+        path.push(currentNode);
         while (!currentNode.getSubProofs().isEmpty()) {
+            boolean found = false;
             for (VeritProofNode currentChild : currentNode.getSubProofs()) {
                 if (currentChild.getLiteralConclusionsAsSet().contains(
                         inverseBadLiteral)) {
                     currentNode = currentChild;
                     path.push(currentNode);
+                    found = true;
                     break;
                 }
             }
+            assert (found);
         }
         assert (currentNode.getSubProofs().isEmpty());
 
@@ -615,11 +627,18 @@ public class VeritProof {
             VeritProofNode newNode = null;
             WeakReference<VeritProofNode> reference = nodeCache
                     .get(ImmutableSet.create(newConclusion));
-            if (reference != null)
+            if (reference != null) {
                 newNode = reference.get();
+                if (newNode != null) {
+                    // Check whether its a node on the path. If so, do not take
+                    // it.
+                    if (path.contains(newNode) || newNode.equals(turningPoint))
+                        newNode = null;
+                }
+            }
 
             if (newNode == null) {
-                newNode = new VeritProofNode("rep" + currentNode.getName(),
+                newNode = new VeritProofNode("repl" + currentNode.getName(),
                         currentNode.getType(), newConclusion, newClauses,
                         currentNode.getIargs(), this);
                 nodeCache.put(ImmutableSet.create(newConclusion),
@@ -636,6 +655,7 @@ public class VeritProof {
         }
 
         assert (currentNode == turningPoint);
+        currentNode = newPreviousNode;
 
         // Resolve literals that should already have been resolved before the
         // turning point
@@ -668,8 +688,15 @@ public class VeritProof {
 
             WeakReference<VeritProofNode> reference = nodeCache
                     .get(ImmutableSet.create(newConclusion));
-            if (reference != null)
+            if (reference != null) {
                 newNode = reference.get();
+                if (newNode != null) {
+                    // Check whether its a node on the path. If so, do not take
+                    // it.
+                    if (path.contains(newNode) || newNode.equals(turningPoint))
+                        newNode = null;
+                }
+            }
             if (newNode == null) {
                 newNode = new VeritProofNode("res."
                         + newClauses.get(0).getName() + "."

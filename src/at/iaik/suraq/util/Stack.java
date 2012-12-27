@@ -71,4 +71,13 @@ public class Stack<E> {
     public E peek() {
         return elements.isEmpty() ? null : elements.get(elements.size() - 1);
     }
+
+    /**
+     * 
+     * @param element
+     * @return <code>true</code> if the stack contains the given element.
+     */
+    public boolean contains(E element) {
+        return elements.contains(element);
+    }
 }
