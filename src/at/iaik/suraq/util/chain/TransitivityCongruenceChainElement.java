@@ -3,10 +3,12 @@
  */
 package at.iaik.suraq.util.chain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 
 /**
  * An element in a transitivity-congruence chain.
@@ -44,7 +46,7 @@ public class TransitivityCongruenceChainElement {
      * 
      * @param term
      */
-    public TransitivityCongruenceChainElement(DomainTerm term) {
+    protected TransitivityCongruenceChainElement(DomainTerm term) {
         assert (term != null);
         this.term = term;
     }
@@ -91,6 +93,65 @@ public class TransitivityCongruenceChainElement {
         assert (equalityJustification == null);
         assert (congruenceJustification == null);
         return false;
+    }
+
+    public boolean tryAttach(UninterpretedFunctionInstance nextTerm,
+            List<TransitivityCongruenceChain> justification) {
+        if (next != null)
+            return false;
+        assert (next == null);
+        assert (equalityJustification == null);
+        assert (congruenceJustification == null);
+        assert (nextTerm != null);
+        assert (justification != null);
+        assert (!justification.isEmpty());
+        if (!(this.term instanceof UninterpretedFunctionInstance))
+            return false;
+        if (!nextTerm.getFunction().equals(
+                ((UninterpretedFunctionInstance) this.term).getFunction()))
+            return false;
+        if (!checkJustification(justification,
+                ((UninterpretedFunctionInstance) this.term).getParameters(),
+                nextTerm.getParameters()))
+            return false;
+        this.congruenceJustification = new ArrayList<TransitivityCongruenceChain>(
+                justification);
+        this.next = new TransitivityCongruenceChainElement(nextTerm);
+        assert (next != null);
+        assert (congruenceJustification != null);
+        assert (equalityJustification == null);
+        return true;
+    }
+
+    /**
+     * @param justification
+     * @param parameters1
+     * @param parameters2
+     * @return
+     */
+    private boolean checkJustification(
+            List<TransitivityCongruenceChain> justification,
+            List<DomainTerm> parameters1, List<DomainTerm> parameters2) {
+
+        if (justification.size() != parameters1.size())
+            return false;
+
+        if (justification.size() != parameters2.size())
+            return false;
+
+        assert (parameters1.size() == parameters2.size());
+
+        for (int count = 0; count < justification.size(); count++) {
+            TransitivityCongruenceChain currentChain = justification.get(count);
+            if (!currentChain.isComplete())
+                return false;
+            if (!currentChain.getStart().equals(parameters1.get(count)))
+                return false;
+            if (!currentChain.getTarget().equals(parameters2.get(count)))
+                return false;
+        }
+
+        return true;
     }
 
     /**
