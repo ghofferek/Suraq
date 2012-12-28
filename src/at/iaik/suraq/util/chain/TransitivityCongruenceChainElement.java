@@ -4,10 +4,13 @@
 package at.iaik.suraq.util.chain;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
+import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 
 /**
@@ -52,13 +55,26 @@ public class TransitivityCongruenceChainElement {
     }
 
     /**
+     * Constructs a new <code>TransitivityCongruenceChainElement</code>.
+     * 
+     * @param element
+     */
+    protected TransitivityCongruenceChainElement(
+            TransitivityCongruenceChainElement element) {
+        this.term = element.term;
+        this.next = element.next;
+        this.equalityJustification = element.equalityJustification;
+        this.congruenceJustification = element.congruenceJustification;
+    }
+
+    /**
      * Tries to attach the given <code>equality</code> to this chain element. If
      * <code>next</code> is not <code>null</code> attachment will fail.
      * 
      * @param equality
      * @return <code>true</code> if the given equality could be attached.
      */
-    public boolean tryAttach(DomainEq equality) {
+    protected boolean tryAttach(DomainEq equality) {
         if (next != null)
             return false;
         assert (equality != null);
@@ -95,7 +111,7 @@ public class TransitivityCongruenceChainElement {
         return false;
     }
 
-    public boolean tryAttach(UninterpretedFunctionInstance nextTerm,
+    protected boolean tryAttach(UninterpretedFunctionInstance nextTerm,
             List<TransitivityCongruenceChain> justification) {
         if (next != null)
             return false;
@@ -155,6 +171,24 @@ public class TransitivityCongruenceChainElement {
     }
 
     /**
+     * 
+     * @return a set of formulas used as link in this element.
+     */
+    protected Set<Formula> usedLiterals() {
+        Set<Formula> result = new HashSet<Formula>();
+        if (equalityJustification != null) {
+            assert (congruenceJustification == null);
+            result.add(equalityJustification);
+        } else if (congruenceJustification != null) {
+            assert (equalityJustification == null);
+            assert (!congruenceJustification.isEmpty());
+            for (TransitivityCongruenceChain chain : congruenceJustification)
+                result.addAll(chain.usedLiterals());
+        }
+        return result;
+    }
+
+    /**
      * @return the <code>term</code>
      */
     public DomainTerm getTerm() {
@@ -169,6 +203,14 @@ public class TransitivityCongruenceChainElement {
     }
 
     /**
+     * 
+     * @return <code>true</code> if there is a next element.
+     */
+    public boolean hasNext() {
+        return next != null;
+    }
+
+    /**
      * @return the <code>equalityJustification</code>
      */
     public DomainEq getEqualityJustification() {
@@ -180,6 +222,22 @@ public class TransitivityCongruenceChainElement {
      */
     public List<TransitivityCongruenceChain> getCongruenceJustification() {
         return congruenceJustification;
+    }
+
+    /**
+     * @return <code>true</code> if the term of this element is global.
+     */
+    public boolean isGlobal() {
+        Set<Integer> partitions = term.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        return partitions.isEmpty();
+    }
+
+    /**
+     * 
+     */
+    protected void makeNextNull() {
+        this.next = null;
     }
 
 }
