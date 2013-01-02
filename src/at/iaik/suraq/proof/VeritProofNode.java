@@ -990,4 +990,14 @@ public class VeritProofNode {
 
         return false;
     }
+
+    /**
+     * @return the partitions of the literals of this node.
+     */
+    public Set<Integer> getPartitionsFromSymbols() {
+        Set<Integer> result = new HashSet<Integer>();
+        for (Formula literal : literalConclusions)
+            result.addAll(literal.getPartitionsFromSymbols());
+        return result;
+    }
 }

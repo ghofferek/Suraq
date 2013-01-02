@@ -23,6 +23,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Stack;
 import at.iaik.suraq.util.Util;
+import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
 
 /**
  * This Proof consists of several VeritProofNodes. You shall not try to modify
@@ -307,7 +308,7 @@ public class VeritProof {
     /**
      * @return <code>true</code> if this proof does not contain bad literals
      */
-    public boolean isClean() {
+    public boolean hasNoBadLiterals() {
         for (VeritProofNode node : proofSets.values()) {
             for (Formula literal : node.getLiteralConclusions()) {
                 assert (Util.isLiteral(literal));
@@ -523,7 +524,7 @@ public class VeritProof {
     }
 
     /**
-     * Cleans the proof of bad literals
+     * Cleans the proof of bad literals and splits leafs into colorable parts.
      */
     public void cleanProof() {
         assert (this.checkProof());
@@ -536,8 +537,53 @@ public class VeritProof {
             removeUnreachableNodes();
             currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
         }
-        assert (this.isClean());
+        assert (this.hasNoBadLiterals());
         assert (this.checkProof());
+
+        for (VeritProofNode leaf : this.getLeafs()) {
+            Set<Integer> partitions = leaf.getPartitionsFromSymbols();
+            partitions.remove(-1);
+            if (partitions.size() > 1) {
+                assert (leaf.isAxiom());
+                TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                        .create(leaf);
+                VeritProofNode replacement = chain.toColorableProof();
+                for (VeritProofNode parent : leaf.getParents())
+                    parent.updateProofNode(leaf, replacement);
+            }
+        }
+
+        assert (this.isColorable());
+        assert (this.checkProof());
+    }
+
+    /**
+     * @return <code>true</code> all leafs of this proof are colorable.
+     */
+    public boolean isColorable() {
+        for (VeritProofNode node : proofSets.values()) {
+            if (!node.isLeaf())
+                continue;
+            else {
+                Set<Integer> partitions = node.getPartitionsFromSymbols();
+                partitions.remove(-1);
+                if (partitions.size() > 1)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return all leafs of this proof.
+     */
+    public Set<VeritProofNode> getLeafs() {
+        Set<VeritProofNode> result = new HashSet<VeritProofNode>();
+        for (VeritProofNode node : proofSets.values()) {
+            if (node.isLeaf())
+                result.add(node);
+        }
+        return result;
     }
 
     /**

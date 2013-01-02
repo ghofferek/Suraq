@@ -511,7 +511,7 @@ public class Suraq implements Runnable {
         timer.stop();
         System.out.println("    Done. (" + timer + ")");
         timer.reset();
-        assert (proof.isClean());
+        assert (proof.hasNoBadLiterals());
 
         System.out.println("  Reordering resolution proof...");
         timer.start();
