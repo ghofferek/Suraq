@@ -16,6 +16,7 @@ import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.Term;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
@@ -219,8 +220,13 @@ public class TransitivityCongruenceChain {
      * Constructs a new <code>TransitivityCongruenceChain</code>.
      * 
      * @param start
+     *            the start term of the chain
      * @param target
+     *            the target term of the chain
      * @param node
+     *            the proof node corresponding to this chain (for
+     *            <code>proof</code> and <code>targerLiterals</code>. Can be
+     *            <code>null</code>.
      */
     private TransitivityCongruenceChain(DomainTerm start, DomainTerm target,
             VeritProofNode node) {
@@ -255,6 +261,28 @@ public class TransitivityCongruenceChain {
         this.proof = proof;
         this.targetLiterals = new ImmutableArrayList<Formula>(targetLiterals);
         this.target = target;
+    }
+
+    /**
+     * 
+     * Constructs a new <code>TransitivityCongruenceChain</code> which consists
+     * just of one reflexivity over <code>term</code>.
+     * 
+     * @param reflexiveTerm
+     * @param proof
+     */
+    private TransitivityCongruenceChain(DomainTerm reflexiveTerm,
+            VeritProof proof) {
+        this.start = new TransitivityCongruenceChainElement(reflexiveTerm);
+        this.target = reflexiveTerm;
+        this.proof = proof;
+
+        this.start.attachReflexivity();
+        List<Formula> literals = new ArrayList<Formula>();
+        literals.add(this.start.getEqualityJustification());
+        this.targetLiterals = new ImmutableArrayList<Formula>(literals);
+
+        assert (this.isComplete());
     }
 
     /**
@@ -300,7 +328,7 @@ public class TransitivityCongruenceChain {
         Formula resolvingLiteral = DomainEq.create(terms, true);
         conclusions.add(NotFormula.create(resolvingLiteral));
 
-        // Add unused literals of the right partition
+        // Add unused literals of the correct partition
         for (Formula unusedLiteral : this.unusedLiterals()) {
             Set<Integer> literalPartitions = unusedLiteral
                     .getPartitionsFromSymbols();
@@ -355,7 +383,7 @@ public class TransitivityCongruenceChain {
      * intermediate is added in between.
      */
     private void splitUncolorableCongruenceLinks() {
-        TransitivityCongruenceChainElement current = start;
+        TransitivityCongruenceChainElement current = this.start;
         while (current.hasNext()) {
             if (current.getCongruenceJustification() != null) {
                 assert (current.getEqualityJustification() == null);
@@ -365,34 +393,130 @@ public class TransitivityCongruenceChain {
                         .getPartitionsFromSymbols());
                 partitions.remove(-1);
                 if (partitions.size() > 1)
-                    TransitivityCongruenceChain
-                            .splitUncolorableCongruenceLink(current);
+                    this.splitUncolorableCongruenceLink(current);
             }
             current = current.getNext();
         }
     }
 
-    private static void splitUncolorableCongruenceLink(
+    /**
+     * Splits the uncolorable congruence link at position <code>element</code>.
+     * 
+     * @param element
+     *            the left side of an uncolorable congruence link in this chain
+     */
+    private void splitUncolorableCongruenceLink(
             TransitivityCongruenceChainElement element) {
         assert (element.hasNext());
         assert (element.getCongruenceJustification() != null);
-        List<TransitivityCongruenceChain> justification1 = new ArrayList<TransitivityCongruenceChain>();
-        List<TransitivityCongruenceChain> justification2 = new ArrayList<TransitivityCongruenceChain>();
+        assert (element.getEqualityJustification() == null);
 
+        List<List<TransitivityCongruenceChain>> listOfSegments = new ArrayList<List<TransitivityCongruenceChain>>();
         for (TransitivityCongruenceChain chain : element
                 .getCongruenceJustification()) {
             chain.splitUncolorableCongruenceLinks();
-
-            // TODO
-            // Split each chain as often as necessary
-            // Store segments in a list
-            // Create intermediate elements from list of lists.
-
+            TransitivityCongruenceChain chainSegment = chain;
+            List<TransitivityCongruenceChain> segments = new ArrayList<TransitivityCongruenceChain>();
+            while (true) {
+                segments.add(chainSegment);
+                Set<Integer> partitions = new HashSet<Integer>();
+                TransitivityCongruenceChainElement newStart = null;
+                TransitivityCongruenceChainElement current = chainSegment.start;
+                while (true) {
+                    partitions.addAll(current.getTerm()
+                            .getPartitionsFromSymbols());
+                    partitions.remove(-1);
+                    if (!current.hasNext() || partitions.size() > 1) {
+                        partitions.removeAll(current.getTerm()
+                                .getPartitionsFromSymbols());
+                        break;
+                    }
+                    current = current.getNext();
+                }
+                newStart = current;
+                assert (newStart != chainSegment.start);
+                if (!newStart.hasNext()) { // whole chain is one segment.
+                    break;
+                } else {
+                    chainSegment = chainSegment.split(newStart);
+                }
+            }
+            listOfSegments.add(segments);
         }
 
+        // Determine start and target partitions
+        Set<Integer> partitions = element.getTerm().getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() == 1);
+        int leftPartition = partitions.iterator().next();
+        partitions.clear();
+        partitions = element.getNext().getTerm().getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() == 1);
+        int rightPartition = partitions.iterator().next();
+
+        // Determine the function in question
+        assert (element.getTerm() instanceof UninterpretedFunctionInstance);
+        UninterpretedFunction function = ((UninterpretedFunctionInstance) element
+                .getTerm()).getFunction();
+        assert (element.getNext().getTerm() instanceof UninterpretedFunctionInstance);
+        assert (((UninterpretedFunctionInstance) element.getNext().getTerm())
+                .getFunction().equals(function));
+
+        // Create the patch to splice in
+        TransitivityCongruenceChain patch = new TransitivityCongruenceChain(
+                element.getTerm(), element.getNext().getTerm(), null);
+
+        // Create intermediate elements from list of lists and attach them to
+        // the patch
+
+        // First step: From local partition to a global intermediate
+        List<TransitivityCongruenceChain> firstJustification = new ArrayList<TransitivityCongruenceChain>();
+        List<DomainTerm> firstIntermediateParameters = new ArrayList<DomainTerm>();
+        for (List<TransitivityCongruenceChain> segments : listOfSegments) {
+            assert (!segments.isEmpty());
+            TransitivityCongruenceChain firstSegment = segments.get(0);
+            partitions.clear();
+            partitions = firstSegment.getEndTerm().getPartitionsFromSymbols();
+            partitions.remove(-1);
+            assert (partitions.size() <= 1);
+            if ((partitions.isEmpty() || partitions.contains(leftPartition))
+                    && segments.size() > 1) {
+                firstIntermediateParameters.add(firstSegment.getEndTerm());
+                firstJustification.add(firstSegment);
+                segments.remove(0);
+            } else {
+                firstIntermediateParameters.add(firstSegment.getStart()
+                        .getTerm());
+                firstJustification.add(new TransitivityCongruenceChain(
+                        firstSegment.getStart().getTerm(), null));
+            }
+        }
+        UninterpretedFunctionInstance nextTerm;
+        try {
+            nextTerm = UninterpretedFunctionInstance.create(function,
+                    firstIntermediateParameters);
+        } catch (Exception exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while creating UninterpretedFunctionInstance. This should not happen.",
+                    exc);
+        }
+        patch.getEnd().tryAttach(nextTerm, firstJustification);
+
+        // TODO
+        // Loop: From one global intermediate to another global intermediate
+
+        // TODO
+        // Last step: From a global intermediate to a local partition
+
+        // Now splice in the patch
+        this.splice(element, patch);
     }
 
     /**
+     * Splits this chain at the given <code>element</code> and returns the
+     * second part.
+     * 
      * @param element
      * @return the second part of the split of <code>this</code> chain, split at
      *         the given <code>element</code>.
@@ -460,6 +584,27 @@ public class TransitivityCongruenceChain {
         Set<Formula> result = new HashSet<Formula>(targetLiterals);
         result.removeAll(this.usedLiterals());
         return result;
+    }
+
+    /**
+     * Splices the given <code>patch</code> into <code>this</code> chain,
+     * starting at <code>start</code>.
+     * 
+     * @param start
+     *            the element where to start the splice. Must have the same term
+     *            as the first element of <code>patch</code>.
+     * @param patch
+     *            the (longer) chain to splice in
+     */
+    public void splice(TransitivityCongruenceChainElement start,
+            TransitivityCongruenceChain patch) {
+        assert (start != null);
+        assert (patch != null);
+        assert (start.hasNext());
+        assert (start.getTerm().equals(patch.getStart().getTerm()));
+        assert (start.getNext().getTerm().equals(patch.getEndTerm()));
+        start.makeLeftSplice(patch.getStart());
+        patch.getEnd().makeRightSplice(start.getNext());
     }
 
     /**

@@ -1128,4 +1128,18 @@ public final class Util {
                 .equals((new HashSet<Formula>(((OrFormula) clause2)
                         .getDisjuncts())));
     }
+
+    /**
+     * Constructs a reflexivity formula over the given <code>term</code>.
+     * 
+     * @param term
+     * @return a reflexivity formula over the given <code>term</code>.
+     */
+    public static DomainEq createReflexivity(DomainTerm term) {
+        List<DomainTerm> terms = new ArrayList<DomainTerm>();
+        terms.add(term);
+        terms.add(term);
+        DomainEq result = DomainEq.create(terms, true);
+        return result;
+    }
 }

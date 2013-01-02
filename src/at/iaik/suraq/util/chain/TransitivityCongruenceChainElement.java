@@ -12,6 +12,7 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.util.Util;
 
 /**
  * An element in a transitivity-congruence chain.
@@ -238,6 +239,40 @@ public class TransitivityCongruenceChainElement {
      */
     protected void makeNextNull() {
         this.next = null;
+    }
+
+    /**
+     * 
+     */
+    protected void attachReflexivity() {
+        assert (this.next == null);
+        assert (this.equalityJustification == null);
+        assert (this.congruenceJustification == null);
+        this.next = new TransitivityCongruenceChainElement(this.term);
+        this.equalityJustification = Util.createReflexivity(this.term);
+    }
+
+    /**
+     * @param patch
+     */
+    protected void makeLeftSplice(TransitivityCongruenceChainElement patch) {
+        assert (this.term.equals(patch.term));
+        this.next = patch.next;
+        this.equalityJustification = patch.equalityJustification;
+        this.congruenceJustification = patch.congruenceJustification;
+        assert (this.congruenceJustification == null ^ this.equalityJustification == null);
+    }
+
+    /**
+     * @param patch
+     */
+    protected void makeRightSplice(TransitivityCongruenceChainElement patch) {
+        assert (this.term.equals(patch.term));
+        patch.next = this.next;
+        patch.equalityJustification = this.equalityJustification;
+        patch.congruenceJustification = this.congruenceJustification;
+        assert ((patch.congruenceJustification == null ^ patch.equalityJustification == null) || (patch.next == null
+                && patch.congruenceJustification == null && patch.equalityJustification == null));
     }
 
 }
