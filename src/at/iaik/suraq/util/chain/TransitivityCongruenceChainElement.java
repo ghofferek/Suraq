@@ -275,4 +275,19 @@ public class TransitivityCongruenceChainElement {
                 && patch.congruenceJustification == null && patch.equalityJustification == null));
     }
 
+    /**
+     * @return the set of partitions formed by all symbols in this chain
+     *         element.
+     */
+    public Set<Integer> getPartitionsFromSymbols() {
+        Set<Integer> result = new HashSet<Integer>();
+        result.addAll(term.getPartitionsFromSymbols());
+        if (equalityJustification != null)
+            result.addAll(equalityJustification.getPartitionsFromSymbols());
+        if (congruenceJustification != null) {
+            for (TransitivityCongruenceChain chain : congruenceJustification)
+                result.addAll(chain.getPartitionsFromSymbols());
+        }
+        return result;
+    }
 }

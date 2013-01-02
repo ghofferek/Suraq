@@ -477,7 +477,7 @@ public class TransitivityCongruenceChain {
             assert (!segments.isEmpty());
             TransitivityCongruenceChain firstSegment = segments.get(0);
             partitions.clear();
-            partitions = firstSegment.getEndTerm().getPartitionsFromSymbols();
+            partitions = firstSegment.getPartitionsFromSymbols();
             partitions.remove(-1);
             assert (partitions.size() <= 1);
             if ((partitions.isEmpty() || partitions.contains(leftPartition))
@@ -489,10 +489,10 @@ public class TransitivityCongruenceChain {
                 firstIntermediateParameters.add(firstSegment.getStart()
                         .getTerm());
                 firstJustification.add(new TransitivityCongruenceChain(
-                        firstSegment.getStart().getTerm(), null));
+                        firstSegment.start.getTerm(), null));
             }
         }
-        UninterpretedFunctionInstance nextTerm;
+        UninterpretedFunctionInstance nextTerm = null;
         try {
             nextTerm = UninterpretedFunctionInstance.create(function,
                     firstIntermediateParameters);
@@ -501,13 +501,90 @@ public class TransitivityCongruenceChain {
                     "Unexpected exception while creating UninterpretedFunctionInstance. This should not happen.",
                     exc);
         }
-        patch.getEnd().tryAttach(nextTerm, firstJustification);
+        boolean firstAttach = patch.getEnd().tryAttach(nextTerm,
+                firstJustification);
+        assert (firstAttach);
 
-        // TODO
         // Loop: From one global intermediate to another global intermediate
+        while (!(Util.allElementsSizeOne(listOfSegments))) {
+            List<TransitivityCongruenceChain> currentJustification = new ArrayList<TransitivityCongruenceChain>();
+            List<DomainTerm> currentIntermediateParameters = new ArrayList<DomainTerm>();
+            Integer partitionOfThisStep = null;
+            for (List<TransitivityCongruenceChain> segments : listOfSegments) {
+                assert (!segments.isEmpty());
+                TransitivityCongruenceChain currentSegment = segments.get(0);
+                partitions.clear();
+                partitions = currentSegment.getPartitionsFromSymbols();
+                partitions.remove(-1);
+                assert (partitions.size() <= 1);
+                if (!partitions.isEmpty()) {
+                    if (partitionOfThisStep == null) {
+                        partitionOfThisStep = partitions.iterator().next();
+                        currentJustification.add(currentSegment);
+                        currentIntermediateParameters.add(currentSegment
+                                .getEndTerm());
+                        segments.remove(0);
+                    } else {
+                        if (partitions.iterator().next()
+                                .equals(partitionOfThisStep)) {
+                            currentJustification.add(currentSegment);
+                            currentIntermediateParameters.add(currentSegment
+                                    .getEndTerm());
+                            segments.remove(0);
+                        } else {
+                            currentJustification
+                                    .add(new TransitivityCongruenceChain(
+                                            currentSegment.start.getTerm(),
+                                            null));
+                            currentIntermediateParameters
+                                    .add(currentSegment.start.getTerm());
+                        }
+                    }
+                } else {
+                    currentJustification.add(currentSegment);
+                    currentIntermediateParameters.add(currentSegment
+                            .getEndTerm());
+                    segments.remove(0);
+                }
+            }
+            try {
+                nextTerm = UninterpretedFunctionInstance.create(function,
+                        currentIntermediateParameters);
+            } catch (Exception exc) {
+                throw new RuntimeException(
+                        "Unexpected exception while creating UninterpretedFunctionInstance. This should not happen.",
+                        exc);
+            }
+            boolean currentAttach = patch.getEnd().tryAttach(nextTerm,
+                    currentJustification);
+            assert (currentAttach);
+        }
 
-        // TODO
         // Last step: From a global intermediate to a local partition
+        assert (Util.allElementsSizeOne(listOfSegments));
+        List<TransitivityCongruenceChain> lastJustification = new ArrayList<TransitivityCongruenceChain>();
+        List<DomainTerm> lastIntermediateParameters = new ArrayList<DomainTerm>();
+        for (List<TransitivityCongruenceChain> segments : listOfSegments) {
+            assert (segments.size() == 1);
+            TransitivityCongruenceChain currentSegment = segments.get(0);
+            partitions.clear();
+            partitions = currentSegment.getPartitionsFromSymbols();
+            partitions.remove(-1);
+            assert (partitions.size() <= 1);
+            assert (partitions.isEmpty() || partitions.contains(rightPartition));
+            lastIntermediateParameters.add(currentSegment.getEndTerm());
+            lastJustification.add(currentSegment);
+            segments.remove(0);
+        }
+        try {
+            nextTerm = UninterpretedFunctionInstance.create(function,
+                    firstIntermediateParameters);
+        } catch (Exception exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while creating UninterpretedFunctionInstance. This should not happen.",
+                    exc);
+        }
+        patch.getEnd().tryAttach(nextTerm, lastJustification);
 
         // Now splice in the patch
         this.splice(element, patch);
@@ -605,6 +682,20 @@ public class TransitivityCongruenceChain {
         assert (start.getNext().getTerm().equals(patch.getEndTerm()));
         start.makeLeftSplice(patch.getStart());
         patch.getEnd().makeRightSplice(start.getNext());
+    }
+
+    /**
+     * 
+     * @return the set of partitions formed by all symbols in this chain.
+     */
+    public Set<Integer> getPartitionsFromSymbols() {
+        Set<Integer> result = new HashSet<Integer>();
+        TransitivityCongruenceChainElement current = this.start;
+        while (current.hasNext()) {
+            result.addAll(current.getPartitionsFromSymbols());
+            current = current.getNext();
+        }
+        return result;
     }
 
     /**

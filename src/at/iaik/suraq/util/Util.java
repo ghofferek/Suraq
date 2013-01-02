@@ -4,6 +4,7 @@
 package at.iaik.suraq.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1141,5 +1142,23 @@ public final class Util {
         terms.add(term);
         DomainEq result = DomainEq.create(terms, true);
         return result;
+    }
+
+    /**
+     * Tests whether each collection in the given collection of collections has
+     * exactly one element.
+     * 
+     * @param collectionOfCollections
+     *            the collection of collections to test
+     * @return <code>true</code> iff all collections in the
+     *         <code>collectionOfCollections</code> have exactly one element.
+     */
+    public static boolean allElementsSizeOne(
+            Collection<? extends Collection<?>> collectionOfCollections) {
+        for (Collection<?> collection : collectionOfCollections) {
+            if (collection.size() != 1)
+                return false;
+        }
+        return true;
     }
 }
