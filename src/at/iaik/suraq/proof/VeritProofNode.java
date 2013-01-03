@@ -90,6 +90,14 @@ public class VeritProofNode {
         this.name = name;
         this.type = type;
 
+        List<Formula> reducedConclusions = new ArrayList<Formula>();
+        for (Formula literal : conclusions) {
+            if (!reducedConclusions.contains(literal))
+                reducedConclusions.add(literal);
+        }
+        assert ((new HashSet<Formula>(reducedConclusions)).size() == reducedConclusions
+                .size());
+
         List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>();
         ArrayList<Formula> tmpLiteralConclusions = new ArrayList<Formula>();
 
@@ -116,7 +124,7 @@ public class VeritProofNode {
                     tmpSubProofs.add(remainingClauses.remove(0));
                 } else { // Pick an arbitrary clause for resolution
                     literal = pickAndUseFittingClause(remainingClauses,
-                            tmpSubProofs, conclusions);
+                            tmpSubProofs, reducedConclusions);
                 }
                 assert (tmpSubProofs.size() == 2);
                 assert (literal != null);
@@ -136,7 +144,7 @@ public class VeritProofNode {
                 tmpLiteralConclusions.remove(Util.invertLiteral(literal));
 
                 if ((new HashSet<Formula>(tmpLiteralConclusions))
-                        .equals(new HashSet<Formula>(conclusions)))
+                        .equals(new HashSet<Formula>(reducedConclusions)))
                     break;
 
                 VeritProofNode intermediateNode = null;
@@ -158,8 +166,8 @@ public class VeritProofNode {
             assert (remainingClauses.isEmpty());
 
         } else {
-            tmpLiteralConclusions = conclusions == null ? new ArrayList<Formula>()
-                    : new ArrayList<Formula>(conclusions);
+            tmpLiteralConclusions = reducedConclusions == null ? new ArrayList<Formula>()
+                    : new ArrayList<Formula>(reducedConclusions);
             tmpSubProofs = clauses == null ? new ArrayList<VeritProofNode>()
                     : new ArrayList<VeritProofNode>(clauses);
         }
@@ -168,7 +176,7 @@ public class VeritProofNode {
         assert (tmpSubProofs != null);
         assert (tmpSubProofs.size() == 2 || !type.equals(VeriTToken.RESOLUTION));
         assert ((new HashSet<Formula>(tmpLiteralConclusions))
-                .equals(new HashSet<Formula>(conclusions)));
+                .equals(new HashSet<Formula>(reducedConclusions)));
         this.subProofs = tmpSubProofs;
         this.literalConclusions = new ImmutableArrayList<Formula>(
                 tmpLiteralConclusions);

@@ -18,6 +18,7 @@ import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.util.CongruenceClosure;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
@@ -104,23 +105,23 @@ public class TransitivityCongruenceChain {
         assert (!implyingLiterals.isEmpty());
         assert (Util.isLiteral(impliedLiteral));
         assert (!Util.isNegativeLiteral(impliedLiteral));
-
-        // Make a copy of the list, as it will be modified along the way
-        List<DomainEq> otherLiterals = new ArrayList<DomainEq>(implyingLiterals);
+        assert (node == null ? true : node.checkProofNode());
+        assert (CongruenceClosure.checkLiteralImplication(implyingLiterals,
+                impliedLiteral));
 
         TransitivityCongruenceChain chain = new TransitivityCongruenceChain(
                 (DomainTerm) impliedLiteral.getTerms().get(0),
                 (DomainTerm) impliedLiteral.getTerms().get(1), node);
 
-        while (!otherLiterals.isEmpty() && !chain.isComplete()) {
+        while (!implyingLiterals.isEmpty() && !chain.isComplete()) {
+            int chainLengthAtMainLoopStart = chain.length();
             // Try attaching equalities, as long as possible
             int oldLength = -1;
             int newLength = -1;
             do {
                 oldLength = chain.length();
-                for (DomainEq equality : otherLiterals) {
+                for (DomainEq equality : implyingLiterals) {
                     if (chain.getEnd().tryAttach(equality)) {
-                        otherLiterals.remove(equality);
                         assert (chain.length() == oldLength + 1);
                         break;
                     }
@@ -130,7 +131,7 @@ public class TransitivityCongruenceChain {
                 assert (newLength > 0);
             } while (newLength > oldLength);
 
-            if (chain.isComplete() || otherLiterals.isEmpty())
+            if (chain.isComplete())
                 break;
 
             // Now try adding a congruence equality
@@ -138,13 +139,13 @@ public class TransitivityCongruenceChain {
             Set<UninterpretedFunctionInstance> otherInstances = TransitivityCongruenceChain
                     .getOtherFunctionInstances(
                             (UninterpretedFunctionInstance) chain.getEndTerm(),
-                            otherLiterals);
+                            implyingLiterals);
             for (UninterpretedFunctionInstance otherInstance : otherInstances) {
                 List<TransitivityCongruenceChain> justification = TransitivityCongruenceChain
                         .constructJustification(
                                 (UninterpretedFunctionInstance) chain
                                         .getEndTerm(), otherInstance,
-                                otherLiterals);
+                                implyingLiterals);
                 if (justification != null) {
                     boolean tmp = chain.getEnd().tryAttach(otherInstance,
                             justification);
@@ -152,6 +153,9 @@ public class TransitivityCongruenceChain {
                     break;
                 }
             }
+            assert (chain.length() > chainLengthAtMainLoopStart);
+            // crude endless loop detection:
+            assert (chain.length() < 10 * implyingLiterals.size());
         }
 
         return chain;

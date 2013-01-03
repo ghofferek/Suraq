@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.util;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -219,6 +220,32 @@ public class CongruenceClosure {
         assert (!Util.isNegativeLiteral(impliedLiteral));
         assert (impliedLiteral instanceof EqualityFormula);
         return cc.checkImplied((EqualityFormula) impliedLiteral);
+    }
+
+    /**
+     * 
+     * @param literals
+     *            a collection of literals which are checked for whether they
+     *            imply the given <code>impliedLiteral</code>. All these must be
+     *            positive.
+     * @param impliedLiteral
+     *            the literal which should be implied by the given
+     *            <code>literals</code>. Must be positive.
+     * @return <code>true</code> if the given <code>literals</code> imply the
+     *         given <code>impliedLiteral</code>.
+     */
+    public static boolean checkLiteralImplication(
+            Collection<? extends EqualityFormula> literals,
+            EqualityFormula impliedLiteral) {
+        CongruenceClosure cc = new CongruenceClosure();
+        for (Formula literal : literals) {
+            assert (Util.isLiteral(literal));
+            assert (!Util.isNegativeLiteral(literal));
+            cc.addEquality((EqualityFormula) literal);
+        }
+        assert (Util.isLiteral(impliedLiteral));
+        assert (!Util.isNegativeLiteral(impliedLiteral));
+        return cc.checkImplied(impliedLiteral);
     }
 
 }
