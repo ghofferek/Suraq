@@ -162,7 +162,8 @@ public class TransitivityCongruenceChainElement {
             TransitivityCongruenceChain currentChain = justification.get(count);
             if (!currentChain.isComplete())
                 return false;
-            if (!currentChain.getStart().equals(parameters1.get(count)))
+            if (!currentChain.getStart().getTerm()
+                    .equals(parameters1.get(count)))
                 return false;
             if (!currentChain.getTarget().equals(parameters2.get(count)))
                 return false;

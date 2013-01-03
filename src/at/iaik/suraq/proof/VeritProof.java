@@ -540,19 +540,30 @@ public class VeritProof {
         assert (this.hasNoBadLiterals());
         assert (this.checkProof());
 
-        for (VeritProofNode leaf : this.getLeafs()) {
+        Set<VeritProofNode> leafs = this.getLeafs();
+        System.out.println("Found " + leafs.size() + " leafs.");
+        Set<VeritProofNode> leafsToClean = new HashSet<VeritProofNode>();
+
+        for (VeritProofNode leaf : leafs) {
             Set<Integer> partitions = leaf.getPartitionsFromSymbols();
             partitions.remove(-1);
             if (partitions.size() > 1) {
                 assert (leaf.isAxiom());
-                TransitivityCongruenceChain chain = TransitivityCongruenceChain
-                        .create(leaf);
-                VeritProofNode replacement = chain.toColorableProof();
-                for (VeritProofNode parent : leaf.getParents())
-                    parent.updateProofNode(leaf, replacement);
+                leafsToClean.add(leaf);
             }
         }
 
+        System.out.println("  " + leafsToClean.size() + " need splitting.");
+        int count = 0;
+        for (VeritProofNode leafToClean : leafsToClean) {
+            TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                    .create(leafToClean);
+            VeritProofNode replacement = chain.toColorableProof();
+            for (VeritProofNode parent : leafToClean.getParents())
+                parent.updateProofNode(leafToClean, replacement);
+            System.out.println("    Done " + ++count);
+        }
+        System.out.println("  All done.");
         assert (this.isColorable());
         assert (this.checkProof());
     }

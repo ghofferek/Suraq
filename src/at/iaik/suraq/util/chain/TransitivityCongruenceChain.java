@@ -294,7 +294,7 @@ public class TransitivityCongruenceChain {
         assert (targetLiterals != null);
         assert (proof != null);
 
-        splitUncolorableCongruenceLinks();
+        this.splitUncolorableCongruenceLinks();
 
         Set<Integer> partitions = new HashSet<Integer>();
         TransitivityCongruenceChainElement newStart = null;
@@ -316,7 +316,8 @@ public class TransitivityCongruenceChain {
         List<Formula> conclusions = new ArrayList<Formula>();
         current = start;
         while (current != newStart) {
-            conclusions.addAll(current.usedLiterals());
+            for (Formula literal : current.usedLiterals())
+                conclusions.add(NotFormula.create(literal));
             current = current.getNext();
         }
 
@@ -646,6 +647,7 @@ public class TransitivityCongruenceChain {
         TransitivityCongruenceChainElement current = start;
         while (current.hasNext()) {
             result.addAll(current.usedLiterals());
+            current = current.getNext();
         }
         return result;
     }
@@ -659,7 +661,10 @@ public class TransitivityCongruenceChain {
         if (targetLiterals == null)
             return new HashSet<Formula>();
         Set<Formula> result = new HashSet<Formula>(targetLiterals);
-        result.removeAll(this.usedLiterals());
+        for (Formula literal : this.usedLiterals()) {
+            result.remove(literal);
+            result.remove(NotFormula.create(literal));
+        }
         return result;
     }
 
