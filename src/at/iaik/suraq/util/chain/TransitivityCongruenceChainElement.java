@@ -8,9 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import at.iaik.suraq.exceptions.WrongFunctionTypeException;
+import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.util.Util;
 
@@ -138,6 +141,35 @@ public class TransitivityCongruenceChainElement {
         assert (congruenceJustification != null);
         assert (equalityJustification == null);
         return true;
+    }
+
+    /**
+     * Convenience method that constructs the <code>nextTerm</code>
+     * automatically.
+     * 
+     * @param justification
+     * @return <code>true</code> if attachment was successfull
+     */
+    protected boolean tryAttach(List<TransitivityCongruenceChain> justification) {
+        if (!(this.term instanceof UninterpretedFunctionInstance))
+            return false;
+        UninterpretedFunction function = ((UninterpretedFunctionInstance) this.term)
+                .getFunction();
+        if (justification.size() != function.getNumParams())
+            return false;
+        List<DomainTerm> parameters = new ArrayList<DomainTerm>();
+        for (TransitivityCongruenceChain chain : justification)
+            parameters.add(chain.getEndTerm());
+        try {
+            UninterpretedFunctionInstance nextTerm = UninterpretedFunctionInstance
+                    .create(function, parameters);
+            return tryAttach(nextTerm, justification);
+        } catch (WrongNumberOfParametersException exc) {
+            return false;
+        } catch (WrongFunctionTypeException exc) {
+            return false;
+        }
+
     }
 
     /**

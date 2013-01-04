@@ -21,7 +21,9 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.util.CongruenceClosure;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
+import at.iaik.suraq.util.Justification;
 import at.iaik.suraq.util.Util;
+import at.iaik.suraq.util.graph.Graph;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -109,55 +111,82 @@ public class TransitivityCongruenceChain {
         assert (CongruenceClosure.checkLiteralImplication(implyingLiterals,
                 impliedLiteral));
 
-        TransitivityCongruenceChain chain = new TransitivityCongruenceChain(
-                (DomainTerm) impliedLiteral.getTerms().get(0),
-                (DomainTerm) impliedLiteral.getTerms().get(1), node);
+        Graph<DomainTerm, Justification> graph = new Graph<DomainTerm, Justification>();
+        for (DomainEq literal : implyingLiterals) {
+            assert (literal.isEqual());
+            assert (literal.getTerms().size() == 2);
+            assert (literal.getTerms().get(0) instanceof DomainTerm);
+            assert (literal.getTerms().get(1) instanceof DomainTerm);
 
-        while (!implyingLiterals.isEmpty() && !chain.isComplete()) {
-            int chainLengthAtMainLoopStart = chain.length();
-            // Try attaching equalities, as long as possible
-            int oldLength = -1;
-            int newLength = -1;
-            do {
-                oldLength = chain.length();
-                for (DomainEq equality : implyingLiterals) {
-                    if (chain.getEnd().tryAttach(equality)) {
-                        assert (chain.length() == oldLength + 1);
-                        break;
-                    }
-                }
-                newLength = chain.length();
-                assert (oldLength > 0);
-                assert (newLength > 0);
-            } while (newLength > oldLength);
+            Justification justification = new Justification(literal);
+            graph.addEdge((DomainTerm) literal.getTerms().get(0),
+                    (DomainTerm) literal.getTerms().get(1), justification);
 
-            if (chain.isComplete())
-                break;
-
-            // Now try adding a congruence equality
-            assert (chain.getEndTerm() instanceof UninterpretedFunctionInstance);
-            Set<UninterpretedFunctionInstance> otherInstances = TransitivityCongruenceChain
-                    .getOtherFunctionInstances(
-                            (UninterpretedFunctionInstance) chain.getEndTerm(),
-                            implyingLiterals);
-            for (UninterpretedFunctionInstance otherInstance : otherInstances) {
-                List<TransitivityCongruenceChain> justification = TransitivityCongruenceChain
-                        .constructJustification(
-                                (UninterpretedFunctionInstance) chain
-                                        .getEndTerm(), otherInstance,
-                                implyingLiterals);
-                if (justification != null) {
-                    boolean tmp = chain.getEnd().tryAttach(otherInstance,
-                            justification);
-                    assert (tmp);
-                    break;
-                }
+            Set<DomainTerm> additionalTerms = new HashSet<DomainTerm>();
+            if (literal.getTerms().get(0) instanceof UninterpretedFunctionInstance) {
+                additionalTerms.addAll(((UninterpretedFunctionInstance) literal
+                        .getTerms().get(0)).getSubTerms());
             }
-            assert (chain.length() > chainLengthAtMainLoopStart);
-            // crude endless loop detection:
-            assert (chain.length() < 10 * implyingLiterals.size());
+            if (literal.getTerms().get(1) instanceof UninterpretedFunctionInstance) {
+                additionalTerms.addAll(((UninterpretedFunctionInstance) literal
+                        .getTerms().get(1)).getSubTerms());
+            }
+            for (DomainTerm term : additionalTerms)
+                graph.addNode(term);
         }
 
+        List<Justification> path = graph.findPath((DomainTerm) impliedLiteral
+                .getTerms().get(0),
+                (DomainTerm) impliedLiteral.getTerms().get(1));
+        while (path == null) {
+            Set<DomainTerm> nodes = graph.getNodes();
+            for (DomainTerm term1 : nodes) {
+                if (!(term1 instanceof UninterpretedFunctionInstance))
+                    continue;
+                for (DomainTerm term2 : nodes) {
+                    if (!(term2 instanceof UninterpretedFunctionInstance))
+                        continue;
+                    if (term1 == term2)
+                        continue;
+                    if (!((UninterpretedFunctionInstance) term1).getFunction()
+                            .equals(((UninterpretedFunctionInstance) term2)
+                                    .getFunction()))
+                        continue;
+                    if (graph.findPath(term1, term2) != null)
+                        continue;
+                    List<TransitivityCongruenceChain> localJustification = new ArrayList<TransitivityCongruenceChain>();
+                    for (int count = 0; count < ((UninterpretedFunctionInstance) term1)
+                            .getParameters().size(); count++) {
+                        List<Justification> localPath = graph.findPath(
+                                ((UninterpretedFunctionInstance) term1)
+                                        .getParameters().get(count),
+                                ((UninterpretedFunctionInstance) term2)
+                                        .getParameters().get(count));
+                        if (localPath == null) {
+                            localJustification = null;
+                            break;
+                        }
+                        localJustification.add(new TransitivityCongruenceChain(
+                                ((UninterpretedFunctionInstance) term1)
+                                        .getParameters().get(count),
+                                ((UninterpretedFunctionInstance) term2)
+                                        .getParameters().get(count), localPath,
+                                node));
+                    }
+                    if (localJustification != null)
+                        graph.addEdge(term1, term2, new Justification(
+                                localJustification));
+                }
+            }
+            path = graph.findPath(
+                    (DomainTerm) impliedLiteral.getTerms().get(0),
+                    (DomainTerm) impliedLiteral.getTerms().get(1));
+        }
+        assert (path != null);
+
+        TransitivityCongruenceChain chain = new TransitivityCongruenceChain(
+                (DomainTerm) impliedLiteral.getTerms().get(0),
+                (DomainTerm) impliedLiteral.getTerms().get(1), path, node);
         return chain;
     }
 
@@ -286,6 +315,39 @@ public class TransitivityCongruenceChain {
         literals.add(this.start.getEqualityJustification());
         this.targetLiterals = new ImmutableArrayList<Formula>(literals);
 
+        assert (this.isComplete());
+    }
+
+    /**
+     * Constructs a new <code>TransitivityCongruenceChain</code>.
+     * 
+     * @param path
+     */
+    private TransitivityCongruenceChain(DomainTerm start, DomainTerm end,
+            List<Justification> path, VeritProofNode node) {
+        assert (path != null);
+        assert (start != null);
+        assert (end != null);
+        this.start = new TransitivityCongruenceChainElement(start);
+        this.target = end;
+        this.proof = node == null ? null : node.getProof();
+        this.targetLiterals = null;
+
+        for (Justification justification : path) {
+            if (justification.isEqualityJustification()) {
+                boolean attached = this.getEnd().tryAttach(
+                        justification.getEqualityJustification());
+                assert (attached);
+                continue;
+            }
+            if (justification.isCongruenceJustification()) {
+                boolean attached = this.getEnd().tryAttach(
+                        justification.getCongruenceJustification());
+                assert (attached);
+                continue;
+            }
+            assert (false);
+        }
         assert (this.isComplete());
     }
 

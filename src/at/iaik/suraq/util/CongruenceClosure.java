@@ -62,6 +62,24 @@ public class CongruenceClosure {
         newClass.add(term1);
         newClass.add(term2);
         equivClasses.add(newClass);
+
+        if (term1 instanceof UninterpretedFunctionInstance) {
+            for (Term term : ((UninterpretedFunctionInstance) term1)
+                    .getSubTerms()) {
+                Set<Term> singleton = new CopyOnWriteArraySet<Term>();
+                singleton.add(term);
+                equivClasses.add(singleton);
+            }
+        }
+        if (term2 instanceof UninterpretedFunctionInstance) {
+            for (Term term : ((UninterpretedFunctionInstance) term2)
+                    .getSubTerms()) {
+                Set<Term> singleton = new CopyOnWriteArraySet<Term>();
+                singleton.add(term);
+                equivClasses.add(singleton);
+            }
+        }
+
         merge();
         return;
     }

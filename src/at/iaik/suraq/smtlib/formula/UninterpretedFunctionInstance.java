@@ -44,6 +44,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      * The list of parameters of this instance.
      */
     private ImmutableArrayList<DomainTerm> parameters;
+
     // this cannot be final until now.
 
     private UninterpretedFunctionInstance(UninterpretedFunction function,
@@ -102,7 +103,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         assert (partitions.size() == 1);
         this.assertPartition = partitions.iterator().next();
     }
-    
+
     public static UninterpretedFunctionInstance create(
             UninterpretedFunction function, List<DomainTerm> parameters)
             throws WrongNumberOfParametersException, WrongFunctionTypeException {
@@ -176,20 +177,15 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     public UninterpretedFunctionInstance deepTermCopy() {
         return this; // experimental
         /*
-        List<DomainTerm> parameters = new ArrayList<DomainTerm>();
-        for (DomainTerm term : this.parameters)
-            parameters.add(term.deepTermCopy());
-        try {
-            return new UninterpretedFunctionInstance(new UninterpretedFunction(
-                    function), parameters, assertPartition);
-        } catch (SuraqException exc) {
-            // This should never happen!
-            assert (false);
-            throw new RuntimeException(
-                    "Unexpected situation while copying uninterpreted function instance.",
-                    exc);
-        }
-        */
+         * List<DomainTerm> parameters = new ArrayList<DomainTerm>(); for
+         * (DomainTerm term : this.parameters)
+         * parameters.add(term.deepTermCopy()); try { return new
+         * UninterpretedFunctionInstance(new UninterpretedFunction( function),
+         * parameters, assertPartition); } catch (SuraqException exc) { // This
+         * should never happen! assert (false); throw new RuntimeException(
+         * "Unexpected situation while copying uninterpreted function instance."
+         * , exc); }
+         */
     }
 
     /**
@@ -359,7 +355,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     public Term removeArrayEqualitiesTerm() {
         List<DomainTerm> paramnew = new ArrayList<DomainTerm>();
         for (Term param : parameters)
-            paramnew.add((DomainTerm)param.removeArrayEqualitiesTerm());
+            paramnew.add((DomainTerm) param.removeArrayEqualitiesTerm());
 
         try {
             return UninterpretedFunctionInstance.create(function, paramnew,
@@ -378,31 +374,33 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         List<DomainTerm> paramnew = new ArrayList<DomainTerm>();
         for (Term param : parameters)
-            paramnew.add((DomainTerm)param.removeArrayWritesTerm(topLevelFormula, constraints,
-                    noDependenceVars));
+            paramnew.add((DomainTerm) param.removeArrayWritesTerm(
+                    topLevelFormula, constraints, noDependenceVars));
 
-            try {
-                return UninterpretedFunctionInstance.create(function, paramnew,
-                        assertPartition);
-            } catch (SuraqException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+        try {
+            return UninterpretedFunctionInstance.create(function, paramnew,
+                    assertPartition);
+        } catch (SuraqException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(
+            Set<Token> noDependenceVars) {
         List<DomainTerm> paramnew = new ArrayList<DomainTerm>();
-        
+
         for (DomainTerm term : parameters)
             if (term instanceof ArrayRead) {
                 paramnew.add(((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars));
             } else
-                paramnew.add((DomainTerm)term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
+                paramnew.add((DomainTerm) term
+                        .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
 
         try {
             return UninterpretedFunctionInstance.create(function, paramnew,
@@ -419,7 +417,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     @Override
     public Set<UninterpretedFunction> getUninterpretedFunctions() {
         Set<UninterpretedFunction> result = new HashSet<UninterpretedFunction>();
-        if(method)
+        if (UninterpretedFunctionInstance.method)
             result.add(function);
         for (Term term : parameters)
             result.addAll(term.getUninterpretedFunctions());
@@ -431,24 +429,25 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+    public Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions) {
         UninterpretedFunction function = this.function;
 
-        if(substitutions.containsKey(function.getName()))
-        {
+        if (substitutions.containsKey(function.getName())) {
             function = substitutions.get(function.getName());
-            assert((function.getType()).equals(SExpressionConstants.VALUE_TYPE));
+            assert ((function.getType())
+                    .equals(SExpressionConstants.VALUE_TYPE));
         }
-        
-//        if (function.getName().equals(oldFunction)) {
-//            function = newFunction;
-//            assert (newFunction.getType()
-//                    .equals(SExpressionConstants.VALUE_TYPE));
-//        }
+
+        // if (function.getName().equals(oldFunction)) {
+        // function = newFunction;
+        // assert (newFunction.getType()
+        // .equals(SExpressionConstants.VALUE_TYPE));
+        // }
         List<DomainTerm> paramnew = new ArrayList<DomainTerm>();
         for (Term term : parameters)
-            paramnew.add((DomainTerm) term.substituteUninterpretedFunctionTerm(
-                    substitutions));
+            paramnew.add((DomainTerm) term
+                    .substituteUninterpretedFunctionTerm(substitutions));
 
         try {
             return UninterpretedFunctionInstance.create(function, paramnew,
@@ -468,7 +467,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         for (DomainTerm term : parameters)
             flattenedParams.add((DomainTerm) term.flatten());
         try {
-            return UninterpretedFunctionInstance.create(function, flattenedParams);
+            return UninterpretedFunctionInstance.create(function,
+                    flattenedParams);
         } catch (SuraqException exc) {
             throw new RuntimeException(
                     "Unexpected error while flattening UninterpretedFunctionInstance.",
@@ -486,9 +486,9 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         List<DomainTerm> paramnew = new ArrayList<DomainTerm>();
         for (Term param : parameters)
-            paramnew.add((DomainTerm)param.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
-                    noDependenceVars));
-        
+            paramnew.add((DomainTerm) param.makeArrayReadsSimpleTerm(
+                    topLevelFormula, constraints, noDependenceVars));
+
         try {
             return UninterpretedFunctionInstance.create(function, paramnew,
                     assertPartition);
@@ -502,27 +502,24 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-
-        List<DomainTerm> newParameters = new ArrayList<DomainTerm>();
-        for (DomainTerm term : parameters)
-            newParameters.add(term.uninterpretedPredicatesToAuxiliaryVariables(
-                    topLeveFormula, constraints, noDependenceVars));
-
-        UninterpretedFunctionInstance result;
-        try {
-            result = new UninterpretedFunctionInstance(function, newParameters);
-        } catch (SuraqException exc) {
-            throw new RuntimeException(
-                    "Unexpected error while converting predicates to auxiliary variables.",
-                    exc);
-        }
-
-        return result;
-    }*/
+    /*
+     * @Override public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) {
+     * 
+     * List<DomainTerm> newParameters = new ArrayList<DomainTerm>(); for
+     * (DomainTerm term : parameters)
+     * newParameters.add(term.uninterpretedPredicatesToAuxiliaryVariables(
+     * topLeveFormula, constraints, noDependenceVars));
+     * 
+     * UninterpretedFunctionInstance result; try { result = new
+     * UninterpretedFunctionInstance(function, newParameters); } catch
+     * (SuraqException exc) { throw new RuntimeException(
+     * "Unexpected error while converting predicates to auxiliary variables.",
+     * exc); }
+     * 
+     * return result; }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -538,200 +535,229 @@ public class UninterpretedFunctionInstance extends DomainTerm {
 
         return partitions;
     }
-    
-    
-    
-    
-    
-    
+
     /**
-     * Searches function-instance and instance-parameter mappings for match of 
+     * Searches function-instance and instance-parameter mappings for match of
      * current UninterpretedFunctionInstance's function and parameter valuation.
      * 
-      * @param functionInstances
-     *            map containing mapping from function names to auxiliary variables.
-     *               
-     * @param instanceParameters
-     *            map containing mapping from auxiliary variables to function instance 
-     *            parameters.  
-     *                                       
-     * @return the found auxiliary DomainVariable. If no match exists NULL is returned.
-     */
-    private DomainVariable matchFunctionInstance(Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters) {
-    
-    	String functionName = function.getName().toString();
-    	List<DomainVariable> instances = functionInstances.get(functionName);
-    	
-    	if(instances!=null)
-	    	for (DomainVariable instance : instances){
-	    		List<DomainTerm> instParameters = instanceParameters.get(instance);
-	    		
-	    		boolean found=true;
-	    		
-	    		
-	    		for (int x=0; x < instParameters.size(); x++){
-	    			DomainTerm a = parameters.get(x);
-	    			DomainTerm b = instParameters.get(x);
-	    		    
-	    			if(!(a.equals(b))){
-		    			found=false;
-	    				break;
-	    			}
-	    		}
-	    		
-	    		if(found)
-	    			return instance;
-	    	}
-    	
-    	return null;
-    }
-    
-    /**
-     * Add the current UninterpretedFunctionInstance as new entry into the function-instance
-     * and instance-parameter mappings.
+     * @param functionInstances
+     *            map containing mapping from function names to auxiliary
+     *            variables.
      * 
-      * @param functionInstances
-     *            map containing mapping from function names to auxiliary variables.
-     *               
      * @param instanceParameters
-     *            map containing mapping from auxiliary variables to function instance 
-     *            parameters.  
-     *                                       
-     * @return newly created auxiliary DomainVariable as substitute for the current UninterpretedFunctionInstace.
+     *            map containing mapping from auxiliary variables to function
+     *            instance parameters.
+     * 
+     * @return the found auxiliary DomainVariable. If no match exists NULL is
+     *         returned.
      */
-    private DomainVariable addFunctionInstance(Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters) {
-    	
-    	DomainVariable result = null;
-		Set<String> instancesStr = new HashSet<String>();
-		for (DomainVariable dv : instanceParameters.keySet())
-			  instancesStr.add(dv.getVarName());
-		  
-    	String varName = Util.freshVarNameCached(topLeveFormula,function.getName().toString(),instancesStr);
-    	result = DomainVariable.create(varName);
-       
-    	String functionName = function.getName().toString();
-    	List<DomainVariable> instances = functionInstances.get(functionName);
-    	if(instances==null)
-    		instances = new ArrayList<DomainVariable>();	
-    	instances.add(result);
-    	functionInstances.put(functionName, instances);
-    	
-    	instanceParameters.put(result, parameters);
-    	
-    	return result;
+    private DomainVariable matchFunctionInstance(
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters) {
+
+        String functionName = function.getName().toString();
+        List<DomainVariable> instances = functionInstances.get(functionName);
+
+        if (instances != null)
+            for (DomainVariable instance : instances) {
+                List<DomainTerm> instParameters = instanceParameters
+                        .get(instance);
+
+                boolean found = true;
+
+                for (int x = 0; x < instParameters.size(); x++) {
+                    DomainTerm a = parameters.get(x);
+                    DomainTerm b = instParameters.get(x);
+
+                    if (!(a.equals(b))) {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if (found)
+                    return instance;
+            }
+
+        return null;
     }
- 
-    
+
+    /**
+     * Add the current UninterpretedFunctionInstance as new entry into the
+     * function-instance and instance-parameter mappings.
+     * 
+     * @param functionInstances
+     *            map containing mapping from function names to auxiliary
+     *            variables.
+     * 
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function
+     *            instance parameters.
+     * 
+     * @return newly created auxiliary DomainVariable as substitute for the
+     *         current UninterpretedFunctionInstace.
+     */
+    private DomainVariable addFunctionInstance(Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters) {
+
+        DomainVariable result = null;
+        Set<String> instancesStr = new HashSet<String>();
+        for (DomainVariable dv : instanceParameters.keySet())
+            instancesStr.add(dv.getVarName());
+
+        String varName = Util.freshVarNameCached(topLeveFormula, function
+                .getName().toString(), instancesStr);
+        result = DomainVariable.create(varName);
+
+        String functionName = function.getName().toString();
+        List<DomainVariable> instances = functionInstances.get(functionName);
+        if (instances == null)
+            instances = new ArrayList<DomainVariable>();
+        instances.add(result);
+        functionInstances.put(functionName, instances);
+
+        instanceParameters.put(result, parameters);
+
+        return result;
+    }
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters,  Set<Token> noDependenceVars) {  	
-    	return this; //functions are not allowed to have predicates as parameters.
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        return this; // functions are not allowed to have predicates as
+                     // parameters.
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.DomainTerm#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	  throw new RuntimeException(
-                  "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an UninterpretedFunctionInstance.\nUse applyReplaceUninterpretedFunctions instead.");
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        throw new RuntimeException(
+                "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an UninterpretedFunctionInstance.\nUse applyReplaceUninterpretedFunctions instead.");
     }
-    
-    
+
     /**
-     * Performs a substitution of UninterpretedFunctionInstances with auxiliary DomainVariables.
-     *
+     * Performs a substitution of UninterpretedFunctionInstances with auxiliary
+     * DomainVariables.
+     * 
      * @param topLeveFormula
-     *            the top level formula (for finding fresh variable names). 
+     *            the top level formula (for finding fresh variable names).
      * 
      * @param functionInstances
-     *            map containing mapping from function names to auxiliary variables.
-     *               
+     *            map containing mapping from function names to auxiliary
+     *            variables.
+     * 
      * @param instanceParameters
-     *            map containing mapping from auxiliary variables to function instance 
-     *            parameters.  
-     *                                       
-     * @return auxiliary DomainVariable as substitute for the current UninterpretedFunctionInstace.
+     *            map containing mapping from auxiliary variables to function
+     *            instance parameters.
+     * 
+     * @return auxiliary DomainVariable as substitute for the current
+     *         UninterpretedFunctionInstace.
      */
     public DomainVariable applyReplaceUninterpretedFunctions(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-        List<DomainTerm> newParameters = new ArrayList<DomainTerm>(); 
-        //List<DomainTerm> newParameters = new ArrayList<DomainTerm>(parameters); 
-		    	
-		    	for (DomainTerm term : parameters) {
-		            if (term instanceof UninterpretedFunctionInstance) {
-		            	 DomainVariable auxiliaryVariable =  ((UninterpretedFunctionInstance) term)
-		            			 .applyReplaceUninterpretedFunctions(topLeveFormula,
-		            					 	functionInstances, instanceParameters, noDependenceVars);
-		            	 
-		            	 newParameters.add(auxiliaryVariable); 
-		
-		            } else {
-		                newParameters.add((DomainTerm)term.uninterpretedFunctionsToAuxiliaryVariablesTerm(topLeveFormula,functionInstances, instanceParameters, noDependenceVars));
-		            }
-		        }
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        List<DomainTerm> newParameters = new ArrayList<DomainTerm>();
+        // List<DomainTerm> newParameters = new
+        // ArrayList<DomainTerm>(parameters);
 
-                // dirty hack, because parameters should be final
-		    	this.parameters = new ImmutableArrayList<DomainTerm>(newParameters);
-		    	
-		        DomainVariable result = matchFunctionInstance(functionInstances, instanceParameters);
-		        
-		        if(result==null)
-		        {
-		        	result = addFunctionInstance(topLeveFormula, functionInstances, instanceParameters);
-		        	//System.out.print('*');
-    		        // Check if the function is noDependence or at least one parameter of the function is noDependence
-    		        // This might be conservative and might not be complete (i.e., may
-    		        // result unnecessary unrealizability)
-    		        
-		        }
-		        else
-		        {
-		            //System.out.print('_');
-		        }
-		        	
-		        	
-	        	
-		        boolean insert = false;
-		        
-		        
-		        for (DomainTerm term : newParameters) {
-		        	if (Util.termContainsAny(term, noDependenceVars))  {	
-		        		insert=true;	
-		        		break; //exit immediately.
-		        	}
-		        }
-		      
-		        String funcName = function.getName().toString();
-		        for (Token t : noDependenceVars) {
-		        	if(funcName.equals(t.toString())){
-		        		insert = true;
-		        		break;
-		        	}
-		        }
-		        
-		        if (insert==true)
-		        {
-		            // chillebold 2012-07-09
-		            // this is called several times per noDependenceVar, but it does not matter,
-		            // because it is added to a Set 
-		            // http://docs.oracle.com/javase/1.4.2/docs/api/java/util/Set.html#add%28java.lang.Object%29
-		        	noDependenceVars.add(Token.generate(result.getVarName()));
-		        	//System.out.print('+');
-		        }
-		        return result;
-    }            
+        for (DomainTerm term : parameters) {
+            if (term instanceof UninterpretedFunctionInstance) {
+                DomainVariable auxiliaryVariable = ((UninterpretedFunctionInstance) term)
+                        .applyReplaceUninterpretedFunctions(topLeveFormula,
+                                functionInstances, instanceParameters,
+                                noDependenceVars);
+
+                newParameters.add(auxiliaryVariable);
+
+            } else {
+                newParameters.add((DomainTerm) term
+                        .uninterpretedFunctionsToAuxiliaryVariablesTerm(
+                                topLeveFormula, functionInstances,
+                                instanceParameters, noDependenceVars));
+            }
+        }
+
+        // dirty hack, because parameters should be final
+        this.parameters = new ImmutableArrayList<DomainTerm>(newParameters);
+
+        DomainVariable result = matchFunctionInstance(functionInstances,
+                instanceParameters);
+
+        if (result == null) {
+            result = addFunctionInstance(topLeveFormula, functionInstances,
+                    instanceParameters);
+            // System.out.print('*');
+            // Check if the function is noDependence or at least one parameter
+            // of the function is noDependence
+            // This might be conservative and might not be complete (i.e., may
+            // result unnecessary unrealizability)
+
+        } else {
+            // System.out.print('_');
+        }
+
+        boolean insert = false;
+
+        for (DomainTerm term : newParameters) {
+            if (Util.termContainsAny(term, noDependenceVars)) {
+                insert = true;
+                break; // exit immediately.
+            }
+        }
+
+        String funcName = function.getName().toString();
+        for (Token t : noDependenceVars) {
+            if (funcName.equals(t.toString())) {
+                insert = true;
+                break;
+            }
+        }
+
+        if (insert == true) {
+            // chillebold 2012-07-09
+            // this is called several times per noDependenceVar, but it does not
+            // matter,
+            // because it is added to a Set
+            // http://docs.oracle.com/javase/1.4.2/docs/api/java/util/Set.html#add%28java.lang.Object%29
+            noDependenceVars.add(Token.generate(result.getVarName()));
+            // System.out.print('+');
+        }
+        return result;
+    }
+
+    /**
+     * Recursively computes all subterms of this term. I.e., the set of all
+     * parameters, plus their parameters, if they are uninterpreted functions,
+     * etc., all the way down.
+     * 
+     * @return a set of all the subterms.
+     */
+    public Set<DomainTerm> getSubTerms() {
+        Set<DomainTerm> result = new HashSet<DomainTerm>();
+        for (DomainTerm term : parameters) {
+            result.add(term);
+            if (term instanceof UninterpretedFunctionInstance)
+                result.addAll(((UninterpretedFunctionInstance) term)
+                        .getSubTerms());
+        }
+        return result;
+    }
 
 }

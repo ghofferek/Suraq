@@ -124,4 +124,13 @@ public class Graph<N, A> {
         return new ArrayList<AnnotatedEdge<N, A>>(0);
     }
 
+    /**
+     * 
+     * @return a copy of the set of nodes.
+     */
+    public Set<N> getNodes() {
+        Set<N> result = new HashSet<N>(nodes);
+        return result;
+    }
+
 }
