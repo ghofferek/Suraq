@@ -521,8 +521,13 @@ public class VeritProofNode {
         assert (conclusions.size() < this.literalConclusions.size());
         assert (this.literalConclusions.containsAll(conclusions));
 
-        VeritProofNode strongerNode = new VeritProofNode("str_" + this.name,
-                this.type, conclusions, clauses, null, this.proof);
+        VeritProofNode strongerNode = null;
+        // FIXME Could this create cycles?
+        strongerNode = this.proof.cacheLookup(conclusions);
+        if (strongerNode == null)
+            strongerNode = new VeritProofNode("str_" + this.name, this.type,
+                    conclusions, clauses, null, this.proof);
+        assert (strongerNode != null);
 
         for (VeritProofNode parent : this.parents) {
             parent.makeStronger(this, strongerNode);
