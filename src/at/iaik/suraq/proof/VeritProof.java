@@ -394,6 +394,9 @@ public class VeritProof {
             }
         }
 
+        if (!this.isAcyclic())
+            return false;
+
         // All checks passed
         return true;
     }
@@ -555,7 +558,6 @@ public class VeritProof {
         }
         assert (this.hasNoBadLiterals());
         assert (this.checkProof());
-        assert (this.isAcyclic());
 
         Set<VeritProofNode> leafs = this.getLeafs();
         System.out.println("Found " + leafs.size() + " leafs.");
@@ -585,7 +587,6 @@ public class VeritProof {
         System.out.println("  All done.");
         assert (this.isColorable());
         assert (this.checkProof());
-        assert (this.isAcyclic());
     }
 
     /**
