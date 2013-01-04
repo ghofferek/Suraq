@@ -171,7 +171,7 @@ public class TransitivityCongruenceChain {
                                         .getParameters().get(count),
                                 ((UninterpretedFunctionInstance) term2)
                                         .getParameters().get(count), localPath,
-                                node));
+                                null));
                     }
                     if (localJustification != null)
                         graph.addEdge(term1, term2, new Justification(
@@ -331,7 +331,8 @@ public class TransitivityCongruenceChain {
         this.start = new TransitivityCongruenceChainElement(start);
         this.target = end;
         this.proof = node == null ? null : node.getProof();
-        this.targetLiterals = null;
+        this.targetLiterals = node == null ? null : node
+                .getLiteralConclusions();
 
         for (Justification justification : path) {
             if (justification.isEqualityJustification()) {
@@ -417,8 +418,9 @@ public class TransitivityCongruenceChain {
 
         if (newStart == this.getEnd()) {
             // base case for recursion; whole chain in one partition
-            assert (node1.getLiteralConclusionsAsSet().equals(ImmutableSet
-                    .create(targetLiterals)));
+            assert (targetLiterals == null ? true : node1
+                    .getLiteralConclusionsAsSet().equals(
+                            ImmutableSet.create(targetLiterals)));
             return node1;
         }
 
