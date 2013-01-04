@@ -15,12 +15,9 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
-import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.util.CongruenceClosure;
-import at.iaik.suraq.util.ImmutableArrayList;
-import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Justification;
 import at.iaik.suraq.util.Util;
 import at.iaik.suraq.util.graph.Graph;
@@ -50,12 +47,6 @@ public class TransitivityCongruenceChain {
      * The proof to which this will later be exported, or <code>null</code>.
      */
     private final VeritProof proof;
-
-    /**
-     * The conclusion of the proof node for which this was constructed. Needed
-     * to know if additional literals must be added.
-     */
-    private ImmutableArrayList<Formula> targetLiterals;
 
     /**
      * Creates a chain for the given (axiomatic) proof node.
@@ -192,64 +183,6 @@ public class TransitivityCongruenceChain {
 
     /**
      * 
-     * @param instance1
-     * @param instance2
-     * @param literals
-     * @return a list of justifications for an equality between
-     *         <code>instance1</code> and <code>instance2</code>, or
-     *         <code>null</code> if none can be constructed.
-     */
-    private static List<TransitivityCongruenceChain> constructJustification(
-            UninterpretedFunctionInstance instance1,
-            UninterpretedFunctionInstance instance2, List<DomainEq> literals) {
-
-        assert (instance1.getFunction().equals(instance2.getFunction()));
-        assert (instance1.getParameters().size() == instance2.getParameters()
-                .size());
-        List<TransitivityCongruenceChain> result = new ArrayList<TransitivityCongruenceChain>(
-                instance1.getParameters().size());
-
-        for (int count = 0; count < instance1.getParameters().size(); count++) {
-            List<DomainTerm> paramPair = new ArrayList<DomainTerm>(2);
-            paramPair.add(instance1.getParameters().get(count));
-            paramPair.add(instance2.getParameters().get(count));
-            DomainEq equality = DomainEq.create(paramPair, true);
-            TransitivityCongruenceChain chain = TransitivityCongruenceChain
-                    .create(equality, literals, null);
-            if (!chain.isComplete())
-                return null;
-            result.add(chain);
-        }
-        return result;
-    }
-
-    /**
-     * @param instance
-     * @param literals
-     * @return a <code>Set</code> of other instances of the same uninterpreted
-     *         function as <code>instance</code> contained in
-     *         <code>literals</code>.
-     */
-    private static Set<UninterpretedFunctionInstance> getOtherFunctionInstances(
-            UninterpretedFunctionInstance instance, List<DomainEq> literals) {
-        Set<UninterpretedFunctionInstance> result = new HashSet<UninterpretedFunctionInstance>();
-        for (DomainEq literal : literals) {
-            for (Term term : literal.getTerms()) {
-                if (term.equals(instance))
-                    continue;
-                if (term instanceof UninterpretedFunctionInstance) {
-                    if (((UninterpretedFunctionInstance) term).getFunction()
-                            .equals(instance.getFunction())) {
-                        result.add((UninterpretedFunctionInstance) term);
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * 
      * Constructs a new <code>TransitivityCongruenceChain</code>.
      * 
      * @param start
@@ -269,10 +202,8 @@ public class TransitivityCongruenceChain {
         this.target = target;
         if (node != null) {
             this.proof = node.getProof();
-            this.targetLiterals = node.getLiteralConclusions();
         } else {
             this.proof = null;
-            this.targetLiterals = null;
         }
     }
 
@@ -285,14 +216,12 @@ public class TransitivityCongruenceChain {
      * @param start
      * @param target
      * @param proof
-     * @param targetLiterals
      */
     private TransitivityCongruenceChain(
             TransitivityCongruenceChainElement start, DomainTerm target,
-            VeritProof proof, List<Formula> targetLiterals) {
+            VeritProof proof) {
         this.start = start;
         this.proof = proof;
-        this.targetLiterals = new ImmutableArrayList<Formula>(targetLiterals);
         this.target = target;
     }
 
@@ -309,12 +238,7 @@ public class TransitivityCongruenceChain {
         this.start = new TransitivityCongruenceChainElement(reflexiveTerm);
         this.target = reflexiveTerm;
         this.proof = proof;
-
         this.start.attachReflexivity();
-        List<Formula> literals = new ArrayList<Formula>();
-        literals.add(this.start.getEqualityJustification());
-        this.targetLiterals = new ImmutableArrayList<Formula>(literals);
-
         assert (this.isComplete());
     }
 
@@ -331,8 +255,6 @@ public class TransitivityCongruenceChain {
         this.start = new TransitivityCongruenceChainElement(start);
         this.target = end;
         this.proof = node == null ? null : node.getProof();
-        this.targetLiterals = node == null ? null : node
-                .getLiteralConclusions();
 
         for (Justification justification : path) {
             if (justification.isEqualityJustification()) {
@@ -358,7 +280,6 @@ public class TransitivityCongruenceChain {
      *         colorable subproofs.
      */
     public VeritProofNode toColorableProof() {
-        assert (targetLiterals != null);
         assert (proof != null);
 
         this.splitUncolorableCongruenceLinks();
@@ -396,16 +317,6 @@ public class TransitivityCongruenceChain {
         Formula resolvingLiteral = DomainEq.create(terms, true);
         conclusions.add(NotFormula.create(resolvingLiteral));
 
-        // Add unused literals of the correct partition
-        for (Formula unusedLiteral : this.unusedLiterals()) {
-            Set<Integer> literalPartitions = unusedLiteral
-                    .getPartitionsFromSymbols();
-            literalPartitions.remove(-1);
-            assert (literalPartitions.size() <= 1);
-            if (partitions.containsAll(literalPartitions))
-                conclusions.add(unusedLiteral);
-        }
-
         // Add the implied literal of the first part of the chain
         List<DomainTerm> terms2 = new ArrayList<DomainTerm>(2);
         terms2.add(start.getTerm());
@@ -418,17 +329,11 @@ public class TransitivityCongruenceChain {
 
         if (newStart == this.getEnd()) {
             // base case for recursion; whole chain in one partition
-            assert (targetLiterals == null ? true : node1
-                    .getLiteralConclusionsAsSet().equals(
-                            ImmutableSet.create(targetLiterals)));
             return node1;
         }
 
-        List<Formula> newTargetLiterals = targetLiterals
-                .removeAllFromCopy(conclusions);
-
         TransitivityCongruenceChain secondPart = new TransitivityCongruenceChain(
-                newStart, target, proof, newTargetLiterals);
+                newStart, target, proof);
         VeritProofNode node2 = secondPart.toColorableProof();
 
         List<VeritProofNode> clauses = new ArrayList<VeritProofNode>(2);
@@ -672,35 +577,17 @@ public class TransitivityCongruenceChain {
 
         assert (element.hasNext());
 
-        List<Formula> targetLiterals1 = new ArrayList<Formula>();
-        List<Formula> targetLiterals2 = new ArrayList<Formula>();
         TransitivityCongruenceChainElement current = this.start;
         Set<Integer> partitions1 = new HashSet<Integer>();
         while (current != element) {
             partitions1.addAll(current.getTerm().getPartitionsFromSymbols());
-            targetLiterals1.addAll(current.usedLiterals());
             current = current.getNext();
             assert (current != null);
         }
-        TransitivityCongruenceChainElement current2 = current;
-        while (current2.hasNext()) {
-            targetLiterals2.addAll(current2.usedLiterals());
-        }
-        List<Formula> unusedLiterals = targetLiterals.editableCopy();
-        unusedLiterals.removeAll(targetLiterals1);
-        unusedLiterals.removeAll(targetLiterals2);
-        for (Formula literal : unusedLiterals) {
-            if (partitions1.containsAll(literal.getPartitionsFromSymbols()))
-                targetLiterals1.add(literal);
-            else
-                targetLiterals2.add(literal);
-        }
 
         TransitivityCongruenceChain result = new TransitivityCongruenceChain(
-                new TransitivityCongruenceChainElement(element), target, proof,
-                targetLiterals2);
+                new TransitivityCongruenceChainElement(element), target, proof);
 
-        this.targetLiterals = new ImmutableArrayList<Formula>(targetLiterals1);
         this.target = element.getTerm();
         element.makeNextNull();
         return result;
@@ -716,22 +603,6 @@ public class TransitivityCongruenceChain {
         while (current.hasNext()) {
             result.addAll(current.usedLiterals());
             current = current.getNext();
-        }
-        return result;
-    }
-
-    /**
-     * 
-     * @return a set of literals that occur in the target literals, but are not
-     *         used (or empty, if there are not <code>targetLiterals</code>.
-     */
-    private Set<Formula> unusedLiterals() {
-        if (targetLiterals == null)
-            return new HashSet<Formula>();
-        Set<Formula> result = new HashSet<Formula>(targetLiterals);
-        for (Formula literal : this.usedLiterals()) {
-            result.remove(literal);
-            result.remove(NotFormula.create(literal));
         }
         return result;
     }

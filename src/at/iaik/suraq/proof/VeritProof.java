@@ -433,6 +433,22 @@ public class VeritProof {
     }
 
     /**
+     * Sets the given root as the new root, if it has no parents and proofs
+     * false.
+     * 
+     * @param newRoot
+     * @return <code>true</code> if the new root was set
+     */
+    protected boolean setNewRoot(VeritProofNode newRoot) {
+        if (newRoot.getLiteralConclusions().size() > 0)
+            return false;
+        if (newRoot.getParents().size() > 0)
+            return false;
+        root = newRoot;
+        return true;
+    }
+
+    /**
      * Removes all nodes which are not reachable from the root. If the root is
      * <code>null</code>, nothing is done.
      */
@@ -559,8 +575,10 @@ public class VeritProof {
             TransitivityCongruenceChain chain = TransitivityCongruenceChain
                     .create(leafToClean);
             VeritProofNode replacement = chain.toColorableProof();
+            assert (leafToClean.getLiteralConclusions().containsAll(replacement
+                    .getLiteralConclusions()));
             for (VeritProofNode parent : leafToClean.getParents())
-                parent.updateProofNode(leafToClean, replacement);
+                parent.makeStronger(leafToClean, replacement);
             System.out.println("    Done " + ++count);
         }
         System.out.println("  All done.");
@@ -902,4 +920,5 @@ public class VeritProof {
             throw new RuntimeException(
                     "Proof should only consist of input and resolution elements");
     }
+
 }

@@ -456,6 +456,83 @@ public class VeritProofNode {
         return true;
     }
 
+    /**
+     * Creates a stronger (or equal) new node, and uses it instead of this one.
+     * 
+     * @param weakerSubProof
+     *            the subproof for which a stronger counterpart can be used
+     *            instead
+     * @param strongerSubProof
+     *            the stronger counterpart
+     */
+    protected void makeStronger(VeritProofNode weakerSubProof,
+            VeritProofNode strongerSubProof) {
+        assert (weakerSubProof != null);
+        assert (strongerSubProof != null);
+        assert (this.subProofs.size() == 2);
+        assert (this.type.equals(VeriTToken.RESOLUTION));
+        assert (this.subProofs.contains(weakerSubProof));
+        assert (!this.subProofs.contains(strongerSubProof));
+        assert (weakerSubProof.getLiteralConclusions()
+                .containsAll(strongerSubProof.getLiteralConclusions()));
+        assert (weakerSubProof.getLiteralConclusions().size() > strongerSubProof
+                .getLiteralConclusions().size());
+        assert (this.parents.size() > 0 || this == this.proof.getRoot());
+
+        if (strongerSubProof.literalConclusions.size() == 0) {
+            this.proof.setNewRoot(strongerSubProof);
+            return;
+        }
+
+        if (strongerSubProof.literalConclusions
+                .containsAll(weakerSubProof.literalConclusions)
+                && weakerSubProof.literalConclusions
+                        .containsAll(strongerSubProof.literalConclusions)) {
+            this.updateProofNode(weakerSubProof, strongerSubProof);
+        }
+
+        Formula resolvingLiteral = this.findResolvingLiteral();
+        if (!strongerSubProof.literalConclusions.contains(resolvingLiteral)
+                && !strongerSubProof.literalConclusions.contains(Util
+                        .invertLiteral(resolvingLiteral))) {
+            assert (this.literalConclusions
+                    .containsAll(strongerSubProof.literalConclusions));
+            assert (this != this.proof.getRoot());
+            // This resolution step is unnecessary. Make all parents stronger.
+            for (VeritProofNode parent : this.parents) {
+                parent.makeStronger(this, strongerSubProof);
+            }
+        }
+
+        List<VeritProofNode> clauses = new ArrayList<VeritProofNode>();
+        List<Formula> conclusions = new ArrayList<Formula>();
+        for (VeritProofNode clause : this.subProofs) {
+            if (clause.equals(weakerSubProof)) {
+                clauses.add(strongerSubProof);
+                conclusions.addAll(strongerSubProof.literalConclusions);
+            } else {
+                clauses.add(clause);
+                conclusions.addAll(clause.literalConclusions);
+            }
+        }
+        assert (clauses.size() == 2);
+        conclusions.remove(resolvingLiteral);
+        conclusions.remove(Util.invertLiteral(resolvingLiteral));
+        assert (conclusions.size() < this.literalConclusions.size());
+        assert (this.literalConclusions.containsAll(conclusions));
+
+        VeritProofNode strongerNode = new VeritProofNode("str_" + this.name,
+                this.type, conclusions, clauses, null, this.proof);
+
+        for (VeritProofNode parent : this.parents) {
+            parent.makeStronger(this, strongerNode);
+        }
+    }
+
+    /**
+     * 
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
         String str = "(set " + name + " (" + type;
@@ -475,6 +552,7 @@ public class VeritProofNode {
             str += ")";
         }
         str += "))";
+        str = str.replaceAll("\\s{2,}", " ").replace("\n", "");
         return str;
     }
 
