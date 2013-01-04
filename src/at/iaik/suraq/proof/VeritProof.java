@@ -555,6 +555,7 @@ public class VeritProof {
         }
         assert (this.hasNoBadLiterals());
         assert (this.checkProof());
+        assert (this.isAcyclic());
 
         Set<VeritProofNode> leafs = this.getLeafs();
         System.out.println("Found " + leafs.size() + " leafs.");
@@ -584,6 +585,7 @@ public class VeritProof {
         System.out.println("  All done.");
         assert (this.isColorable());
         assert (this.checkProof());
+        assert (this.isAcyclic());
     }
 
     /**
@@ -601,6 +603,20 @@ public class VeritProof {
             }
         }
         return true;
+    }
+
+    /**
+     * Sanity check for illegal cycles in the DAG. If the root is not set, this
+     * method returns <code>true</code>.
+     * 
+     * @return <code>true</code> if the proof contains cycles (reachable from
+     *         the root).
+     */
+    public boolean isAcyclic() {
+        if (root == null)
+            return true;
+        List<VeritProofNode> path = new ArrayList<VeritProofNode>();
+        return root.isAcyclic(path);
     }
 
     /**

@@ -1091,4 +1091,22 @@ public class VeritProofNode {
             result.addAll(literal.getPartitionsFromSymbols());
         return result;
     }
+
+    /**
+     * @param path
+     *            the path so far
+     * @return <code>true</code> if no cycles are found
+     */
+    public boolean isAcyclic(List<VeritProofNode> path) {
+        for (VeritProofNode child : subProofs) {
+            if (path.contains(child))
+                return false;
+            path.add(child);
+            if (!child.isAcyclic(path))
+                return false;
+            path.remove(path.size() - 1);
+            assert (!path.contains(child));
+        }
+        return true;
+    }
 }
