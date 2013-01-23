@@ -323,6 +323,9 @@ public class TransitivityCongruenceChain {
         terms2.add(target);
         conclusions.add((DomainEq.create(terms2, true)));
 
+        // Remove negative reflexive literals (they are false anyway)
+        Util.removeReflexiveLiterals(conclusions);
+
         VeritProofNode node1 = proof.addProofSet("tcc_n1_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.EQ_TRANSITIVE, conclusions, null, null);

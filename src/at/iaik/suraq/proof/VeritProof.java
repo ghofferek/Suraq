@@ -538,6 +538,9 @@ public class VeritProof {
      *         <code>null</code> if no such node is in the cache.
      */
     public VeritProofNode cacheLookup(Collection<Formula> conclusions) {
+        // TODO potential cycles could be avoided by using the names of the
+        // proof nodes to check if they somehow correlate.
+        // This would reduce hit rate, though.
         ImmutableSet<Formula> set = ImmutableSet.create(conclusions);
         return nodeCache.get(set) == null ? null : nodeCache.get(set).get();
     }
@@ -575,6 +578,7 @@ public class VeritProof {
         System.out.println("  " + leafsToClean.size() + " need splitting.");
         int count = 0;
         for (VeritProofNode leafToClean : leafsToClean) {
+            System.out.println("    Splitting leaf " + leafToClean.getName());
             TransitivityCongruenceChain chain = TransitivityCongruenceChain
                     .create(leafToClean);
             VeritProofNode replacement = chain.toColorableProof();
@@ -585,6 +589,7 @@ public class VeritProof {
             System.out.println("    Done " + ++count);
         }
         System.out.println("  All done.");
+        this.removeUnreachableNodes();
         assert (this.isColorable());
         assert (this.checkProof());
     }

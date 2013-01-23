@@ -1161,4 +1161,24 @@ public final class Util {
         }
         return true;
     }
+
+    /**
+     * Removes (negative) reflexive literals. They are false anyway. This
+     * methode modifies the given list.
+     * 
+     * @param literals
+     *            the list of literals (will be modified)
+     */
+    public static void removeReflexiveLiterals(List<Formula> literals) {
+        Set<Formula> literalsToRemove = new HashSet<Formula>();
+        for (Formula literal : literals) {
+            assert (Util.isLiteral(literal));
+            if (Util.isNegativeLiteral(literal)) {
+                Formula positiveLiteral = Util.makeLiteralPositive(literal);
+                if (Util.isReflexivity(positiveLiteral))
+                    literalsToRemove.add(literal);
+            }
+        }
+        literals.removeAll(literalsToRemove);
+    }
 }

@@ -489,6 +489,7 @@ public class VeritProofNode {
                 && weakerSubProof.literalConclusions
                         .containsAll(strongerSubProof.literalConclusions)) {
             this.updateProofNode(weakerSubProof, strongerSubProof);
+            return;
         }
 
         Formula resolvingLiteral = this.findResolvingLiteral();
@@ -502,6 +503,7 @@ public class VeritProofNode {
             for (VeritProofNode parent : this.parents) {
                 parent.makeStronger(this, strongerSubProof);
             }
+            return;
         }
 
         List<VeritProofNode> clauses = new ArrayList<VeritProofNode>();
@@ -509,15 +511,28 @@ public class VeritProofNode {
         for (VeritProofNode clause : this.subProofs) {
             if (clause.equals(weakerSubProof)) {
                 clauses.add(strongerSubProof);
-                conclusions.addAll(strongerSubProof.literalConclusions);
+                for (Formula literal : strongerSubProof.literalConclusions) {
+                    if (!conclusions.contains(literal))
+                        conclusions.add(literal);
+                }
             } else {
                 clauses.add(clause);
-                conclusions.addAll(clause.literalConclusions);
+                for (Formula literal : clause.literalConclusions) {
+                    if (!conclusions.contains(literal))
+                        conclusions.add(literal);
+                }
             }
         }
         assert (clauses.size() == 2);
         conclusions.remove(resolvingLiteral);
         conclusions.remove(Util.invertLiteral(resolvingLiteral));
+
+        if (this.literalConclusions.containsAll(conclusions)
+                && conclusions.containsAll(this.literalConclusions)) {
+            this.updateProofNode(weakerSubProof, strongerSubProof);
+            return;
+        }
+
         assert (conclusions.size() < this.literalConclusions.size());
         assert (this.literalConclusions.containsAll(conclusions));
 
