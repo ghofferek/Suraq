@@ -141,7 +141,7 @@ public class VeritProof {
         } else
             synonyms.put(name, new WeakReference<VeritProofNode>(node));
         assert (node != null);
-        assert (nodeCache.size() == proofSets.size());
+        assert (nodeCache.size() <= proofSets.size());
         return node;
     }
 
@@ -534,15 +534,24 @@ public class VeritProof {
     /**
      * 
      * @param conclusions
+     * @param number
+     *            if not <code>null</code>, the cache will only return nodes
+     *            which have this string in their name (<code>null</code> if no
+     *            such node exists).
      * @return a node with the given <code>conclusions</code> or
      *         <code>null</code> if no such node is in the cache.
      */
-    public VeritProofNode cacheLookup(Collection<Formula> conclusions) {
-        // TODO potential cycles could be avoided by using the names of the
-        // proof nodes to check if they somehow correlate.
-        // This would reduce hit rate, though.
+    public VeritProofNode cacheLookup(Collection<Formula> conclusions,
+            String number) {
+
         ImmutableSet<Formula> set = ImmutableSet.create(conclusions);
-        return nodeCache.get(set) == null ? null : nodeCache.get(set).get();
+        VeritProofNode result = nodeCache.get(set) == null ? null : nodeCache
+                .get(set).get();
+        if (number != null && result != null) {
+            if (!result.getName().contains(number))
+                return null;
+        }
+        return result;
     }
 
     /**

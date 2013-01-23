@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
@@ -59,6 +60,9 @@ public final class Util {
      * makes sure they all get a unique name.
      */
     private static int tseitinVarCounter = 0;
+
+    public static final Pattern digitsPattern = Pattern
+            .compile("([0-9]+)(\\z|\\[^0-9])");
 
     /**
      * 

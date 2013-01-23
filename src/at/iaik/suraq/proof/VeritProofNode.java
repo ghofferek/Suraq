@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.sexp.Token;
@@ -87,6 +88,7 @@ public class VeritProofNode {
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs, VeritProof proof) {
 
+        assert (name != null);
         this.name = name;
         this.type = type;
 
@@ -151,7 +153,14 @@ public class VeritProofNode {
 
                 // cache lookup
                 if (proof != null) {
-                    intermediateNode = proof.cacheLookup(tmpLiteralConclusions);
+                    Matcher matcher = Util.digitsPattern.matcher(name);
+                    String number = null;
+                    if (matcher.find())
+                        number = matcher.group(1);
+                    else
+                        assert (false);
+                    intermediateNode = proof.cacheLookup(tmpLiteralConclusions,
+                            number);
                 }
                 if (intermediateNode == null) {
                     intermediateNode = new VeritProofNode(name + "_i" + count,
@@ -537,8 +546,13 @@ public class VeritProofNode {
         assert (this.literalConclusions.containsAll(conclusions));
 
         VeritProofNode strongerNode = null;
-        // FIXME Could this create cycles?
-        strongerNode = this.proof.cacheLookup(conclusions);
+        Matcher matcher = Util.digitsPattern.matcher(name);
+        String number = null;
+        if (matcher.find())
+            number = matcher.group(1);
+        else
+            assert (false);
+        strongerNode = this.proof.cacheLookup(conclusions, number);
         if (strongerNode == null)
             strongerNode = new VeritProofNode("str_" + this.name, this.type,
                     conclusions, clauses, null, this.proof);
