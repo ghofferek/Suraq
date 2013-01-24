@@ -418,15 +418,21 @@ public class VeritProofNode {
         assert (oldSubProof != null);
         assert (newSubProof != null);
         assert (oldSubProof.getParents().contains(this));
+        assert (this.subProofs.size() == 2);
+        assert (this.type.equals(VeriTToken.RESOLUTION));
 
-        if (!((this.subProofs.contains(oldSubProof)) && (oldSubProof
-                .getLiteralConclusionsAsSet().equals(newSubProof
-                .getLiteralConclusionsAsSet())))) {
+        if (!this.subProofs.contains(oldSubProof))
             return false;
+
+        VeritProofNode otherSubProof = this.subProofs.get(0) == oldSubProof ? this.subProofs
+                .get(1) : this.subProofs.get(0);
+        for (Formula literal : oldSubProof.literalConclusions) {
+            if (!newSubProof.literalConclusions.contains(literal)
+                    && !otherSubProof.literalConclusions.contains(literal))
+                return false;
         }
 
         subProofs.set(subProofs.indexOf(oldSubProof), newSubProof);
-
         assert (checkProofNode());
 
         oldSubProof.removeParent(this);
@@ -446,6 +452,7 @@ public class VeritProofNode {
      *         done; <code>false</code> if replacement failed and changes have
      *         been reverted.
      */
+    @Deprecated
     protected boolean updateProofNode(List<VeritProofNode> newSubProofs) {
         List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>(
                 subProofs);
@@ -484,7 +491,7 @@ public class VeritProofNode {
         assert (!this.subProofs.contains(strongerSubProof));
         assert (weakerSubProof.getLiteralConclusions()
                 .containsAll(strongerSubProof.getLiteralConclusions()));
-        assert (weakerSubProof.getLiteralConclusions().size() > strongerSubProof
+        assert (weakerSubProof.getLiteralConclusions().size() >= strongerSubProof
                 .getLiteralConclusions().size());
         assert (this.parents.size() > 0 || this == this.proof.getRoot());
 
@@ -497,7 +504,9 @@ public class VeritProofNode {
                 .containsAll(weakerSubProof.literalConclusions)
                 && weakerSubProof.literalConclusions
                         .containsAll(strongerSubProof.literalConclusions)) {
-            this.updateProofNode(weakerSubProof, strongerSubProof);
+            boolean updated = this.updateProofNode(weakerSubProof,
+                    strongerSubProof);
+            assert (updated);
             return;
         }
 
@@ -538,7 +547,9 @@ public class VeritProofNode {
 
         if (this.literalConclusions.containsAll(conclusions)
                 && conclusions.containsAll(this.literalConclusions)) {
-            this.updateProofNode(weakerSubProof, strongerSubProof);
+            boolean updated = this.updateProofNode(weakerSubProof,
+                    strongerSubProof);
+            assert (updated);
             return;
         }
 

@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import at.iaik.suraq.resProof.Lit;
 import at.iaik.suraq.resProof.ResNode;
@@ -64,6 +65,12 @@ public class VeritProof {
      * b=c being good literals.
      */
     private final HashSet<VeritProofNode> goodDefinitionsOfBadLiterals = new HashSet<VeritProofNode>();
+
+    /**
+     * Counts how many clauses have been added to this proof. Provides unique
+     * numbers for new clauses.
+     */
+    private int clauseCounter = 0;
 
     /**
      * Generates and returns a new VeritProofNode. It is automatically attached
@@ -123,11 +130,13 @@ public class VeritProof {
 
         VeritProofNode node = null;
         if (checkCache) {
-            WeakReference<VeritProofNode> reference = nodeCache
-                    .get(ImmutableSet.create(conclusions));
-            if (reference != null) {
-                node = reference.get();
-            }
+            Matcher matcher = Util.digitsPattern.matcher(name);
+            String number = null;
+            if (matcher.find())
+                number = matcher.group(1);
+            else
+                assert (false);
+            node = cacheLookup(conclusions, number);
         }
         if (type.equals(VeriTToken.AND) || type.equals(VeriTToken.OR)) {
             type = VeriTToken.INPUT;
@@ -165,6 +174,7 @@ public class VeritProof {
      */
     private void addNodeToInternalDataStructures(VeritProofNode node) {
         assert (proofSets.get(node.getName()) == null);
+        this.clauseCounter++;
         proofSets.put(node.getName(), node);
         nodeCache.put(ImmutableSet.create(node.getLiteralConclusionsAsSet()),
                 new WeakReference<VeritProofNode>(node));
@@ -818,7 +828,8 @@ public class VeritProof {
         assert (turningPoint.getLiteralConclusionsAsSet().equals(currentNode
                 .getLiteralConclusionsAsSet()));
         for (VeritProofNode parent : turningPoint.getParents()) {
-            parent.updateProofNode(turningPoint, currentNode);
+            boolean updated = parent.updateProofNode(turningPoint, currentNode);
+            assert (updated);
         }
     }
 
@@ -950,6 +961,17 @@ public class VeritProof {
         } else
             throw new RuntimeException(
                     "Proof should only consist of input and resolution elements");
+    }
+
+    /**
+     * The clause counter counts how many clauses have been added to this proof.
+     * Thus, using this number in the name of a new node guarantees that it is
+     * unique.
+     * 
+     * @return the clause counter
+     */
+    public int getClauseCounter() {
+        return clauseCounter;
     }
 
 }
