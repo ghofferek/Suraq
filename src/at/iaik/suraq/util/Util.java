@@ -62,7 +62,7 @@ public final class Util {
     private static int tseitinVarCounter = 0;
 
     public static final Pattern digitsPattern = Pattern
-            .compile("([0-9]+)(\\z|\\[^0-9])");
+            .compile("([0-9]+)(\\z|[^0-9])");
 
     /**
      * 
