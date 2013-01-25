@@ -383,11 +383,6 @@ public class VeritProof {
                     return false;
             }
 
-            if (nodeCache.get(node.getLiteralConclusionsAsSet()) == null)
-                return false;
-            else if (nodeCache.get(node.getLiteralConclusionsAsSet()).get() == null)
-                return false;
-
             if (!node.checkProofNode())
                 return false;
         }
@@ -875,6 +870,11 @@ public class VeritProof {
             ResProof resProof, Map<String, Integer> literalsID,
             Map<Integer, Formula> literalMap,
             Map<VeritProofNode, ResNode> resNodes) {
+        assert (node != null);
+        assert (resProof != null);
+        assert (literalsID != null);
+        assert (literalMap != null);
+        assert (resNodes != null);
 
         ResNode result = resNodes.get(node);
         if (result != null)
@@ -895,7 +895,8 @@ public class VeritProof {
                 assert (Util.isLiteral(posLiteral));
                 assert (Util.isAtom(posLiteral));
                 if (posLiteral.equals(PropositionalConstant.create(false))) {
-                    resClausePartitions.add(-1);
+                    resClausePartitions.add(0); // resProof package uses "0" for
+                                                // globals
                     continue;
                 }
                 Integer resLiteralID = literalsID.get(Util
@@ -905,6 +906,7 @@ public class VeritProof {
                     partitions.remove(-1);
                 assert (partitions.size() == 1);
                 int partition = partitions.iterator().next();
+                assert (partition != 0);
                 if (resLiteralID == null) {
                     resLiteralID = literalsID.size() + 1;
                     assert (!literalsID
@@ -916,35 +918,40 @@ public class VeritProof {
                 }
                 resClause
                         .add(new Lit(resLiteralID, Util.getSignValue(literal)));
-                resClausePartitions.add(partition);
+                resClausePartitions.add(partition < 0 ? 0 : partition);
             }
 
             // build leaf ResNodes
             ResNode resLeafNode = resNodes.get(node);
             if (resLeafNode == null) {
                 if (resClausePartitions.size() == 2)
-                    resClausePartitions.remove(-1);
+                    resClausePartitions.remove(0); // resProof package uses "0"
+                                                   // for globals
                 assert (resClausePartitions.size() == 1);
                 int leafPartition = resClausePartitions.iterator().next();
-                if (node.isAxiom())
-                    leafPartition = 0; // axioms should go to 0
-                else if (leafPartition < 0)
-                    leafPartition = 1; // arbitrary choice
+                if (leafPartition == 0) {
+                    if (!node.isAxiom()) // non-axiom leaf with only globals
+                        leafPartition = 1; // arbitrary choice
+                }
                 resLeafNode = resProof.addLeaf(resClause, leafPartition);
                 resNodes.put(node, resLeafNode);
             }
+            assert (resLeafNode != null);
             return resLeafNode;
 
         } else if (proofType.equals(VeriTToken.RESOLUTION)) {
             assert (node.getSubProofs().size() == 2);
             ResNode resIntNode = resNodes.get(node);
             if (resIntNode == null) {
+                assert (node.getSubProofs().size() == 2);
                 VeritProofNode child1 = node.getSubProofs().get(0);
                 VeritProofNode child2 = node.getSubProofs().get(1);
                 ResNode resNode1 = createResProofRecursive(child1, resProof,
                         literalsID, literalMap, resNodes);
                 ResNode resNode2 = createResProofRecursive(child2, resProof,
                         literalsID, literalMap, resNodes);
+                assert (resNode1 != null);
+                assert (resNode2 != null);
 
                 // build literal of resolution
                 Formula posLiteral = Util.makeLiteralPositive(node
@@ -956,6 +963,7 @@ public class VeritProof {
                         literalID);
                 resNodes.put(node, resIntNode);
             }
+            assert (resIntNode != null);
             return resIntNode;
 
         } else

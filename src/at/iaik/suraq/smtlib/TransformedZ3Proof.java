@@ -274,7 +274,8 @@ public class TransformedZ3Proof extends Z3Proof {
         this.recomputeObsoleteLiterals();
 
         // TODO Check: Should this be set for leafs only?
-        this.assertPartition = node.part;
+        // assign global clauses to part 1 (arbitrary choice)
+        this.assertPartition = node.part == 0 ? 1 : node.part;
 
         assert (proofType.equals(SExpressionConstants.ASSERTED) || proofType
                 .equals(SExpressionConstants.UNIT_RESOLUTION));

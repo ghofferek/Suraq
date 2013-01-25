@@ -556,17 +556,10 @@ public class VeritProofNode {
         assert (conclusions.size() < this.literalConclusions.size());
         assert (this.literalConclusions.containsAll(conclusions));
 
-        VeritProofNode strongerNode = null;
-        Matcher matcher = Util.digitsPattern.matcher(name);
-        String number = null;
-        if (matcher.find())
-            number = matcher.group(1);
-        else
-            assert (false);
-        strongerNode = this.proof.cacheLookup(conclusions, number);
-        if (strongerNode == null)
-            strongerNode = new VeritProofNode("str_" + this.name, this.type,
-                    conclusions, clauses, null, this.proof);
+        // Do NOT do a cache lookup. Looking up stronger nodes likely results in
+        // cycles!
+        VeritProofNode strongerNode = new VeritProofNode("str_" + this.name,
+                this.type, conclusions, clauses, null, this.proof);
         assert (strongerNode != null);
 
         for (VeritProofNode parent : this.parents) {
