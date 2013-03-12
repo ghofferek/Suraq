@@ -21,9 +21,9 @@ import at.iaik.suraq.smtlib.SMTLibObject;
  */
 public interface Formula extends SMTLibObject, Serializable {
 
-	@Override
-	public boolean equals(Object formula);
-	
+    @Override
+    public boolean equals(Object formula);
+
     /**
      * Returns a deep copy of the formula.
      * 
@@ -117,11 +117,12 @@ public interface Formula extends SMTLibObject, Serializable {
      * @param newFunction
      *            the function to put in place.
      */
-    //public Formula substituteUninterpretedFunction(Token oldFunction,
-    //        UninterpretedFunction newFunction);
-    
-    // chillebold: 
-    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions);
+    // public Formula substituteUninterpretedFunction(Token oldFunction,
+    // UninterpretedFunction newFunction);
+
+    // chillebold:
+    public Formula substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions);
 
     /**
      * Replaces all array equalities in this formula by equivalent array
@@ -191,7 +192,8 @@ public interface Formula extends SMTLibObject, Serializable {
      *            variables are added to this set during recursion.
      * 
      */
-    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars);
+    public Formula arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars);
 
     /**
      * Returns all uninterpreted functions used in this formula. Don't confuse
@@ -233,9 +235,10 @@ public interface Formula extends SMTLibObject, Serializable {
      * @return a new formula with uninterpreted predicates replaced by auxiliary
      *         variables.
      */
-    /*public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars);*/
+    /*
+     * public Formula uninterpretedPredicatesToAuxiliaryVariables( Formula
+     * topLeveFormula, Set<Formula> constraints, Set<Token> noDependenceVars);
+     */
 
     /**
      * Transforms formulas to consequent formulas. Consequent formulas should
@@ -281,63 +284,66 @@ public interface Formula extends SMTLibObject, Serializable {
      * @param encoding
      *            a (call-by-reference) parameter, which will contain the
      *            mapping of Tseitin variables to the formulas they represent.
-     * @return the Tseitin variable that represents <code>this</code> formula.
+     * @return the Tseitin variable that represents <code>this</code> formula,
+     *         or the formula itself if it is a literal/constant.
      */
-    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+    public Formula tseitinEncode(List<OrFormula> clauses,
             Map<PropositionalVariable, Formula> encoding);
-    
-    
-    
-    
+
     /**
-     * Replaces instances of uninterpreted predicates in formula with auxiliary 
+     * Replaces instances of uninterpreted predicates in formula with auxiliary
      * boolean variables.
      * 
      * @param topLeveFormula
      *            the top level formula (for finding fresh variable names).
-     *          
+     * 
      * @param predicateInstances
-     *            map containing mapping from predicate names to boolean auxiliary 
-     *            variables.
-     *               
+     *            map containing mapping from predicate names to boolean
+     *            auxiliary variables.
+     * 
      * @param instanceParameters
-     *            map containing mapping from boolean auxiliary variables to predicate 
-     *            instance parameters.  
-     *                 
-     * @return a new formula with uninterpreted predicates replaced by boolean auxiliary
-     *         variables.
+     *            map containing mapping from boolean auxiliary variables to
+     *            predicate instance parameters.
+     * 
+     * @return a new formula with uninterpreted predicates replaced by boolean
+     *         auxiliary variables.
      */
-    
-    public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);  
-    
-    /**
-     * Replaces instances of uninterpreted functions in formula with auxiliary 
-     *  variables.
-	 * 
-	 * @param topLeveFormula
-	 *            the top level formula (for finding fresh variable names).
-	 * 
-	 * @param functionInstances
-	 *            map containing mapping from function names to domain auxiliary
-	 *            variables.
-	 * 
-	 * @param instanceParameters
-	 *            map containing mapping from domain auxiliary variables to function
-	 *            instance parameters.
-	 * 
-	 * @return a new formula with uninterpreted predicates replaced by auxiliary
-	 *         domain variables.
-	 */
-    public Formula uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
-    
-    
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars);
 
-    
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList);
-    
+    public Formula uninterpretedPredicatesToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars);
+
+    /**
+     * Replaces instances of uninterpreted functions in formula with auxiliary
+     * variables.
+     * 
+     * @param topLeveFormula
+     *            the top level formula (for finding fresh variable names).
+     * 
+     * @param functionInstances
+     *            map containing mapping from function names to domain auxiliary
+     *            variables.
+     * 
+     * @param instanceParameters
+     *            map containing mapping from domain auxiliary variables to
+     *            function instance parameters.
+     * 
+     * @return a new formula with uninterpreted predicates replaced by auxiliary
+     *         domain variables.
+     */
+    public Formula uninterpretedFunctionsToAuxiliaryVariables(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars);
+
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars);
+
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList);
+
 }

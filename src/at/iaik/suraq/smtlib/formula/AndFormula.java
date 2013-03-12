@@ -39,11 +39,11 @@ public class AndFormula extends AndOrXorFormula {
     public AndFormula(List<? extends Formula> formulas) {
         super(formulas);
     }
-    
-    public static AndFormula generate(List<? extends Formula> formulas)
-    {
-    	//return FormulaCache.andFormula.put(new AndFormula(formulas));
-        return (AndFormula)FormulaCache.andOrXorFormula.put(new AndFormula(formulas));
+
+    public static AndFormula generate(List<? extends Formula> formulas) {
+        // return FormulaCache.andFormula.put(new AndFormula(formulas));
+        return (AndFormula) FormulaCache.andOrXorFormula.put(new AndFormula(
+                formulas));
     }
 
     /**
@@ -202,8 +202,9 @@ public class AndFormula extends AndOrXorFormula {
         List<Formula> disjuncts = new ArrayList<Formula>(formulas.size() + 1);
 
         for (Formula formula : formulas) {
-            PropositionalVariable currentTseitinVar = formula.tseitinEncode(
-                    clauses, encoding);
+            Formula currentTseitinVar = formula
+                    .tseitinEncode(clauses, encoding);
+            assert (Util.isLiteral(currentTseitinVar));
 
             disjuncts.add(NotFormula.create(currentTseitinVar));
 

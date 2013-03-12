@@ -39,12 +39,11 @@ public class OrFormula extends AndOrXorFormula {
     public OrFormula(List<Formula> formulas) {
         super(formulas);
     }
-    
 
-    public static OrFormula generate(List<Formula> formulas)
-    {
-    	//return FormulaCache.orFormula.put(new OrFormula(formulas));
-        return (OrFormula)FormulaCache.andOrXorFormula.put(new OrFormula(formulas));
+    public static OrFormula generate(List<Formula> formulas) {
+        // return FormulaCache.orFormula.put(new OrFormula(formulas));
+        return (OrFormula) FormulaCache.andOrXorFormula.put(new OrFormula(
+                formulas));
     }
 
     /**
@@ -68,7 +67,7 @@ public class OrFormula extends AndOrXorFormula {
         for (int count = 0; count < formulas.size(); count++) {
             Formula formula = formulas.get(count).simplify();
             formulas.set(count, formula);
- 
+
             if (formula instanceof PropositionalConstant) {
                 if (((PropositionalConstant) formula).getValue()) {
                     return PropositionalConstant.create(true);
@@ -209,8 +208,9 @@ public class OrFormula extends AndOrXorFormula {
         encoding.put(tseitinVar, this.deepFormulaCopy());
 
         for (Formula formula : formulas) {
-            PropositionalVariable currentTseitinVar = formula.tseitinEncode(
-                    clauses, encoding);
+            Formula currentTseitinVar = formula
+                    .tseitinEncode(clauses, encoding);
+            assert (Util.isLiteral(currentTseitinVar));
 
             disjuncts.add(currentTseitinVar);
 

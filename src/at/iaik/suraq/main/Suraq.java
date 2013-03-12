@@ -474,10 +474,13 @@ public class Suraq implements Runnable {
             List<OrFormula> clauses = new ArrayList<OrFormula>();
             Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
             // also changes the partitionFormula
-            PropositionalVariable tseitinVar = partitionFormula.tseitinEncode(
-                    clauses, encoding);
+            Formula tseitinVar = partitionFormula.tseitinEncode(clauses,
+                    encoding);
+            assert (Util.isLiteral(tseitinVar));
             tseitinEncoding.putAll(encoding);
-            tseitinEncoding.put(tseitinVar, partitionFormula);
+            if (tseitinVar instanceof PropositionalVariable)
+                tseitinEncoding.put((PropositionalVariable) tseitinVar,
+                        partitionFormula);
 
             List<Formula> disjuncts = new ArrayList<Formula>();
             disjuncts.add(tseitinVar);

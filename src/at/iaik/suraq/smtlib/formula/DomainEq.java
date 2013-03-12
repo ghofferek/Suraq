@@ -118,7 +118,7 @@ public class DomainEq extends EqualityFormula {
      *      java.util.Map)
      */
     @Override
-    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
+    public Formula tseitinEncode(List<OrFormula> clauses,
             Map<PropositionalVariable, Formula> encoding) {
 
         assert (terms.size() == 2);
@@ -127,26 +127,33 @@ public class DomainEq extends EqualityFormula {
         assert (clauses != null);
         assert (encoding != null);
 
-        Set<Integer> partitions = this.getPartitionsFromSymbols();
-        assert (partitions.size() == 1 || partitions.size() == 2);
-        if (partitions.size() == 2)
-            partitions.remove(-1);
-        assert (partitions.size() == 1);
-        int partition = partitions.iterator().next();
-        PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
-        encoding.put(tseitinVar, this.deepFormulaCopy());
+        // BEGIN OLD CODE
+        // Literals should not be Tseitin encoded. This is a waste.
 
-        List<Formula> disjuncts = new ArrayList<Formula>(2);
-        disjuncts.add(NotFormula.create(tseitinVar));
-        disjuncts.add(this.deepFormulaCopy());
-        clauses.add(OrFormula.generate(disjuncts));
+        // Set<Integer> partitions = this.getPartitionsFromSymbols();
+        // assert (partitions.size() == 1 || partitions.size() == 2);
+        // if (partitions.size() == 2)
+        // partitions.remove(-1);
+        // assert (partitions.size() == 1);
+        // int partition = partitions.iterator().next();
+        // PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
+        // encoding.put(tseitinVar, this.deepFormulaCopy());
+        //
+        // List<Formula> disjuncts = new ArrayList<Formula>(2);
+        // disjuncts.add(NotFormula.create(tseitinVar));
+        // disjuncts.add(this.deepFormulaCopy());
+        // clauses.add(OrFormula.generate(disjuncts));
+        //
+        // disjuncts.clear();
+        // disjuncts.add(tseitinVar);
+        // disjuncts.add(NotFormula.create(this.deepFormulaCopy()));
+        // clauses.add(OrFormula.generate(disjuncts));
+        // return tseitinVar;
 
-        disjuncts.clear();
-        disjuncts.add(tseitinVar);
-        disjuncts.add(NotFormula.create(this.deepFormulaCopy()));
-        clauses.add(OrFormula.generate(disjuncts));
-
-        return tseitinVar;
+        // END OLD CODE - BEGIN REPLACEMENT
+        assert (Util.isLiteral(this));
+        return this;
+        // END REPLACEMENT
 
     }
 

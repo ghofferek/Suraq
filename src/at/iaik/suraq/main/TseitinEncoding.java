@@ -13,6 +13,7 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.Timer;
+import at.iaik.suraq.util.Util;
 
 /**
  * TseitinEncoding extracted to this method. It is not globally used in this
@@ -36,10 +37,11 @@ public class TseitinEncoding {
         Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
 
         // the following code also changes the formula
-        PropositionalVariable tseitinVar = formula.tseitinEncode(clauses,
-                encoding);
+        Formula tseitinVar = formula.tseitinEncode(clauses, encoding);
+        assert (Util.isLiteral(tseitinVar));
         tseitinEncoding.putAll(encoding);
-        tseitinEncoding.put(tseitinVar, formula);
+        if (tseitinVar instanceof PropositionalVariable)
+            tseitinEncoding.put((PropositionalVariable) tseitinVar, formula);
 
         List<Formula> disjuncts = new ArrayList<Formula>();
         disjuncts.add(tseitinVar);
