@@ -21,6 +21,7 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.ImmutableArrayList;
+import at.iaik.suraq.util.Util;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -55,8 +56,8 @@ public abstract class EqualityFormula implements Formula {
     protected EqualityFormula(Collection<? extends Term> terms, boolean equal) {
         this.equal = equal;
         ArrayList<Term> termList = new ArrayList<Term>(terms);
-        //for (Term term : terms)
-        //    termList.add(term);
+        // for (Term term : terms)
+        // termList.add(term);
         this.terms = new ImmutableArrayList<Term>(termList);
     }
 
@@ -310,7 +311,7 @@ public abstract class EqualityFormula implements Formula {
             pairs.add(term.removeArrayEqualitiesTerm());
         }
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -328,7 +329,7 @@ public abstract class EqualityFormula implements Formula {
             pairs.add(term.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
         }
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -341,7 +342,7 @@ public abstract class EqualityFormula implements Formula {
     @Override
     public Formula simplify() {
         List<Term> terms = new ArrayList<Term>(this.terms);
-        
+
         for (int count = 0; count < terms.size(); count++) {
             if (terms.get(count) instanceof DomainIte)
                 terms.set(count, ((DomainIte) terms.get(count)).simplify());
@@ -365,7 +366,7 @@ public abstract class EqualityFormula implements Formula {
         }
 
         try {
-            return create(terms, equal);
+            return EqualityFormula.create(terms, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -415,7 +416,7 @@ public abstract class EqualityFormula implements Formula {
             pairs.add(term.removeArrayWritesTerm(topLevelFormula, constraints,
                     noDependenceVars));
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -430,9 +431,10 @@ public abstract class EqualityFormula implements Formula {
             Set<Token> noDependenceVars) {
         List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
-            pairs.add(term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
+            pairs.add(term
+                    .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars));
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -455,12 +457,13 @@ public abstract class EqualityFormula implements Formula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
+    public Formula substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions) {
         List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
             pairs.add(term.substituteUninterpretedFunctionTerm(substitutions));
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -486,10 +489,10 @@ public abstract class EqualityFormula implements Formula {
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
-            pairs.add(term.makeArrayReadsSimpleTerm(topLevelFormula, constraints,
-                    noDependenceVars));
+            pairs.add(term.makeArrayReadsSimpleTerm(topLevelFormula,
+                    constraints, noDependenceVars));
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -529,35 +532,35 @@ public abstract class EqualityFormula implements Formula {
 
         List<Formula> literals = new ArrayList<Formula>();
         boolean equal = this.equal;
-        
+
         // TODO: make this.equal final
         if (terms.size() != 2)
             throw new RuntimeException(
                     "Equality should have only two terms for consequents form");
 
-        try{
-        if (((equal == true) && (notFlag == false))
-                || ((equal == false) && (notFlag == true))) {
-            equal = true;
-            if (firstLevel == true) {
-                literals.add(create(terms, equal));
-                return OrFormula.generate(literals);
-            } else
-                return create(terms, equal);
+        try {
+            if (((equal == true) && (notFlag == false))
+                    || ((equal == false) && (notFlag == true))) {
+                equal = true;
+                if (firstLevel == true) {
+                    literals.add(EqualityFormula.create(terms, equal));
+                    return OrFormula.generate(literals);
+                } else
+                    return EqualityFormula.create(terms, equal);
 
-        } else if (((equal == false) && (notFlag == false))
-                || ((equal == true) && (notFlag == true))) {
-            equal = true;
-            if (firstLevel == true) {
-                literals.add(NotFormula.create(create(terms, equal)));
-                return OrFormula.generate(literals);
+            } else if (((equal == false) && (notFlag == false))
+                    || ((equal == true) && (notFlag == true))) {
+                equal = true;
+                if (firstLevel == true) {
+                    literals.add(NotFormula.create(EqualityFormula.create(
+                            terms, equal)));
+                    return OrFormula.generate(literals);
+                } else
+                    return NotFormula.create(EqualityFormula.create(terms,
+                            equal));
             } else
-                return NotFormula.create(create(terms, equal));
-        } else
-            throw new RuntimeException("This point should not be reachable");
-        }
-        catch(Exception ex)
-        {
+                throw new RuntimeException("This point should not be reachable");
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -569,150 +572,155 @@ public abstract class EqualityFormula implements Formula {
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
     @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
 
         List<Term> pairs = new ArrayList<Term>();
-    	for (Term term : terms)
-    	    pairs.add(term.uninterpretedPredicatesToAuxiliaryVariablesTerm(topLeveFormula, predicateInstances,
-            		 instanceParameters, noDependenceVars));
+        for (Term term : terms)
+            pairs.add(term.uninterpretedPredicatesToAuxiliaryVariablesTerm(
+                    topLeveFormula, predicateInstances, instanceParameters,
+                    noDependenceVars));
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         }
     }
 
-     
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
     @Override
     public Formula uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
         List<Term> pairs = new ArrayList<Term>();
-    	 for (Term term : terms)
-    	     pairs.add(term.uninterpretedFunctionsToAuxiliaryVariablesTerm(topLeveFormula, functionInstances,
-            		 instanceParameters, noDependenceVars));
-         try {
-             return create(pairs, equal);
-         } catch (Exception ex) {
-             ex.printStackTrace();
-             throw new RuntimeException(ex);
-         }
+        for (Term term : terms)
+            pairs.add(term.uninterpretedFunctionsToAuxiliaryVariablesTerm(
+                    topLeveFormula, functionInstances, instanceParameters,
+                    noDependenceVars));
+        try {
+            return EqualityFormula.create(pairs, equal);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
-    
-    
-
     @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars) 
-    {
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
         // FormulaTerm
-        
-        //System.out.println("Equivalence found: "+this.numTerms());
+
+        // System.out.println("Equivalence found: "+this.numTerms());
         List<Formula> newTerms = new ArrayList<Formula>();
         try {
-            // Iterate through all terms of the Equality, because there could be more than two.
-            for(int i=0; i<terms.size(); i++) {
+            // Iterate through all terms of the Equality, because there could be
+            // more than two.
+            for (int i = 0; i < terms.size(); i++) {
                 Term ti = terms.get(i);
-                //if(!(ti instanceof PropositionalVariable || ti instanceof FormulaTerm)) // do not handle propositional variables
-                for(int j=i+1; j<terms.size();j++) {
+                // if(!(ti instanceof PropositionalVariable || ti instanceof
+                // FormulaTerm)) // do not handle propositional variables
+                for (int j = i + 1; j < terms.size(); j++) {
                     Term tj = terms.get(j);
-                    //if(!(tj instanceof PropositionalVariable || tj instanceof FormulaTerm)) // do not handle propositional variables
+                    // if(!(tj instanceof PropositionalVariable || tj instanceof
+                    // FormulaTerm)) // do not handle propositional variables
                     {
                         // fix to a static order
-                        if(ti.toString().compareTo(tj.toString())>0)
-                        {
+                        if (ti.toString().compareTo(tj.toString()) > 0) {
                             Term help = tj;
                             tj = ti;
                             ti = help;
                         }
-                        
+
                         // Build EqualityFormula for the Map
                         Collection<Term> terms = new HashSet<Term>();
                         terms.add(ti);
                         terms.add(tj);
-                        
-                        if(terms.size() < 2) // this means ti = tj
+
+                        if (terms.size() < 2) // this means ti = tj
                         {
-                            //System.out.println("Propably there was an equality like x=x");
+                            // System.out.println("Propably there was an equality like x=x");
                             newTerms.add(PropositionalConstant.create(true));
                             continue;
                         }
-                        
-                        EqualityFormula ef = create(terms, true);
-                        
-                        
-                        
+
+                        EqualityFormula ef = EqualityFormula
+                                .create(terms, true);
+
                         // Find a name for the Equality
                         String newName;
-                        if(replacements.containsKey(ef))
-                        {
-                            // take an existent replacement because it's the same
+                        if (replacements.containsKey(ef)) {
+                            // take an existent replacement because it's the
+                            // same
                             newName = replacements.get(ef);
-                            //System.err.print('+'); // approx. 44000 times
-                        }
-                        else
-                        {
-                            // add a new replacement -> get a new Varname and add to the list
-                            //newName = "eq_"+ti.toString()+"_"+tj.toString();
-                            //newName = Util.freshVarNameCached(topLeveFormula, newName);
-                            newName = GraphReduction.getVarName(topLeveFormula, ti.toString(), tj.toString());
+                            // System.err.print('+'); // approx. 44000 times
+                        } else {
+                            // add a new replacement -> get a new Varname and
+                            // add to the list
+                            // newName = "eq_"+ti.toString()+"_"+tj.toString();
+                            // newName = Util.freshVarNameCached(topLeveFormula,
+                            // newName);
+                            newName = GraphReduction.getVarName(topLeveFormula,
+                                    ti.toString(), tj.toString());
                             replacements.put(ef, newName);
-                            if(noDependenceVars.contains(Token.generate(ti.toString())) || noDependenceVars.contains(Token.generate(tj.toString())) )
-                            {
+                            if (noDependenceVars.contains(Token.generate(ti
+                                    .toString()))
+                                    || noDependenceVars.contains(Token
+                                            .generate(tj.toString()))) {
                                 noDependenceVars.add(Token.generate(newName));
                             }
                         }
-                        
-                        // we must take care of inequalities, so we add a NOT around single terms
-                        // x != y != z <=> x!=y && x!=z && y!=z <=> e12 && e13 && e23
-                        if(this.equal)
+
+                        // we must take care of inequalities, so we add a NOT
+                        // around single terms
+                        // x != y != z <=> x!=y && x!=z && y!=z <=> e12 && e13
+                        // && e23
+                        if (this.equal)
                             newTerms.add(PropositionalVariable.create(newName));
                         else
-                            newTerms.add(NotFormula.create(PropositionalVariable.create(newName)));
+                            newTerms.add(NotFormula
+                                    .create(PropositionalVariable
+                                            .create(newName)));
                     }
                 }
             }
-            
-            // Concat the Terms with an AND-Formula, if there are more terms than two. e.g.:
-            //  x=y  <=> e_xy
+
+            // Concat the Terms with an AND-Formula, if there are more terms
+            // than two. e.g.:
+            // x=y <=> e_xy
             // x=y=z <=> e_xy && e_xz && e_yz
-            if(newTerms.size()==0)
-            {
+            if (newTerms.size() == 0) {
                 // This should never happen.
-                throw new RuntimeException("??? Don't know what happened here ???");
-            }
-            else if(newTerms.size()==1)
-            {
+                throw new RuntimeException(
+                        "??? Don't know what happened here ???");
+            } else if (newTerms.size() == 1) {
                 return newTerms.iterator().next();
-            }
-            else
-            {
+            } else {
                 return AndFormula.generate(newTerms);
             }
-            
-        }catch(IncomparableTermsException ex)
-        {
+
+        } catch (IncomparableTermsException ex) {
             // This Exception should not be possible.
             // But it is nessasary to suppress warnings.
             throw new RuntimeException("Incomparable Terms in Equality Formula");
         }
         // TODO recursivley
     }
-    
 
     @Override
     public Formula removeDomainITE(Formula topLevelFormula,
@@ -732,6 +740,13 @@ public abstract class EqualityFormula implements Formula {
                         noDependenceVars, newVarName, andPreList));
                 // terms.set(i, newVarName.value);
                 terms2.add(newVarName.value);
+                if (Util.formulaContainsAny(this, noDependenceVars)) {
+                    assert (newVarName.value instanceof DomainVariable);
+                    Token name = Token
+                            .generate(((DomainVariable) newVarName.value)
+                                    .getVarName());
+                    noDependenceVars.add(name);
+                }
 
             } else
                 terms2.add(terms.get(i));
@@ -740,7 +755,7 @@ public abstract class EqualityFormula implements Formula {
         if (_andlist.size() > 0) {
             andPreList.addAll(_andlist);
             try {
-                return create(terms2, equal);
+                return EqualityFormula.create(terms2, equal);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new RuntimeException(ex);
