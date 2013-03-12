@@ -645,7 +645,7 @@ public class VeritProofNode {
         }
 
         if (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED)) {
-            return checkCongruence();
+            return checkCongruencePred();
         }
 
         if (this.type.equals(VeriTToken.EQ_TRANSITIVE)) {
@@ -793,15 +793,100 @@ public class VeritProofNode {
     }
 
     /**
-     * Call only on nodes with type <code>EQ_CONGRUENT</code> or
-     * <code>EQ_CONGRUENT_PRED</code>.
+     * Call only on nodes with type <code>EQ_CONGRUENT_PRED</code>
+     * 
+     * @return <code>true</code>, iff this is a valid predicate congruence axiom
+     *         instantiation.
+     */
+    private boolean checkCongruencePred() {
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED));
+
+        if (literalConclusions.size() < 3)
+            return false;
+        if (subProofs.size() != 0)
+            return false;
+
+        // Taking the assumption that the "implied literal" is the last one.
+        Formula impliedLiteral = literalConclusions.get(literalConclusions
+                .size() - 1);
+
+        // Taking the assumption that the second-to-last literal is also
+        // a predicate instance, with inverse polarity
+        Formula inversePredicateLiteral = literalConclusions
+                .get(literalConclusions.size() - 2);
+
+        if (!(Util.makeLiteralPositive(impliedLiteral) instanceof UninterpretedPredicateInstance))
+            return false;
+
+        if (!(Util.makeLiteralPositive(inversePredicateLiteral) instanceof UninterpretedPredicateInstance))
+            return false;
+
+        if (Util.getSignValue(impliedLiteral) == Util
+                .getSignValue(inversePredicateLiteral))
+            return false;
+
+        UninterpretedPredicateInstance instance1 = (UninterpretedPredicateInstance) Util
+                .makeLiteralPositive(impliedLiteral);
+        UninterpretedPredicateInstance instance2 = (UninterpretedPredicateInstance) Util
+                .makeLiteralPositive(inversePredicateLiteral);
+
+        if (!instance1.getFunction().equals(instance2.getFunction()))
+            return false;
+
+        List<DomainTerm> terms1 = instance1.getParameters();
+        List<DomainTerm> terms2 = instance2.getParameters();
+        assert (terms1.size() == terms2.size());
+
+        // Check that there is an equality-chain for each parameter
+        for (int count = 0; count < terms1.size(); count++) {
+            // Try via transitivity chain
+            Graph<Term, Formula> equalityGraph = new Graph<Term, Formula>();
+            for (Formula currentLiteral : literalConclusions.subList(0,
+                    literalConclusions.size() - 2)) {
+                if (!Util.isLiteral(currentLiteral))
+                    return false;
+                if (!Util.isNegativeLiteral(currentLiteral))
+                    return false;
+                if (!(Util.makeLiteralPositive(currentLiteral) instanceof EqualityFormula))
+                    return false;
+                if (!((EqualityFormula) Util
+                        .makeLiteralPositive(currentLiteral)).isEqual())
+                    return false;
+                if (((EqualityFormula) Util.makeLiteralPositive(currentLiteral))
+                        .getTerms().size() != 2)
+                    return false;
+
+                Term[] currentTerms = ((EqualityFormula) Util
+                        .makeLiteralPositive(currentLiteral)).getTerms()
+                        .toArray(new Term[0]);
+                assert (currentTerms.length == 2);
+                equalityGraph.addNode(currentTerms[0]);
+                equalityGraph.addNode(currentTerms[1]);
+                equalityGraph.addEdge(currentTerms[0], currentTerms[1],
+                        currentLiteral);
+            }
+
+            List<Formula> path = equalityGraph.findPath(terms1.get(count),
+                    terms2.get(count));
+            if (path != null) {
+                assert (literalConclusions.containsAll(path));
+                continue;
+            }
+            // Not found any matching equality.
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Call only on nodes with type <code>EQ_CONGRUENT</code>
      * 
      * @return <code>true</code>, iff this is a valid congruence axiom
      *         instantiation.
      */
     private boolean checkCongruence() {
-        assert (this.type.equals(VeriTToken.EQ_CONGRUENT) || this.type
-                .equals(VeriTToken.EQ_CONGRUENT_PRED));
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT));
 
         if (literalConclusions.size() < 2)
             return false;
