@@ -82,6 +82,11 @@ public final class SuraqOptions {
     private static final String solverDefault = "veriT";
 
     /**
+     * Default value for newVeritCache option.
+     */
+    private static final boolean newVeritCacheDefault = true;
+
+    /**
      * The cache file name.
      */
     private static String cacheFile = "savecache.db";
@@ -144,6 +149,11 @@ public final class SuraqOptions {
      * The value of the solver option.
      */
     private final String solverValue;
+
+    /**
+     * The value of the newVeritCache option.
+     */
+    private final Boolean newVeritCacheValue;
 
     /**
      * The parser that stores the (parsed) command-line options.
@@ -215,6 +225,9 @@ public final class SuraqOptions {
 
         Option solverOption = cmdLineParser.addStringOption("solver");
 
+        Option newVeritCacheOption = cmdLineParser
+                .addBooleanOption("newVeritCache");
+
         try {
             cmdLineParser.parse(args);
         } catch (OptionException exc) {
@@ -245,6 +258,9 @@ public final class SuraqOptions {
         veriTFile = (String) cmdLineParser.getOptionValue(veriTFileOption);
 
         solverValue = (String) cmdLineParser.getOptionValue(solverOption);
+
+        newVeritCacheValue = (Boolean) cmdLineParser
+                .getOptionValue(newVeritCacheOption);
 
         int end = getInput().lastIndexOf(".");
 
@@ -451,6 +467,11 @@ public final class SuraqOptions {
 
     public String getSolver() {
         return solverValue == null ? SuraqOptions.solverDefault : solverValue;
+    }
+
+    public boolean useNewVeritCache() {
+        return newVeritCacheValue == null ? SuraqOptions.newVeritCacheDefault
+                : newVeritCacheValue;
     }
 
 }

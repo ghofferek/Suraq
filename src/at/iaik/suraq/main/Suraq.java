@@ -190,6 +190,8 @@ public class Suraq implements Runnable {
 
         } catch (Throwable exc) {
             System.err.println("ERROR: Uncaught exception!");
+            System.err.println("Message:" + exc.getMessage() == null ? "<null>"
+                    : exc.getMessage());
             exc.printStackTrace();
             System.exit(-1);
         }
@@ -827,6 +829,18 @@ public class Suraq implements Runnable {
             VeriTSolver.setActive(true);
         }
 
+        if (VeriTSolver.isActive()) {
+            runWithVeriT();
+            return;
+            // IMPORTANT: Any reference to veriT below is deprecated.
+            // When using veriT, everything is done in runWithVeriT.
+            // The following usage of veriT in this method is just
+            // left-over code, that should now be unreachable.
+        }
+
+        assert (!VeriTSolver.isActive());
+        assert (options.getSolver().toLowerCase().equals("z3"));
+
         if (options.getVeriTVarsCache() != null) {
 
             Timer t = new Timer();
@@ -1012,17 +1026,24 @@ public class Suraq implements Runnable {
                                 mainFormula, tseitinEncoding.keySet(),
                                 noDependenceVarsCopies.values(),
                                 noDependenceFunctionsCopies);
+
+                        System.out.println("start to parse proof.");
+                        Timer parseTimer = new Timer();
+                        parseTimer.start();
                         veriTParser.parse();
+                        parseTimer.stop();
+                        System.out.println("Done parsing. (Took "
+                                + parseTimer.toString() + ")");
                         VeritProof veritProof = veriTParser.getProof();
                         veritProof.setRoot(veritProof.findNodeProvingFalse());
                         veritProof.removeUnreachableNodes();
-                        DebugHelper.getInstance().stringtoFile(
-                                veritProof.toString(), "~parsed-verit-enc.txt");
+                        // DebugHelper.getInstance().stringtoFile(
+                        // veritProof.toString(), "~parsed-verit-enc.txt");
                         iteTrees = proofTransformationAndInterpolation(
                                 veritProof, logicParser.getControlVariables());
                     } catch (Exception e) {
                         e.printStackTrace();
-                        throw new RuntimeException(e);
+                        throw new RuntimeException(e.getMessage(), e);
                     }
                 } else { // use z3
 
@@ -1275,6 +1296,188 @@ public class Suraq implements Runnable {
         printEnd(noErrors, overallTimer);
         System.err.println(Suraq.extTimer);
         return;
+    }
+
+    /**
+     * Main control flow when using veriT.
+     */
+    private void runWithVeriT() {
+        assert (VeriTSolver.isActive());
+        SuraqOptions options = SuraqOptions.getInstance();
+
+        File sourceFile = new File(options.getInput());
+        File saveCacheSerial = new File(options.getCacheFileSerial());
+
+        Date inputFileDate = new Date(sourceFile.lastModified());
+        Date cacheFileDate = new Date(saveCacheSerial.lastModified());
+        boolean cacheOutdated = inputFileDate.getTime() > cacheFileDate
+                .getTime();
+        List<PropositionalVariable> controlVariables = null;
+        Map<PropositionalVariable, Formula> iteTrees = null;
+        VeritProof veritProof = null;
+
+        SaveCache cache = null;
+        // Get from cache whatever we can (if we should)
+        if (options.useNewVeritCache() && saveCacheSerial.exists()
+                && !cacheOutdated) {
+            cache = SaveCache.loadSaveCacheFromFile(saveCacheSerial.getPath());
+        }
+
+        if (cache == null) {
+            System.out.println("start input transformations");
+            Timer inputTransformationTimer = new Timer();
+            inputTransformationTimer.start();
+            String solverInputStr = inputTransformations(sourceFile);
+            controlVariables = logicParser.getControlVariables();
+            inputTransformationTimer.stop();
+            System.out.println("finished input transformations in "
+                    + inputTransformationTimer + ".\n");
+
+            System.out.println("start proof calculation.");
+            Timer proofcalculationTimer = new Timer();
+            proofcalculationTimer.start();
+
+            VeriTSolver veriT = new VeriTSolver();
+            veriT.solve(solverInputStr);
+            System.out.println("VeriTSolver returned!");
+            VeriTParser veriTParser;
+            try {
+                veriTParser = new VeriTParser(veriT.getStream(), mainFormula,
+                        tseitinEncoding.keySet(),
+                        noDependenceVarsCopies.values(),
+                        noDependenceFunctionsCopies);
+            } catch (FileNotFoundException exc) {
+                throw new RuntimeException(exc);
+            }
+
+            System.out.println("start to parse proof.");
+            Timer parseTimer = new Timer();
+            parseTimer.start();
+            veriTParser.parse();
+            parseTimer.stop();
+            System.out.println("Done parsing. (Took " + parseTimer.toString()
+                    + ")");
+            veritProof = veriTParser.getProof();
+            veritProof.setRoot(veritProof.findNodeProvingFalse());
+            veritProof.removeUnreachableNodes();
+            assert (veritProof.checkProof());
+
+            // Now write to cache
+            cache = new SaveCache(propsitionalVars, domainVars, arrayVars,
+                    uninterpretedFunctions, controlVariables, mainFormula,
+                    assertPartitionFormulas, iteTrees,
+                    saveCacheSerial.getPath(), veritProof,
+                    noDependenceVarsCopies, noDependenceFunctionsCopies);
+
+        } else {
+            // Read from cache
+            veritProof = cache.getVeritProof();
+            assert (veritProof != null);
+            controlVariables = cache.getControlVars();
+            assert (controlVariables != null);
+            readFieldsFromCache(cache);
+        }
+
+        assert (veritProof != null);
+        iteTrees = proofTransformationAndInterpolation(veritProof,
+                controlVariables);
+
+        // Now we have results. Let's check them and write them to a file.
+        // FIXME Newly introduced vars (array reads, etc.) are not handled yet!
+        String outputStr = createOutputString(sourceFile, iteTrees);
+
+        if (options.isCheckResult()) {
+            System.out.println("Starting to check results with z3...");
+            Timer checkTimer = new Timer();
+            checkTimer.start();
+            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+            z3.solve(outputStr);
+
+            switch (z3.getState()) {
+            case SMTSolver.UNSAT:
+                System.out
+                        .println("SUCCESSFULLY MODEL-CHECKED RESULTS WITH Z3! :-)");
+                break;
+            case SMTSolver.SAT:
+                noErrors = false;
+                System.err
+                        .println("ERROR: Z3 tells us SAT. Implementation of control signal is not correct");
+                break;
+            default:
+                noErrors = false;
+                System.out
+                        .println("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
+            }
+            checkTimer.stop();
+            System.out.println("Check finished in " + checkTimer);
+
+        }
+
+        // write output file
+        try {
+            System.out
+                    .println(" Writing output to file " + options.getOutput());
+            FileWriter fstream = new FileWriter(options.getOutput());
+            fstream.write(outputStr);
+            fstream.close();
+        } catch (IOException exc) {
+            System.err.println("Error while writing to output file: "
+                    + options.getOutput());
+            exc.printStackTrace();
+            noErrors = false;
+        }
+
+        System.out.println(" done!");
+        // All done :-)
+        overallTimer.stop();
+        printEnd(noErrors, overallTimer);
+        System.err.println(Suraq.extTimer);
+        return;
+    }
+
+    private void readFieldsFromCache(SaveCache sc) {
+        propsitionalVars = sc.getPropsitionalVars();
+        assert (propsitionalVars != null);
+        domainVars = sc.getDomainVars();
+        assert (domainVars != null);
+        arrayVars = sc.getArrayVars();
+        assert (arrayVars != null);
+        uninterpretedFunctions = sc.getUninterpretedFunctions();
+        assert (uninterpretedFunctions != null);
+        mainFormula = sc.getMainFormula();
+        assert (mainFormula != null);
+        assertPartitionFormulas = sc.getAssertPartitionFormulas();
+        assert (assertPartitionFormulas != null);
+        tseitinEncoding = sc.getTseitinEncoding();
+        assert (tseitinEncoding != null);
+        noDependenceVarsCopies = sc.getNoDependenceVarsCopies();
+        assert (noDependenceVarsCopies != null);
+        noDependenceFunctionsCopies = sc.getNoDependenceFunctionsCopies();
+        assert (noDependenceFunctionsCopies != null);
+
+        System.out.println("Copying to FormulaCache... ");
+        Timer t = new Timer();
+        t.start();
+        for (PropositionalVariable tmp : propsitionalVars)
+            FormulaCache.propVar.post(tmp);
+        for (DomainVariable tmp : domainVars)
+            FormulaCache.domainVarFormula.post(tmp);
+        for (UninterpretedFunction tmp : uninterpretedFunctions)
+            FormulaCache.uninterpretedFunction.post(tmp);
+        for (List<Term> tmp2 : noDependenceVarsCopies.values())
+            for (Term tmp : tmp2) {
+                if (tmp instanceof DomainVariable)
+                    FormulaCache.domainVarFormula.post((DomainVariable) tmp);
+                if (tmp instanceof PropositionalVariable)
+                    FormulaCache.propVar.post((PropositionalVariable) tmp);
+            }
+        for (List<UninterpretedFunction> tmp2 : noDependenceFunctionsCopies
+                .values())
+            for (UninterpretedFunction tmp : tmp2)
+                FormulaCache.uninterpretedFunction.post(tmp);
+
+        t.stop();
+        System.out.println(" Needed: " + t);
     }
 
     /**
@@ -1671,17 +1874,22 @@ public class Suraq implements Runnable {
         formula = ackermann.performAckermann(formula, noDependenceVars);
         timer.end();
         System.out.println("    Done. (" + timer + ")");
-        DebugHelper.getInstance().formulaToFile(formula,
-                "./debug_ackermann.txt");
+        // DebugHelper.getInstance().formulaToFile(formula,
+        // "./debug_ackermann.txt");
         Suraq.extTimer.stopReset("after Ackermann");
 
         // /////////////////////////////////////////////////
 
         // Reduction of var1 = ITE(cond, var2, var3)
         // to var1 = itevar & ITE(cond, itevar=var2, itevar=var3)
+        System.out.println("  Perform ITE Reduction...");
+        timer.reset();
+        timer.start();
         ITEEquationReduction itered = new ITEEquationReduction();
         formula = itered.perform(formula, noDependenceVars);
-        DebugHelper.getInstance().formulaToFile(formula, "./debug_ite.txt");
+        timer.end();
+        System.out.println("    Done. (" + timer + ")");
+        // DebugHelper.getInstance().formulaToFile(formula, "./debug_ite.txt");
         Suraq.extTimer.stopReset("after ITE equality trans");
 
         // /////////////////////////////////////////////////
@@ -1701,7 +1909,8 @@ public class Suraq implements Runnable {
         Suraq.extTimer.stopReset("after Graph reduction");
 
         // /////////////////////////////////////////////////
-        DebugHelper.getInstance().formulaToFile(formula, "./debug_graph.txt");
+        // DebugHelper.getInstance().formulaToFile(formula,
+        // "./debug_graph.txt");
 
         List<PropositionalVariable> controlSignals = logicParser
                 .getControlVariables();

@@ -3,11 +3,15 @@
  */
 package at.iaik.suraq.proof;
 
+import java.io.Serializable;
 import java.util.Hashtable;
 
 import at.iaik.suraq.sexp.Token;
 
-public class VeriTToken {
+public class VeriTToken implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     /**
      * A list of predefined Tokens that are allowed in the VeritProofNode.
      */
@@ -37,7 +41,7 @@ public class VeriTToken {
      */
     private static Token generate(String name) {
         Token token = Token.generate(name);
-        tokens.put(name, token);
+        VeriTToken.tokens.put(name, token);
         return token;
     }
 
@@ -49,14 +53,14 @@ public class VeriTToken {
      * @return
      */
     public static Token parse(String name) {
-        if (tokens.containsKey(name))
-            return tokens.get(name);
+        if (VeriTToken.tokens.containsKey(name))
+            return VeriTToken.tokens.get(name);
         System.err
                 .println("The Token '"
                         + name
                         + "' was not found in VeriTToken. You may want to add a field in class at.iaik.suraq.proof.VeriTToken");
 
-        return generate(name);
+        return VeriTToken.generate(name);
     }
 
 }

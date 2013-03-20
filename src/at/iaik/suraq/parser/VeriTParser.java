@@ -183,6 +183,11 @@ public class VeriTParser extends Parser {
             while (line != null) {
                 currentLine++; // count the lines
 
+                if (currentLine % 10000 == 0) {
+                    System.out.println("  Now starting to parse line "
+                            + currentLine);
+                }
+
                 // every line has to start with (set .
                 if (!line.startsWith("(set ."))
                     throw new ParseError(currentLine, line);

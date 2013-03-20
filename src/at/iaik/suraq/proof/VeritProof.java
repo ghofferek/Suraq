@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.proof;
 
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +36,9 @@ import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
  * 
  */
 
-public class VeritProof {
+public class VeritProof implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * ProofSets = ProofNodes. The key is the name (e.g. ".c44")

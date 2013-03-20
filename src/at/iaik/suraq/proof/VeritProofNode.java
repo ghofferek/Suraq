@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.proof;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,7 +36,10 @@ import at.iaik.suraq.util.graph.Graph;
  * @author chillebold
  * 
  */
-public class VeritProofNode {
+public class VeritProofNode implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     /**
      * The name of the VeritProofNode. E.g. ".c11"
      */
