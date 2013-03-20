@@ -3,8 +3,11 @@
  */
 package at.iaik.suraq.proof;
 
+import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -983,6 +986,101 @@ public class VeritProof implements Serializable {
      */
     public int getClauseCounter() {
         return clauseCounter;
+    }
+
+    // Methods for serialization/deserialization
+
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.writeObject(proofSets);
+        out.writeObject(root);
+        out.writeObject(goodDefinitionsOfBadLiterals);
+        out.writeObject(clauseCounter);
+
+        Map<String, VeritProofNode> synonymsCopy = new HashMap<String, VeritProofNode>();
+        for (String key : synonyms.keySet()) {
+            WeakReference<VeritProofNode> ref = synonyms.get(key);
+            if (ref != null) {
+                if (ref.get() != null) {
+                    synonymsCopy.put(key, ref.get());
+                }
+            }
+        }
+        out.writeObject(synonymsCopy);
+
+        Map<ImmutableSet<Formula>, VeritProofNode> nodeCacheCopy = new HashMap<ImmutableSet<Formula>, VeritProofNode>();
+        for (ImmutableSet<Formula> key : nodeCache.keySet()) {
+            WeakReference<VeritProofNode> ref = nodeCache.get(key);
+            if (ref != null) {
+                if (ref.get() != null) {
+                    nodeCacheCopy.put(key, ref.get());
+                }
+            }
+        }
+        out.writeObject(nodeCacheCopy);
+
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException,
+            ClassNotFoundException {
+        try {
+            Field proofSetsField = VeritProof.class
+                    .getDeclaredField("proofSets");
+            proofSetsField.setAccessible(true);
+            proofSetsField.set(this, in.readObject());
+            proofSetsField.setAccessible(false);
+
+            root = (VeritProofNode) in.readObject();
+
+            Field goodDefinitionsOfBadLiteralsField = VeritProof.class
+                    .getDeclaredField("proofSets");
+            goodDefinitionsOfBadLiteralsField.setAccessible(true);
+            goodDefinitionsOfBadLiteralsField.set(this, in.readObject());
+            goodDefinitionsOfBadLiteralsField.setAccessible(false);
+
+            clauseCounter = (Integer) in.readObject();
+
+            @SuppressWarnings("unchecked")
+            Map<String, VeritProofNode> synonymsCopy = (Map<String, VeritProofNode>) in
+                    .readObject();
+            Map<String, WeakReference<VeritProofNode>> synonymsTmp = new HashMap<String, WeakReference<VeritProofNode>>();
+            for (String key : synonymsCopy.keySet()) {
+                if (synonymsCopy.get(key) != null) {
+                    synonymsTmp.put(key, new WeakReference<VeritProofNode>(
+                            synonymsCopy.get(key)));
+                }
+            }
+            Field synonymsField = VeritProof.class
+                    .getDeclaredField("proofSets");
+            synonymsField.setAccessible(true);
+            synonymsField.set(this, synonymsTmp);
+            synonymsField.setAccessible(false);
+
+            @SuppressWarnings("unchecked")
+            Map<ImmutableSet<Formula>, VeritProofNode> nodeCacheCopy = (Map<ImmutableSet<Formula>, VeritProofNode>) in
+                    .readObject();
+            Map<ImmutableSet<Formula>, WeakReference<VeritProofNode>> nodeCacheTmp = new HashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>>();
+            for (ImmutableSet<Formula> key : nodeCacheCopy.keySet()) {
+                if (nodeCacheCopy.get(key) != null) {
+                    nodeCacheTmp.put(key, new WeakReference<VeritProofNode>(
+                            nodeCacheCopy.get(key)));
+                }
+            }
+            Field nodeCacheField = VeritProof.class
+                    .getDeclaredField("proofSets");
+            nodeCacheField.setAccessible(true);
+            nodeCacheField.set(this, nodeCacheTmp);
+            nodeCacheField.setAccessible(false);
+
+        } catch (Exception exc) {
+            throw new RuntimeException(exc);
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private void readObjectNoData() throws ObjectStreamException {
+        throw new RuntimeException(
+                "readObjectNoData() was called in VeritProof.");
     }
 
 }
