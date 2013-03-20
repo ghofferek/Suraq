@@ -1032,7 +1032,7 @@ public class VeritProof implements Serializable {
             root = (VeritProofNode) in.readObject();
 
             Field goodDefinitionsOfBadLiteralsField = VeritProof.class
-                    .getDeclaredField("proofSets");
+                    .getDeclaredField("goodDefinitionsOfBadLiterals");
             goodDefinitionsOfBadLiteralsField.setAccessible(true);
             goodDefinitionsOfBadLiteralsField.set(this, in.readObject());
             goodDefinitionsOfBadLiteralsField.setAccessible(false);
@@ -1049,8 +1049,7 @@ public class VeritProof implements Serializable {
                             synonymsCopy.get(key)));
                 }
             }
-            Field synonymsField = VeritProof.class
-                    .getDeclaredField("proofSets");
+            Field synonymsField = VeritProof.class.getDeclaredField("synonyms");
             synonymsField.setAccessible(true);
             synonymsField.set(this, synonymsTmp);
             synonymsField.setAccessible(false);
@@ -1066,7 +1065,7 @@ public class VeritProof implements Serializable {
                 }
             }
             Field nodeCacheField = VeritProof.class
-                    .getDeclaredField("proofSets");
+                    .getDeclaredField("nodeCache");
             nodeCacheField.setAccessible(true);
             nodeCacheField.set(this, nodeCacheTmp);
             nodeCacheField.setAccessible(false);

@@ -1320,7 +1320,17 @@ public class Suraq implements Runnable {
         // Get from cache whatever we can (if we should)
         if (options.useNewVeritCache() && saveCacheSerial.exists()
                 && !cacheOutdated) {
+            System.out
+                    .println("################################################################################");
+            System.out.println("Using cached proof object from file "
+                    + saveCacheSerial);
+            Timer cacheReadTimer = new Timer();
+            cacheReadTimer.start();
             cache = SaveCache.loadSaveCacheFromFile(saveCacheSerial.getPath());
+            cacheReadTimer.stop();
+            System.out.println("Reading from cache took " + cacheReadTimer);
+            assert (cache != null);
+
         }
 
         if (cache == null) {
@@ -1365,7 +1375,7 @@ public class Suraq implements Runnable {
             // Now write to cache
             cache = new SaveCache(propsitionalVars, domainVars, arrayVars,
                     uninterpretedFunctions, controlVariables, mainFormula,
-                    assertPartitionFormulas, iteTrees,
+                    assertPartitionFormulas, tseitinEncoding,
                     saveCacheSerial.getPath(), veritProof,
                     noDependenceVarsCopies, noDependenceFunctionsCopies);
 
