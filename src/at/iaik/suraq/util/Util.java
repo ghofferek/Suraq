@@ -3,9 +3,11 @@
  */
 package at.iaik.suraq.util;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1184,5 +1186,19 @@ public final class Util {
             }
         }
         literals.removeAll(literalsToRemove);
+    }
+
+    /**
+     * Prints the given line to <code>System.out</code> using
+     * <code>println</code>. The current date/time is prepended.
+     * 
+     * @param line
+     *            the line to print
+     */
+    public static void printToSystemOutWithWallClockTimePrefix(String line) {
+        DateFormat dateFormat = DateFormat.getDateTimeInstance(
+                DateFormat.MEDIUM, DateFormat.FULL);
+        String dateTimeString = dateFormat.format(new Date());
+        System.out.println("[" + dateTimeString + "] " + line);
     }
 }

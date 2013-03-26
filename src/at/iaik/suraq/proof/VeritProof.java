@@ -27,6 +27,7 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Stack;
+import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
 
@@ -77,6 +78,8 @@ public class VeritProof implements Serializable {
      * numbers for new clauses.
      */
     private int clauseCounter = 0;
+
+    public static boolean checkProofEnabled = true;
 
     /**
      * Generates and returns a new VeritProofNode. It is automatically attached
@@ -354,6 +357,18 @@ public class VeritProof implements Serializable {
      * @return <code>true</code> if this proof checks out correct.
      */
     public boolean checkProof() {
+
+        if (!VeritProof.checkProofEnabled) {
+            Util.printToSystemOutWithWallClockTimePrefix("[INFO] A check of the proof was requested, but proof checking is disabled.");
+            return true;
+        }
+
+        Util.printToSystemOutWithWallClockTimePrefix("[INFO] Starting a complete proof check...");
+        Util.printToSystemOutWithWallClockTimePrefix("[INFO] Size of proof: "
+                + this.size());
+        Timer timer = new Timer();
+        timer.start();
+
         if (root == null)
             return false;
         if (!root.getParents().isEmpty())
@@ -364,8 +379,17 @@ public class VeritProof implements Serializable {
         if (nodeCache.size() > proofSets.size())
             return false;
 
+        Util.printToSystemOutWithWallClockTimePrefix("[INFO] Now performing checks on individual nodes...");
+        int done = 0;
+        int lastReported = 0;
         for (VeritProofNode node : proofSets.values()) {
-
+            int percentage = (int) Math.floor(((double) done++ / proofSets
+                    .size()) * 100);
+            if (percentage >= lastReported + 10) {
+                lastReported += 10;
+                Util.printToSystemOutWithWallClockTimePrefix("  " + percentage
+                        + "% done.");
+            }
             if (node.getType().equals(VeriTToken.AND)
                     || node.getType().equals(VeriTToken.OR))
                 // AND and OR should not occur in "real" proofs.
@@ -392,6 +416,7 @@ public class VeritProof implements Serializable {
             if (!node.checkProofNode())
                 return false;
         }
+        Util.printToSystemOutWithWallClockTimePrefix("  All checks on individual nodes done.");
 
         for (VeritProofNode node : goodDefinitionsOfBadLiterals) {
             if (proofSets.get(node.getName()) != node)
@@ -409,6 +434,9 @@ public class VeritProof implements Serializable {
             return false;
 
         // All checks passed
+        timer.stop();
+        Util.printToSystemOutWithWallClockTimePrefix("[INFO] Complete proof check done. All tests passed. Time required: "
+                + timer);
         return true;
     }
 
@@ -570,11 +598,12 @@ public class VeritProof implements Serializable {
      */
     public void cleanProof() {
         assert (this.checkProof());
-        System.out.println("Number of bad leafs to clean: "
+        Util.printToSystemOutWithWallClockTimePrefix("Number of bad leafs to clean: "
                 + this.goodDefinitionsOfBadLiterals.size());
         VeritProofNode currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
         while (currentLeaf != null) {
-            System.out.println("  Cleaning leaf " + currentLeaf.getName());
+            Util.printToSystemOutWithWallClockTimePrefix("  Cleaning leaf "
+                    + currentLeaf.getName());
             cleanProof(currentLeaf);
             removeUnreachableNodes();
             currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
@@ -583,7 +612,8 @@ public class VeritProof implements Serializable {
         assert (this.checkProof());
 
         Set<VeritProofNode> leafs = this.getLeafs();
-        System.out.println("Found " + leafs.size() + " leafs.");
+        Util.printToSystemOutWithWallClockTimePrefix("Found " + leafs.size()
+                + " leafs.");
         Set<VeritProofNode> leafsToClean = new HashSet<VeritProofNode>();
 
         for (VeritProofNode leaf : leafs) {
@@ -595,10 +625,12 @@ public class VeritProof implements Serializable {
             }
         }
 
-        System.out.println("  " + leafsToClean.size() + " need splitting.");
+        Util.printToSystemOutWithWallClockTimePrefix("  " + leafsToClean.size()
+                + " need splitting.");
         int count = 0;
         for (VeritProofNode leafToClean : leafsToClean) {
-            System.out.println("    Splitting leaf " + leafToClean.getName());
+            Util.printToSystemOutWithWallClockTimePrefix("    Splitting leaf "
+                    + leafToClean.getName());
             TransitivityCongruenceChain chain = TransitivityCongruenceChain
                     .create(leafToClean);
             VeritProofNode replacement = chain.toColorableProof();
@@ -606,9 +638,9 @@ public class VeritProof implements Serializable {
                     .getLiteralConclusions()));
             for (VeritProofNode parent : leafToClean.getParents())
                 parent.makeStronger(leafToClean, replacement);
-            System.out.println("    Done " + ++count);
+            Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count);
         }
-        System.out.println("  All done.");
+        Util.printToSystemOutWithWallClockTimePrefix("  All done.");
         this.removeUnreachableNodes();
         assert (this.isColorable());
         assert (this.checkProof());
@@ -986,6 +1018,16 @@ public class VeritProof implements Serializable {
      */
     public int getClauseCounter() {
         return clauseCounter;
+    }
+
+    /**
+     * Returns the size of this proof. More precisely, returns the number of
+     * nodes currently stored in the internal map <code>proofSets</code>.
+     * 
+     * @return the number of nodes in this proof.
+     */
+    public int size() {
+        return proofSets.size();
     }
 
     // Methods for serialization/deserialization
