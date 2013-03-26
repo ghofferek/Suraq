@@ -1197,7 +1197,7 @@ public final class Util {
      */
     public static void printToSystemOutWithWallClockTimePrefix(String line) {
         DateFormat dateFormat = DateFormat.getDateTimeInstance(
-                DateFormat.MEDIUM, DateFormat.FULL);
+                DateFormat.MEDIUM, DateFormat.MEDIUM);
         String dateTimeString = dateFormat.format(new Date());
         System.out.println("[" + dateTimeString + "] " + line);
     }

@@ -25,6 +25,7 @@ import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.CongruenceClosure;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
+import at.iaik.suraq.util.MutableInteger;
 import at.iaik.suraq.util.Util;
 import at.iaik.suraq.util.graph.Graph;
 
@@ -1217,25 +1218,33 @@ public class VeritProofNode implements Serializable {
     /**
      * @param path
      *            the path so far
+     * @param notPartOfCycle
+     *            a set of nodes which are not part of a cycle.
      * @return <code>true</code> if no cycles are found
      */
-    public boolean isAcyclic(List<VeritProofNode> path) {
-        assert (this.proof != null);
-        this.proof.nodesDoneInAcyclicCheck++;
-        if (this.proof.nodesDoneInAcyclicCheck % 10000 == 0) {
-            Util.printToSystemOutWithWallClockTimePrefix("Visited "
-                    + this.proof.nodesDoneInAcyclicCheck
-                    + " nodes during acyclicity check.");
+    public boolean isAcyclic(List<VeritProofNode> path,
+            Set<VeritProofNode> notPartOfCycle,
+            MutableInteger lastReportedPercentage) {
+
+        int percentage = (int) Math
+                .floor(((double) notPartOfCycle.size() / proof.size()) * 100);
+        if (percentage >= lastReportedPercentage.intValue() + 10) {
+            Util.printToSystemOutWithWallClockTimePrefix("Done " + percentage
+                    + "% of nodes during acyclicity check.");
+            lastReportedPercentage.add(10);
         }
         for (VeritProofNode child : subProofs) {
             if (path.contains(child))
                 return false;
+            if (notPartOfCycle.contains(child))
+                continue;
             path.add(child);
-            if (!child.isAcyclic(path))
+            if (!child.isAcyclic(path, notPartOfCycle, lastReportedPercentage))
                 return false;
             path.remove(path.size() - 1);
             assert (!path.contains(child));
         }
+        notPartOfCycle.add(this);
         return true;
     }
 }

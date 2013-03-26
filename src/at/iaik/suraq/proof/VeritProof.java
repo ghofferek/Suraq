@@ -26,6 +26,7 @@ import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.util.ImmutableSet;
+import at.iaik.suraq.util.MutableInteger;
 import at.iaik.suraq.util.Stack;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
@@ -84,13 +85,6 @@ public class VeritProof implements Serializable {
      * necessarily proof nodes, if they are called indepedently).
      */
     public static boolean checkProofEnabled = true;
-
-    /**
-     * This private field is used to count how many nodes were already visited
-     * in a check for acyclicity. This number may exceed the total number of
-     * nodes because nodes may have to be visited more than once.
-     */
-    protected int nodesDoneInAcyclicCheck = 0;
 
     /**
      * Generates and returns a new VeritProofNode. It is automatically attached
@@ -685,14 +679,16 @@ public class VeritProof implements Serializable {
         Timer timer = new Timer();
         timer.start();
         Util.printToSystemOutWithWallClockTimePrefix("Starting check for acyclicity.");
-        this.nodesDoneInAcyclicCheck = 0;
+
         if (root == null) {
             Util.printToSystemOutWithWallClockTimePrefix("Root is null. Check was trivial.");
             return true;
         }
         List<VeritProofNode> path = new ArrayList<VeritProofNode>();
+        Set<VeritProofNode> notPartOfCycle = new HashSet<VeritProofNode>();
 
-        boolean result = root.isAcyclic(path);
+        boolean result = root.isAcyclic(path, notPartOfCycle,
+                new MutableInteger(0));
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("Finished check for acyclicity. Took "
                 + timer);

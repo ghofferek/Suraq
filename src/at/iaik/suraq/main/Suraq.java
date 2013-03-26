@@ -2344,7 +2344,7 @@ public class Suraq implements Runnable {
     private void printWelcome() {
         System.out
                 .println("################################################################################");
-        Util.printToSystemOutWithWallClockTimePrefix("                                  Welcome to");
+        System.out.println("                                  Welcome to");
         System.out
                 .println("              _____   __    __   ______       ____       ____");
         System.out
@@ -2361,29 +2361,29 @@ public class Suraq implements Runnable {
                 .println("            /____/    \\______/   )_) \\__/  /__(  )__\\   \\___\\ \\_");
         System.out
                 .println("                                                             \\__)");
-        Util.printToSystemOutWithWallClockTimePrefix("                                         MMM.");
-        Util.printToSystemOutWithWallClockTimePrefix("                          NM.           MMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                         MMMM?         IMMMMM MMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                         MMMMN         MMMMMM MMM");
+        System.out.println("                                         MMM.");
+        System.out.println("                          NM.           MMMMM");
+        System.out.println("                         MMMM?         IMMMMM MMM");
+        System.out.println("                         MMMMN         MMMMMM MMM");
         System.out
                 .println("                         MMMMO        MMMMMMM?MMMD");
         System.out
                 .println("                         MMMMM        MMMMMM MMMMM");
         System.out
                 .println("                      .M MMMMM       OMMMMMM MMMMO");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMM$MMMM       MMMMMM 7MMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMNMMMM       MMMMMM MMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMMMMMM      MMMMMM.,MMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMMZMMMM     MMMMMM MMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMM MMMM     MMMMMM MMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMM MMMMM    MMMMM MMMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMM DMMMM   MMMMMM MMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMM .MMMMMMMMMMMMM7MMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMMM MMMMMMMMMMMMMMMMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMMMMMMMMMMMMMMMMMMMMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                     =MMMMMMMMMMMMMMMMMMMMMMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                      MMMMMMMMMMMMMMMMMMMMMMMMD");
-        Util.printToSystemOutWithWallClockTimePrefix("                     MMMMMMMMMMMMMMMMMMMMMMMMMM");
+        System.out.println("                     MMMM$MMMM       MMMMMM 7MMMM");
+        System.out.println("                     MMMMNMMMM       MMMMMM MMMMM");
+        System.out.println("                     MMMMMMMMM      MMMMMM.,MMMMM");
+        System.out.println("                     MMMMMZMMMM     MMMMMM MMMMM");
+        System.out.println("                     MMMMM MMMM     MMMMMM MMMMM");
+        System.out.println("                     MMMMM MMMMM    MMMMM MMMMMM");
+        System.out.println("                     MMMMM DMMMM   MMMMMM MMMMM");
+        System.out.println("                     MMMMM .MMMMMMMMMMMMM7MMMMM");
+        System.out.println("                     MMMMMM MMMMMMMMMMMMMMMMMMM");
+        System.out.println("                     MMMMMMMMMMMMMMMMMMMMMMMMMM");
+        System.out.println("                     =MMMMMMMMMMMMMMMMMMMMMMMMM");
+        System.out.println("                      MMMMMMMMMMMMMMMMMMMMMMMMD");
+        System.out.println("                     MMMMMMMMMMMMMMMMMMMMMMMMMM");
         System.out
                 .println("                     MMMMMMMMMMMMMMMMMMMMMMMMMM            MMMMMMMM");
         System.out
@@ -2402,14 +2402,14 @@ public class Suraq implements Runnable {
                 .println("                      MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
         System.out
                 .println("                      MMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                      MMMMMMMMMMMMMMMMMMMMMMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                        MMMMMMMMMMMMMMMMMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                            =MMMMMMMMMMMMM");
-        Util.printToSystemOutWithWallClockTimePrefix("                                  MMMM,");
-        Util.printToSystemOutWithWallClockTimePrefix("");
+        System.out.println("                      MMMMMMMMMMMMMMMMMMMMMMMMM");
+        System.out.println("                        MMMMMMMMMMMMMMMMMMMM");
+        System.out.println("                            =MMMMMMMMMMMMM");
+        System.out.println("                                  MMMM,");
+        System.out.println("");
         System.out
                 .println("################################################################################");
-        Util.printToSystemOutWithWallClockTimePrefix("");
+        System.out.println("");
     }
 
     /**
