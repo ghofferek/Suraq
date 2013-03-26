@@ -1220,6 +1220,13 @@ public class VeritProofNode implements Serializable {
      * @return <code>true</code> if no cycles are found
      */
     public boolean isAcyclic(List<VeritProofNode> path) {
+        assert (this.proof != null);
+        this.proof.nodesDoneInAcyclicCheck++;
+        if (this.proof.nodesDoneInAcyclicCheck % 10000 == 0) {
+            Util.printToSystemOutWithWallClockTimePrefix("Visited "
+                    + this.proof.nodesDoneInAcyclicCheck
+                    + " nodes during acyclicity check.");
+        }
         for (VeritProofNode child : subProofs) {
             if (path.contains(child))
                 return false;
