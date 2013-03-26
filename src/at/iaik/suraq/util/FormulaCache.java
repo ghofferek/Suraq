@@ -128,14 +128,17 @@ public class FormulaCache<T> {
             return object;
 
         if (cache.containsKey(object)) {
-            T result = cache.get(object).get();
-            if (result != null) {
-                if (result != object) {
-                    cachedReads++;
-                    if (cachedReads % 10000000 == 0)
-                        this.printStatisticLine();
+            WeakReference<T> ref = cache.get(object);
+            if (ref != null) {
+                T result = ref.get();
+                if (result != null) {
+                    if (result != object) {
+                        cachedReads++;
+                        if (cachedReads % 10000000 == 0)
+                            this.printStatisticLine();
+                    }
+                    return result;
                 }
-                return result;
             }
         }
         cache.put(object, new WeakReference<T>(object));

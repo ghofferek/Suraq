@@ -35,6 +35,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.util.Util;
 
 public class VeriTParser extends Parser {
 
@@ -184,7 +185,7 @@ public class VeriTParser extends Parser {
                 currentLine++; // count the lines
 
                 if (currentLine % 10000 == 0) {
-                    System.out.println("  Now starting to parse line "
+                    Util.printToSystemOutWithWallClockTimePrefix("  Now starting to parse line "
                             + currentLine);
                 }
 
