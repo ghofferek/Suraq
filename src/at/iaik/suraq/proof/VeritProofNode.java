@@ -612,7 +612,7 @@ public class VeritProofNode implements Serializable {
 
         if (this.type.equals(VeriTToken.INPUT)) {
             if (subProofs.size() != 0)
-                return false;
+                return failOnMessage("INPUT node with children");
             return true;
         }
 
@@ -632,17 +632,21 @@ public class VeritProofNode implements Serializable {
 
         for (Formula literal : literalConclusions) {
             if (!Util.isLiteral(literal))
-                return false;
+                return failOnMessage("Non-literal in conclusion: "
+                        + literal.toString());
         }
 
         if (this.type.equals(VeriTToken.EQ_REFLEXIVE)) {
             if (subProofs.size() != 0)
-                return false;
+                return failOnMessage("Reflexivity node with children!");
             if (literalConclusions.size() != 1)
-                return false;
+                return failOnMessage("Reflexivity node with more than one literal in conclusions!");
             assert (literalConclusions.size() == 1);
             Formula literal = literalConclusions.get(0);
-            return Util.isReflexivity(literal);
+            if (!Util.isReflexivity(literal))
+                return failOnMessage("Not a correct reflexivity!");
+            else
+                return true;
         }
 
         if (this.type.equals(VeriTToken.EQ_CONGRUENT)) {
@@ -662,7 +666,30 @@ public class VeritProofNode implements Serializable {
         }
 
         // unknown node type
+        failOnMessage("Unknown node type!");
         assert (false);
+        return false;
+    }
+
+    /**
+     * Returns <code>false</code> and prints the given <code>message</code>,
+     * unless it is <code>null</code>, in which case <code>true</code> is
+     * returned and nothing is printed.
+     * 
+     * @param message
+     *            the failure message to print.
+     * @return <code>false</code> if <code>message != null</code>,
+     *         <code>true</code> otherwise.
+     */
+    private boolean failOnMessage(String message) {
+        if (message == null)
+            return true;
+        assert (message != null);
+        System.out.println("ERROR: Check of node '" + this.name + "' failed.");
+        System.out.println(message);
+        System.out.println("Node data follows:");
+        this.toString();
+
         return false;
     }
 
@@ -678,38 +705,44 @@ public class VeritProofNode implements Serializable {
         // Taking the assumption that only resolution with two children occurs.
 
         if (subProofs.size() != 2)
-            return false;
+            return failOnMessage("Resolution with number of subproofs !=2. Number: "
+                    + subProofs.size());
 
         boolean resolvingLiteralFound = false;
         for (Formula literal : subProofs.get(0).literalConclusions) {
             if (!literalConclusions.contains(literal)) {
                 if (resolvingLiteralFound)
-                    return false;
+                    return failOnMessage("Found more than one resolving literal!");
                 Formula invertedLiteral = Util.invertLiteral(literal);
                 if (!subProofs.get(1).literalConclusions
                         .contains(invertedLiteral))
-                    return false;
+                    return failOnMessage("Resolving literal not found in inverse polarity in other subproof!");
                 else
                     resolvingLiteralFound = true;
             }
         }
+        if (!resolvingLiteralFound)
+            return failOnMessage("No resolving literal found!");
         resolvingLiteralFound = false;
         for (Formula literal : subProofs.get(1).literalConclusions) {
             if (!literalConclusions.contains(literal)) {
                 if (resolvingLiteralFound)
-                    return false;
+                    return failOnMessage("Found more than one resolving literal!");
                 Formula invertedLiteral = Util.invertLiteral(literal);
                 if (!subProofs.get(0).literalConclusions
                         .contains(invertedLiteral))
-                    return false;
+                    return failOnMessage("Resolving literal not found in inverse polarity in other subproof!");
                 else
                     resolvingLiteralFound = true;
             }
         }
+        if (!resolvingLiteralFound)
+            return failOnMessage("No resolving literal found!");
         for (Formula literal : literalConclusions) {
             if (!subProofs.get(0).literalConclusions.contains(literal)
                     && !subProofs.get(1).literalConclusions.contains(literal))
-                return false;
+                return failOnMessage("Literal not originating from one of the subproofs found! Literal: "
+                        + literal.toString());
         }
 
         Set<Formula> literal1 = new HashSet<Formula>(subProofs.get(0)
@@ -721,14 +754,14 @@ public class VeritProofNode implements Serializable {
         literal2.removeAll(literalConclusions);
 
         if (literal1.size() != 1 || literal2.size() != 1)
-            return false;
+            return failOnMessage("Conclusion misses at least one literal from subproofs!");
 
         if (!Util.makeLiteralPositive(literal1.iterator().next()).equals(
                 Util.makeLiteralPositive(literal2.iterator().next())))
-            return false;
+            return failOnMessage("Mismatch in resolving literal!");
         if (!(Util.isNegativeLiteral(literal1.iterator().next()) ^ Util
                 .isNegativeLiteral(literal2.iterator().next())))
-            return false;
+            return failOnMessage("Mismatch in resolving literal polarity!");
 
         return true;
     }
@@ -742,39 +775,41 @@ public class VeritProofNode implements Serializable {
     private boolean checkTransitive() {
         assert (this.type.equals(VeriTToken.EQ_TRANSITIVE));
         if (literalConclusions.size() < 3)
-            return false;
+            return failOnMessage("Transitivity axiom with less than 3 literals! Number: "
+                    + literalConclusions.size());
         if (subProofs.size() != 0)
-            return false;
+            return failOnMessage("Transitivity axiom with subproofs! Number: "
+                    + subProofs.size());
 
         // Taking the assumption that the implied literal is the last one
         Formula impliedLiteral = literalConclusions.get(literalConclusions
                 .size() - 1);
         if (Util.isNegativeLiteral(impliedLiteral))
-            return false;
+            return failOnMessage("Implied literal is negative!");
         if (!(impliedLiteral instanceof EqualityFormula))
-            return false;
+            return failOnMessage("Implied literal is not an equality!");
         if (!((EqualityFormula) impliedLiteral).isEqual())
-            return false;
+            return failOnMessage("Implied literal is a disequality!");
         Term[] terms = ((EqualityFormula) impliedLiteral).getTerms().toArray(
                 new Term[0]);
         if (terms.length != 2)
-            return false;
+            return failOnMessage("Implied literal is equality with number of terms !=2.");
 
         Graph<Term, Formula> equalityGraph = new Graph<Term, Formula>();
         for (Formula literal : literalConclusions.subList(0,
                 literalConclusions.size() - 1)) {
             if (!Util.isLiteral(literal))
-                return false;
+                return failOnMessage("Found non-literal!");
             if (!Util.isNegativeLiteral(literal))
-                return false;
+                return failOnMessage("Found unexpected negative literal!");
             if (!(Util.makeLiteralPositive(literal) instanceof EqualityFormula))
-                return false;
+                return failOnMessage("Found unexpected non-equality literal!");
             if (!((EqualityFormula) Util.makeLiteralPositive(literal))
                     .isEqual())
-                return false;
+                return failOnMessage("Found unexpected disequality!");
             if (((EqualityFormula) Util.makeLiteralPositive(literal))
                     .getTerms().size() != 2)
-                return false;
+                return failOnMessage("Found equality literal with number of terms !=2.");
 
             Term[] currentTerms = ((EqualityFormula) Util
                     .makeLiteralPositive(literal)).getTerms().toArray(
@@ -788,7 +823,7 @@ public class VeritProofNode implements Serializable {
         List<Formula> path = equalityGraph.findPath(terms[0], terms[1]);
         if (path == null) {
             if (!CongruenceClosure.checkVeritProofNode(this))
-                return false;
+                return failOnMessage("Could not prove implied literal with congruence closure!");
         } else {
 
             assert (literalConclusions.containsAll(path));
@@ -807,9 +842,11 @@ public class VeritProofNode implements Serializable {
         assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED));
 
         if (literalConclusions.size() < 3)
-            return false;
+            return failOnMessage("Less than 3 literals in predicate congruence axiom! Number: "
+                    + literalConclusions.size());
         if (subProofs.size() != 0)
-            return false;
+            return failOnMessage("Predicate congruence axiom with subproofs! Number: "
+                    + subProofs.size());
 
         // Taking the assumption that the "implied literal" is the last one.
         Formula impliedLiteral = literalConclusions.get(literalConclusions
@@ -821,14 +858,14 @@ public class VeritProofNode implements Serializable {
                 .get(literalConclusions.size() - 2);
 
         if (!(Util.makeLiteralPositive(impliedLiteral) instanceof UninterpretedPredicateInstance))
-            return false;
+            return failOnMessage("Implied literal not a predicate instance!");
 
         if (!(Util.makeLiteralPositive(inversePredicateLiteral) instanceof UninterpretedPredicateInstance))
-            return false;
+            return failOnMessage("The literal expected to be the inverse predicate instance is not a predicate instance!");
 
         if (Util.getSignValue(impliedLiteral) == Util
                 .getSignValue(inversePredicateLiteral))
-            return false;
+            return failOnMessage("Implied literal and inverse predicate literal have the same polarity!");
 
         UninterpretedPredicateInstance instance1 = (UninterpretedPredicateInstance) Util
                 .makeLiteralPositive(impliedLiteral);
@@ -836,7 +873,7 @@ public class VeritProofNode implements Serializable {
                 .makeLiteralPositive(inversePredicateLiteral);
 
         if (!instance1.getFunction().equals(instance2.getFunction()))
-            return false;
+            return failOnMessage("Predicate mismatch!");
 
         List<DomainTerm> terms1 = instance1.getParameters();
         List<DomainTerm> terms2 = instance2.getParameters();
@@ -849,17 +886,17 @@ public class VeritProofNode implements Serializable {
             for (Formula currentLiteral : literalConclusions.subList(0,
                     literalConclusions.size() - 2)) {
                 if (!Util.isLiteral(currentLiteral))
-                    return false;
+                    return failOnMessage("Found a non-literal!");
                 if (!Util.isNegativeLiteral(currentLiteral))
-                    return false;
+                    return failOnMessage("Found an unexpected non-negative literal!");
                 if (!(Util.makeLiteralPositive(currentLiteral) instanceof EqualityFormula))
-                    return false;
+                    return failOnMessage("Found an unexpected non-equality literal!");
                 if (!((EqualityFormula) Util
                         .makeLiteralPositive(currentLiteral)).isEqual())
-                    return false;
+                    return failOnMessage("Found an unexpected disequality!");
                 if (((EqualityFormula) Util.makeLiteralPositive(currentLiteral))
                         .getTerms().size() != 2)
-                    return false;
+                    return failOnMessage("Found an equality with number of terms !=2.");
 
                 Term[] currentTerms = ((EqualityFormula) Util
                         .makeLiteralPositive(currentLiteral)).getTerms()
@@ -878,7 +915,8 @@ public class VeritProofNode implements Serializable {
                 continue;
             }
             // Not found any matching equality.
-            return false;
+            return failOnMessage("Did not find an equality path for parameter number "
+                    + count);
         }
 
         return true;
@@ -894,21 +932,23 @@ public class VeritProofNode implements Serializable {
         assert (this.type.equals(VeriTToken.EQ_CONGRUENT));
 
         if (literalConclusions.size() < 2)
-            return false;
+            return failOnMessage("Too few conclusion literals: "
+                    + literalConclusions.size());
         if (subProofs.size() != 0)
-            return false;
+            return failOnMessage("Subproofs non-empty! Size: "
+                    + subProofs.size());
 
         // Taking the assumption that the "implied literal" is the last one.
         Formula impliedLiteral = literalConclusions.get(literalConclusions
                 .size() - 1);
         if (Util.isNegativeLiteral(impliedLiteral))
-            return false;
+            return failOnMessage("Implied literal is negative!");
 
         if (!(impliedLiteral instanceof EqualityFormula))
-            return false;
+            return failOnMessage("Implied literal in congruence axiom is not an equality!");
 
         if (!((EqualityFormula) impliedLiteral).isEqual())
-            return false;
+            return failOnMessage("Implied literal in congruence axiom is a disequality!");
 
         Term[] terms = ((EqualityFormula) impliedLiteral).getTerms().toArray(
                 new Term[0]);
@@ -921,33 +961,19 @@ public class VeritProofNode implements Serializable {
 
         if (terms[0] instanceof UninterpretedFunctionInstance) {
             if (!(terms[1] instanceof UninterpretedFunctionInstance))
-                return false;
+                return failOnMessage("Second equality term is not an uninterpreted function instance!");
             terms1 = ((UninterpretedFunctionInstance) terms[0]).getParameters();
             terms2 = ((UninterpretedFunctionInstance) terms[1]).getParameters();
             assert (terms1 != null);
             assert (terms2 != null);
             if (terms1.size() != terms2.size())
-                return false;
+                return failOnMessage("Implied literal has uninterpreted function instances with different number of parameters");
             if (!((UninterpretedFunctionInstance) terms[0]).getFunction()
                     .equals(((UninterpretedFunctionInstance) terms[1])
                             .getFunction()))
-                return false;
-        }
-        if (terms[0] instanceof UninterpretedPredicateInstance) {
-            if (!(terms[1] instanceof UninterpretedPredicateInstance))
-                return false;
-            terms1 = ((UninterpretedPredicateInstance) terms[0])
-                    .getParameters();
-            terms2 = ((UninterpretedPredicateInstance) terms[1])
-                    .getParameters();
-            assert (terms1 != null);
-            assert (terms2 != null);
-            if (terms1.size() != terms2.size())
-                return false;
-            if (!((UninterpretedPredicateInstance) terms[0]).getFunction()
-                    .equals(((UninterpretedPredicateInstance) terms[1])
-                            .getFunction()))
-                return false;
+                return failOnMessage("Implied literal has non-matching uninterpreted function instances!");
+        } else {
+            return failOnMessage("First equality term is not an uninterpreted function instance!");
         }
 
         assert (terms1 != null);
@@ -958,7 +984,7 @@ public class VeritProofNode implements Serializable {
                                                            // literals, due to
                                                            // replacement during
                                                            // cleaning.
-            return false;
+            return failOnMessage("Not enough literals for congruence!");
 
         // Taking the assumption that equalities in the axiom instantiation
         // occur in the same order as they occur as parameters to the
@@ -997,17 +1023,17 @@ public class VeritProofNode implements Serializable {
             for (Formula currentLiteral : literalConclusions.subList(0,
                     literalConclusions.size() - 1)) {
                 if (!Util.isLiteral(currentLiteral))
-                    return false;
+                    return failOnMessage("Non-Literal found!");
                 if (!Util.isNegativeLiteral(currentLiteral))
-                    return false;
+                    return failOnMessage("Unexpected non-negative literal found!");
                 if (!(Util.makeLiteralPositive(currentLiteral) instanceof EqualityFormula))
-                    return false;
+                    return failOnMessage("Non-equality literal found!");
                 if (!((EqualityFormula) Util
                         .makeLiteralPositive(currentLiteral)).isEqual())
-                    return false;
+                    return failOnMessage("Disequality-literal found!");
                 if (((EqualityFormula) Util.makeLiteralPositive(currentLiteral))
                         .getTerms().size() != 2)
-                    return false;
+                    return failOnMessage("Equality with number of terms !=2 found!");
 
                 Term[] currentTerms = ((EqualityFormula) Util
                         .makeLiteralPositive(currentLiteral)).getTerms()
@@ -1027,7 +1053,8 @@ public class VeritProofNode implements Serializable {
             }
 
             // Not found any matching equality.
-            return false;
+            return failOnMessage("Not found an equality path for parameter number "
+                    + count);
         }
         return true;
     }
