@@ -72,7 +72,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         else
             this.elseBranch = elseBranch;
     }
-    
+
     public static PropositionalIte create(Formula condition,
             Formula thenBranch, Formula elseBranch) {
         return (PropositionalIte) FormulaCache.formula
@@ -97,8 +97,8 @@ public class PropositionalIte extends BooleanCombinationFormula {
     @Override
     public Formula deepFormulaCopy() {
         return this; // experimental
-        //return new PropositionalIte(condition.deepFormulaCopy(),
-        //       thenBranch.deepFormulaCopy(), elseBranch.deepFormulaCopy());
+        // return new PropositionalIte(condition.deepFormulaCopy(),
+        // thenBranch.deepFormulaCopy(), elseBranch.deepFormulaCopy());
     }
 
     /**
@@ -332,8 +332,8 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula flatten() {
-        return PropositionalIte.create(condition.flatten(), thenBranch.flatten(),
-                elseBranch.flatten());
+        return PropositionalIte.create(condition.flatten(),
+                thenBranch.flatten(), elseBranch.flatten());
     }
 
     /**
@@ -372,12 +372,12 @@ public class PropositionalIte extends BooleanCombinationFormula {
     @Override
     public Formula removeArrayWrites(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
-        Formula condition = this.condition.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
-        Formula thenBranch = this.thenBranch.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
-        Formula elseBranch = this.elseBranch.removeArrayWrites(topLevelFormula, constraints,
-                noDependenceVars);
+        Formula condition = this.condition.removeArrayWrites(topLevelFormula,
+                constraints, noDependenceVars);
+        Formula thenBranch = this.thenBranch.removeArrayWrites(topLevelFormula,
+                constraints, noDependenceVars);
+        Formula elseBranch = this.elseBranch.removeArrayWrites(topLevelFormula,
+                constraints, noDependenceVars);
         return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
@@ -385,10 +385,14 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
-        Formula condition = this.condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        Formula thenBranch = this.thenBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        Formula elseBranch = this.elseBranch.arrayReadsToUninterpretedFunctions(noDependenceVars);
+    public Formula arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars) {
+        Formula condition = this.condition
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
+        Formula thenBranch = this.thenBranch
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
+        Formula elseBranch = this.elseBranch
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
         return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
@@ -409,13 +413,14 @@ public class PropositionalIte extends BooleanCombinationFormula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
-        Formula condition = this.condition.substituteUninterpretedFunction(
-                substitutions);
-        Formula thenBranch = this.thenBranch.substituteUninterpretedFunction(
-                substitutions);
-        Formula elseBranch = this.elseBranch.substituteUninterpretedFunction(
-                substitutions);
+    public Formula substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions) {
+        Formula condition = this.condition
+                .substituteUninterpretedFunction(substitutions);
+        Formula thenBranch = this.thenBranch
+                .substituteUninterpretedFunction(substitutions);
+        Formula elseBranch = this.elseBranch
+                .substituteUninterpretedFunction(substitutions);
         return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
 
@@ -439,18 +444,17 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        return new PropositionalIte(
-                condition.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars),
-                thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars),
-                elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars));
-    }*/
+    /*
+     * @Override public Formula uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) { return new PropositionalIte(
+     * condition.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars),
+     * thenBranch.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars),
+     * elseBranch.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars)); }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -519,8 +523,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         return (OrFormula.generate(disjuncts)).tseitinEncode(clauses, encoding);
 
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -566,10 +569,10 @@ public class PropositionalIte extends BooleanCombinationFormula {
                     .uninterpretedPredicatesToAuxiliaryVariables(
                             topLeveFormula, predicateInstances,
                             instanceParameters, noDependenceVars);
-        
+
         return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
-      
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -590,25 +593,42 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 .uninterpretedFunctionsToAuxiliaryVariables(topLeveFormula,
                         functionInstances, instanceParameters, noDependenceVars);
         return PropositionalIte.create(condition, thenBranch, elseBranch);
-    } 
-    
-    
+    }
 
     @Override
-    public Formula replaceEquivalences(Formula topLevelFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
-    {
-        Formula condition = this.condition.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
-        Formula thenBranch = this.thenBranch.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
-        Formula elseBranch = this.elseBranch.replaceEquivalences(topLevelFormula, replacements, noDependenceVars);
+    public Formula replaceEquivalences(Formula topLevelFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
+        Formula condition = this.condition.replaceEquivalences(topLevelFormula,
+                replacements, noDependenceVars);
+        Formula thenBranch = this.thenBranch.replaceEquivalences(
+                topLevelFormula, replacements, noDependenceVars);
+        Formula elseBranch = this.elseBranch.replaceEquivalences(
+                topLevelFormula, replacements, noDependenceVars);
         return PropositionalIte.create(condition, thenBranch, elseBranch);
     }
-    
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)    {
-        Formula condition = this.condition.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
-        Formula thenBranch = this.thenBranch.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
-        Formula elseBranch = this.elseBranch.removeDomainITE(topLevelFormula, noDependenceVars, andPreList);
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        Formula condition = this.condition.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        Formula thenBranch = this.thenBranch.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        Formula elseBranch = this.elseBranch.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
         return PropositionalIte.create(condition, thenBranch, elseBranch);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        return PropositionalIte.create(
+                condition.uninterpretedFunctionsBackToArrayReads(arrayVars),
+                thenBranch.uninterpretedFunctionsBackToArrayReads(arrayVars),
+                elseBranch.uninterpretedFunctionsBackToArrayReads(arrayVars));
     }
 }

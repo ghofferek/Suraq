@@ -52,10 +52,10 @@ public class ArrayRead extends DomainTerm {
         this.arrayTerm = arrayTerm;
         this.indexTerm = index;
     }
-    
-    public static ArrayRead create(ArrayTerm arrayTerm, DomainTerm index)
-    {
-        return (ArrayRead) FormulaCache.domainTerm.put(new ArrayRead(arrayTerm, index));
+
+    public static ArrayRead create(ArrayTerm arrayTerm, DomainTerm index) {
+        return (ArrayRead) FormulaCache.domainTerm.put(new ArrayRead(arrayTerm,
+                index));
     }
 
     /**
@@ -92,7 +92,7 @@ public class ArrayRead extends DomainTerm {
     public DomainTerm deepTermCopy() {
         return this; // experimental
         // return new ArrayRead((ArrayTerm) arrayTerm.deepTermCopy(),
-        //        indexTerm.deepTermCopy());
+        // indexTerm.deepTermCopy());
     }
 
     /**
@@ -220,9 +220,11 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
-        ArrayTerm arrayTerm = (ArrayTerm)this.arrayTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
-        DomainTerm indexTerm = (DomainTerm)this.indexTerm.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
-        return ArrayRead.create(arrayTerm,indexTerm);
+        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm
+                .arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        DomainTerm indexTerm = (DomainTerm) this.indexTerm
+                .arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        return ArrayRead.create(arrayTerm, indexTerm);
     }
 
     /**
@@ -230,8 +232,10 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public Term removeArrayEqualitiesTerm() {
-        ArrayTerm arrayTerm = (ArrayTerm)this.arrayTerm.removeArrayEqualitiesTerm();
-        DomainTerm indexTerm = (DomainTerm)this.indexTerm.removeArrayEqualitiesTerm();
+        ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm
+                .removeArrayEqualitiesTerm();
+        DomainTerm indexTerm = (DomainTerm) this.indexTerm
+                .removeArrayEqualitiesTerm();
         return ArrayRead.create(arrayTerm, indexTerm);
     }
 
@@ -251,8 +255,8 @@ public class ArrayRead extends DomainTerm {
             arrayTerm = (ArrayTerm) arrayTerm.removeArrayWritesTerm(
                     topLevelFormula, constraints, noDependenceVars);
 
-        indexTerm = (DomainTerm) indexTerm.removeArrayWritesTerm(topLevelFormula,
-                constraints, noDependenceVars);
+        indexTerm = (DomainTerm) indexTerm.removeArrayWritesTerm(
+                topLevelFormula, constraints, noDependenceVars);
 
         return ArrayRead.create(arrayTerm, indexTerm);
     }
@@ -276,7 +280,8 @@ public class ArrayRead extends DomainTerm {
                 term = ((ArrayRead) term)
                         .toUninterpretedFunctionInstance(noDependenceVars);
             else
-                term = (DomainTerm) term.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
+                term = (DomainTerm) term
+                        .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
 
             // Check if the arrayTerm contained any noDependenceVars.
             // This is conservative and might not be complete (i.e., may
@@ -286,8 +291,9 @@ public class ArrayRead extends DomainTerm {
             if (Util.termContainsAny(arrayTerm, noDependenceVars))
                 noDependenceVars.add(Token.generate(functionName));
 
-            return UninterpretedFunctionInstance.create(UninterpretedFunction.create(
-                    functionName, 1, SExpressionConstants.VALUE_TYPE), term);
+            return UninterpretedFunctionInstance.create(UninterpretedFunction
+                    .create(functionName, 1, SExpressionConstants.VALUE_TYPE),
+                    term);
         } catch (WrongNumberOfParametersException exc) {
             throw new RuntimeException(
                     "Could not replace array-reads with uninterpreted functions",
@@ -299,7 +305,8 @@ public class ArrayRead extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(
+            Set<Token> noDependenceVars) {
         throw new RuntimeException(
                 "arrayReadsToUninterpretedFunctions cannot be called on an ArrayWrite.\nUse toUninterpretedFunctionInstance instead.");
     }
@@ -320,7 +327,8 @@ public class ArrayRead extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+    public Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions) {
         ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm
                 .substituteUninterpretedFunctionTerm(substitutions);
         DomainTerm indexTerm = (DomainTerm) this.indexTerm
@@ -372,18 +380,19 @@ public class ArrayRead extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-
-        return new ArrayRead(
-                arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars),
-                indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars));
-
-    }*/
+    /*
+     * @Override public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) {
+     * 
+     * return new ArrayRead(
+     * arrayTerm.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars),
+     * indexTerm.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars));
+     * 
+     * }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -397,43 +406,61 @@ public class ArrayRead extends DomainTerm {
 
         return partitions;
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {     	
-       
-    	throw new RuntimeException(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        throw new RuntimeException(
                 "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayRead.");
-    	
-    	/*arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
-                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
-        indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
-                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);*/
+
+        /*
+         * arrayTerm.uninterpretedPredicatesToAuxiliaryVariables(
+         * topLeveFormula, predicateInstances, instanceParameters,
+         * noDependenceVars);
+         * indexTerm.uninterpretedPredicatesToAuxiliaryVariables(
+         * topLeveFormula, predicateInstances, instanceParameters,
+         * noDependenceVars);
+         */
     }
-    
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {     
-    	
-    	throw new RuntimeException(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        throw new RuntimeException(
                 "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayRead.");
-               /* arrayTerm.uninterpretedFunctionsToAuxiliaryVariables(
-                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-                indexTerm.uninterpretedFunctionsToAuxiliaryVariables(
-                        topLeveFormula, functionInstances, instanceParameters, noDependenceVars);*/
+        /*
+         * arrayTerm.uninterpretedFunctionsToAuxiliaryVariables( topLeveFormula,
+         * functionInstances, instanceParameters, noDependenceVars);
+         * indexTerm.uninterpretedFunctionsToAuxiliaryVariables( topLeveFormula,
+         * functionInstances, instanceParameters, noDependenceVars);
+         */
     }
-    
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public DomainTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        return ArrayRead.create(
+                arrayTerm.uninterpretedFunctionsBackToArrayReads(arrayVars),
+                indexTerm.uninterpretedFunctionsBackToArrayReads(arrayVars));
+    }
+
 }

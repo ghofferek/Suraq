@@ -41,9 +41,8 @@ public class PropositionalConstant extends PropositionalTerm {
     private PropositionalConstant(boolean constant) {
         this.constant = constant;
     }
-    
-    public static PropositionalConstant create(boolean constant)
-    {
+
+    public static PropositionalConstant create(boolean constant) {
         return FormulaCache.propConst.put(new PropositionalConstant(constant));
     }
 
@@ -62,7 +61,7 @@ public class PropositionalConstant extends PropositionalTerm {
     @Override
     public Formula deepFormulaCopy() {
         return this; // experimental
-       // return PropositionalConstant.create(constant);
+        // return PropositionalConstant.create(constant);
     }
 
     /**
@@ -188,7 +187,6 @@ public class PropositionalConstant extends PropositionalTerm {
         return this;
     }
 
-
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#flatten()
      */
@@ -227,12 +225,15 @@ public class PropositionalConstant extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+    public Formula arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars) {
         // nothing to do
         return this;
     }
+
     @Override
-    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(
+            Set<Token> noDependenceVars) {
         // nothing to do
         return this;
     }
@@ -250,11 +251,14 @@ public class PropositionalConstant extends PropositionalTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
+    public Formula substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions) {
         return this;
     }
+
     @Override
-    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+    public Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions) {
         return this;
     }
 
@@ -267,6 +271,7 @@ public class PropositionalConstant extends PropositionalTerm {
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         return this;
     }
+
     @Override
     public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
@@ -277,12 +282,12 @@ public class PropositionalConstant extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.PropositionalTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        return PropositionalConstant.create(constant);
-    }*/
+    /*
+     * @Override public PropositionalTerm
+     * uninterpretedPredicatesToAuxiliaryVariables( Formula topLeveFormula,
+     * Set<Formula> constraints, Set<Token> noDependenceVars) { return
+     * PropositionalConstant.create(constant); }
+     */
 
     @Override
     public Set<Integer> getPartitionsFromSymbols() {
@@ -308,9 +313,8 @@ public class PropositionalConstant extends PropositionalTerm {
             boolean firstLevel) {
 
         Formula _this = this;
-        if (notFlag == true)
-        {
-            //this.constant = !this.constant;
+        if (notFlag == true) {
+            // this.constant = !this.constant;
             _this = PropositionalConstant.create(!this.constant);
         }
 
@@ -344,7 +348,6 @@ public class PropositionalConstant extends PropositionalTerm {
 
         return tseitinVar;
     }
-    
 
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
@@ -352,44 +355,63 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	return this;
-    }
-    @Override
-    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
         return this;
     }
-    
+
+    @Override
+    public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        return this;
+    }
+
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Formula uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-        return this;
-    } 
-    @Override
-    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-        return this;
-    } 
-    
-
-    @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
-    {
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
         return this;
     }
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
-    {
+    public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        return this;
+    }
+
+    @Override
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
+        return this;
+    }
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
         return this;
     }
 }

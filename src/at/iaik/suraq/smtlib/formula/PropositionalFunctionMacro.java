@@ -54,7 +54,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
         super(name, parameters, paramMap);
         this.body = body;
     }
-    
+
     public static PropositionalFunctionMacro create(Token name,
             List<Token> parameters, Map<Token, SExpression> paramMap,
             Formula body) throws InvalidParametersException {
@@ -70,10 +70,10 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @param macro
      *            the macro to (deep) copy.
      */
-    /*public PropositionalFunctionMacro(PropositionalFunctionMacro macro) {
-        super(macro);
-        this.body = macro.body.deepFormulaCopy();
-    }*/
+    /*
+     * public PropositionalFunctionMacro(PropositionalFunctionMacro macro) {
+     * super(macro); this.body = macro.body.deepFormulaCopy(); }
+     */
 
     /**
      * Returns the function body of this macro.
@@ -121,8 +121,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
 
         Formula negatedBody = (NotFormula.create(body)).negationNormalForm();
 
-        return PropositionalFunctionMacro.create(negatedName, negatedParameters,
-                negatedParamMap, negatedBody);
+        return PropositionalFunctionMacro.create(negatedName,
+                negatedParameters, negatedParamMap, negatedBody);
     }
 
     /**
@@ -171,7 +171,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
             body = body.removeArrayEqualities();
 
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap, body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -185,7 +186,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      *            the index set.
      */
     @Override
-    public PropositionalFunctionMacro arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public PropositionalFunctionMacro arrayPropertiesToFiniteConjunctions(
+            Set<DomainTerm> indexSet) {
         Formula body = this.body;
         if (body instanceof ArrayProperty)
             body = ((ArrayProperty) body).toFiniteConjunction(indexSet);
@@ -193,7 +195,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
             body = body.arrayPropertiesToFiniteConjunctions(indexSet);
 
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap, body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -206,7 +209,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     public PropositionalFunctionMacro simplify() {
         Formula body = this.body.simplify();
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap, body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -256,8 +260,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                 constraints, noDependenceVars);
 
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap,
-                    body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -272,8 +276,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
         Formula body = this.body
                 .arrayReadsToUninterpretedFunctions(noDependenceVars);
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap,
-                    body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -299,12 +303,13 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    public PropositionalFunctionMacro substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
+    public PropositionalFunctionMacro substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions) {
 
         Formula body = this.body.substituteUninterpretedFunction(substitutions);
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap,
-                    body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -316,14 +321,14 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @param noDependenceVars
      * @return
      */
-    public PropositionalFunctionMacro makeArrayReadsSimple(Formula topLevelFormula,
-            Set<Formula> constraints,
+    public PropositionalFunctionMacro makeArrayReadsSimple(
+            Formula topLevelFormula, Set<Formula> constraints,
             Set<Token> noDependenceVars) {
-        Formula body = this.body.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
+        Formula body = this.body.makeArrayReadsSimple(topLevelFormula,
+                constraints, noDependenceVars);
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap,
-                    body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -334,22 +339,19 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*public PropositionalFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-
-        Formula newBody = body.uninterpretedPredicatesToAuxiliaryVariables(
-                topLeveFormula, constraints, noDependenceVars);
-        try {
-            return new PropositionalFunctionMacro(name, parameters, paramMap,
-                    newBody);
-        } catch (InvalidParametersException exc) {
-            throw new RuntimeException(
-                    "Unexpectedly unable to create PropositionalFunctionMacro.",
-                    exc);
-        }
-
-    }*/
+    /*
+     * public PropositionalFunctionMacro
+     * uninterpretedPredicatesToAuxiliaryVariables( Formula topLeveFormula,
+     * Set<Formula> constraints, Set<Token> noDependenceVars) {
+     * 
+     * Formula newBody = body.uninterpretedPredicatesToAuxiliaryVariables(
+     * topLeveFormula, constraints, noDependenceVars); try { return new
+     * PropositionalFunctionMacro(name, parameters, paramMap, newBody); } catch
+     * (InvalidParametersException exc) { throw new RuntimeException(
+     * "Unexpectedly unable to create PropositionalFunctionMacro.", exc); }
+     * 
+     * }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -360,8 +362,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     public Set<Integer> getAssertPartition() {
         return body.getPartitionsFromSymbols();
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -384,14 +385,14 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                     noDependenceVars);
 
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap,
-                    body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -406,11 +407,29 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                 noDependenceVars);
 
         try {
-            return PropositionalFunctionMacro.create(name, parameters, paramMap,
-                    body);
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, body);
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * @param arrayVars
+     * @return
+     */
+    public PropositionalFunctionMacro uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        Formula newBody = body
+                .uninterpretedFunctionsBackToArrayReads(arrayVars);
+        try {
+            return PropositionalFunctionMacro.create(name, parameters,
+                    paramMap, newBody);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected InvalidParametersException while back-substituting array reads.",
+                    exc);
         }
     }
 }

@@ -33,7 +33,6 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
 
     private final int hashCode;
 
-    
     public static ArrayVariable create(String varName) {
         return (ArrayVariable) FormulaCache.term
                 .put(new ArrayVariable(varName));
@@ -53,7 +52,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
         return (ArrayVariable) FormulaCache.term.put(new ArrayVariable(name
                 .toString(), assertPartition));
     }
-    
+
     /**
      * 
      * Constructs a new <code>ArrayVariable</code>.
@@ -80,7 +79,6 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
         this.assertPartition = assertPartition;
         hashCode = varName.hashCode();
     }
-
 
     /**
      * Get the variable name.
@@ -120,7 +118,7 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
     @Override
     public Term deepTermCopy() {
         return this; // experimental
-        //return new ArrayVariable(new String(varName), this.assertPartition);
+        // return new ArrayVariable(new String(varName), this.assertPartition);
     }
 
     /**
@@ -232,7 +230,8 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(
+            Set<Token> noDependenceVars) {
         // nothing to do
         return this;
     }
@@ -250,7 +249,8 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+    public Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions) {
         return this;
     }
 
@@ -276,12 +276,11 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.ArrayTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-   /*@Override
-    public ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        return new ArrayVariable(varName);
-    }*/
+    /*
+     * @Override public ArrayTerm uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) { return new ArrayVariable(varName); }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -294,36 +293,48 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
         partitions.add(assertPartition);
         return partitions;
     }
-    
+
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  
-    	
-    	throw new RuntimeException(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        throw new RuntimeException(
                 "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayVariable.");
- 
-    	//return;
+
+        // return;
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	
-       	throw new RuntimeException(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        throw new RuntimeException(
                 "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayVariable.");
 
-        //return;
+        // return;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public ArrayTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        return this;
     }
 
 }

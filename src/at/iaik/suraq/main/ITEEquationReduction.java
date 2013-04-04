@@ -25,6 +25,7 @@ import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 public class ITEEquationReduction {
 
     private static boolean _isActive = true;
+    private List<Formula> constraints;
 
     public static void setActive(boolean isActive) {
         ITEEquationReduction._isActive = isActive;
@@ -48,14 +49,19 @@ public class ITEEquationReduction {
                     .println("INFO: Didn't perform ITE Reduction, because it is inactive.");
             return topLevelFormula;
         }
-        List<Formula> andPreList = new ArrayList<Formula>();
+        constraints = new ArrayList<Formula>();
         Formula main = topLevelFormula.removeDomainITE(topLevelFormula,
-                noDependenceVars, andPreList);
-        if (andPreList.size() == 0)
+                noDependenceVars, constraints);
+        if (constraints.size() == 0)
             return main;
-        else if (andPreList.size() == 1)
-            return ImpliesFormula.create(andPreList.get(0), main);
-        return ImpliesFormula.create(AndFormula.generate(andPreList), main);
+        else if (constraints.size() == 1)
+            return ImpliesFormula.create(constraints.get(0), main);
+        return ImpliesFormula.create(AndFormula.generate(constraints), main);
+    }
+
+    public List<Formula> getConstraints() {
+        assert (constraints != null);
+        return new ArrayList<Formula>(constraints);
     }
 
 }

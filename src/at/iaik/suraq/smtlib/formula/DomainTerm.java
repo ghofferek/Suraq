@@ -47,8 +47,6 @@ public abstract class DomainTerm extends Term implements Serializable {
         return SExpressionConstants.VALUE_TYPE;
     }
 
-
-
     /**
      * Returns a deep copy of this term.
      * 
@@ -56,26 +54,30 @@ public abstract class DomainTerm extends Term implements Serializable {
      */
     @Override
     public abstract DomainTerm deepTermCopy();
-    
-    
 
-    
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(t)
      */
     @Override
     public abstract Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
-    
-    
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars);
+
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
     @Override
     public abstract Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars);
+
+    @Override
+    public abstract DomainTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars);
 
 }

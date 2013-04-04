@@ -760,4 +760,44 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         return result;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public DomainTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+
+        if (parameters.size() == 1) {
+            // Check whether this is an instance that should be replaced
+            for (ArrayVariable variable : arrayVars) {
+                if (variable.getVarName().equals(function.getName().toString())) {
+                    assert (parameters.size() == 1);
+                    assert (function.getNumParams() == 1);
+                    return ArrayRead.create(variable, parameters.get(0)
+                            .uninterpretedFunctionsBackToArrayReads(arrayVars));
+                }
+            }
+        }
+
+        // Not an instance to replace
+        List<DomainTerm> newParameters = new ArrayList<DomainTerm>(parameters);
+        for (DomainTerm parameter : parameters) {
+            DomainTerm newParameter = parameter
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars);
+            newParameters.add(newParameter);
+        }
+        try {
+            return UninterpretedFunctionInstance
+                    .create(function, newParameters);
+        } catch (WrongNumberOfParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected WrongNumberOfParametersException while back-substituting array reads.",
+                    exc);
+        } catch (WrongFunctionTypeException exc) {
+            throw new RuntimeException(
+                    "Unexpected WrongFunctionTypeException while back-substituting array reads.",
+                    exc);
+        }
+    }
+
 }

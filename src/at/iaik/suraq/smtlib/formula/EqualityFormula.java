@@ -763,4 +763,26 @@ public abstract class EqualityFormula implements Formula {
         }
         return this;
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public EqualityFormula uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        List<Term> newTerms = new ArrayList<Term>(terms.size());
+        for (Term term : terms) {
+            Term newTerm = term
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars);
+            newTerms.add(newTerm);
+        }
+        try {
+            return EqualityFormula.create(newTerms, equal);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Unexpected IncomparableTermsException while back-substituting array reads.",
+                    exc);
+        }
+    }
+
 }

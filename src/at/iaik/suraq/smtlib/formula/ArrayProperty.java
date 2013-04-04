@@ -87,7 +87,7 @@ public class ArrayProperty implements Formula {
         this.indexGuard = indexGuard;
         this.valueConstraint = valueConstraint;
     }
-    
+
     public static ArrayProperty create(Collection<DomainVariable> uVars,
             Formula indexGuard, Formula valueConstraint)
             throws InvalidIndexGuardException, InvalidValueConstraintException {
@@ -290,25 +290,18 @@ public class ArrayProperty implements Formula {
     public Formula deepFormulaCopy() {
         return this; // experimental
         /*
-        List<DomainVariable> uVars = new ArrayList<DomainVariable>();
-        for (DomainVariable uVar : this.uVars)
-            uVars.add((DomainVariable) uVar.deepTermCopy());
-        try {
-            return new ArrayProperty(uVars, indexGuard.deepFormulaCopy(),
-                    valueConstraint.deepFormulaCopy());
-        } catch (InvalidIndexGuardException exc) {
-            // This should never happen!
-            assert (false);
-            throw new RuntimeException(
-                    "Unexpected situation while copying array property.", exc);
-
-        } catch (InvalidValueConstraintException exc) {
-            // This should never happen!
-            assert (false);
-            throw new RuntimeException(
-                    "Unexpected situation while copying array property.", exc);
-        }
-        */
+         * List<DomainVariable> uVars = new ArrayList<DomainVariable>(); for
+         * (DomainVariable uVar : this.uVars) uVars.add((DomainVariable)
+         * uVar.deepTermCopy()); try { return new ArrayProperty(uVars,
+         * indexGuard.deepFormulaCopy(), valueConstraint.deepFormulaCopy()); }
+         * catch (InvalidIndexGuardException exc) { // This should never happen!
+         * assert (false); throw new RuntimeException(
+         * "Unexpected situation while copying array property.", exc);
+         * 
+         * } catch (InvalidValueConstraintException exc) { // This should never
+         * happen! assert (false); throw new RuntimeException(
+         * "Unexpected situation while copying array property.", exc); }
+         */
     }
 
     /**
@@ -462,7 +455,8 @@ public class ArrayProperty implements Formula {
             substitutions.put(Token.generate(uVars.get(count).toString()),
                     indices.get(count));
 
-        return ImpliesFormula.create(indexGuard.substituteFormula(substitutions),
+        return ImpliesFormula.create(
+                indexGuard.substituteFormula(substitutions),
                 valueConstraint.substituteFormula(substitutions));
     }
 
@@ -535,7 +529,8 @@ public class ArrayProperty implements Formula {
     @Override
     public SExpression toSmtlibV2() {
         return new SExpression(SExpressionConstants.FORALL, uVarsExpression(),
-                (ImpliesFormula.create(indexGuard, valueConstraint)).toSmtlibV2());
+                (ImpliesFormula.create(indexGuard, valueConstraint))
+                        .toSmtlibV2());
     }
 
     /**
@@ -600,12 +595,14 @@ public class ArrayProperty implements Formula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
+    public Formula substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions) {
         Formula indexGuard = this.indexGuard;
         Formula valueConstraint = this.valueConstraint;
-        
+
         indexGuard = indexGuard.substituteUninterpretedFunction(substitutions);
-        valueConstraint = valueConstraint.substituteUninterpretedFunction(substitutions);
+        valueConstraint = valueConstraint
+                .substituteUninterpretedFunction(substitutions);
 
         try {
             return ArrayProperty.create(uVars, indexGuard, valueConstraint);
@@ -633,11 +630,11 @@ public class ArrayProperty implements Formula {
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         Formula indexGuard = this.indexGuard;
         Formula valueConstraint = this.valueConstraint;
-        
-        indexGuard = indexGuard.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
-        valueConstraint = valueConstraint.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
+
+        indexGuard = indexGuard.makeArrayReadsSimple(topLevelFormula,
+                constraints, noDependenceVars);
+        valueConstraint = valueConstraint.makeArrayReadsSimple(topLevelFormula,
+                constraints, noDependenceVars);
 
         try {
             return ArrayProperty.create(uVars, indexGuard, valueConstraint);
@@ -651,23 +648,17 @@ public class ArrayProperty implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        try {
-            return new ArrayProperty(uVars,
-                    indexGuard.uninterpretedPredicatesToAuxiliaryVariables(
-                            topLeveFormula, constraints, noDependenceVars),
-                    valueConstraint
-                            .uninterpretedPredicatesToAuxiliaryVariables(
-                                    topLeveFormula, constraints,
-                                    noDependenceVars));
-        } catch (SuraqException exc) {
-            throw new RuntimeException(
-                    "Unexpectedly unable to create ArrayProperty.", exc);
-        }
-    }*/
+    /*
+     * @Override public Formula uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) { try { return new ArrayProperty(uVars,
+     * indexGuard.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars), valueConstraint
+     * .uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars)); } catch (SuraqException exc) { throw new
+     * RuntimeException( "Unexpectedly unable to create ArrayProperty.", exc); }
+     * }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -722,37 +713,39 @@ public class ArrayProperty implements Formula {
         throw new RuntimeException(
                 "Array properties should have been removed before Tseitin encoding!");
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	
-    	  throw new RuntimeException(
-                  "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayProperty.");
-       	
-    	/*
-    	if (indexGuard instanceof UninterpretedPredicateInstance)
-    		indexGuard = ((UninterpretedPredicateInstance) indexGuard).applyReplaceUninterpretedPredicates(topLeveFormula,
-				    predicateInstances, instanceParameters, noDependenceVars);		
-    	else
-	        indexGuard.uninterpretedPredicatesToAuxiliaryVariables(
-	                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
-	        
-     	if (valueConstraint instanceof UninterpretedPredicateInstance)
-     		valueConstraint = ((UninterpretedPredicateInstance) valueConstraint).applyReplaceUninterpretedPredicates(topLeveFormula,
-				    predicateInstances, instanceParameters, noDependenceVars);		
-    	else
-    		valueConstraint.uninterpretedPredicatesToAuxiliaryVariables(
-                    topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);   
-        */    
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        throw new RuntimeException(
+                "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayProperty.");
+
+        /*
+         * if (indexGuard instanceof UninterpretedPredicateInstance) indexGuard
+         * = ((UninterpretedPredicateInstance)
+         * indexGuard).applyReplaceUninterpretedPredicates(topLeveFormula,
+         * predicateInstances, instanceParameters, noDependenceVars); else
+         * indexGuard.uninterpretedPredicatesToAuxiliaryVariables(
+         * topLeveFormula, predicateInstances, instanceParameters,
+         * noDependenceVars);
+         * 
+         * if (valueConstraint instanceof UninterpretedPredicateInstance)
+         * valueConstraint = ((UninterpretedPredicateInstance)
+         * valueConstraint).applyReplaceUninterpretedPredicates(topLeveFormula,
+         * predicateInstances, instanceParameters, noDependenceVars); else
+         * valueConstraint.uninterpretedPredicatesToAuxiliaryVariables(
+         * topLeveFormula, predicateInstances, instanceParameters,
+         * noDependenceVars);
+         */
     }
-    
 
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
@@ -760,43 +753,64 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public Formula uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-        
-  	  throw new RuntimeException(
-              "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayProperty.");
-   	
-    	
-    	
-    	/*
-                    indexGuard.uninterpretedFunctionsToAuxiliaryVariables(
-                            topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-                    valueConstraint
-                            .uninterpretedFunctionsToAuxiliaryVariables(
-                                    topLeveFormula, functionInstances,
-                                    instanceParameters, noDependenceVars);
-                                    
-       */
-        
-    }
-    
-    
-    
-    @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
-    {
-        throw new RuntimeException("Arrays must be replaced on performing graph-based reduction to propositional logic.");
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        throw new RuntimeException(
+                "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayProperty.");
+
         /*
-        indexGuard = indexGuard.replaceEquivalences(topLeveFormula, replacements);
-        valueConstraint = valueConstraint.replaceEquivalences(topLeveFormula, replacements);
-        return this;
-        */
+         * indexGuard.uninterpretedFunctionsToAuxiliaryVariables(
+         * topLeveFormula, functionInstances, instanceParameters,
+         * noDependenceVars); valueConstraint
+         * .uninterpretedFunctionsToAuxiliaryVariables( topLeveFormula,
+         * functionInstances, instanceParameters, noDependenceVars);
+         */
+
     }
-    
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
-    {
-        throw new RuntimeException("Arrays must be replaced removing DomainITE.");
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
+        throw new RuntimeException(
+                "Arrays must be replaced on performing graph-based reduction to propositional logic.");
+        /*
+         * indexGuard = indexGuard.replaceEquivalences(topLeveFormula,
+         * replacements); valueConstraint =
+         * valueConstraint.replaceEquivalences(topLeveFormula, replacements);
+         * return this;
+         */
+    }
+
+    @Override
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        throw new RuntimeException(
+                "Arrays must be replaced removing DomainITE.");
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        try {
+            return ArrayProperty.create(uVars, indexGuard
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars),
+                    valueConstraint
+                            .uninterpretedFunctionsBackToArrayReads(arrayVars));
+        } catch (InvalidIndexGuardException exc) {
+            throw new RuntimeException(
+                    "Unexpected Excpetion while back-substituting array reads.",
+                    exc);
+        } catch (InvalidValueConstraintException exc) {
+            throw new RuntimeException(
+                    "Unexpected Excpetion while back-substituting array reads.",
+                    exc);
+        }
     }
 }

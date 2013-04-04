@@ -43,7 +43,7 @@ public class SExpression {
      */
     public SExpression(List<? extends SExpression> children) {
         this.children = new ArrayList<SExpression>(children);
-        //this.children.addAll(children);
+        // this.children.addAll(children);
     }
 
     /**
@@ -191,6 +191,28 @@ public class SExpression {
     }
 
     /**
+     * Inserts the given <code>newChild</code> into this
+     * <code>SExpression</code> so that it follows the given
+     * <code>precedingChild</code>. If <code>precedingChild</code> is not a
+     * child of this expression, nothing happens.
+     * 
+     * @param newChild
+     * @param precedingChild
+     */
+    public void insertChildAfter(SExpression newChild,
+            SExpression precedingChild) {
+        if (!children.contains(precedingChild))
+            return;
+
+        int position = children.indexOf(precedingChild);
+        children.add(new Token("dummy"));
+        for (int index = children.size() - 1; index > position + 1; index--) {
+            children.set(index, children.get(index - 1));
+        }
+        children.set(position + 1, newChild);
+    }
+
+    /**
      * Replaces the given s-expression in the children of this one, at the
      * specified position.
      * 
@@ -203,7 +225,7 @@ public class SExpression {
         if (sexp == null)
             throw new RuntimeException(
                     "empty child found! null is not allowed!");
-        //children.set(position, sexp);
+        // children.set(position, sexp);
         children.add(position, sexp);
         children.remove(position + 1);
     }

@@ -54,7 +54,7 @@ public class PropositionalVariable extends PropositionalTerm implements
         return FormulaCache.propVar.put(new PropositionalVariable(name,
                 assertPartition));
     }
-    
+
     /**
      * 
      * Constructs a new <code>PropositionalVariable</code>.
@@ -119,8 +119,8 @@ public class PropositionalVariable extends PropositionalTerm implements
     @Override
     public Formula deepFormulaCopy() {
         return this; // experimental
-        //return new PropositionalVariable(new String(varName),
-        //        this.assertPartition);
+        // return new PropositionalVariable(new String(varName),
+        // this.assertPartition);
     }
 
     /**
@@ -129,8 +129,8 @@ public class PropositionalVariable extends PropositionalTerm implements
     @Override
     public Term deepTermCopy() {
         return this; // experimental
-        //return new PropositionalVariable(new String(varName),
-        //        this.assertPartition);
+        // return new PropositionalVariable(new String(varName),
+        // this.assertPartition);
     }
 
     /**
@@ -155,7 +155,7 @@ public class PropositionalVariable extends PropositionalTerm implements
     @Override
     public Set<PropositionalVariable> getPropositionalVariables() {
         Set<PropositionalVariable> result = new HashSet<PropositionalVariable>();
-        //result.add(PropositionalVariable.create(varName));
+        // result.add(PropositionalVariable.create(varName));
         result.add(this); // experimental
         return result;
     }
@@ -230,19 +230,20 @@ public class PropositionalVariable extends PropositionalTerm implements
         // Nothing to do here.
         return this;
     }
+
     @Override
     public Term arrayPropertiesToFiniteConjunctionsTerm(Set<DomainTerm> indexSet) {
         // Nothing to do here.
         return this;
     }
-    
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#flatten()
      */
     @Override
     public PropositionalVariable flatten() {
         return this; // experimental
-        //return new PropositionalVariable(varName);
+        // return new PropositionalVariable(varName);
     }
 
     /**
@@ -274,12 +275,15 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+    public Formula arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars) {
         // nothing to do
         return this;
     }
+
     @Override
-    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(
+            Set<Token> noDependenceVars) {
         // nothing to do
         return this;
     }
@@ -297,11 +301,14 @@ public class PropositionalVariable extends PropositionalTerm implements
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
+    public Formula substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions) {
         return this;
     }
+
     @Override
-    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+    public Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions) {
         return this;
     }
 
@@ -314,6 +321,7 @@ public class PropositionalVariable extends PropositionalTerm implements
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         return this;
     }
+
     @Override
     public Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
@@ -324,12 +332,12 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @see at.iaik.suraq.smtlib.formula.PropositionalTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        return new PropositionalVariable(varName);
-    }*/
+    /*
+     * @Override public PropositionalTerm
+     * uninterpretedPredicatesToAuxiliaryVariables( Formula topLeveFormula,
+     * Set<Formula> constraints, Set<Token> noDependenceVars) { return new
+     * PropositionalVariable(varName); }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -379,7 +387,6 @@ public class PropositionalVariable extends PropositionalTerm implements
             Map<PropositionalVariable, Formula> encoding) {
         return PropositionalVariable.create(varName, assertPartition);
     }
-    
 
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
@@ -387,14 +394,19 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-    	return this;
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        return this;
     }
+
     @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
         return this;
     }
 
@@ -404,27 +416,41 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public Formula uninterpretedFunctionsToAuxiliaryVariables(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
         return this;
     }
+
     @Override
     public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable, List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
         return this;
     }
 
     @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
-    {
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
         return this;
     }
-    
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars, List<Formula> andPreList)
-    {
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
         return this;
     }
 }

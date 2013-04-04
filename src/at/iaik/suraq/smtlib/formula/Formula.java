@@ -346,4 +346,16 @@ public interface Formula extends SMTLibObject, Serializable {
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList);
 
+    /**
+     * Returns a formula where all uninterpreted function instances which match
+     * a name in the given set of <code>arrayVars</code> are replaced by
+     * corresponding array reads.
+     * 
+     * @param arrayVarsthe
+     *            name of the array vars for matching function names against.
+     * @return a formula where array reads have been put back in.
+     */
+    public Formula uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars);
+
 }

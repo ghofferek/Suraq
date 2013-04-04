@@ -36,24 +36,28 @@ public class DomainVariable extends DomainTerm implements Serializable {
 
     private final int hashCode;
 
-    
-    public static DomainVariable create(String varName)
-    {
+    public static DomainVariable create(String varName) {
         return FormulaCache.domainVarFormula.put(new DomainVariable(varName));
     }
-    public static DomainVariable create(Token name)
-    {
-        return FormulaCache.domainVarFormula.put(new DomainVariable(name.toString()));
-    }    
-    public static DomainVariable create(String varName, int assertPartition)
-    {
-        return FormulaCache.domainVarFormula.put(new DomainVariable(varName, assertPartition));
-    }   
-    public static DomainVariable create(Token name, int assertPartition)
-    {// called > 2Mrd. times
-        return FormulaCache.domainVarFormula.put(new DomainVariable(name.toString(), assertPartition));
+
+    public static DomainVariable create(Token name) {
+        return FormulaCache.domainVarFormula.put(new DomainVariable(name
+                .toString()));
     }
-    
+
+    public static DomainVariable create(String varName, int assertPartition) {
+        return FormulaCache.domainVarFormula.put(new DomainVariable(varName,
+                assertPartition));
+    }
+
+    public static DomainVariable create(Token name, int assertPartition) {// called
+                                                                          // >
+                                                                          // 2Mrd.
+                                                                          // times
+        return FormulaCache.domainVarFormula.put(new DomainVariable(name
+                .toString(), assertPartition));
+    }
+
     /**
      * 
      * Constructs a new <code>DomainVariable</code>.
@@ -65,7 +69,6 @@ public class DomainVariable extends DomainTerm implements Serializable {
         this.varName = varName;
         hashCode = varName.hashCode();
     }
-
 
     /**
      * 
@@ -102,12 +105,12 @@ public class DomainVariable extends DomainTerm implements Serializable {
             return false;
         if (this.hashCode != ((DomainVariable) obj).hashCode)
             return false;
-        
+
         // TODO: chillebold 01.08.2012
         // added by chillebold:
-        //if(this.assertPartition != ((DomainVariable)obj).assertPartition)
-        //  return false;
-        
+        // if(this.assertPartition != ((DomainVariable)obj).assertPartition)
+        // return false;
+
         return varName.equals(((DomainVariable) obj).varName);
     }
 
@@ -133,7 +136,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
     @Override
     public DomainTerm deepTermCopy() {
         return this; // experimental
-        //return DomainVariable.create(new String(varName), this.assertPartition);
+        // return DomainVariable.create(new String(varName),
+        // this.assertPartition);
     }
 
     /**
@@ -245,7 +249,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(
+            Set<Token> noDependenceVars) {
         // nothing to do
         return this;
     }
@@ -263,7 +268,8 @@ public class DomainVariable extends DomainTerm implements Serializable {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+    public Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions) {
         return this;
     }
 
@@ -273,7 +279,7 @@ public class DomainVariable extends DomainTerm implements Serializable {
     @Override
     public Term flatten() {
         return this; // experimental
-        //return DomainVariable.create(varName);
+        // return DomainVariable.create(varName);
     }
 
     /**
@@ -290,12 +296,11 @@ public class DomainVariable extends DomainTerm implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-   /* @Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        return DomainVariable.create(varName);
-    }*/
+    /*
+     * @Override public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) { return DomainVariable.create(varName); }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -314,21 +319,33 @@ public class DomainVariable extends DomainTerm implements Serializable {
      */
     @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {  	
-    	return this;
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+        return this;
     }
 
-    
     /**
      * @see at.iaik.suraq.formula.DomainTerm#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
     @Override
     public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
         return this;
     }
-    
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public DomainTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        return this;
+    }
+
 }

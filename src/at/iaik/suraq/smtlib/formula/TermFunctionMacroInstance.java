@@ -65,7 +65,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
         this.macro = macro;
         this.paramMap = new ImmutableHashMap<Token, Term>(paramMap);
     }
-    
+
     public static TermFunctionMacroInstance create(TermFunctionMacro macro,
             Map<Token, Term> paramMap) throws InvalidParametersException {
         return (TermFunctionMacroInstance) FormulaCache.domainTerm
@@ -117,22 +117,17 @@ public class TermFunctionMacroInstance extends DomainTerm {
     public DomainTerm deepTermCopy() {
         return this; // experimental
         /*
-        TermFunctionMacro macro = new TermFunctionMacro(this.macro);
-        Map<Token, Term> paramMap = new HashMap<Token, Term>();
-        for (Token token : this.paramMap.keySet())
-            paramMap.put((Token) token.deepCopy(), this.paramMap.get(token)
-                    .deepTermCopy());
-
-        try {
-            return new TermFunctionMacroInstance(macro, paramMap);
-        } catch (InvalidParametersException exc) {
-            // This should never happen!
-            assert (false);
-            throw new RuntimeException(
-                    "Unexpected situation while copying function macro instance.",
-                    exc);
-        }
-        */
+         * TermFunctionMacro macro = new TermFunctionMacro(this.macro);
+         * Map<Token, Term> paramMap = new HashMap<Token, Term>(); for (Token
+         * token : this.paramMap.keySet()) paramMap.put((Token)
+         * token.deepCopy(), this.paramMap.get(token) .deepTermCopy());
+         * 
+         * try { return new TermFunctionMacroInstance(macro, paramMap); } catch
+         * (InvalidParametersException exc) { // This should never happen!
+         * assert (false); throw new RuntimeException(
+         * "Unexpected situation while copying function macro instance.", exc);
+         * }
+         */
     }
 
     /**
@@ -309,7 +304,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
         TermFunctionMacro macro = (TermFunctionMacro) this.macro
                 .arrayPropertiesToFiniteConjunctions(indexSet);
         Map<Token, Term> paramMap = new HashMap<Token, Term>();
-        
+
         for (Token token : paramMap.keySet())
             paramMap.put(token, this.paramMap.get(token)
                     .arrayPropertiesToFiniteConjunctionsTerm(indexSet));
@@ -329,34 +324,35 @@ public class TermFunctionMacroInstance extends DomainTerm {
     public Term removeArrayWritesTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars) {
         // FIXME: this cannot work:
-        
+
         throw new RuntimeException("Cannot work");
-//        Set<Formula> localConstraints = macro.removeArrayWrites(
-//                topLevelFormula, noDependenceVars);
-//        for (Formula localConstraint : localConstraints)
-//            constraints.add(localConstraint.substituteFormula(paramMap));
-//
-//        Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
-//        for (Token key : paramMap.keySet()) {
-//            // for (Term term : paramMap.values())
-//            paramMap2.put(
-//                    key,
-//                    paramMap.get(key).removeArrayWritesTerm(topLevelFormula,
-//                            constraints, noDependenceVars));
-//        }
-//        try {
-//            return new TermFunctionMacroInstance(macro, paramMap2);
-//        } catch (InvalidParametersException e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e);
-//        }
+        // Set<Formula> localConstraints = macro.removeArrayWrites(
+        // topLevelFormula, noDependenceVars);
+        // for (Formula localConstraint : localConstraints)
+        // constraints.add(localConstraint.substituteFormula(paramMap));
+        //
+        // Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
+        // for (Token key : paramMap.keySet()) {
+        // // for (Term term : paramMap.values())
+        // paramMap2.put(
+        // key,
+        // paramMap.get(key).removeArrayWritesTerm(topLevelFormula,
+        // constraints, noDependenceVars));
+        // }
+        // try {
+        // return new TermFunctionMacroInstance(macro, paramMap2);
+        // } catch (InvalidParametersException e) {
+        // e.printStackTrace();
+        // throw new RuntimeException(e);
+        // }
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(
+            Set<Token> noDependenceVars) {
         TermFunctionMacro macro = (TermFunctionMacro) this.macro
                 .arrayReadsToUninterpretedFunctions(noDependenceVars);
 
@@ -393,13 +389,15 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
-        TermFunctionMacro macro = (TermFunctionMacro) this.macro.substituteUninterpretedFunction(substitutions);
-        
+    public Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions) {
+        TermFunctionMacro macro = (TermFunctionMacro) this.macro
+                .substituteUninterpretedFunction(substitutions);
+
         Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token token : paramMap.keySet())
-            paramMap2.put(token, this.paramMap.get(token).substituteUninterpretedFunctionTerm(substitutions));
-        
+            paramMap2.put(token, this.paramMap.get(token)
+                    .substituteUninterpretedFunctionTerm(substitutions));
 
         try {
             return TermFunctionMacroInstance.create(macro, paramMap2);
@@ -456,33 +454,24 @@ public class TermFunctionMacroInstance extends DomainTerm {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        Set<Formula> localConstraints = new HashSet<Formula>();
-        TermFunctionMacro newMacro = macro
-                .uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
-                        localConstraints, noDependenceVars);
-        for (Formula localConstraint : localConstraints)
-            constraints.add(localConstraint.substituteFormula(paramMap));
-
-        Map<Token, Term> newParamMap = new HashMap<Token, Term>();
-        for (Token token : paramMap.keySet())
-            newParamMap.put(
-                    token,
-                    paramMap.get(token)
-                            .uninterpretedPredicatesToAuxiliaryVariables(
-                                    topLeveFormula, constraints,
-                                    noDependenceVars));
-        try {
-            return new TermFunctionMacroInstance(newMacro, newParamMap);
-        } catch (InvalidParametersException exc) {
-            throw new RuntimeException(
-                    "Unexpectedly unable to create TermFunctionMacroInstance.",
-                    exc);
-        }
-    }*/
+    /*
+     * @Override public DomainTerm uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) { Set<Formula> localConstraints = new
+     * HashSet<Formula>(); TermFunctionMacro newMacro = macro
+     * .uninterpretedPredicatesToAuxiliaryVariables(topLeveFormula,
+     * localConstraints, noDependenceVars); for (Formula localConstraint :
+     * localConstraints)
+     * constraints.add(localConstraint.substituteFormula(paramMap));
+     * 
+     * Map<Token, Term> newParamMap = new HashMap<Token, Term>(); for (Token
+     * token : paramMap.keySet()) newParamMap.put( token, paramMap.get(token)
+     * .uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars)); try { return new
+     * TermFunctionMacroInstance(newMacro, newParamMap); } catch
+     * (InvalidParametersException exc) { throw new RuntimeException(
+     * "Unexpectedly unable to create TermFunctionMacroInstance.", exc); } }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -498,9 +487,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
 
         return partitions;
     }
-    
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -533,7 +520,7 @@ public class TermFunctionMacroInstance extends DomainTerm {
             throw new RuntimeException(e);
         }
     }
-      
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -563,6 +550,28 @@ public class TermFunctionMacroInstance extends DomainTerm {
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public DomainTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        Map<Token, Term> newParamMap = new HashMap<Token, Term>();
+        for (Token key : paramMap.keySet()) {
+            newParamMap.put(key, paramMap.get(key)
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars));
+        }
+        TermFunctionMacro newMacro = macro
+                .uninterpretedFunctionsBackToArrayReads(arrayVars);
+        try {
+            return TermFunctionMacroInstance.create(newMacro, newParamMap);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected InvalidParametersException while back-substituting array reads.",
+                    exc);
         }
     }
 }

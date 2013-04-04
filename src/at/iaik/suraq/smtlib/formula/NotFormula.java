@@ -588,4 +588,13 @@ public class NotFormula extends BooleanCombinationFormula {
         return NotFormula.create(formula.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList));
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        return formula.uninterpretedFunctionsBackToArrayReads(arrayVars);
+    }
 }

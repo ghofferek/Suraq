@@ -992,4 +992,29 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
         return this;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.PropositionalTerm#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        List<DomainTerm> newParameters = new ArrayList<DomainTerm>();
+        for (DomainTerm parameter : parameters) {
+            newParameters.add(parameter
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars));
+        }
+        try {
+            return UninterpretedPredicateInstance.create(function,
+                    newParameters);
+        } catch (WrongNumberOfParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected WrongNumberOfParametersException while back-substituting array reads.",
+                    exc);
+        } catch (WrongFunctionTypeException exc) {
+            throw new RuntimeException(
+                    "Unexpected WrongFunctionTypeException while back-substituting array reads.",
+                    exc);
+        }
+    }
+
 }

@@ -60,10 +60,10 @@ public class TermFunctionMacro extends FunctionMacro {
      * @param macro
      *            the macro to (deep) copy.
      */
-    /*public TermFunctionMacro(TermFunctionMacro macro) {
-        super(macro);
-        this.body = macro.body.deepTermCopy();
-    }*/
+    /*
+     * public TermFunctionMacro(TermFunctionMacro macro) { super(macro);
+     * this.body = macro.body.deepTermCopy(); }
+     */
 
     /**
      * @see java.lang.Object#equals(java.lang.Object)
@@ -112,7 +112,8 @@ public class TermFunctionMacro extends FunctionMacro {
     @Override
     public FunctionMacro removeArrayEqualities() {
         try {
-            return TermFunctionMacro.create(name, parameters, paramMap, body.removeArrayEqualitiesTerm());
+            return TermFunctionMacro.create(name, parameters, paramMap,
+                    body.removeArrayEqualitiesTerm());
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -123,9 +124,11 @@ public class TermFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.FunctionMacro#arrayPropertiesToFiniteConjunctions(java.util.Set)
      */
     @Override
-    public FunctionMacro arrayPropertiesToFiniteConjunctions(Set<DomainTerm> indexSet) {
+    public FunctionMacro arrayPropertiesToFiniteConjunctions(
+            Set<DomainTerm> indexSet) {
         try {
-            return TermFunctionMacro.create(name, parameters, paramMap, body.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
+            return TermFunctionMacro.create(name, parameters, paramMap,
+                    body.arrayPropertiesToFiniteConjunctionsTerm(indexSet));
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -149,7 +152,8 @@ public class TermFunctionMacro extends FunctionMacro {
     public Set<Formula> removeArrayWrites(Formula topLevelFormula,
             Set<Token> noDependenceVars) {
         Set<Formula> constraints = new HashSet<Formula>();
-        body.removeArrayWritesTerm(topLevelFormula, constraints, noDependenceVars);
+        body.removeArrayWritesTerm(topLevelFormula, constraints,
+                noDependenceVars);
         return constraints;
     }
 
@@ -187,7 +191,8 @@ public class TermFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Term#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    public FunctionMacro substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
+    public FunctionMacro substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions) {
         try {
             Term tmp = body.substituteUninterpretedFunctionTerm(substitutions);
             return TermFunctionMacro.create(name, parameters, paramMap, tmp);
@@ -214,20 +219,19 @@ public class TermFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*public TermFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-
-        Term newBody = body.uninterpretedPredicatesToAuxiliaryVariables(
-                topLeveFormula, constraints, noDependenceVars);
-        try {
-            return new TermFunctionMacro(name, parameters, paramMap, newBody);
-        } catch (InvalidParametersException exc) {
-            throw new RuntimeException(
-                    "Unexpectedly unable to create TermFunctionMacro.", exc);
-        }
-
-    }*/
+    /*
+     * public TermFunctionMacro uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) {
+     * 
+     * Term newBody = body.uninterpretedPredicatesToAuxiliaryVariables(
+     * topLeveFormula, constraints, noDependenceVars); try { return new
+     * TermFunctionMacro(name, parameters, paramMap, newBody); } catch
+     * (InvalidParametersException exc) { throw new RuntimeException(
+     * "Unexpectedly unable to create TermFunctionMacro.", exc); }
+     * 
+     * }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -238,8 +242,6 @@ public class TermFunctionMacro extends FunctionMacro {
     public Set<Integer> getAssertPartition() {
         return body.getPartitionsFromSymbols();
     }
-    
-    
 
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
@@ -262,7 +264,7 @@ public class TermFunctionMacro extends FunctionMacro {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -282,6 +284,23 @@ public class TermFunctionMacro extends FunctionMacro {
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * @param arrayVars
+     * @return
+     */
+    public TermFunctionMacro uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        Term newBody = body.uninterpretedFunctionsBackToArrayReads(arrayVars);
+        try {
+            return TermFunctionMacro
+                    .create(name, parameters, paramMap, newBody);
+        } catch (InvalidParametersException exc) {
+            throw new RuntimeException(
+                    "Unexpected InvalidParametersException while back-substituting array reads.",
+                    exc);
         }
     }
 }

@@ -62,7 +62,7 @@ public class ArrayIte extends ArrayTerm {
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
     }
-    
+
     public static ArrayIte create(Formula condition, ArrayTerm thenBranch,
             ArrayTerm elseBranch) {
         return (ArrayIte) FormulaCache.term.put(new ArrayIte(condition,
@@ -102,9 +102,9 @@ public class ArrayIte extends ArrayTerm {
     @Override
     public Term deepTermCopy() {
         return this; // experimental
-        //return new ArrayIte(condition.deepFormulaCopy(),
-        //        (ArrayTerm) thenBranch.deepTermCopy(),
-        //        (ArrayTerm) elseBranch.deepTermCopy());
+        // return new ArrayIte(condition.deepFormulaCopy(),
+        // (ArrayTerm) thenBranch.deepTermCopy(),
+        // (ArrayTerm) elseBranch.deepTermCopy());
     }
 
     /**
@@ -280,11 +280,13 @@ public class ArrayIte extends ArrayTerm {
         Formula condition = this.condition;
         ArrayTerm thenBranch = this.thenBranch;
         ArrayTerm elseBranch = this.elseBranch;
-        
+
         condition = condition.arrayPropertiesToFiniteConjunctions(indexSet);
-        thenBranch = (ArrayTerm) thenBranch.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
-        elseBranch = (ArrayTerm) elseBranch.arrayPropertiesToFiniteConjunctionsTerm(indexSet);
-        
+        thenBranch = (ArrayTerm) thenBranch
+                .arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+        elseBranch = (ArrayTerm) elseBranch
+                .arrayPropertiesToFiniteConjunctionsTerm(indexSet);
+
         return ArrayIte.create(condition, thenBranch, elseBranch);
     }
 
@@ -296,11 +298,11 @@ public class ArrayIte extends ArrayTerm {
         Formula condition = this.condition;
         ArrayTerm thenBranch = this.thenBranch;
         ArrayTerm elseBranch = this.elseBranch;
-        
+
         condition = condition.removeArrayEqualities();
         thenBranch = (ArrayTerm) thenBranch.removeArrayEqualitiesTerm();
         elseBranch = (ArrayTerm) elseBranch.removeArrayEqualitiesTerm();
-        
+
         return ArrayIte.create(condition, thenBranch, elseBranch);
     }
 
@@ -339,15 +341,19 @@ public class ArrayIte extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Term arrayReadsToUninterpretedFunctionsTerm(Set<Token> noDependenceVars) {
+    public Term arrayReadsToUninterpretedFunctionsTerm(
+            Set<Token> noDependenceVars) {
         Formula condition = this.condition;
         ArrayTerm thenBranch = this.thenBranch;
         ArrayTerm elseBranch = this.elseBranch;
-        
-        condition = condition.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        thenBranch = (ArrayTerm) thenBranch.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
-        elseBranch = (ArrayTerm) elseBranch.arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
-        
+
+        condition = condition
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
+        thenBranch = (ArrayTerm) thenBranch
+                .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
+        elseBranch = (ArrayTerm) elseBranch
+                .arrayReadsToUninterpretedFunctionsTerm(noDependenceVars);
+
         return new ArrayIte(condition, thenBranch, elseBranch);
     }
 
@@ -368,15 +374,18 @@ public class ArrayIte extends ArrayTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions) {
+    public Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions) {
         Formula condition = this.condition;
         ArrayTerm thenBranch = this.thenBranch;
         ArrayTerm elseBranch = this.elseBranch;
-        
+
         condition = condition.substituteUninterpretedFunction(substitutions);
-        thenBranch = (ArrayTerm) thenBranch.substituteUninterpretedFunctionTerm(substitutions);
-        elseBranch = (ArrayTerm) elseBranch.substituteUninterpretedFunctionTerm(substitutions);
-        
+        thenBranch = (ArrayTerm) thenBranch
+                .substituteUninterpretedFunctionTerm(substitutions);
+        elseBranch = (ArrayTerm) elseBranch
+                .substituteUninterpretedFunctionTerm(substitutions);
+
         return new ArrayIte(condition, thenBranch, elseBranch);
     }
 
@@ -405,18 +414,17 @@ public class ArrayIte extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public ArrayIte uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        return new ArrayIte(
-                condition.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars),
-                thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars),
-                elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars));
-    }*/
+    /*
+     * @Override public ArrayIte uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) { return new ArrayIte(
+     * condition.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars),
+     * thenBranch.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars),
+     * elseBranch.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars)); }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -438,48 +446,69 @@ public class ArrayIte extends ArrayTerm {
      */
     @Override
     public Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars) {
-       	
-    		throw new RuntimeException(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        throw new RuntimeException(
                 "uninterpretedPredicatesToAuxiliaryVariables cannot be called on an ArrayIte.");
-    	
-    	    /*
-    		if (condition instanceof UninterpretedPredicateInstance)
-    		  condition = ((UninterpretedPredicateInstance) condition).applyReplaceUninterpretedPredicates(topLeveFormula,
-					      predicateInstances, instanceParameters,noDependenceVars);
-			else
-			  condition.uninterpretedPredicatesToAuxiliaryVariables(
-						  topLeveFormula, predicateInstances, instanceParameters, noDependenceVars); 
-    		
-    		thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
-                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
-    		
-            elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
-                topLeveFormula, predicateInstances, instanceParameters, noDependenceVars);
-            */
+
+        /*
+         * if (condition instanceof UninterpretedPredicateInstance) condition =
+         * ((UninterpretedPredicateInstance)
+         * condition).applyReplaceUninterpretedPredicates(topLeveFormula,
+         * predicateInstances, instanceParameters,noDependenceVars); else
+         * condition.uninterpretedPredicatesToAuxiliaryVariables(
+         * topLeveFormula, predicateInstances, instanceParameters,
+         * noDependenceVars);
+         * 
+         * thenBranch.uninterpretedPredicatesToAuxiliaryVariables(
+         * topLeveFormula, predicateInstances, instanceParameters,
+         * noDependenceVars);
+         * 
+         * elseBranch.uninterpretedPredicatesToAuxiliaryVariables(
+         * topLeveFormula, predicateInstances, instanceParameters,
+         * noDependenceVars);
+         */
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */
     @Override
     public Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars){
-    	
-    		throw new RuntimeException(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars) {
+
+        throw new RuntimeException(
                 "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayIte.");
-    		
-    	/* condition.uninterpretedFunctionsToAuxiliaryVariables(
-                 topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-         thenBranch.uninterpretedFunctionsToAuxiliaryVariables(
-                 topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-         elseBranch.uninterpretedFunctionsToAuxiliaryVariables(
-                 topLeveFormula, functionInstances, instanceParameters, noDependenceVars);
-                 */
+
+        /*
+         * condition.uninterpretedFunctionsToAuxiliaryVariables( topLeveFormula,
+         * functionInstances, instanceParameters, noDependenceVars);
+         * thenBranch.uninterpretedFunctionsToAuxiliaryVariables(
+         * topLeveFormula, functionInstances, instanceParameters,
+         * noDependenceVars);
+         * elseBranch.uninterpretedFunctionsToAuxiliaryVariables(
+         * topLeveFormula, functionInstances, instanceParameters,
+         * noDependenceVars);
+         */
     }
-    
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.ArrayTerm#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public ArrayTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        return ArrayIte.create(
+                condition.uninterpretedFunctionsBackToArrayReads(arrayVars),
+                thenBranch.uninterpretedFunctionsBackToArrayReads(arrayVars),
+                elseBranch.uninterpretedFunctionsBackToArrayReads(arrayVars));
+    }
+
 }

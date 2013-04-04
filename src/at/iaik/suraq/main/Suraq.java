@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +39,7 @@ import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
@@ -132,7 +134,7 @@ public class Suraq implements Runnable {
     /**
      * stores all present propositional variables
      */
-    private Set<PropositionalVariable> propsitionalVars;
+    private Set<PropositionalVariable> propositionalVars;
     /**
      * stores all present domain variables
      */
@@ -145,6 +147,11 @@ public class Suraq implements Runnable {
      * stores all present uninterpreted functions
      */
     private Set<UninterpretedFunction> uninterpretedFunctions;
+
+    /**
+     * Constraints for variables newly introduced during reductions.
+     */
+    private Set<EqualityFormula> constraints;
 
     /**
      * stores the assert partition formula for each assert partition
@@ -274,7 +281,7 @@ public class Suraq implements Runnable {
         }
 
         Util.printToSystemOutWithWallClockTimePrefix("  build function and variable lists for parser");
-        propsitionalVars = mainFormula.getPropositionalVariables();
+        propositionalVars = mainFormula.getPropositionalVariables();
         domainVars = mainFormula.getDomainVariables();
         arrayVars = mainFormula.getArrayVariables();
         uninterpretedFunctions = mainFormula.getUninterpretedFunctions();
@@ -292,7 +299,7 @@ public class Suraq implements Runnable {
 
             if (first instanceof PropositionalVariable)
                 for (Term var : varList.getValue())
-                    propsitionalVars.add((PropositionalVariable) var);
+                    propositionalVars.add((PropositionalVariable) var);
 
             if (first instanceof ArrayVariable)
                 for (Term var : varList.getValue())
@@ -877,7 +884,7 @@ public class Suraq implements Runnable {
             SaveCache sc = SaveCache.loadSaveCacheFromFile(options
                     .getVeriTVarsCache());
 
-            propsitionalVars = sc.getPropsitionalVars();
+            propositionalVars = sc.getPropsitionalVars();
             domainVars = sc.getDomainVars();
             arrayVars = sc.getArrayVars();
             uninterpretedFunctions = sc.getUninterpretedFunctions();
@@ -893,7 +900,7 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Copying to FormulaCache... ");
             t.reset();
             t.start();
-            for (PropositionalVariable tmp : propsitionalVars)
+            for (PropositionalVariable tmp : propositionalVars)
                 FormulaCache.propVar.post(tmp);
             for (DomainVariable tmp : domainVars)
                 FormulaCache.domainVarFormula.post(tmp);
@@ -1138,8 +1145,8 @@ public class Suraq implements Runnable {
 
                     assert (proof.length() > 0); // added by chillebold
 
-                    rootProof = parseProof(proof, propsitionalVars, domainVars,
-                            arrayVars, uninterpretedFunctions);
+                    rootProof = parseProof(proof, propositionalVars,
+                            domainVars, arrayVars, uninterpretedFunctions);
 
                     proof = null; // Allow this to be garbage collected
 
@@ -1150,7 +1157,7 @@ public class Suraq implements Runnable {
                     String filename;
                     if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
                         filename = saveCacheFile.getPath();
-                        intermediateVars = new SaveCache(propsitionalVars,
+                        intermediateVars = new SaveCache(propositionalVars,
                                 domainVars, arrayVars, uninterpretedFunctions,
                                 logicParser.getControlVariables(), mainFormula,
                                 assertPartitionFormulas, tseitinEncoding, null,
@@ -1158,14 +1165,14 @@ public class Suraq implements Runnable {
                                 ImmutableSet.getUniqueElements(), filename);
                     } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
                         filename = saveCacheSerial.getPath();
-                        intermediateVars = new SaveCache(propsitionalVars,
+                        intermediateVars = new SaveCache(propositionalVars,
                                 domainVars, arrayVars, uninterpretedFunctions,
                                 logicParser.getControlVariables(), mainFormula,
                                 assertPartitionFormulas, tseitinEncoding,
                                 rootProof, ImmutableSet.getInstances(),
                                 ImmutableSet.getUniqueElements(), filename);
                     } else {
-                        intermediateVars = new SaveCache(propsitionalVars,
+                        intermediateVars = new SaveCache(propositionalVars,
                                 domainVars, arrayVars, uninterpretedFunctions,
                                 logicParser.getControlVariables(), mainFormula,
                                 assertPartitionFormulas, tseitinEncoding, null,
@@ -1398,7 +1405,7 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Now writing proof object to cache.");
             Timer cacheWriteTimer = new Timer();
             cacheWriteTimer.start();
-            cache = new SaveCache(propsitionalVars, domainVars, arrayVars,
+            cache = new SaveCache(propositionalVars, domainVars, arrayVars,
                     uninterpretedFunctions, controlVariables, mainFormula,
                     assertPartitionFormulas, tseitinEncoding,
                     saveCacheSerial.getPath(), veritProof,
@@ -1422,8 +1429,19 @@ public class Suraq implements Runnable {
         iteTrees = proofTransformationAndInterpolation(veritProof,
                 controlVariables);
 
+        for (PropositionalVariable key : iteTrees.keySet()) {
+            assert (iteTrees.get(key) != null);
+            // FIXME There is a potential problem with backsubstituting for
+            // newly created array vars (e.g., the ones introduced to remove
+            // writes. Declarations might be missing, or backsubstitutions
+            // might be forgotten.
+            // Check if it occurs in practice.
+            Formula iteTree = iteTrees.get(key)
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars);
+            iteTrees.put(key, iteTree);
+        }
+
         // Now we have results. Let's check them and write them to a file.
-        // FIXME Newly introduced vars (array reads, etc.) are not handled yet!
         String outputStr = createOutputString(sourceFile, iteTrees);
 
         if (options.isCheckResult()) {
@@ -1474,8 +1492,8 @@ public class Suraq implements Runnable {
     }
 
     private void readFieldsFromCache(SaveCache sc) {
-        propsitionalVars = sc.getPropsitionalVars();
-        assert (propsitionalVars != null);
+        propositionalVars = sc.getPropsitionalVars();
+        assert (propositionalVars != null);
         domainVars = sc.getDomainVars();
         assert (domainVars != null);
         arrayVars = sc.getArrayVars();
@@ -1496,7 +1514,7 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("Copying to FormulaCache... ");
         Timer t = new Timer();
         t.start();
-        for (PropositionalVariable tmp : propsitionalVars)
+        for (PropositionalVariable tmp : propositionalVars)
             FormulaCache.propVar.post(tmp);
         for (DomainVariable tmp : domainVars)
             FormulaCache.domainVarFormula.post(tmp);
@@ -1563,16 +1581,16 @@ public class Suraq implements Runnable {
         rootExp.replaceChild(SExpressionConstants.SET_LOGIC_QF_AUFLIA, 0);
         rootExp.addChild(SExpressionConstants.DECLARE_SORT_VALUE, 1);
 
-        int i = 1;
+        int count = 1;
+        SExpression lastDeclare = null;
         for (SExpression child : children) {
-
             if (child.toString().contains("declare-fun")) {
-
+                lastDeclare = child;
                 String newChild = child.toString().replace("Control", "Bool")
                         .replace(":no_dependence", " ");
                 newChild = newChild.replace("\n\n", "\n");
 
-                rootExp.replaceChild(SExpression.fromString(newChild), i);
+                rootExp.replaceChild(SExpression.fromString(newChild), count);
             }
 
             // negate assert formulas
@@ -1588,10 +1606,17 @@ public class Suraq implements Runnable {
                 SExpression negatedAssert = new SExpression(
                         SExpressionConstants.ASSERT, negatedAssertFormula);
 
-                rootExp.replaceChild(negatedAssert, i);
+                rootExp.replaceChild(negatedAssert, count);
             }
-            i++;
+            count++;
         }
+
+        // Add constraints for new variables
+        insertConstraintDeclarations(rootExp, lastDeclare);
+        SExpression constraintExp = new SExpression(
+                SExpressionConstants.ASSERT, AndFormula.generate(
+                        new ArrayList<Formula>(this.constraints)).toSmtlibV2());
+        rootExp.addChild(constraintExp);
 
         // add new assert formulas for each control signal
         for (Map.Entry<PropositionalVariable, Formula> entry : inpterpolations
@@ -1614,6 +1639,53 @@ public class Suraq implements Runnable {
         int endIndex = rootExpStr.lastIndexOf(')');
 
         return (String) rootExpStr.subSequence(beginIndex + 1, endIndex);
+    }
+
+    /**
+     * @param rootExp
+     * @param lastDeclare
+     */
+    private void insertConstraintDeclarations(SExpression rootExp,
+            SExpression lastDeclare) {
+        SExpression currentLast = lastDeclare;
+
+        AndFormula constraint = AndFormula.generate(new ArrayList<Formula>(
+                constraints));
+
+        // Adding declare-fun for array variables
+        Set<ArrayVariable> localArrayVars = constraint.getArrayVariables();
+        localArrayVars.removeAll(arrayVars);
+        for (ArrayVariable var : localArrayVars) {
+            SExpression declare = SExpression.makeDeclareFun(
+                    Token.generate(var.getVarName()),
+                    SExpressionConstants.ARRAY_TYPE, 0);
+            rootExp.insertChildAfter(declare, currentLast);
+            currentLast = declare;
+        }
+
+        // Adding declare-fun for domain variables
+        Set<DomainVariable> localDomainVars = constraint.getDomainVariables();
+        localDomainVars.removeAll(domainVars);
+        for (DomainVariable var : localDomainVars) {
+            SExpression declare = SExpression.makeDeclareFun(
+                    Token.generate(var.getVarName()),
+                    SExpressionConstants.VALUE_TYPE, 0);
+            rootExp.insertChildAfter(declare, currentLast);
+            currentLast = declare;
+        }
+
+        // Adding declare-fun for propositional variables
+        Set<PropositionalVariable> localPropositionalVars = constraint
+                .getPropositionalVariables();
+        localPropositionalVars.removeAll(propositionalVars);
+        for (PropositionalVariable var : localPropositionalVars) {
+            SExpression declare = SExpression.makeDeclareFun(
+                    Token.generate(var.getVarName()),
+                    SExpressionConstants.BOOL_TYPE, 0);
+            rootExp.insertChildAfter(declare, currentLast);
+            currentLast = declare;
+        }
+
     }
 
     /**
@@ -1640,7 +1712,7 @@ public class Suraq implements Runnable {
         SExpression rootExp = sExpParser.getRootExpr();
 
         TseitinParser tseitinParser = new TseitinParser(rootExp, domainVars,
-                propsitionalVars, arrayVars, uninterpretedFunctions, partition);
+                propositionalVars, arrayVars, uninterpretedFunctions, partition);
         try {
             tseitinParser.parse();
             assert (tseitinParser.wasParsingSuccessfull());
@@ -1850,6 +1922,7 @@ public class Suraq implements Runnable {
             constraintsList.addAll(constraints);
             AndFormula arrayConstraints = AndFormula.generate(constraintsList);
             formula = ImpliesFormula.create(arrayConstraints, formula);
+            storeConstraints(constraints, noDependenceVars);
         }
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
@@ -1930,6 +2003,7 @@ public class Suraq implements Runnable {
         timer.start();
         ITEEquationReduction itered = new ITEEquationReduction();
         formula = itered.perform(formula, noDependenceVars);
+        storeConstraints(itered.getConstraints(), noDependenceVars);
         timer.end();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
@@ -2061,6 +2135,25 @@ public class Suraq implements Runnable {
 
         Suraq.extTimer.stopReset("</doMainWork>");
         return formula;
+    }
+
+    /**
+     * Stores all equality constraints in the given set to the
+     * <code>constraints</code> field. Ignores non-equality formulas (i.e.,
+     * array properties). Also ignores constraints that contain
+     * noDependenceVars.
+     * 
+     * @param currentConstraints
+     * @param noDependenceVars
+     */
+    private void storeConstraints(Collection<Formula> currentConstraints,
+            Set<Token> noDependenceVars) {
+        for (Formula constraint : currentConstraints) {
+            if (constraint instanceof EqualityFormula) {
+                if (!Util.formulaContainsAny(constraint, noDependenceVars))
+                    this.constraints.add((EqualityFormula) constraint);
+            }
+        }
     }
 
     /**
@@ -2417,7 +2510,7 @@ public class Suraq implements Runnable {
      * 
      * @param proofStr
      *            the string to parse.
-     * @param propsitionalVars
+     * @param propositionalVars
      *            list of propositional variables.
      * @param domainVars
      *            list of domain variables.

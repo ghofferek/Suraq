@@ -33,15 +33,15 @@ public abstract class Term implements Serializable {
             .getClass().getSuperclass();
     public static final Class<?> arrayTermClass = (ArrayVariable.create(""))
             .getClass().getSuperclass();
-    public static final Class<?> propositionalTermClass = (PropositionalVariable.create(
-            "")).getClass().getSuperclass();
+    public static final Class<?> propositionalTermClass = (PropositionalVariable
+            .create("")).getClass().getSuperclass();
 
     public final static int GLOBAL_PARTITION = -1;
 
     /**
      * The assert-partitions
      */
-    protected int assertPartition = GLOBAL_PARTITION;
+    protected int assertPartition = Term.GLOBAL_PARTITION;
 
     /**
      * Checks whether all terms in the given list are compatible for
@@ -226,12 +226,14 @@ public abstract class Term implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    //public abstract Term substituteUninterpretedFunctionTerm(Token oldFunction,
-    //        UninterpretedFunction newFunction);
+    // public abstract Term substituteUninterpretedFunctionTerm(Token
+    // oldFunction,
+    // UninterpretedFunction newFunction);
 
     // chillebold:
-    public abstract Term substituteUninterpretedFunctionTerm(Map<Token, UninterpretedFunction> substitutions);
-    
+    public abstract Term substituteUninterpretedFunctionTerm(
+            Map<Token, UninterpretedFunction> substitutions);
+
     /**
      * 
      * @see java.lang.Object#toString()
@@ -257,66 +259,69 @@ public abstract class Term implements Serializable {
     public abstract Term makeArrayReadsSimpleTerm(Formula topLevelFormula,
             Set<Formula> constraints, Set<Token> noDependenceVars);
 
-
     /**
      * Returns the elements assert-partition.
      * 
      * @return assert-partition of the element.
      */
     public abstract Set<Integer> getPartitionsFromSymbols();
-    
-    
-    
+
     /**
-     * Replaces instances of uninterpreted predicates in formula with auxiliary 
+     * Replaces instances of uninterpreted predicates in formula with auxiliary
      * boolean variables.
-	 * 
-     * @param topLeveFormula
-     *            the top level formula (for finding fresh variable names).
-     *          
-     * @param predicateInstances
-     *            map containing mapping from predicate names to boolean auxiliary 
-     *            variables.
-     *               
-     * @param instanceParameters
-     *            map containing mapping from boolean auxiliary variables to predicate 
-     *            instance parameters.  
-     *                 
-     * @return a new formula with uninterpreted predicates replaced by boolean auxiliary
-     *         variables.
-     */
-    
-    public abstract Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<PropositionalVariable>> predicateInstances, 
-            Map<PropositionalVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);      
-    
-    
-    /**
-     * Replaces instances of uninterpreted functions in formula with auxiliary 
-     * variables.
-	 * 
      * 
      * @param topLeveFormula
      *            the top level formula (for finding fresh variable names).
-     *          
-     * @param functionInstances
-     *            map containing mapping from function names to auxiliary variables.
-     *               
+     * 
+     * @param predicateInstances
+     *            map containing mapping from predicate names to boolean
+     *            auxiliary variables.
+     * 
      * @param instanceParameters
-     *            map containing mapping from auxiliary variables to function instance 
-     *            parameters.  
-     *                 
+     *            map containing mapping from boolean auxiliary variables to
+     *            predicate instance parameters.
+     * 
+     * @return a new formula with uninterpreted predicates replaced by boolean
+     *         auxiliary variables.
+     */
+
+    public abstract Term uninterpretedPredicatesToAuxiliaryVariablesTerm(
+            Formula topLeveFormula,
+            Map<String, List<PropositionalVariable>> predicateInstances,
+            Map<PropositionalVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars);
+
+    /**
+     * Replaces instances of uninterpreted functions in formula with auxiliary
+     * variables.
+     * 
+     * 
+     * @param topLeveFormula
+     *            the top level formula (for finding fresh variable names).
+     * 
+     * @param functionInstances
+     *            map containing mapping from function names to auxiliary
+     *            variables.
+     * 
+     * @param instanceParameters
+     *            map containing mapping from auxiliary variables to function
+     *            instance parameters.
+     * 
      * @return a new formula with uninterpreted predicates replaced by auxiliary
      *         variables.
      */
-     public abstract Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
-            Formula topLeveFormula, Map<String,List<DomainVariable>> functionInstances, 
-            Map<DomainVariable,List<DomainTerm>> instanceParameters, Set<Token> noDependenceVars);
-    
-     
+    public abstract Term uninterpretedFunctionsToAuxiliaryVariablesTerm(
+            Formula topLeveFormula,
+            Map<String, List<DomainVariable>> functionInstances,
+            Map<DomainVariable, List<DomainTerm>> instanceParameters,
+            Set<Token> noDependenceVars);
 
-     
-     
-     
+    /**
+     * @param arrayVars
+     * @return a term where matching uninterpreted function instances are
+     *         replaced by array reads.
+     */
+    public abstract Term uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars);
 
 }

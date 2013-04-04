@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
+import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -41,6 +42,7 @@ public abstract class PropositionalTerm extends Term implements Formula,
         // No array equalities contained here.
         return this;
     }
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayEqualitiesTerm()
      */
@@ -51,7 +53,6 @@ public abstract class PropositionalTerm extends Term implements Formula,
         return this;
     }
 
-    
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#simplify()
      */
@@ -68,10 +69,11 @@ public abstract class PropositionalTerm extends Term implements Formula,
      * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public abstract PropositionalTerm uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars);*/
+    /*
+     * @Override public abstract PropositionalTerm
+     * uninterpretedPredicatesToAuxiliaryVariables( Formula topLeveFormula,
+     * Set<Formula> constraints, Set<Token> noDependenceVars);
+     */
 
     /**
      * @see java.lang.Comparable#compareTo(java.lang.Object)
@@ -80,4 +82,8 @@ public abstract class PropositionalTerm extends Term implements Formula,
     public int compareTo(SMTLibObject o) {
         return this.toString().compareTo(o.toString());
     }
+
+    @Override
+    public abstract PropositionalTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars);
 }

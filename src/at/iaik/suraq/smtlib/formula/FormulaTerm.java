@@ -542,4 +542,14 @@ public class FormulaTerm extends PropositionalTerm {
         return FormulaTerm.create(formula);
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        return FormulaTerm.create(formula
+                .uninterpretedFunctionsBackToArrayReads(arrayVars));
+    }
+
 }

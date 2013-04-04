@@ -40,11 +40,11 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     private final Formula rightSide;
 
-    public static ImpliesFormula create(Formula leftSide, Formula rightSide)
-    {
-        return FormulaCache.impliesFormula.put(new ImpliesFormula(leftSide, rightSide));
+    public static ImpliesFormula create(Formula leftSide, Formula rightSide) {
+        return FormulaCache.impliesFormula.put(new ImpliesFormula(leftSide,
+                rightSide));
     }
-    
+
     /**
      * 
      * Constructs a new <code>ImpliesFormula</code>.
@@ -83,8 +83,8 @@ public class ImpliesFormula extends BooleanCombinationFormula {
     @Override
     public Formula deepFormulaCopy() {
         return this; // experimental
-        //return new ImpliesFormula(leftSide.deepFormulaCopy(),
-        //        rightSide.deepFormulaCopy());
+        // return new ImpliesFormula(leftSide.deepFormulaCopy(),
+        // rightSide.deepFormulaCopy());
     }
 
     /**
@@ -328,11 +328,14 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#arrayReadsToUninterpretedFunctions()
      */
     @Override
-    public Formula arrayReadsToUninterpretedFunctions(Set<Token> noDependenceVars) {
+    public Formula arrayReadsToUninterpretedFunctions(
+            Set<Token> noDependenceVars) {
         Formula rightSide = this.rightSide;
         Formula leftSide = this.leftSide;
-        leftSide = leftSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
-        rightSide = rightSide.arrayReadsToUninterpretedFunctions(noDependenceVars);
+        leftSide = leftSide
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
+        rightSide = rightSide
+                .arrayReadsToUninterpretedFunctions(noDependenceVars);
         return ImpliesFormula.create(leftSide, rightSide);
     }
 
@@ -352,7 +355,8 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(Map<Token, UninterpretedFunction> substitutions) {
+    public Formula substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions) {
         Formula rightSide = this.rightSide;
         Formula leftSide = this.leftSide;
         leftSide = leftSide.substituteUninterpretedFunction(substitutions);
@@ -371,8 +375,8 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         Formula leftSide = this.leftSide;
         leftSide = leftSide.makeArrayReadsSimple(topLevelFormula, constraints,
                 noDependenceVars);
-        rightSide = rightSide.makeArrayReadsSimple(topLevelFormula, constraints,
-                noDependenceVars);
+        rightSide = rightSide.makeArrayReadsSimple(topLevelFormula,
+                constraints, noDependenceVars);
         return ImpliesFormula.create(leftSide, rightSide);
     }
 
@@ -380,16 +384,15 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.Set)
      */
-    /*@Override
-    public Formula uninterpretedPredicatesToAuxiliaryVariables(
-            Formula topLeveFormula, Set<Formula> constraints,
-            Set<Token> noDependenceVars) {
-        return new ImpliesFormula(
-                leftSide.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars),
-                rightSide.uninterpretedPredicatesToAuxiliaryVariables(
-                        topLeveFormula, constraints, noDependenceVars));
-    }*/
+    /*
+     * @Override public Formula uninterpretedPredicatesToAuxiliaryVariables(
+     * Formula topLeveFormula, Set<Formula> constraints, Set<Token>
+     * noDependenceVars) { return new ImpliesFormula(
+     * leftSide.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars),
+     * rightSide.uninterpretedPredicatesToAuxiliaryVariables( topLeveFormula,
+     * constraints, noDependenceVars)); }
+     */
 
     /**
      * Returns the elements assert-partition.
@@ -545,7 +548,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         OrFormula implication = OrFormula.generate(disjuncts);
         return implication.tseitinEncode(clauses, encoding);
     }
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -581,8 +584,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
 
         return ImpliesFormula.create(leftSide, rightSide);
     }
-    
-    
+
     /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedFunctionsToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
@@ -604,7 +606,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
 
         return ImpliesFormula.create(leftSide, rightSide);
     }
-    
+
     @Override
     public Formula replaceEquivalences(Formula topLeveFormula,
             Map<EqualityFormula, String> replacements,
@@ -628,5 +630,16 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         rightSide = rightSide.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
         return ImpliesFormula.create(leftSide, rightSide);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
+     */
+    @Override
+    public Formula uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars) {
+        return ImpliesFormula.create(
+                leftSide.uninterpretedFunctionsBackToArrayReads(arrayVars),
+                rightSide.uninterpretedFunctionsBackToArrayReads(arrayVars));
     }
 }
