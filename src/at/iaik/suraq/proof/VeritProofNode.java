@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -27,6 +28,7 @@ import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.MutableInteger;
 import at.iaik.suraq.util.Util;
+import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
 import at.iaik.suraq.util.graph.Graph;
 
 /**
@@ -1273,5 +1275,124 @@ public class VeritProofNode implements Serializable {
         }
         notPartOfCycle.add(this);
         return true;
+    }
+
+    /**
+     * Splits a predicate congruence that belongs to more than one partition.
+     * This method (presently) only support unary predicates!
+     * 
+     * @return a replacement for this leaf.
+     */
+    public VeritProofNode splitPredicateLeaf() {
+
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED));
+        assert (this.checkCongruencePred());
+
+        // Assuming the implied literal is the last one and the
+        // inverse predicate literal is the second to last
+        UninterpretedPredicateInstance impliedLiteral = (UninterpretedPredicateInstance) literalConclusions
+                .get(literalConclusions.size() - 1);
+        UninterpretedPredicateInstance inversePredicateLiteral = (UninterpretedPredicateInstance) literalConclusions
+                .get(literalConclusions.size() - 2);
+
+        assert (Util.isAtom(impliedLiteral));
+        assert (Util.isNegativeLiteral(inversePredicateLiteral));
+
+        // FIXME this method presently only support unary predicates!
+        assert (impliedLiteral.getParameters().size() == 1);
+        assert (inversePredicateLiteral.getParameters().size() == 1);
+
+        DomainTerm term1 = inversePredicateLiteral.getParameters().get(0);
+        DomainTerm term2 = impliedLiteral.getParameters().get(0);
+        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        terms.add(term1);
+        terms.add(term2);
+        DomainEq equality = DomainEq.create(terms, true);
+
+        List<DomainEq> otherLiterals = new ArrayList<DomainEq>(
+                literalConclusions.size() - 2);
+        for (int count = 0; count < literalConclusions.size() - 2; count++) {
+            assert (Util.isLiteral(literalConclusions.get(count)));
+            assert (Util.isNegativeLiteral(literalConclusions.get(count)));
+            assert (Util.makeLiteralPositive(literalConclusions.get(count)) instanceof DomainEq);
+            otherLiterals.add((DomainEq) literalConclusions.get(count));
+        }
+
+        TransitivityCongruenceChain chain1 = TransitivityCongruenceChain
+                .create(equality, otherLiterals, this);
+        TransitivityCongruenceChain chain2 = chain1.splitAtGlobalTerm();
+
+        DomainTerm globalTerm = chain2.getStart().getTerm();
+        assert (globalTerm.getPartitionsFromSymbols().size() == 1);
+        assert (globalTerm.getPartitionsFromSymbols().iterator().next()
+                .equals(-1));
+        UninterpretedPredicateInstance globalInstancePositive = UninterpretedPredicateInstance
+                .create(impliedLiteral.getFunction(), globalTerm);
+        NotFormula globalInstanceNegative = NotFormula
+                .create(globalInstancePositive);
+
+        List<Formula> literals1 = new ArrayList<Formula>();
+        List<DomainTerm> terms1 = new ArrayList<DomainTerm>(2);
+        terms1.add(term1);
+        terms1.add(globalTerm);
+        DomainEq equality1 = DomainEq.create(terms1, true);
+        NotFormula disequality1 = NotFormula.create(equality1);
+        literals1.add(disequality1);
+        literals1.add(inversePredicateLiteral);
+        literals1.add(globalInstancePositive);
+        VeritProofNode predicateNode1 = new VeritProofNode(
+                "pred1_" + this.name, VeriTToken.EQ_CONGRUENT_PRED, literals1,
+                null, null, this.proof);
+        VeritProofNode chain1Node = chain1.toColorableProof();
+        List<VeritProofNode> leftSubProofs = new ArrayList<VeritProofNode>(2);
+        leftSubProofs.add(chain1Node);
+        leftSubProofs.add(predicateNode1);
+        List<Formula> literalsLeft = new ArrayList<Formula>(
+                chain1Node.getLiteralConclusions());
+        literalsLeft.remove(literalsLeft.size() - 1);
+        literalsLeft.add(inversePredicateLiteral);
+        literalsLeft.add(globalInstancePositive);
+        VeritProofNode left = new VeritProofNode("predLeft_" + this.name,
+                VeriTToken.RESOLUTION, literalsLeft, leftSubProofs, null,
+                this.proof);
+
+        List<Formula> literals2 = new ArrayList<Formula>();
+        List<DomainTerm> terms2 = new ArrayList<DomainTerm>(2);
+        terms1.add(globalTerm);
+        terms1.add(term2);
+        DomainEq equality2 = DomainEq.create(terms2, true);
+        NotFormula disequality2 = NotFormula.create(equality2);
+        literals2.add(disequality2);
+        literals2.add(globalInstanceNegative);
+        literals2.add(impliedLiteral);
+        VeritProofNode predicateNode2 = new VeritProofNode(
+                "pred2_" + this.name, VeriTToken.EQ_CONGRUENT_PRED, literals2,
+                null, null, this.proof);
+        VeritProofNode chain2Node = chain2.toColorableProof();
+        List<VeritProofNode> rightSubProofs = new ArrayList<VeritProofNode>(2);
+        rightSubProofs.add(chain2Node);
+        rightSubProofs.add(predicateNode2);
+        List<Formula> literalsRight = new ArrayList<Formula>(
+                chain2Node.getLiteralConclusions());
+        literalsRight.remove(literalsRight.size() - 1);
+        literalsRight.add(globalInstanceNegative);
+        literalsRight.add(impliedLiteral);
+        VeritProofNode right = new VeritProofNode("predRight_" + this.name,
+                VeriTToken.RESOLUTION, literalsRight, rightSubProofs, null,
+                this.proof);
+
+        List<Formula> resultLiterals = new ArrayList<Formula>();
+        resultLiterals.addAll(left.getLiteralConclusions());
+        resultLiterals.addAll(right.getLiteralConclusions());
+        resultLiterals.remove(globalInstanceNegative);
+        resultLiterals.remove(globalInstancePositive);
+        List<VeritProofNode> resultSubProofs = new ArrayList<VeritProofNode>(2);
+        resultSubProofs.add(left);
+        resultSubProofs.add(right);
+        VeritProofNode result = new VeritProofNode("predResult_" + this.name,
+                VeriTToken.RESOLUTION, resultLiterals, resultSubProofs, null,
+                this.proof);
+
+        return result;
     }
 }

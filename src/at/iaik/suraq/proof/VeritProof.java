@@ -634,11 +634,23 @@ public class VeritProof implements Serializable {
                 + " need splitting.");
         int count = 0;
         for (VeritProofNode leafToClean : leafsToClean) {
-            Util.printToSystemOutWithWallClockTimePrefix("    Splitting leaf "
-                    + leafToClean.getName());
-            TransitivityCongruenceChain chain = TransitivityCongruenceChain
-                    .create(leafToClean);
-            VeritProofNode replacement = chain.toColorableProof();
+            VeritProofNode replacement = null;
+            if (leafToClean.getType().equals(VeriTToken.EQ_CONGRUENT)) {
+                Util.printToSystemOutWithWallClockTimePrefix("    Splitting leaf "
+                        + leafToClean.getName());
+                TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                        .create(leafToClean);
+                replacement = chain.toColorableProof();
+            } else if (leafToClean.getType().equals(
+                    VeriTToken.EQ_CONGRUENT_PRED)) {
+                Util.printToSystemOutWithWallClockTimePrefix("    Splitting (predicate) leaf "
+                        + leafToClean.getName());
+                replacement = leafToClean.splitPredicateLeaf();
+            } else {
+                // Unexpected proof type!
+                assert (false);
+            }
+            assert (replacement != null);
             assert (leafToClean.getLiteralConclusions().containsAll(replacement
                     .getLiteralConclusions()));
             for (VeritProofNode parent : leafToClean.getParents())

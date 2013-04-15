@@ -105,6 +105,19 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
                 .put(new UninterpretedPredicateInstance(function, parameters));
     }
 
+    public static UninterpretedPredicateInstance create(
+            UninterpretedFunction function, DomainTerm parameter)
+            throws WrongNumberOfParametersException, WrongFunctionTypeException {
+        if (function.getNumParams() != 1)
+            throw new WrongNumberOfParametersException("Predicate "
+                    + function.getName().toString() + " expects "
+                    + function.getNumParams() + " parameters.");
+        List<DomainTerm> parameters = new ArrayList<DomainTerm>(1);
+        parameters.add(parameter);
+        return (UninterpretedPredicateInstance) FormulaCache.term
+                .put(new UninterpretedPredicateInstance(function, parameters));
+    }
+
     /**
      * @see java.lang.Object#equals(java.lang.Object)
      */
