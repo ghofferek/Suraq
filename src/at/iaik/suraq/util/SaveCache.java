@@ -20,6 +20,7 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
+import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
@@ -53,6 +54,7 @@ public class SaveCache implements Serializable {
 
     private final Map<Token, List<Term>> noDependenceVarsCopies;
     private final Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies;
+    private final Set<EqualityFormula> constraints;
 
     // added by chillebold
     private final String veriTProofFile;
@@ -87,6 +89,7 @@ public class SaveCache implements Serializable {
         noDependenceVarsCopies = null;
         noDependenceFunctionsCopies = null;
         veritProof = null;
+        constraints = null;
 
         if (filename != null)
             this.saveToFile(filename);
@@ -120,6 +123,7 @@ public class SaveCache implements Serializable {
         this.noDependenceVarsCopies = noDependenceVarsCopies;
         this.noDependenceFunctionsCopies = noDependenceFunctionsCopies;
         veritProof = null;
+        constraints = null;
         if (filename != null)
             this.saveToFile(filename);
     }
@@ -140,15 +144,20 @@ public class SaveCache implements Serializable {
      * @param noDependenceVarsCopies
      * @param noDependenceFunctionsCopies
      */
-    public SaveCache(Set<PropositionalVariable> propsitionalVars,
-            Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
+    public SaveCache(
+            Set<PropositionalVariable> propsitionalVars,
+            Set<DomainVariable> domainVars,
+            Set<ArrayVariable> arrayVars,
             Set<UninterpretedFunction> uninterpretedFunctions,
-            List<PropositionalVariable> controlVars, Formula mainFormula,
+            List<PropositionalVariable> controlVars,
+            Formula mainFormula,
             Map<Integer, Formula> assertPartitionFormulas,
             Map<PropositionalVariable, Formula> tseitinEncoding,
-            String filename, VeritProof veriTProof,
+            String filename,
+            VeritProof veriTProof,
             Map<Token, List<Term>> noDependenceVarsCopies,
-            Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies) {
+            Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies,
+            Set<EqualityFormula> constraints) {
         this.propsitionalVars = propsitionalVars;
         this.domainVars = domainVars;
         this.arrayVars = arrayVars;
@@ -166,6 +175,7 @@ public class SaveCache implements Serializable {
         this.veritProof = veriTProof;
         this.noDependenceVarsCopies = noDependenceVarsCopies;
         this.noDependenceFunctionsCopies = noDependenceFunctionsCopies;
+        this.constraints = constraints;
         veriTProofFile = null;
         if (filename != null)
             this.saveToFile(filename);
@@ -315,5 +325,9 @@ public class SaveCache implements Serializable {
 
     public Map<Token, List<UninterpretedFunction>> getNoDependenceFunctionsCopies() {
         return noDependenceFunctionsCopies;
+    }
+
+    public Set<EqualityFormula> getConstraints() {
+        return constraints;
     }
 }

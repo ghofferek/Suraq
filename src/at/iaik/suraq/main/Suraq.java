@@ -1409,7 +1409,8 @@ public class Suraq implements Runnable {
                     uninterpretedFunctions, controlVariables, mainFormula,
                     assertPartitionFormulas, tseitinEncoding,
                     saveCacheSerial.getPath(), veritProof,
-                    noDependenceVarsCopies, noDependenceFunctionsCopies);
+                    noDependenceVarsCopies, noDependenceFunctionsCopies,
+                    constraints);
             cacheWriteTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("Done writing to cache. Took "
                     + cacheWriteTimer);
@@ -1421,6 +1422,7 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Proof was read from cache. Size: "
                     + veritProof.size() + " nodes.");
             controlVariables = cache.getControlVars();
+            constraints = cache.getConstraints();
             assert (controlVariables != null);
             readFieldsFromCache(cache);
         }
