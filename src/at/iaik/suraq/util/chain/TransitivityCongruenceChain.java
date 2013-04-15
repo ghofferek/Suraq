@@ -632,6 +632,39 @@ public class TransitivityCongruenceChain {
     }
 
     /**
+     * Traverses this chain and splits it at the first global term found. Both
+     * halfs contain the global term at their originally joint side. If no
+     * global term is found, uncolorable congruence links are split, before
+     * attempting to find a global term again.
+     * 
+     * @return the second half of the chain.
+     */
+    public TransitivityCongruenceChain splitAtGlobalTerm() {
+
+        TransitivityCongruenceChainElement currentElement = this.start;
+        while (currentElement != null) {
+            if (Util.isGlobal(currentElement.getTerm()))
+                break;
+            currentElement = currentElement.getNext();
+        }
+
+        if (currentElement == null) {
+            this.splitUncolorableCongruenceLinks();
+            currentElement = this.start;
+            while (currentElement != null) {
+                if (Util.isGlobal(currentElement.getTerm()))
+                    break;
+                currentElement = currentElement.getNext();
+            }
+        }
+
+        assert (currentElement != null);
+        assert (currentElement != this.start);
+
+        // TODO not finished
+    }
+
+    /**
      * 
      * @return the set of partitions formed by all symbols in this chain.
      */

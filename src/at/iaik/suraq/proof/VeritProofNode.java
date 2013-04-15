@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
+import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -1326,8 +1327,15 @@ public class VeritProofNode implements Serializable {
         assert (globalTerm.getPartitionsFromSymbols().size() == 1);
         assert (globalTerm.getPartitionsFromSymbols().iterator().next()
                 .equals(-1));
-        UninterpretedPredicateInstance globalInstancePositive = UninterpretedPredicateInstance
-                .create(impliedLiteral.getFunction(), globalTerm);
+        UninterpretedPredicateInstance globalInstancePositive;
+        try {
+            globalInstancePositive = UninterpretedPredicateInstance.create(
+                    impliedLiteral.getFunction(), globalTerm);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while constructing UninterpretedPredicateInstance.",
+                    exc);
+        }
         NotFormula globalInstanceNegative = NotFormula
                 .create(globalInstancePositive);
 

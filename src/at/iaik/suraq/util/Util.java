@@ -1201,4 +1201,17 @@ public final class Util {
         String dateTimeString = dateFormat.format(new Date());
         System.out.println("[" + dateTimeString + "] " + line);
     }
+
+    /**
+     * 
+     * @param term
+     * @return <code>true</code> iff the given term is a global term.
+     */
+    public static boolean isGlobal(Term term) {
+        Set<Integer> partitions = term.getPartitionsFromSymbols();
+        if (partitions.size() > 1)
+            return false;
+        partitions.remove(-1);
+        return partitions.isEmpty();
+    }
 }
