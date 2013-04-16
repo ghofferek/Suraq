@@ -1300,8 +1300,14 @@ public class VeritProofNode implements Serializable {
         assert (Util.isNegativeLiteral(inversePredicateLiteral));
 
         // FIXME this method presently only support unary predicates!
-        assert (impliedLiteral.getParameters().size() == 1);
-        assert (inversePredicateLiteral.getParameters().size() == 1);
+        if (impliedLiteral.getParameters().size() != 1
+                || inversePredicateLiteral.getParameters().size() != 1) {
+            Util.printToSystemOutWithWallClockTimePrefix("ERROR: Cannot split the following leaf:");
+            System.out.println(this.toString());
+            Util.printToSystemOutWithWallClockTimePrefix("Only unary predicates supported by current implementation!");
+            throw new RuntimeException(
+                    "Non-unary predicate congruence in need of splitting detected.");
+        }
 
         DomainTerm term1 = inversePredicateLiteral.getParameters().get(0);
         DomainTerm term2 = impliedLiteral.getParameters().get(0);

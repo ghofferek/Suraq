@@ -661,7 +661,18 @@ public class TransitivityCongruenceChain {
         assert (currentElement != null);
         assert (currentElement != this.start);
 
-        // TODO not finished
+        TransitivityCongruenceChainElement copy = new TransitivityCongruenceChainElement(
+                currentElement);
+        currentElement.makeNextNull();
+
+        DomainTerm oldTarget = this.target;
+        this.target = currentElement.getTerm();
+        assert (this.isComplete());
+
+        TransitivityCongruenceChain result = new TransitivityCongruenceChain(
+                copy, oldTarget, this.proof);
+        assert (result.isComplete());
+        return result;
     }
 
     /**
