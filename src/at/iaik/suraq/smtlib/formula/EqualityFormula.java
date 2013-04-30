@@ -21,7 +21,6 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.ImmutableArrayList;
-import at.iaik.suraq.util.Util;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -740,13 +739,19 @@ public abstract class EqualityFormula implements Formula {
                         noDependenceVars, newVarName, andPreList));
                 // terms.set(i, newVarName.value);
                 terms2.add(newVarName.value);
-                if (Util.formulaContainsAny(this, noDependenceVars)) {
-                    assert (newVarName.value instanceof DomainVariable);
-                    Token name = Token
-                            .generate(((DomainVariable) newVarName.value)
-                                    .getVarName());
-                    noDependenceVars.add(name);
-                }
+
+                // GH 2013-04-30: The following block seems wrong.
+                // It should suffice if the variables *within* the
+                // DomainIte are checked. The variables to which it
+                // is equated should not count!
+                // ----
+                // if (Util.formulaContainsAny(this, noDependenceVars)) {
+                // assert (newVarName.value instanceof DomainVariable);
+                // Token name = Token
+                // .generate(((DomainVariable) newVarName.value)
+                // .getVarName());
+                // noDependenceVars.add(name);
+                // }
 
             } else
                 terms2.add(terms.get(i));

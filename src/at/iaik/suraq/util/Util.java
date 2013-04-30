@@ -157,7 +157,7 @@ public final class Util {
     public static final String freshVarNameCached(Formula formula,
             String prefix, Set<String> instances) {
         if (Util.lastFormula != formula) {
-            System.out.println("*** New Formula detected. Building lostNames.");
+            // System.out.println("*** New Formula detected. Building lostNames.");
             Util.lastFormula = formula;
             Util.lostNames.clear();
             // hashcode must be varname.hashcode() !!!

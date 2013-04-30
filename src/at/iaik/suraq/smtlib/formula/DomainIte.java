@@ -551,12 +551,12 @@ public class DomainIte extends DomainTerm {
         innerVariables.addAll(condition.getDomainVariables());
         for (DomainVariable dv : innerVariables) {
             if (noDependenceVars.contains(dv)) {
-                System.err.println("new nodependencyvar: " + newDomainToken);
+                // System.err.println("new nodependencyvar: " + newDomainToken);
                 noDependenceVars.add(newDomainToken);
                 break;
             }
         }
-        System.err.println(".");
+        // System.err.println(".");
 
         // Check if this formula contains any noDependenceVars
         Set<DomainVariable> dv = this.getDomainVariables();

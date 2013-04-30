@@ -151,7 +151,7 @@ public class Suraq implements Runnable {
     /**
      * Constraints for variables newly introduced during reductions.
      */
-    private Set<EqualityFormula> constraints;
+    private Set<EqualityFormula> constraints = new HashSet<EqualityFormula>();
 
     /**
      * stores the assert partition formula for each assert partition
@@ -1649,8 +1649,15 @@ public class Suraq implements Runnable {
      */
     private void insertConstraintDeclarations(SExpression rootExp,
             SExpression lastDeclare) {
+
+        assert (constraints != null);
+
         SExpression currentLast = lastDeclare;
 
+        if (constraints.isEmpty())
+            return;
+
+        assert (constraints.size() > 0);
         AndFormula constraint = AndFormula.generate(new ArrayList<Formula>(
                 constraints));
 

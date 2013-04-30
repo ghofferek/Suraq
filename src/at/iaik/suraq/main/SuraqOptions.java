@@ -84,7 +84,7 @@ public final class SuraqOptions {
     /**
      * Default value for newVeritCache option.
      */
-    private static final boolean newVeritCacheDefault = true;
+    private static final boolean newVeritCacheDefault = false;
 
     /**
      * The cache file name.
