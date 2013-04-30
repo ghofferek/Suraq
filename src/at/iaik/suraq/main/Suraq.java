@@ -39,7 +39,6 @@ import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
-import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
@@ -151,7 +150,7 @@ public class Suraq implements Runnable {
     /**
      * Constraints for variables newly introduced during reductions.
      */
-    private Set<EqualityFormula> constraints = new HashSet<EqualityFormula>();
+    private Set<Formula> constraints = new HashSet<Formula>();
 
     /**
      * stores the assert partition formula for each assert partition
@@ -1587,12 +1586,12 @@ public class Suraq implements Runnable {
         SExpression lastDeclare = null;
         for (SExpression child : children) {
             if (child.toString().contains("declare-fun")) {
-                lastDeclare = child;
                 String newChild = child.toString().replace("Control", "Bool")
                         .replace(":no_dependence", " ");
                 newChild = newChild.replace("\n\n", "\n");
 
                 rootExp.replaceChild(SExpression.fromString(newChild), count);
+                lastDeclare = rootExp.getChildren().get(count);
             }
 
             // negate assert formulas
@@ -1663,7 +1662,7 @@ public class Suraq implements Runnable {
 
         // Adding declare-fun for array variables
         Set<ArrayVariable> localArrayVars = constraint.getArrayVariables();
-        localArrayVars.removeAll(arrayVars);
+        localArrayVars.removeAll(this.logicParser.getArrayVariables());
         for (ArrayVariable var : localArrayVars) {
             SExpression declare = SExpression.makeDeclareFun(
                     Token.generate(var.getVarName()),
@@ -1674,7 +1673,7 @@ public class Suraq implements Runnable {
 
         // Adding declare-fun for domain variables
         Set<DomainVariable> localDomainVars = constraint.getDomainVariables();
-        localDomainVars.removeAll(domainVars);
+        localDomainVars.removeAll(this.logicParser.getDomainVariables());
         for (DomainVariable var : localDomainVars) {
             SExpression declare = SExpression.makeDeclareFun(
                     Token.generate(var.getVarName()),
@@ -1686,7 +1685,9 @@ public class Suraq implements Runnable {
         // Adding declare-fun for propositional variables
         Set<PropositionalVariable> localPropositionalVars = constraint
                 .getPropositionalVariables();
-        localPropositionalVars.removeAll(propositionalVars);
+        localPropositionalVars.removeAll(this.logicParser.getBoolVariables());
+        localPropositionalVars
+                .removeAll(this.logicParser.getControlVariables());
         for (PropositionalVariable var : localPropositionalVars) {
             SExpression declare = SExpression.makeDeclareFun(
                     Token.generate(var.getVarName()),
@@ -2158,10 +2159,8 @@ public class Suraq implements Runnable {
     private void storeConstraints(Collection<Formula> currentConstraints,
             Set<Token> noDependenceVars) {
         for (Formula constraint : currentConstraints) {
-            if (constraint instanceof EqualityFormula) {
-                if (!Util.formulaContainsAny(constraint, noDependenceVars))
-                    this.constraints.add((EqualityFormula) constraint);
-            }
+            if (!Util.formulaContainsAny(constraint, noDependenceVars))
+                this.constraints.add(constraint);
         }
     }
 

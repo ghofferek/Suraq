@@ -8,6 +8,7 @@ import java.util.List;
 
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
@@ -201,8 +202,12 @@ public class SExpression {
      */
     public void insertChildAfter(SExpression newChild,
             SExpression precedingChild) {
-        if (!children.contains(precedingChild))
+        if (!children.contains(precedingChild)) {
+            if (SuraqOptions.getInstance().isVerbose())
+                System.out
+                        .println("Tried to insert an SExpression after a child that was not found!");
             return;
+        }
 
         int position = children.indexOf(precedingChild);
         children.add(new Token("dummy"));
@@ -339,8 +344,9 @@ public class SExpression {
      */
     @Override
     public boolean equals(Object obj) {
-        boolean result = true;
 
+        if (this == obj)
+            return true;
         if (!(obj instanceof SExpression))
             return false;
 
@@ -349,10 +355,10 @@ public class SExpression {
             return false;
 
         for (int count = 0; count < children.size(); count++)
-            result = result
-                    && children.get(count).equals(other.children.get(count));
+            if (!children.get(count).equals(other.children.get(count)))
+                return false;
 
-        return result;
+        return true;
     }
 
     /**

@@ -20,7 +20,6 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
-import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
@@ -54,7 +53,7 @@ public class SaveCache implements Serializable {
 
     private final Map<Token, List<Term>> noDependenceVarsCopies;
     private final Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies;
-    private final Set<EqualityFormula> constraints;
+    private final Set<Formula> constraints;
 
     // added by chillebold
     private final String veriTProofFile;
@@ -157,7 +156,7 @@ public class SaveCache implements Serializable {
             VeritProof veriTProof,
             Map<Token, List<Term>> noDependenceVarsCopies,
             Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies,
-            Set<EqualityFormula> constraints) {
+            Set<Formula> constraints) {
         this.propsitionalVars = propsitionalVars;
         this.domainVars = domainVars;
         this.arrayVars = arrayVars;
@@ -327,7 +326,7 @@ public class SaveCache implements Serializable {
         return noDependenceFunctionsCopies;
     }
 
-    public Set<EqualityFormula> getConstraints() {
+    public Set<Formula> getConstraints() {
         return constraints;
     }
 }
