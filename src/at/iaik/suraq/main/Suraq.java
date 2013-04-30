@@ -1549,7 +1549,7 @@ public class Suraq implements Runnable {
      * 
      */
     private String createOutputString(File sourceFile,
-            Map<PropositionalVariable, Formula> inpterpolations) {
+            Map<PropositionalVariable, Formula> interpolations) {
 
         SExpParser sExpParser = null;
         try {
@@ -1620,7 +1620,7 @@ public class Suraq implements Runnable {
         rootExp.addChild(constraintExp);
 
         // add new assert formulas for each control signal
-        for (Map.Entry<PropositionalVariable, Formula> entry : inpterpolations
+        for (Map.Entry<PropositionalVariable, Formula> entry : interpolations
                 .entrySet()) {
             PropositionalVariable controlSignal = entry.getKey();
             Formula controlFormula = entry.getValue();
