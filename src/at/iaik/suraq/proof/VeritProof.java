@@ -672,7 +672,8 @@ public class VeritProof implements Serializable {
         int count = 0;
         for (VeritProofNode leafToClean : leafsToClean) {
             VeritProofNode replacement = null;
-            if (leafToClean.getType().equals(VeriTToken.EQ_CONGRUENT)) {
+            if (leafToClean.getType().equals(VeriTToken.EQ_CONGRUENT)
+                    || leafToClean.getType().equals(VeriTToken.EQ_TRANSITIVE)) {
                 Util.printToSystemOutWithWallClockTimePrefix("    Splitting leaf "
                         + leafToClean.getName());
                 TransitivityCongruenceChain chain = TransitivityCongruenceChain
