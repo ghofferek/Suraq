@@ -504,7 +504,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding) {
+            Map<PropositionalVariable, Formula> encoding, int partition) {
 
         assert (clauses != null);
         assert (encoding != null);
@@ -514,12 +514,14 @@ public class NotFormula extends BooleanCombinationFormula {
         if (partitions.size() == 2)
             partitions.remove(-1);
         assert (partitions.size() == 1);
-        int partition = partitions.iterator().next();
+        assert (partitions.iterator().next().equals(partition) || partitions
+                .iterator().next().equals(-1));
+
         PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
         encoding.put(tseitinVar, this.deepFormulaCopy());
 
         Formula tseitinVarForSubformula = formula.tseitinEncode(clauses,
-                encoding);
+                encoding, partition);
         assert (Util.isLiteral(tseitinVarForSubformula));
 
         List<Formula> disjuncts = new ArrayList<Formula>(2);

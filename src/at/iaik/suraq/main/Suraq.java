@@ -486,7 +486,7 @@ public class Suraq implements Runnable {
             Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
             // also changes the partitionFormula
             Formula tseitinVar = partitionFormula.tseitinEncode(clauses,
-                    encoding);
+                    encoding, count);
             assert (Util.isLiteral(tseitinVar));
             tseitinEncoding.putAll(encoding);
             if (tseitinVar instanceof PropositionalVariable)

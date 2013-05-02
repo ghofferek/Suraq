@@ -42,7 +42,7 @@ public class ArrayEq extends EqualityFormula {
     private ArrayEq(Collection<ArrayTerm> arrayTerms, boolean equal) {
         super(arrayTerms, equal);
     }
-    
+
     public static ArrayEq create(Collection<ArrayTerm> arrayTerms, boolean equal) {
         return (ArrayEq) FormulaCache.equalityFormula.put(new ArrayEq(
                 arrayTerms, equal));
@@ -55,12 +55,10 @@ public class ArrayEq extends EqualityFormula {
     public Formula deepFormulaCopy() {
         return this;
         /*
-        List<ArrayTerm> terms = new ArrayList<ArrayTerm>();
-        for (Term term : this.terms) {
-            terms.add((ArrayTerm) term.deepTermCopy());
-        }
-        return new ArrayEq(terms, equal);
-        */
+         * List<ArrayTerm> terms = new ArrayList<ArrayTerm>(); for (Term term :
+         * this.terms) { terms.add((ArrayTerm) term.deepTermCopy()); } return
+         * new ArrayEq(terms, equal);
+         */
     }
 
     /**
@@ -88,9 +86,10 @@ public class ArrayEq extends EqualityFormula {
      */
     public Formula toArrayProperties() {
         Formula newFormula;
-        // FIXME: chillebold: instead of "this" here should be the "topLevelFormula"???
-        DomainVariable index = DomainVariable.create(Util.freshVarNameCached(this,
-                "index"));
+        // FIXME: chillebold: instead of "this" here should be the
+        // "topLevelFormula"???
+        DomainVariable index = DomainVariable.create(Util.freshVarNameCached(
+                this, "index"));
         Set<DomainVariable> uVars = new HashSet<DomainVariable>();
         uVars.add(index);
         if (equal) {
@@ -99,8 +98,8 @@ public class ArrayEq extends EqualityFormula {
                 arrayReads.add(ArrayRead.create((ArrayTerm) term, index));
             try {
                 newFormula = ArrayProperty.create(uVars,
-                        PropositionalConstant.create(true), DomainEq.create(
-                                arrayReads, true));
+                        PropositionalConstant.create(true),
+                        DomainEq.create(arrayReads, true));
             } catch (SuraqException exc) {
                 throw new RuntimeException(
                         "Unexptected exception while creatin array property to remove array equality.",
@@ -117,8 +116,8 @@ public class ArrayEq extends EqualityFormula {
                             index));
                     try {
                         conjuncts.add(ArrayProperty.create(uVars,
-                                PropositionalConstant.create(true), DomainEq.create(
-                                        arrayReads, true)));
+                                PropositionalConstant.create(true),
+                                DomainEq.create(arrayReads, true)));
                     } catch (SuraqException exc) {
                         throw new RuntimeException(
                                 "Unexptected exception while creatin array property to remove array equality.",
@@ -153,12 +152,12 @@ public class ArrayEq extends EqualityFormula {
                 pairs.add(((ArrayWrite) term).applyWriteAxiom(topLevelFormula,
                         constraints, noDependenceVars));
             } else {
-                pairs.add(term.removeArrayWritesTerm(topLevelFormula, constraints,
-                        noDependenceVars));
+                pairs.add(term.removeArrayWritesTerm(topLevelFormula,
+                        constraints, noDependenceVars));
             }
         }
         try {
-            return create(pairs, equal);
+            return EqualityFormula.create(pairs, equal);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -190,23 +189,23 @@ public class ArrayEq extends EqualityFormula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding) {
+            Map<PropositionalVariable, Formula> encoding, int partition) {
         throw new RuntimeException(
                 "Array equalities should have been removed before Tseitin encoding!");
     }
-    
-    
 
     @Override
-    public Formula replaceEquivalences(Formula topLeveFormula, Map<EqualityFormula, String> replacements, Set<Token> noDependenceVars)
-    {
+    public Formula replaceEquivalences(Formula topLeveFormula,
+            Map<EqualityFormula, String> replacements,
+            Set<Token> noDependenceVars) {
         throw new RuntimeException(
                 "ArrayEq cannot be called on an UninterpretedFunctions.\n"
                         + "ArrayEq should be removed by now.");
     }
 
-    public Formula removeDomainITE(Formula topLevelFormula, Set<Token> noDependenceVars)
-    {
-        throw new RuntimeException("Arrays must be replaced removing DomainITE.");
+    public Formula removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars) {
+        throw new RuntimeException(
+                "Arrays must be replaced removing DomainITE.");
     }
 }

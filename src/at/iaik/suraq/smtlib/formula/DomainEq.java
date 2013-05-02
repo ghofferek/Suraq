@@ -119,7 +119,7 @@ public class DomainEq extends EqualityFormula {
      */
     @Override
     public Formula tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding) {
+            Map<PropositionalVariable, Formula> encoding, int partition) {
 
         assert (terms.size() == 2);
         // TODO: split larger equalities

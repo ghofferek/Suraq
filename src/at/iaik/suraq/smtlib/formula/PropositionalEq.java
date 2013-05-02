@@ -46,7 +46,7 @@ public class PropositionalEq extends EqualityFormula {
         return (PropositionalEq) FormulaCache.equalityFormula
                 .put(new PropositionalEq(propTerms, equal));
     }
-    
+
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#deepFormulaCopy()
      */
@@ -54,12 +54,10 @@ public class PropositionalEq extends EqualityFormula {
     public Formula deepFormulaCopy() {
         return this; // experimental
         /*
-        List<PropositionalTerm> terms = new ArrayList<PropositionalTerm>();
-        for (Term term : this.terms) {
-            terms.add((PropositionalTerm) term.deepTermCopy());
-        }
-        return new PropositionalEq(terms, equal);
-        */
+         * List<PropositionalTerm> terms = new ArrayList<PropositionalTerm>();
+         * for (Term term : this.terms) { terms.add((PropositionalTerm)
+         * term.deepTermCopy()); } return new PropositionalEq(terms, equal);
+         */
     }
 
     /**
@@ -68,43 +66,43 @@ public class PropositionalEq extends EqualityFormula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding) {
+            Map<PropositionalVariable, Formula> encoding, int partition) {
         List<ImpliesFormula> conjuncts = new ArrayList<ImpliesFormula>(2);
-        
+
         // A circle is enough:
         // A = B = C
         // A => B ^ B => C ^ C => A
 
         PropositionalTerm term1 = (PropositionalTerm) terms.get(0);
-        for(int i=1; i < terms.size(); i++)
-        {
+        for (int i = 1; i < terms.size(); i++) {
             PropositionalTerm termi = (PropositionalTerm) terms.get(i);
             conjuncts.add(ImpliesFormula.create(term1, termi));
         }
 
-        PropositionalTerm termlast = (PropositionalTerm) terms.get(terms.size()-1);
+        PropositionalTerm termlast = (PropositionalTerm) terms
+                .get(terms.size() - 1);
         conjuncts.add(ImpliesFormula.create(termlast, term1));
-        
-        if(terms.size() != 2)
-            System.err.println("PropositionalVariable:tseitinEncode: Was not implemented correctly, but is now.");
-        
+
+        if (terms.size() != 2)
+            System.err
+                    .println("PropositionalVariable:tseitinEncode: Was not implemented correctly, but is now.");
+
         // old version:
         /*
-        assert (terms.size() == 2);
-        PropositionalTerm term1 = (PropositionalTerm) terms.get(0);
-        PropositionalTerm term2 = (PropositionalTerm) terms.get(1);
-        // TODO: split larger equalities
+         * assert (terms.size() == 2); PropositionalTerm term1 =
+         * (PropositionalTerm) terms.get(0); PropositionalTerm term2 =
+         * (PropositionalTerm) terms.get(1); // TODO: split larger equalities
+         * 
+         * assert (clauses != null); assert (encoding != null);
+         * 
+         * conjuncts.add(ImpliesFormula.create(term1, term2));
+         * conjuncts.add(ImpliesFormula.create(term2, term1));
+         */
 
-        assert (clauses != null);
-        assert (encoding != null);
-
-        conjuncts.add(ImpliesFormula.create(term1, term2));
-        conjuncts.add(ImpliesFormula.create(term2, term1));
-        */
-
-        return (AndFormula.generate(conjuncts).tseitinEncode(clauses, encoding));
+        return (AndFormula.generate(conjuncts).tseitinEncode(clauses, encoding,
+                partition));
     }
-    
+
     @Override
     public Formula replaceEquivalences(Formula topLeveFormula,
             Map<EqualityFormula, String> replacements,
@@ -117,7 +115,7 @@ public class PropositionalEq extends EqualityFormula {
             terms2.add((PropositionalTerm) newterm);
         }
         try {
-            return create(terms2, equal);
+            return EqualityFormula.create(terms2, equal);
         } catch (IncomparableTermsException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

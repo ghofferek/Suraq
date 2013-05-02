@@ -37,7 +37,10 @@ public class TseitinEncoding {
         Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
 
         // the following code also changes the formula
-        Formula tseitinVar = formula.tseitinEncode(clauses, encoding);
+        // GH 2013-05-02: Not sure where this is used,
+        // just putting -1 for the partition parameters,
+        // as this is probably not used anywhere anyway.
+        Formula tseitinVar = formula.tseitinEncode(clauses, encoding, -1);
         assert (Util.isLiteral(tseitinVar));
         tseitinEncoding.putAll(encoding);
         if (tseitinVar instanceof PropositionalVariable)

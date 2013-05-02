@@ -384,8 +384,8 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding) {
-        return PropositionalVariable.create(varName, assertPartition);
+            Map<PropositionalVariable, Formula> encoding, int partition) {
+        return PropositionalVariable.create(varName, partition);
     }
 
     /**

@@ -527,7 +527,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding) {
+            Map<PropositionalVariable, Formula> encoding, int partition) {
         throw new RuntimeException(
                 "Macros should have been flattened before Tseitin encoding!");
     }

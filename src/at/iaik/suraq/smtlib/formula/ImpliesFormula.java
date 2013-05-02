@@ -538,7 +538,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding) {
+            Map<PropositionalVariable, Formula> encoding, int partition) {
         List<Formula> disjuncts = new ArrayList<Formula>(2);
         if (leftSide instanceof NotFormula)
             disjuncts.add(((NotFormula) leftSide).getNegatedFormula());
@@ -546,7 +546,7 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             disjuncts.add(NotFormula.create(leftSide));
         disjuncts.add(rightSide);
         OrFormula implication = OrFormula.generate(disjuncts);
-        return implication.tseitinEncode(clauses, encoding);
+        return implication.tseitinEncode(clauses, encoding, partition);
     }
 
     /**

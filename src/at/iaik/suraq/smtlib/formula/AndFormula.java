@@ -185,7 +185,7 @@ public class AndFormula extends AndOrXorFormula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding) {
+            Map<PropositionalVariable, Formula> encoding, int partition) {
 
         assert (clauses != null);
         assert (encoding != null);
@@ -195,15 +195,17 @@ public class AndFormula extends AndOrXorFormula {
         if (partitions.size() == 2)
             partitions.remove(-1);
         assert (partitions.size() == 1);
-        int partition = partitions.iterator().next();
+        assert (partitions.iterator().next().equals(partition) || partitions
+                .iterator().next().equals(-1));
+
         PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
         encoding.put(tseitinVar, this.deepFormulaCopy());
 
         List<Formula> disjuncts = new ArrayList<Formula>(formulas.size() + 1);
 
         for (Formula formula : formulas) {
-            Formula currentTseitinVar = formula
-                    .tseitinEncode(clauses, encoding);
+            Formula currentTseitinVar = formula.tseitinEncode(clauses,
+                    encoding, partition);
             assert (Util.isLiteral(currentTseitinVar));
 
             disjuncts.add(NotFormula.create(currentTseitinVar));

@@ -81,8 +81,15 @@ public class VeritProof implements Serializable {
     private int clauseCounter = 0;
 
     /**
+     * Maps leafs of the proof to their partitions. For real leafs, this is
+     * computed based on symbols. For pseudo-leafs (and, or), it is based on the
+     * partition of the corresponding real leaf.
+     */
+    private final Map<VeritProofNode, Integer> partitionsOfLeafs = new HashMap<VeritProofNode, Integer>();
+
+    /**
      * This field can be used to quickly turn off checks of proofs (but not
-     * necessarily proof nodes, if they are called indepedently).
+     * necessarily proof nodes, if they are called independently).
      */
     public static boolean checkProofEnabled = true;
 
@@ -152,7 +159,35 @@ public class VeritProof implements Serializable {
                 assert (false);
             node = cacheLookup(conclusions, number);
         }
+        int partition = -38317; // Magic number, easy to find when it turns up
+                                // somewhere accidentally
+        if (type.equals(VeriTToken.INPUT)) {
+            // This is a "real" input node.
+            // Compute its partition based on symbols and store it.
+            Set<Integer> partitions = new HashSet<Integer>();
+            for (Formula conclusion : conclusions) {
+                partitions.addAll(conclusion.getPartitionsFromSymbols());
+            }
+            assert (partitions.size() <= 2);
+            partitions.remove(-1);
+            assert (partitions.size() <= 1);
+            if (partitions.isEmpty()) {
+                // This could happen if there are no noDependenceVars
+                // in the spec. This corner case is not handled yet.
+                throw new RuntimeException(
+                        "Unable to determine partition of leaf node in proof due to missing noDependenceVars. This corner case is not handled yet.;");
+            }
+            assert (partitions.size() == 1);
+            partition = partitions.iterator().next();
+            assert (partition > 0);
+        }
         if (type.equals(VeriTToken.AND) || type.equals(VeriTToken.OR)) {
+            // This is a "pseudo-" leaf. Compute its partition
+            // based on its child before forgetting about the child.
+            assert (clauses.size() == 1);
+            assert (partitionsOfLeafs.containsKey(clauses.get(0)));
+            assert (partitionsOfLeafs.get(clauses.get(0)) > 0);
+            partition = partitionsOfLeafs.get(clauses.get(0));
             type = VeriTToken.INPUT;
             clauses = new ArrayList<VeritProofNode>();
             iargs = null;
@@ -165,6 +200,8 @@ public class VeritProof implements Serializable {
             synonyms.put(name, new WeakReference<VeritProofNode>(node));
         assert (node != null);
         assert (nodeCache.size() <= proofSets.size());
+        if (partition > 0)
+            partitionsOfLeafs.put(node, partition);
         return node;
     }
 
@@ -998,8 +1035,11 @@ public class VeritProof implements Serializable {
                 assert (resClausePartitions.size() == 1);
                 int leafPartition = resClausePartitions.iterator().next();
                 if (leafPartition == 0) {
-                    if (!node.isAxiom()) // non-axiom leaf with only globals
-                        leafPartition = 1; // arbitrary choice
+                    if (!node.isAxiom()) { // non-axiom leaf with only globals
+                        assert (partitionsOfLeafs.containsKey(node));
+                        assert (partitionsOfLeafs.get(node) > 0);
+                        leafPartition = partitionsOfLeafs.get(node);
+                    }
                 }
                 resLeafNode = resProof.addLeaf(resClause, leafPartition);
                 resNodes.put(node, resLeafNode);
