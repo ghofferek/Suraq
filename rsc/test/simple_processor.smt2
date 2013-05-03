@@ -227,7 +227,7 @@
 ; (assert (= squash take_branch_reg))
 
 
-(check-sat)
+; (check-sat)
 
 
 ; (get-model)
