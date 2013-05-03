@@ -612,13 +612,13 @@ public class PropositionalIte extends BooleanCombinationFormula {
     @Override
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
-        Formula condition = this.condition.removeDomainITE(topLevelFormula,
+        Formula newCondition = this.condition.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
-        Formula thenBranch = this.thenBranch.removeDomainITE(topLevelFormula,
+        Formula newThenBranch = this.thenBranch.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
-        Formula elseBranch = this.elseBranch.removeDomainITE(topLevelFormula,
+        Formula newElseBranch = this.elseBranch.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
-        return PropositionalIte.create(condition, thenBranch, elseBranch);
+        return PropositionalIte.create(newCondition, newThenBranch, newElseBranch);
     }
 
     /**

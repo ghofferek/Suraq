@@ -513,6 +513,7 @@ public class DomainIte extends DomainTerm {
 
     }
 
+    @Deprecated
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, Holder<Term> newToken,
             List<Formula> andPreList) {
@@ -628,8 +629,9 @@ public class DomainIte extends DomainTerm {
     @Override
     public DomainTerm removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
-        DomainVariable newVar = DomainVariable.create(Util.freshVarNameCached(
+        Token newToken = Token.generate(Util.freshVarNameCached(
                 topLevelFormula, "itev"));
+        DomainVariable newVar = DomainVariable.create(newToken);
 
         List<DomainTerm> termsThen = new ArrayList<DomainTerm>(2);
         List<DomainTerm> termsElse = new ArrayList<DomainTerm>(2);
@@ -647,6 +649,8 @@ public class DomainIte extends DomainTerm {
             PropositionalIte propIte = PropositionalIte.create(condition
                     .removeDomainITE(topLevelFormula, noDependenceVars,
                             andPreList), eqThen, eqElse);
+            if (Util.formulaContainsAny(propIte, noDependenceVars))
+                noDependenceVars.add(newToken);
             andPreList.add(propIte);
             return newVar;
         } catch (SuraqException exc) {

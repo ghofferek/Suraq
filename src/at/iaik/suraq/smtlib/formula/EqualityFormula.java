@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.xml.ws.Holder;
-
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.main.GraphReduction;
@@ -715,58 +713,56 @@ public abstract class EqualityFormula implements Formula {
 
         } catch (IncomparableTermsException ex) {
             // This Exception should not be possible.
-            // But it is nessasary to suppress warnings.
+            // But it is necessary to suppress warnings.
             throw new RuntimeException("Incomparable Terms in Equality Formula");
         }
-        // TODO recursivley
+        // TODO recursively
     }
 
     @Override
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
-        List<Formula> _andlist = new ArrayList<Formula>();
+        /*
+         * List<Formula> _andlist = new ArrayList<Formula>();
+         * 
+         * List<Term> terms2 = new ArrayList<Term>(); for (int i = 0; i <
+         * terms.size(); i++) { if (terms.get(i) instanceof DomainIte) {
+         * DomainIte domainITE = (DomainIte) terms.get(i);
+         * 
+         * // replace the ITE with a new variable // the ITE-constraint is added
+         * on the end of the topLevelFormula // by this function Holder<Term>
+         * newVarName = new Holder<Term>();
+         * _andlist.add(domainITE.removeDomainITE(topLevelFormula,
+         * noDependenceVars, newVarName, andPreList)); // terms.set(i,
+         * newVarName.value); terms2.add(newVarName.value);
+         * 
+         * // GH 2013-04-30: The following block seems wrong. // It should
+         * suffice if the variables *within* the // DomainIte are checked. The
+         * variables to which it // is equated should not count! // ---- // if
+         * (Util.formulaContainsAny(this, noDependenceVars)) { // assert
+         * (newVarName.value instanceof DomainVariable); // Token name = Token
+         * // .generate(((DomainVariable) newVarName.value) // .getVarName());
+         * // noDependenceVars.add(name); // }
+         * 
+         * } else terms2.add(terms.get(i).removeDomainITE(topLevelFormula,
+         * noDependenceVars, andPreList)); }
+         * 
+         * andPreList.addAll(_andlist); try { return
+         * EqualityFormula.create(terms2, equal); } catch (Exception ex) {
+         * ex.printStackTrace(); throw new RuntimeException(ex); }
+         */
 
-        List<Term> terms2 = new ArrayList<Term>();
-        for (int i = 0; i < terms.size(); i++) {
-            if (terms.get(i) instanceof DomainIte) {
-                DomainIte domainITE = (DomainIte) terms.get(i);
-
-                // replace the ITE with a new variable
-                // the ITE-constraint is added on the end of the topLevelFormula
-                // by this function
-                Holder<Term> newVarName = new Holder<Term>();
-                _andlist.add(domainITE.removeDomainITE(topLevelFormula,
-                        noDependenceVars, newVarName, andPreList));
-                // terms.set(i, newVarName.value);
-                terms2.add(newVarName.value);
-
-                // GH 2013-04-30: The following block seems wrong.
-                // It should suffice if the variables *within* the
-                // DomainIte are checked. The variables to which it
-                // is equated should not count!
-                // ----
-                // if (Util.formulaContainsAny(this, noDependenceVars)) {
-                // assert (newVarName.value instanceof DomainVariable);
-                // Token name = Token
-                // .generate(((DomainVariable) newVarName.value)
-                // .getVarName());
-                // noDependenceVars.add(name);
-                // }
-
-            } else
-                terms2.add(terms.get(i));
+        List<Term> newTerms = new ArrayList<Term>(terms.size());
+        for (Term term : terms) {
+            newTerms.add(term.removeDomainITE(topLevelFormula,
+                    noDependenceVars, andPreList));
         }
-
-        if (_andlist.size() > 0) {
-            andPreList.addAll(_andlist);
-            try {
-                return EqualityFormula.create(terms2, equal);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new RuntimeException(ex);
-            }
+        try {
+            return EqualityFormula.create(newTerms, equal);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while removing DomainITEs.", exc);
         }
-        return this;
     }
 
     /**

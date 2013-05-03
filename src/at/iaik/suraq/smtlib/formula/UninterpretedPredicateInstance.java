@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.ws.Holder;
-
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
@@ -972,39 +970,49 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     @Override
     public PropositionalTerm removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
-        List<Formula> _andlist = new ArrayList<Formula>();
-        List<DomainTerm> terms2 = new ArrayList<DomainTerm>();
-        for (DomainTerm term : parameters) {
-            if (term instanceof DomainIte) {
-                Holder<Term> newVarName = new Holder<Term>();
-                _andlist.add(((DomainIte) term).removeDomainITE(
-                        topLevelFormula, noDependenceVars, newVarName,
-                        andPreList));
-                if (Util.formulaContainsAny(this, noDependenceVars)) {
-                    assert (newVarName.value instanceof DomainVariable);
-                    Token name = Token
-                            .generate(((DomainVariable) newVarName.value)
-                                    .getVarName());
-                    noDependenceVars.add(name);
-                }
-                assert (newVarName.value instanceof DomainTerm);
-                terms2.add((DomainTerm) newVarName.value);
-            } else {
-                terms2.add(term);
-            }
-        }
+        // List<Formula> _andlist = new ArrayList<Formula>();
+        // List<DomainTerm> terms2 = new ArrayList<DomainTerm>();
+        // for (DomainTerm term : parameters) {
+        // if (term instanceof DomainIte) {
+        // Holder<Term> newVarName = new Holder<Term>();
+        // _andlist.add(((DomainIte) term).removeDomainITE(
+        // topLevelFormula, noDependenceVars, newVarName,
+        // andPreList));
+        // if (Util.formulaContainsAny(this, noDependenceVars)) {
+        // assert (newVarName.value instanceof DomainVariable);
+        // Token name = Token
+        // .generate(((DomainVariable) newVarName.value)
+        // .getVarName());
+        // noDependenceVars.add(name);
+        // }
+        // assert (newVarName.value instanceof DomainTerm);
+        // terms2.add((DomainTerm) newVarName.value);
+        // } else {
+        // terms2.add(term.removeDomainITE(topLevelFormula,
+        // noDependenceVars, andPreList));
+        // }
+        // }
+        //
+        // andPreList.addAll(_andlist);
+        // try {
+        // return UninterpretedPredicateInstance.create(this.function, terms2);
+        // } catch (Exception ex) {
+        // ex.printStackTrace();
+        // throw new RuntimeException(ex);
+        // }
 
-        if (_andlist.size() > 0) {
-            andPreList.addAll(_andlist);
-            try {
-                return UninterpretedPredicateInstance.create(this.function,
-                        terms2);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new RuntimeException(ex);
-            }
+        List<DomainTerm> newParams = new ArrayList<DomainTerm>(
+                parameters.size());
+        for (DomainTerm parameter : parameters) {
+            newParams.add(parameter.removeDomainITE(topLevelFormula,
+                    noDependenceVars, andPreList));
         }
-        return this;
+        try {
+            return UninterpretedPredicateInstance.create(function, newParams);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while removing DomainITEs.", exc);
+        }
     }
 
     /**
