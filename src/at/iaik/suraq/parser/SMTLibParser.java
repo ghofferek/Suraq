@@ -177,8 +177,8 @@ public abstract class SMTLibParser extends Parser {
         }
 
         if (isTseitinVariable(expression)) {
-            PropositionalVariable var = PropositionalVariable.create(
-                    (Token) expression);
+            PropositionalVariable var = PropositionalVariable
+                    .create((Token) expression);
 
             if (!tseitinVariables.contains(var))
                 tseitinVariables.add(var);
@@ -201,7 +201,8 @@ public abstract class SMTLibParser extends Parser {
                 if (expression.getChildren().size() < 2)
                     throw new ParseError(expression,
                             "Expected at least 1 expression after 'and'.");
-                List<Formula> formulaList = new ArrayList<Formula>(expression.getChildren().size()-1);
+                List<Formula> formulaList = new ArrayList<Formula>(expression
+                        .getChildren().size() - 1);
                 for (SExpression child : expression.getChildren().subList(1,
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
@@ -213,7 +214,8 @@ public abstract class SMTLibParser extends Parser {
                 if (expression.getChildren().size() < 2)
                     throw new ParseError(expression,
                             "Expected at least 1 expression after 'or'.");
-                List<Formula> formulaList = new ArrayList<Formula>(expression.getChildren().size()-1);
+                List<Formula> formulaList = new ArrayList<Formula>(expression
+                        .getChildren().size() - 1);
                 for (SExpression child : expression.getChildren().subList(1,
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
@@ -225,7 +227,8 @@ public abstract class SMTLibParser extends Parser {
                 if (expression.getChildren().size() < 2)
                     throw new ParseError(expression,
                             "Expected at least 1 expression after 'xor'.");
-                List<Formula> formulaList = new ArrayList<Formula>(expression.getChildren().size()-1);
+                List<Formula> formulaList = new ArrayList<Formula>(expression
+                        .getChildren().size() - 1);
                 for (SExpression child : expression.getChildren().subList(1,
                         expression.getChildren().size())) {
                     formulaList.add(parseFormulaBody(child));
@@ -255,7 +258,8 @@ public abstract class SMTLibParser extends Parser {
                         .get(2));
                 Formula elseBranch = parseFormulaBody(expression.getChildren()
                         .get(3));
-                return PropositionalIte.create(condition, thenBranch, elseBranch);
+                return PropositionalIte.create(condition, thenBranch,
+                        elseBranch);
             }
             throw new ParseError(expression, "Unexpected internal parse error!");
 
@@ -274,7 +278,8 @@ public abstract class SMTLibParser extends Parser {
                 throw new ParseError(expression,
                         "Unexpected internal parse error!");
 
-            List<Term> termList = new ArrayList<Term>(expression.getChildren().size()-1);
+            List<Term> termList = new ArrayList<Term>(expression.getChildren()
+                    .size() - 1);
             for (SExpression child : expression.getChildren().subList(1,
                     expression.getChildren().size())) {
                 termList.add(parseTerm(child));
@@ -362,8 +367,8 @@ public abstract class SMTLibParser extends Parser {
             }
             try {
                 int partition = getPartitionUninterpretedFunction(function);
-                return UninterpretedPredicateInstance.create(function, parameters,
-                        partition);
+                return UninterpretedPredicateInstance.create(function,
+                        parameters, partition);
             } catch (SuraqException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing uninterpreted function instance.");
@@ -412,10 +417,12 @@ public abstract class SMTLibParser extends Parser {
         if (expression instanceof Token)
             throw new ParseError(expression, "Undeclared identifier: "
                     + expression.toString());
-        else
-        {
-            System.err.println("We could not handle an Expression and it was no Token.");
-            System.err.println("It was a:"+expression.getClass().getName()+" and its content was: "+expression.toString().substring(0, 30)+"...");
+        else {
+            System.err
+                    .println("We could not handle an Expression and it was no Token.");
+            System.err.println("It was a:" + expression.getClass().getName()
+                    + " and its content was: "
+                    + expression.toString().substring(0, 30) + "...");
             System.err.println("Full Exception coming soon...");
             throw new ParseError(expression, "Error parsing formula body.");
         }
@@ -542,7 +549,8 @@ public abstract class SMTLibParser extends Parser {
                     || type.equals(SExpressionConstants.CONTROL_TYPE)) {
 
                 int partition = getPartitionBoolVariable(expression);
-                return PropositionalVariable.create((Token) expression, partition);
+                return PropositionalVariable.create((Token) expression,
+                        partition);
             }
             // In case we have a type that should not exist:
             throw new RuntimeException(
@@ -633,8 +641,8 @@ public abstract class SMTLibParser extends Parser {
             }
             try {
                 int partition = getPartitionUninterpretedFunction(function);
-                return UninterpretedFunctionInstance.create(function, parameters,
-                        partition);
+                return UninterpretedFunctionInstance.create(function,
+                        parameters, partition);
             } catch (SuraqException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing uninterpreted function instance.");
@@ -656,7 +664,8 @@ public abstract class SMTLibParser extends Parser {
                 throw new ParseError(expression.getChildren().get(2),
                         "Second parameter of 'select' must be a domain term.");
 
-            return ArrayRead.create((ArrayTerm) arrayTerm, (DomainTerm) indexTerm);
+            return ArrayRead.create((ArrayTerm) arrayTerm,
+                    (DomainTerm) indexTerm);
         }
 
         if (isPropositionalConstOrVar(expression)) {
@@ -790,16 +799,20 @@ public abstract class SMTLibParser extends Parser {
      *         if this is not a macro instance
      */
     protected FunctionMacro isMacroInstance(SExpression expression) {
-        if (expression instanceof Token)
-            return null;
-        if (expression.getChildren().size() < 2)
-            return null;
-        if (!(expression.getChildren().get(0) instanceof Token))
-            return null;
+        if (expression instanceof Token) {
+            // Could be a macro without parameters
+            return macros.get(expression);
+        } else {
+            // Could be a macro with parameters
+            if (expression.getChildren().size() < 2)
+                return null;
+            if (!(expression.getChildren().get(0) instanceof Token))
+                return null;
 
-        assert (expression.getChildren().get(0) instanceof Token);
-        Token macroName = (Token) expression.getChildren().get(0);
-        return macros.get(macroName);
+            assert (expression.getChildren().get(0) instanceof Token);
+            Token macroName = (Token) expression.getChildren().get(0);
+            return macros.get(macroName);
+        }
     }
 
     /**
@@ -1021,8 +1034,8 @@ public abstract class SMTLibParser extends Parser {
         if (expression.equals(SExpressionConstants.FALSE))
             return true;
 
-        PropositionalVariable variable = PropositionalVariable.create(
-                (Token) expression);
+        PropositionalVariable variable = PropositionalVariable
+                .create((Token) expression);
         if (boolVariables.contains(variable))
             // || controlVariables.contains(variable))
             return true;
@@ -1041,7 +1054,8 @@ public abstract class SMTLibParser extends Parser {
     protected boolean isDomainVariable(SExpression expression) {
         if (!(expression instanceof Token))
             return false;
-        return domainVariables.contains(DomainVariable.create((Token) expression));
+        return domainVariables.contains(DomainVariable
+                .create((Token) expression));
     }
 
     /**
@@ -1055,7 +1069,8 @@ public abstract class SMTLibParser extends Parser {
     protected boolean isArrayVariable(SExpression expression) {
         if (!(expression instanceof Token))
             return false;
-        return arrayVariables.contains(ArrayVariable.create((Token) expression));
+        return arrayVariables
+                .contains(ArrayVariable.create((Token) expression));
     }
 
     /**
@@ -1100,8 +1115,8 @@ public abstract class SMTLibParser extends Parser {
         if (!(expression instanceof Token))
             return false;
 
-        return (this.currentUVars.contains(DomainVariable.create(
-                (Token) expression)));
+        return (this.currentUVars.contains(DomainVariable
+                .create((Token) expression)));
     }
 
     /**
