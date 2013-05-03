@@ -335,4 +335,13 @@ public abstract class Term implements Serializable {
      */
     public abstract Term removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList);
+
+    /**
+     * @param topLevelFormula
+     * @param noDependenceVars
+     * @param constraints
+     * @return
+     */
+    public abstract Term removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints);
 }

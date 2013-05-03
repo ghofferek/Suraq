@@ -1919,6 +1919,15 @@ public class Suraq implements Runnable {
                 logicParser.getNoDependenceVariables());
 
         Set<Formula> constraints = new HashSet<Formula>();
+        Util.printToSystemOutWithWallClockTimePrefix("  Removing array ITEs...");
+        timer.reset();
+        timer.start();
+        formula = formula
+                .removeArrayITE(formula, noDependenceVars, constraints);
+        timer.stop();
+        Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
+                + ")");
+
         Util.printToSystemOutWithWallClockTimePrefix("  Making array reads simple...");
         timer.reset();
         timer.start();

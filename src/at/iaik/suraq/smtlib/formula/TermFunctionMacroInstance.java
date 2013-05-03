@@ -585,4 +585,16 @@ public class TermFunctionMacroInstance extends DomainTerm {
         throw new RuntimeException(
                 "Macros should be flattened before removing DomainITEs.");
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public DomainTerm removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        throw new RuntimeException(
+                "Macros should be flattened before removing ArrayITEs.");
+    }
+
 }

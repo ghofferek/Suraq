@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -348,6 +349,9 @@ public interface Formula extends SMTLibObject, Serializable {
 
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList);
+
+    public Formula removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints);
 
     /**
      * Returns a formula where all uninterpreted function instances which match

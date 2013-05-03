@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -451,6 +452,16 @@ public class PropositionalVariable extends PropositionalTerm implements
     @Override
     public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
             Set<ArrayVariable> arrayVars) {
+        return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public PropositionalVariable removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
         return this;
     }
 }

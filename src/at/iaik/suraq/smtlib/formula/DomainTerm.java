@@ -88,4 +88,12 @@ public abstract class DomainTerm extends Term implements Serializable {
     public abstract DomainTerm removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList);
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public abstract DomainTerm removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints);
+
 }

@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -635,5 +636,13 @@ public class PropositionalFunctionMacroInstance implements Formula {
                     "Unexpected InvalidParametersException while back-substituting array reads.",
                     exc);
         }
+    }
+
+    @Override
+    public Formula removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        throw new RuntimeException(
+                "removeArrayITE cannot be called on an PropositionalFunctionMacroInstance.\n"
+                        + "PropositionalFunctionMacroInstance should be removed by now.");
     }
 }

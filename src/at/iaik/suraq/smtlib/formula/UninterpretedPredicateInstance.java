@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -1037,6 +1038,28 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             throw new RuntimeException(
                     "Unexpected WrongFunctionTypeException while back-substituting array reads.",
                     exc);
+        }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public UninterpretedPredicateInstance removeArrayITE(
+            Formula topLevelFormula, Set<Token> noDependenceVars,
+            Collection<Formula> constraints) {
+        List<DomainTerm> newParams = new ArrayList<DomainTerm>(
+                parameters.size());
+        for (DomainTerm parameter : parameters) {
+            newParams.add(parameter.removeArrayITE(topLevelFormula,
+                    noDependenceVars, constraints));
+        }
+        try {
+            return UninterpretedPredicateInstance.create(function, newParams);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while removing ArrayITEs.", exc);
         }
     }
 

@@ -789,7 +789,7 @@ public class ArrayProperty implements Formula {
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
         throw new RuntimeException(
-                "Arrays must be replaced removing DomainITE.");
+                "Arrays must be replaced before removing DomainITE.");
     }
 
     /**
@@ -811,6 +811,26 @@ public class ArrayProperty implements Formula {
             throw new RuntimeException(
                     "Unexpected Excpetion while back-substituting array reads.",
                     exc);
+        }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public Formula removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        Formula newIndexGuard = indexGuard.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        Formula newValueConstraint = valueConstraint.removeArrayITE(
+                topLevelFormula, noDependenceVars, constraints);
+        try {
+            return ArrayProperty.create(uVars, newIndexGuard,
+                    newValueConstraint);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unable to remove arrayITEs from array property.", exc);
         }
     }
 }

@@ -658,4 +658,20 @@ public class DomainIte extends DomainTerm {
                     "Unexpected exception while removing DomainITEs.", exc);
         }
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public DomainIte removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        Formula newCondition = condition.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        DomainTerm newThenBranch = thenBranch.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        DomainTerm newElseBranch = elseBranch.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        return DomainIte.create(newCondition, newThenBranch, newElseBranch);
+    }
 }

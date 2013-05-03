@@ -823,4 +823,26 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public UninterpretedFunctionInstance removeArrayITE(
+            Formula topLevelFormula, Set<Token> noDependenceVars,
+            Collection<Formula> constraints) {
+        List<DomainTerm> newParams = new ArrayList<DomainTerm>(
+                parameters.size());
+        for (DomainTerm parameter : parameters) {
+            newParams.add(parameter.removeArrayITE(topLevelFormula,
+                    noDependenceVars, constraints));
+        }
+        try {
+            return UninterpretedFunctionInstance.create(function, newParams);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while removing ArrayITEs.", exc);
+        }
+    }
+
 }

@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -559,6 +560,22 @@ public class ArrayWrite extends ArrayTerm {
                 noDependenceVars, andPreList);
         DomainTerm newValueTerm = valueTerm.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
+        return ArrayWrite.create(newArrayTerm, newIndexTerm, newValueTerm);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.ArrayTerm#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public ArrayTerm removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        ArrayTerm newArrayTerm = arrayTerm.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        DomainTerm newIndexTerm = indexTerm.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        DomainTerm newValueTerm = valueTerm.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
         return ArrayWrite.create(newArrayTerm, newIndexTerm, newValueTerm);
     }
 }

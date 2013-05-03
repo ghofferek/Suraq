@@ -536,4 +536,19 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         return this.create(newFormulas);
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public AndOrXorFormula removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        List<Formula> newSubformulas = new ArrayList<Formula>(formulas.size());
+        for (Formula subformula : formulas) {
+            newSubformulas.add(subformula.removeArrayITE(topLevelFormula,
+                    noDependenceVars, constraints));
+        }
+        return this.create(newSubformulas);
+    }
+
 }

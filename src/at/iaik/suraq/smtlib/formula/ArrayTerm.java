@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,4 +69,8 @@ public abstract class ArrayTerm extends Term implements Serializable {
     @Override
     public abstract ArrayTerm removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList);
+
+    @Override
+    public abstract ArrayTerm removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints);
 }

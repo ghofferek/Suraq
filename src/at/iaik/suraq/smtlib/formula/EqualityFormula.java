@@ -786,4 +786,21 @@ public abstract class EqualityFormula implements Formula {
         }
     }
 
+    @Override
+    public EqualityFormula removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+
+        List<Term> newTerms = new ArrayList<Term>(terms.size());
+        for (Term term : terms) {
+            newTerms.add(term.removeArrayITE(topLevelFormula, noDependenceVars,
+                    constraints));
+        }
+        try {
+            return EqualityFormula.create(newTerms, equal);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while removing ArrayITEs.", exc);
+        }
+    }
+
 }

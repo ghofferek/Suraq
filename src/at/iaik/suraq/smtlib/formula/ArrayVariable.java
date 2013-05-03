@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -344,6 +345,16 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
     @Override
     public ArrayTerm removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
+        return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public ArrayVariable removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
         return this;
     }
 

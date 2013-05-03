@@ -4,6 +4,7 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -550,6 +551,17 @@ public class FormulaTerm extends PropositionalTerm {
             Set<ArrayVariable> arrayVars) {
         return FormulaTerm.create(formula
                 .uninterpretedFunctionsBackToArrayReads(arrayVars));
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public PropositionalTerm removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        return FormulaTerm.create(formula.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints));
     }
 
 }

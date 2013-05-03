@@ -614,11 +614,12 @@ public class PropositionalIte extends BooleanCombinationFormula {
             Set<Token> noDependenceVars, List<Formula> andPreList) {
         Formula newCondition = this.condition.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
-        Formula newThenBranch = this.thenBranch.removeDomainITE(topLevelFormula,
-                noDependenceVars, andPreList);
-        Formula newElseBranch = this.elseBranch.removeDomainITE(topLevelFormula,
-                noDependenceVars, andPreList);
-        return PropositionalIte.create(newCondition, newThenBranch, newElseBranch);
+        Formula newThenBranch = this.thenBranch.removeDomainITE(
+                topLevelFormula, noDependenceVars, andPreList);
+        Formula newElseBranch = this.elseBranch.removeDomainITE(
+                topLevelFormula, noDependenceVars, andPreList);
+        return PropositionalIte.create(newCondition, newThenBranch,
+                newElseBranch);
     }
 
     /**
@@ -631,5 +632,22 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 condition.uninterpretedFunctionsBackToArrayReads(arrayVars),
                 thenBranch.uninterpretedFunctionsBackToArrayReads(arrayVars),
                 elseBranch.uninterpretedFunctionsBackToArrayReads(arrayVars));
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public PropositionalIte removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        Formula newCondition = condition.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        Formula newThenBranch = thenBranch.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        Formula newElseBranch = elseBranch.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        return PropositionalIte.create(newCondition, newThenBranch,
+                newElseBranch);
     }
 }

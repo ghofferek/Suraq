@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.Util;
 
 /**
  * An if-then-else-style array term.
@@ -525,6 +528,41 @@ public class ArrayIte extends ArrayTerm {
         ArrayTerm newElseBranch = elseBranch.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
         return ArrayIte.create(newCondition, newThenBranch, newElseBranch);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.ArrayTerm#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public ArrayVariable removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        Token newToken = Token.generate(Util.freshVarNameCached(
+                topLevelFormula, "array_itev"));
+        ArrayVariable newVar = ArrayVariable.create(newToken);
+
+        List<ArrayTerm> termsThen = new ArrayList<ArrayTerm>(2);
+        List<ArrayTerm> termsElse = new ArrayList<ArrayTerm>(2);
+        termsThen.add(newVar);
+        termsThen.add(thenBranch.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints));
+        termsElse.add(newVar);
+        termsElse.add(elseBranch.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints));
+        try {
+            ArrayEq eqThen = (ArrayEq) EqualityFormula.create(termsThen, true);
+            ArrayEq eqElse = (ArrayEq) EqualityFormula.create(termsElse, true);
+            PropositionalIte propIte = PropositionalIte.create(condition
+                    .removeArrayITE(topLevelFormula, noDependenceVars,
+                            constraints), eqThen, eqElse);
+            if (Util.formulaContainsAny(propIte, noDependenceVars))
+                noDependenceVars.add(newToken);
+            constraints.add(propIte);
+            return newVar;
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while removing DomainITEs.", exc);
+        }
     }
 
 }

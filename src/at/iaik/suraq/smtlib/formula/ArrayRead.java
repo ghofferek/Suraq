@@ -271,8 +271,11 @@ public class ArrayRead extends DomainTerm {
     public UninterpretedFunctionInstance toUninterpretedFunctionInstance(
             Set<Token> noDependenceVars) {
         try {
-            String functionName = arrayTerm.toSmtlibV2().toString()
-                    .replaceAll("\\W", "");
+            // Complex array terms should have been removed before.
+            assert (arrayTerm instanceof ArrayVariable);
+            // String functionName = arrayTerm.toSmtlibV2().toString()
+            // .replaceAll("\\W", "");
+            String functionName = ((ArrayVariable) arrayTerm).getVarName();
 
             DomainTerm term = indexTerm;
 
@@ -474,6 +477,20 @@ public class ArrayRead extends DomainTerm {
                 noDependenceVars, andPreList);
         DomainTerm newIndexTerm = indexTerm.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);
+        return ArrayRead.create(newArrayTerm, newIndexTerm);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public DomainTerm removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        ArrayTerm newArrayTerm = arrayTerm.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        DomainTerm newIndexTerm = indexTerm.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
         return ArrayRead.create(newArrayTerm, newIndexTerm);
     }
 

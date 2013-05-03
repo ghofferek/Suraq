@@ -599,4 +599,15 @@ public class NotFormula extends BooleanCombinationFormula {
             Set<ArrayVariable> arrayVars) {
         return formula.uninterpretedFunctionsBackToArrayReads(arrayVars);
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public Formula removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        return NotFormula.create(formula.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints));
+    }
 }

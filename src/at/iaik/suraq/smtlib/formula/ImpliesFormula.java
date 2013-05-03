@@ -642,4 +642,18 @@ public class ImpliesFormula extends BooleanCombinationFormula {
                 leftSide.uninterpretedFunctionsBackToArrayReads(arrayVars),
                 rightSide.uninterpretedFunctionsBackToArrayReads(arrayVars));
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#removeArrayITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.Collection)
+     */
+    @Override
+    public Formula removeArrayITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, Collection<Formula> constraints) {
+        Formula newLeftSide = leftSide.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        Formula newRightSide = rightSide.removeArrayITE(topLevelFormula,
+                noDependenceVars, constraints);
+        return ImpliesFormula.create(newLeftSide, newRightSide);
+    }
 }
