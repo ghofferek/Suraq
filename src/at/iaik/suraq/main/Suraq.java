@@ -1438,7 +1438,9 @@ public class Suraq implements Runnable {
             // might be forgotten.
             // Check if it occurs in practice.
             Formula iteTree = iteTrees.get(key)
-                    .uninterpretedFunctionsBackToArrayReads(arrayVars);
+                    .uninterpretedFunctionsBackToArrayReads(
+                            new HashSet<ArrayVariable>(logicParser
+                                    .getArrayVariables()));
             iteTrees.put(key, iteTree);
         }
 
@@ -1615,8 +1617,11 @@ public class Suraq implements Runnable {
         // Add constraints for new variables
         insertConstraintDeclarations(rootExp, lastDeclare);
         SExpression constraintExp = new SExpression(
-                SExpressionConstants.ASSERT, AndFormula.generate(
-                        new ArrayList<Formula>(this.constraints)).toSmtlibV2());
+                SExpressionConstants.ASSERT, AndFormula
+                        .generate(new ArrayList<Formula>(this.constraints))
+                        .uninterpretedFunctionsBackToArrayReads(
+                                new HashSet<ArrayVariable>(logicParser
+                                        .getArrayVariables())).toSmtlibV2());
         rootExp.addChild(constraintExp);
 
         // add new assert formulas for each control signal
