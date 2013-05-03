@@ -102,7 +102,8 @@ public class TransitivityCongruenceChain {
         assert (CongruenceClosure.checkLiteralImplication(implyingLiterals,
                 impliedLiteral));
 
-        Graph<DomainTerm, Justification> graph = new Graph<DomainTerm, Justification>();
+        Graph<DomainTerm, Justification> graph = new Graph<DomainTerm, Justification>(
+                true);
         for (DomainEq literal : implyingLiterals) {
             assert (literal.isEqual());
             assert (literal.getTerms().size() == 2);
@@ -112,6 +113,8 @@ public class TransitivityCongruenceChain {
             Justification justification = new Justification(literal);
             graph.addEdge((DomainTerm) literal.getTerms().get(0),
                     (DomainTerm) literal.getTerms().get(1), justification);
+            graph.addEdge((DomainTerm) literal.getTerms().get(1),
+                    (DomainTerm) literal.getTerms().get(0), justification);
 
             Set<DomainTerm> additionalTerms = new HashSet<DomainTerm>();
             if (literal.getTerms().get(0) instanceof UninterpretedFunctionInstance) {
@@ -162,11 +165,15 @@ public class TransitivityCongruenceChain {
                                         .getParameters().get(count),
                                 ((UninterpretedFunctionInstance) term2)
                                         .getParameters().get(count), localPath,
-                                null));
+                                (VeritProof) null));
                     }
-                    if (localJustification != null)
-                        graph.addEdge(term1, term2, new Justification(
-                                localJustification));
+                    if (localJustification != null) {
+                        Justification completeLocalJustification = new Justification(
+                                localJustification);
+                        graph.addEdge(term1, term2, completeLocalJustification);
+                        graph.addEdge(term2, term1,
+                                completeLocalJustification.reverse());
+                    }
                 }
             }
             path = graph.findPath(
@@ -249,12 +256,22 @@ public class TransitivityCongruenceChain {
      */
     private TransitivityCongruenceChain(DomainTerm start, DomainTerm end,
             List<Justification> path, VeritProofNode node) {
+        this(start, end, path, node == null ? null : node.getProof());
+    }
+
+    /**
+     * Constructs a new <code>TransitivityCongruenceChain</code>.
+     * 
+     * @param path
+     */
+    private TransitivityCongruenceChain(DomainTerm start, DomainTerm end,
+            List<Justification> path, VeritProof proof) {
         assert (path != null);
         assert (start != null);
         assert (end != null);
         this.start = new TransitivityCongruenceChainElement(start);
         this.target = end;
-        this.proof = node == null ? null : node.getProof();
+        this.proof = proof;
 
         for (Justification justification : path) {
             if (justification.isEqualityJustification()) {
@@ -752,6 +769,23 @@ public class TransitivityCongruenceChain {
      */
     public DomainTerm getTarget() {
         return target;
+    }
+
+    /**
+     * @return the reversed chain
+     */
+    public TransitivityCongruenceChain reverse() {
+        List<Justification> reverseJustifications = new ArrayList<Justification>();
+        TransitivityCongruenceChainElement currentElement = this.start;
+        while (currentElement != null) {
+            reverseJustifications.add(0, currentElement.getJustficiation()
+                    .reverse());
+            currentElement = currentElement.getNext();
+        }
+        TransitivityCongruenceChain result = new TransitivityCongruenceChain(
+                this.getEndTerm(), this.start.getTerm(), reverseJustifications,
+                this.proof);
+        return result;
     }
 
 }

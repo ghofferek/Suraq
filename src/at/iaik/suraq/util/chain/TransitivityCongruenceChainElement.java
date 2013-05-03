@@ -15,6 +15,7 @@ import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
+import at.iaik.suraq.util.Justification;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -322,5 +323,18 @@ public class TransitivityCongruenceChainElement {
                 result.addAll(chain.getPartitionsFromSymbols());
         }
         return result;
+    }
+
+    /**
+     * @return
+     */
+    public Justification getJustficiation() {
+        assert (equalityJustification == null ^ congruenceJustification == null);
+        if (equalityJustification == null) {
+            return new Justification(congruenceJustification);
+        } else {
+            return new Justification(equalityJustification);
+        }
+
     }
 }

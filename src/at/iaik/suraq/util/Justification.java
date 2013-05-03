@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import at.iaik.suraq.smtlib.formula.DomainEq;
@@ -97,5 +98,26 @@ public class Justification {
      */
     public ImmutableArrayList<TransitivityCongruenceChain> getCongruenceJustification() {
         return chains;
+    }
+
+    /**
+     * If this is an equality justification, <code>this</code> is returned.
+     * Otherwise a new object with reversed chains is returned.
+     * 
+     * @return <code>this</code> or a reversed congruence justification.
+     */
+    public Justification reverse() {
+        if (equality != null) {
+            assert (chains == null);
+            return this;
+        } else {
+            assert (chains != null);
+            List<TransitivityCongruenceChain> reverseChains = new ArrayList<TransitivityCongruenceChain>(
+                    chains.size());
+            for (TransitivityCongruenceChain chain : chains) {
+                reverseChains.add(chain.reverse());
+            }
+            return new Justification(reverseChains);
+        }
     }
 }
