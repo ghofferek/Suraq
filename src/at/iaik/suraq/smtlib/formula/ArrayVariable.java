@@ -337,4 +337,14 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
         return this;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.ArrayTerm#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public ArrayTerm removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        return this;
+    }
+
 }

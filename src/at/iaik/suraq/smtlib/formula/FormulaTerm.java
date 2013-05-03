@@ -535,7 +535,7 @@ public class FormulaTerm extends PropositionalTerm {
     }
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula,
+    public PropositionalTerm removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
         Formula formula = this.formula.removeDomainITE(topLevelFormula,
                 noDependenceVars, andPreList);

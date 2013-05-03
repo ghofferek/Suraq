@@ -324,4 +324,15 @@ public abstract class Term implements Serializable {
     public abstract Term uninterpretedFunctionsBackToArrayReads(
             Set<ArrayVariable> arrayVars);
 
+    /**
+     * A new <code>Term</code> where DomainITEs have been replaced with new
+     * variables.
+     * 
+     * @param topLevelFormula
+     * @param noDependenceVars
+     * @param andPreList
+     * @return
+     */
+    public abstract Term removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList);
 }

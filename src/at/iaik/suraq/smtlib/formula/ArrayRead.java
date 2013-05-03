@@ -463,4 +463,18 @@ public class ArrayRead extends DomainTerm {
                 indexTerm.uninterpretedFunctionsBackToArrayReads(arrayVars));
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public ArrayRead removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        ArrayTerm newArrayTerm = arrayTerm.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        DomainTerm newIndexTerm = indexTerm.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        return ArrayRead.create(newArrayTerm, newIndexTerm);
+    }
+
 }

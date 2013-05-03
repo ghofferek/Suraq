@@ -4,10 +4,12 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
@@ -86,4 +88,12 @@ public abstract class PropositionalTerm extends Term implements Formula,
     @Override
     public abstract PropositionalTerm uninterpretedFunctionsBackToArrayReads(
             Set<ArrayVariable> arrayVars);
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public abstract PropositionalTerm removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList);
 }

@@ -513,7 +513,6 @@ public class DomainIte extends DomainTerm {
 
     }
 
-    // DO NOT USE WITH UF yet!!!
     public Formula removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, Holder<Term> newToken,
             List<Formula> andPreList) {
@@ -620,5 +619,39 @@ public class DomainIte extends DomainTerm {
                 condition.uninterpretedFunctionsBackToArrayReads(arrayVars),
                 thenBranch.uninterpretedFunctionsBackToArrayReads(arrayVars),
                 elseBranch.uninterpretedFunctionsBackToArrayReads(arrayVars));
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public DomainTerm removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        DomainVariable newVar = DomainVariable.create(Util.freshVarNameCached(
+                topLevelFormula, "itev"));
+
+        List<DomainTerm> termsThen = new ArrayList<DomainTerm>(2);
+        List<DomainTerm> termsElse = new ArrayList<DomainTerm>(2);
+        termsThen.add(newVar);
+        termsThen.add(thenBranch.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList));
+        termsElse.add(newVar);
+        termsElse.add(elseBranch.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList));
+        try {
+            DomainEq eqThen = (DomainEq) EqualityFormula
+                    .create(termsThen, true);
+            DomainEq eqElse = (DomainEq) EqualityFormula
+                    .create(termsElse, true);
+            PropositionalIte propIte = PropositionalIte.create(condition
+                    .removeDomainITE(topLevelFormula, noDependenceVars,
+                            andPreList), eqThen, eqElse);
+            andPreList.add(propIte);
+            return newVar;
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while removing DomainITEs.", exc);
+        }
     }
 }

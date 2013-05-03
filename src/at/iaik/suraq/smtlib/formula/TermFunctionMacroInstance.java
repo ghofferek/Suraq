@@ -574,4 +574,15 @@ public class TermFunctionMacroInstance extends DomainTerm {
                     exc);
         }
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public DomainTerm removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        throw new RuntimeException(
+                "Macros should be flattened before removing DomainITEs.");
+    }
 }

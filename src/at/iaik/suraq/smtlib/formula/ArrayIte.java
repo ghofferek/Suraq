@@ -511,4 +511,20 @@ public class ArrayIte extends ArrayTerm {
                 elseBranch.uninterpretedFunctionsBackToArrayReads(arrayVars));
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public ArrayTerm removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        Formula newCondition = condition.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        ArrayTerm newThenBranch = thenBranch.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        ArrayTerm newElseBranch = elseBranch.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        return ArrayIte.create(newCondition, newThenBranch, newElseBranch);
+    }
+
 }

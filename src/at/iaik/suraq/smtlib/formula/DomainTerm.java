@@ -80,4 +80,12 @@ public abstract class DomainTerm extends Term implements Serializable {
     public abstract DomainTerm uninterpretedFunctionsBackToArrayReads(
             Set<ArrayVariable> arrayVars);
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public abstract DomainTerm removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList);
+
 }

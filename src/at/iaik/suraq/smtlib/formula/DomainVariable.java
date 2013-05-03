@@ -348,4 +348,14 @@ public class DomainVariable extends DomainTerm implements Serializable {
         return this;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public DomainVariable removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        return this;
+    }
+
 }

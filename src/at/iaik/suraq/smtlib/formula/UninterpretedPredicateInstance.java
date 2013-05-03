@@ -970,7 +970,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
     }
 
     @Override
-    public Formula removeDomainITE(Formula topLevelFormula,
+    public PropositionalTerm removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
         List<Formula> _andlist = new ArrayList<Formula>();
         List<DomainTerm> terms2 = new ArrayList<DomainTerm>();

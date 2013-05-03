@@ -801,4 +801,26 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         }
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.DomainTerm#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public UninterpretedFunctionInstance removeDomainITE(
+            Formula topLevelFormula, Set<Token> noDependenceVars,
+            List<Formula> andPreList) {
+        List<DomainTerm> newParams = new ArrayList<DomainTerm>(
+                parameters.size());
+        for (DomainTerm parameter : parameters) {
+            newParams.add(parameter.removeDomainITE(topLevelFormula,
+                    noDependenceVars, andPreList));
+        }
+        try {
+            return UninterpretedFunctionInstance.create(function, newParams);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while removing DomainITEs.", exc);
+        }
+    }
+
 }

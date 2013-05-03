@@ -545,4 +545,20 @@ public class ArrayWrite extends ArrayTerm {
                 indexTerm.uninterpretedFunctionsBackToArrayReads(arrayVars),
                 valueTerm.uninterpretedFunctionsBackToArrayReads(arrayVars));
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.ArrayTerm#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
+     *      java.util.Set, java.util.List)
+     */
+    @Override
+    public ArrayWrite removeDomainITE(Formula topLevelFormula,
+            Set<Token> noDependenceVars, List<Formula> andPreList) {
+        ArrayTerm newArrayTerm = arrayTerm.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        DomainTerm newIndexTerm = indexTerm.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        DomainTerm newValueTerm = valueTerm.removeDomainITE(topLevelFormula,
+                noDependenceVars, andPreList);
+        return ArrayWrite.create(newArrayTerm, newIndexTerm, newValueTerm);
+    }
 }
