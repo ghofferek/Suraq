@@ -778,8 +778,9 @@ public class TransitivityCongruenceChain {
         List<Justification> reverseJustifications = new ArrayList<Justification>();
         TransitivityCongruenceChainElement currentElement = this.start;
         while (currentElement != null) {
-            reverseJustifications.add(0, currentElement.getJustficiation()
-                    .reverse());
+            Justification justification = currentElement.getJustficiation();
+            if (justification != null)
+                reverseJustifications.add(0, justification.reverse());
             currentElement = currentElement.getNext();
         }
         TransitivityCongruenceChain result = new TransitivityCongruenceChain(

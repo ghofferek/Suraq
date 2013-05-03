@@ -329,12 +329,13 @@ public class TransitivityCongruenceChainElement {
      * @return
      */
     public Justification getJustficiation() {
-        assert (equalityJustification == null ^ congruenceJustification == null);
-        if (equalityJustification == null) {
-            return new Justification(congruenceJustification);
-        } else {
-            return new Justification(equalityJustification);
-        }
-
+        if (equalityJustification == null ^ congruenceJustification == null) {
+            if (equalityJustification == null) {
+                return new Justification(congruenceJustification);
+            } else {
+                return new Justification(equalityJustification);
+            }
+        } else
+            return null;
     }
 }
