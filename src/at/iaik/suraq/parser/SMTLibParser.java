@@ -381,8 +381,9 @@ public abstract class SMTLibParser extends Parser {
                 throw new ParseError(expression,
                         "Bool macro expected. Received type: "
                                 + macro.getType().toString());
-            List<SExpression> paramExpressions = expression.getChildren()
-                    .subList(1, expression.getChildren().size());
+            List<SExpression> paramExpressions = macro.getNumParams() == 0 ? new ArrayList<SExpression>()
+                    : expression.getChildren().subList(1,
+                            expression.getChildren().size());
             if (paramExpressions.size() != macro.getNumParams())
                 throw new ParseError(expression, "Expected "
                         + macro.getNumParams() + "parameters for macro "
