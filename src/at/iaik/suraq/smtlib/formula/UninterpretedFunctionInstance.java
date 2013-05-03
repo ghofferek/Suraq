@@ -780,7 +780,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         }
 
         // Not an instance to replace
-        List<DomainTerm> newParameters = new ArrayList<DomainTerm>(parameters);
+        List<DomainTerm> newParameters = new ArrayList<DomainTerm>(
+                parameters.size());
         for (DomainTerm parameter : parameters) {
             DomainTerm newParameter = parameter
                     .uninterpretedFunctionsBackToArrayReads(arrayVars);
