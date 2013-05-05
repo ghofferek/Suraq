@@ -918,6 +918,20 @@ public class VeritProofNode implements Serializable {
                 continue;
             }
             // Not found any matching equality.
+
+            // Try finding something with Congruence Closure
+            List<EqualityFormula> ccLiterals = new ArrayList<EqualityFormula>();
+            for (Formula literal : literalConclusions.subList(0,
+                    literalConclusions.size() - 2)) {
+                assert (Util.makeLiteralPositive(literal) instanceof EqualityFormula);
+                ccLiterals.add((EqualityFormula) Util
+                        .makeLiteralPositive(literal));
+            }
+            if (CongruenceClosure.checkLiteralImplication(ccLiterals,
+                    terms1.get(count), terms2.get(count)))
+                continue;
+
+            // Congruence Closure did not work either
             return failOnMessage("Did not find an equality path for parameter number "
                     + count);
         }

@@ -3,12 +3,14 @@
  */
 package at.iaik.suraq.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import at.iaik.suraq.proof.VeritProofNode;
+import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -27,7 +29,7 @@ public class CongruenceClosure {
     /**
      * The list of equivalence classes
      */
-    private final Set<Set<Term>> equivClasses = new CopyOnWriteArraySet<Set<Term>>();
+    private final Set<Set<DomainTerm>> equivClasses = new CopyOnWriteArraySet<Set<DomainTerm>>();
 
     public CongruenceClosure() {
         // nothing to do here
@@ -39,13 +41,13 @@ public class CongruenceClosure {
      * @param formula
      *            an equality formula with exactly two terms.
      */
-    public void addEquality(EqualityFormula formula) {
+    public void addEquality(DomainEq formula) {
         assert (formula.getTerms().size() == 2);
         assert (formula.isEqual());
-        Term term1 = formula.getTerms().get(0);
-        Term term2 = formula.getTerms().get(1);
+        DomainTerm term1 = (DomainTerm) formula.getTerms().get(0);
+        DomainTerm term2 = (DomainTerm) formula.getTerms().get(1);
 
-        for (Set<Term> equivClass : equivClasses) {
+        for (Set<DomainTerm> equivClass : equivClasses) {
             if (equivClass.contains(term1)) {
                 equivClass.add(term2);
                 merge();
@@ -58,23 +60,23 @@ public class CongruenceClosure {
             }
         }
 
-        Set<Term> newClass = new CopyOnWriteArraySet<Term>();
+        Set<DomainTerm> newClass = new CopyOnWriteArraySet<DomainTerm>();
         newClass.add(term1);
         newClass.add(term2);
         equivClasses.add(newClass);
 
         if (term1 instanceof UninterpretedFunctionInstance) {
-            for (Term term : ((UninterpretedFunctionInstance) term1)
+            for (DomainTerm term : ((UninterpretedFunctionInstance) term1)
                     .getSubTerms()) {
-                Set<Term> singleton = new CopyOnWriteArraySet<Term>();
+                Set<DomainTerm> singleton = new CopyOnWriteArraySet<DomainTerm>();
                 singleton.add(term);
                 equivClasses.add(singleton);
             }
         }
         if (term2 instanceof UninterpretedFunctionInstance) {
-            for (Term term : ((UninterpretedFunctionInstance) term2)
+            for (DomainTerm term : ((UninterpretedFunctionInstance) term2)
                     .getSubTerms()) {
-                Set<Term> singleton = new CopyOnWriteArraySet<Term>();
+                Set<DomainTerm> singleton = new CopyOnWriteArraySet<DomainTerm>();
                 singleton.add(term);
                 equivClasses.add(singleton);
             }
@@ -85,6 +87,27 @@ public class CongruenceClosure {
     }
 
     /**
+     * Adds the given term to the equivalences classes. (Also adds all
+     * subterms.)
+     * 
+     * @param term
+     */
+    public void addTerm(DomainTerm term) {
+        if (term instanceof UninterpretedFunctionInstance) {
+            for (DomainTerm subterm : ((UninterpretedFunctionInstance) term)
+                    .getSubTerms())
+                this.addTerm(subterm);
+        }
+        for (Set<DomainTerm> equivClass : equivClasses) {
+            if (equivClass.contains(term))
+                return;
+        }
+        Set<DomainTerm> singleton = new CopyOnWriteArraySet<DomainTerm>();
+        singleton.add(term);
+        equivClasses.add(singleton);
+    }
+
+    /**
      * Checks whether the given formula is implied by this congruence closure.
      * I.e., checks whether its two terms occur in the same equivalence class.
      * 
@@ -92,13 +115,13 @@ public class CongruenceClosure {
      * @return <code>true</code> if the given formula is implied by this
      *         congruence closure.
      */
-    public boolean checkImplied(EqualityFormula formula) {
+    public boolean checkImplied(DomainEq formula) {
         assert (formula.getTerms().size() == 2);
         assert (formula.isEqual());
         Term term1 = formula.getTerms().get(0);
         Term term2 = formula.getTerms().get(1);
 
-        for (Set<Term> equivClass : equivClasses) {
+        for (Set<DomainTerm> equivClass : equivClasses) {
             if (equivClass.contains(term1) && equivClass.contains(term2))
                 return true;
         }
@@ -123,10 +146,10 @@ public class CongruenceClosure {
     private boolean mergeInternal() {
 
         // Merging based on common terms
-        for (Set<Term> equivClass1 : equivClasses) {
+        for (Set<DomainTerm> equivClass1 : equivClasses) {
             assert (equivClasses.contains(equivClass1));
-            for (Term term : equivClass1) {
-                for (Set<Term> equivClass2 : equivClasses) {
+            for (DomainTerm term : equivClass1) {
+                for (Set<DomainTerm> equivClass2 : equivClasses) {
                     assert (equivClasses.contains(equivClass2));
                     if (equivClass1 == equivClass2)
                         continue;
@@ -140,15 +163,15 @@ public class CongruenceClosure {
         }
 
         // Merging based on congruence
-        for (Set<Term> equivClass1 : equivClasses) {
+        for (Set<DomainTerm> equivClass1 : equivClasses) {
             for (Term term1 : equivClass1) {
                 List<DomainTerm> terms1 = null;
                 List<DomainTerm> terms2 = null;
-                Set<Term> equivClass2 = null;
+                Set<DomainTerm> equivClass2 = null;
                 if (term1 instanceof UninterpretedFunctionInstance) {
                     terms1 = ((UninterpretedFunctionInstance) term1)
                             .getParameters();
-                    for (Set<Term> equivClassTmp : equivClasses) {
+                    for (Set<DomainTerm> equivClassTmp : equivClasses) {
                         if (equivClass1 == equivClassTmp)
                             continue;
                         for (Term term2 : equivClassTmp) {
@@ -170,7 +193,7 @@ public class CongruenceClosure {
                 } else if (term1 instanceof UninterpretedPredicateInstance) {
                     terms1 = ((UninterpretedPredicateInstance) term1)
                             .getParameters();
-                    for (Set<Term> equivClassTmp : equivClasses) {
+                    for (Set<DomainTerm> equivClassTmp : equivClasses) {
                         if (equivClass1 == equivClassTmp)
                             continue;
                         for (Term term2 : equivClassTmp) {
@@ -197,7 +220,7 @@ public class CongruenceClosure {
                     assert (terms1.size() == terms2.size());
                     int numOk = 0;
                     for (int count = 0; count < terms1.size(); count++) {
-                        for (Set<Term> equivClassTmp : equivClasses) {
+                        for (Set<DomainTerm> equivClassTmp : equivClasses) {
                             if (equivClassTmp.contains(terms1.get(count))
                                     && equivClassTmp
                                             .contains(terms2.get(count))) {
@@ -229,15 +252,19 @@ public class CongruenceClosure {
                 node.getLiteralConclusions().size() - 1)) {
             assert (Util.isNegativeLiteral(literal));
             Formula positiveLiteral = Util.makeLiteralPositive(literal);
-            assert (positiveLiteral instanceof EqualityFormula);
-            cc.addEquality((EqualityFormula) positiveLiteral);
+            assert (positiveLiteral instanceof DomainEq);
+            cc.addEquality((DomainEq) positiveLiteral);
         }
         Formula impliedLiteral = node.getLiteralConclusions().get(
                 node.getLiteralConclusions().size() - 1);
         assert (Util.isLiteral(impliedLiteral));
         assert (!Util.isNegativeLiteral(impliedLiteral));
-        assert (impliedLiteral instanceof EqualityFormula);
-        return cc.checkImplied((EqualityFormula) impliedLiteral);
+        assert (impliedLiteral instanceof DomainEq);
+        assert (((DomainEq) impliedLiteral).getTerms().size() == 2);
+        cc.addTerm((DomainTerm) ((DomainEq) impliedLiteral).getTerms().get(0));
+        cc.addTerm((DomainTerm) ((DomainEq) impliedLiteral).getTerms().get(1));
+        cc.merge();
+        return cc.checkImplied((DomainEq) impliedLiteral);
     }
 
     /**
@@ -254,12 +281,48 @@ public class CongruenceClosure {
      */
     public static boolean checkLiteralImplication(
             Collection<? extends EqualityFormula> literals,
-            EqualityFormula impliedLiteral) {
+            DomainEq impliedLiteral) {
         CongruenceClosure cc = new CongruenceClosure();
         for (Formula literal : literals) {
             assert (Util.isLiteral(literal));
             assert (!Util.isNegativeLiteral(literal));
-            cc.addEquality((EqualityFormula) literal);
+            cc.addEquality((DomainEq) literal);
+        }
+        assert (Util.isLiteral(impliedLiteral));
+        assert (!Util.isNegativeLiteral(impliedLiteral));
+        return cc.checkImplied(impliedLiteral);
+    }
+
+    /**
+     * 
+     * @param literals
+     *            a collection of literals which are checked for whether they
+     *            imply the given <code>impliedLiteral</code>. All these must be
+     *            positive.
+     * @param term1
+     *            the first term of the literal which should be implied by the
+     *            given <code>literals</code>.
+     * @param term2
+     *            the second term of the literal which should be implied by the
+     *            given <code>literals</code>.
+     * @return <code>true</code> if the given <code>literals</code> imply the
+     *         literal <code>term1=term2</code>.
+     */
+    public static boolean checkLiteralImplication(
+            Collection<? extends EqualityFormula> literals, DomainTerm term1,
+            DomainTerm term2) {
+        List<DomainTerm> domainTerms = new ArrayList<DomainTerm>(2);
+        domainTerms.add(term1);
+        domainTerms.add(term2);
+        DomainEq impliedLiteral = DomainEq.create(domainTerms, true);
+        CongruenceClosure cc = new CongruenceClosure();
+        cc.addTerm(term1);
+        cc.addTerm(term2);
+        for (Formula literal : literals) {
+            assert (Util.isLiteral(literal));
+            assert (!Util.isNegativeLiteral(literal));
+            assert (literal instanceof DomainEq);
+            cc.addEquality((DomainEq) literal);
         }
         assert (Util.isLiteral(impliedLiteral));
         assert (!Util.isNegativeLiteral(impliedLiteral));

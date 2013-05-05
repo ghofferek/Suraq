@@ -1924,6 +1924,15 @@ public class Suraq implements Runnable {
         timer.start();
         formula = formula
                 .removeArrayITE(formula, noDependenceVars, constraints);
+        if (constraints.size() > 0) {
+            List<Formula> constraintsList = new ArrayList<Formula>();
+            constraintsList.addAll(constraints);
+            AndFormula arrayIteConstraints = AndFormula
+                    .generate(constraintsList);
+            formula = ImpliesFormula.create(arrayIteConstraints, formula);
+            storeConstraints(constraints, noDependenceVars);
+            constraints.clear();
+        }
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
@@ -1933,6 +1942,15 @@ public class Suraq implements Runnable {
         timer.start();
         formula = formula.makeArrayReadsSimple(formula, constraints,
                 noDependenceVars);
+        if (constraints.size() > 0) {
+            List<Formula> constraintsList = new ArrayList<Formula>();
+            constraintsList.addAll(constraints);
+            AndFormula arrayReadConstraints = AndFormula
+                    .generate(constraintsList);
+            formula = ImpliesFormula.create(arrayReadConstraints, formula);
+            storeConstraints(constraints, noDependenceVars);
+            constraints.clear();
+        }
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
@@ -1944,9 +1962,11 @@ public class Suraq implements Runnable {
         if (constraints.size() > 0) {
             List<Formula> constraintsList = new ArrayList<Formula>();
             constraintsList.addAll(constraints);
-            AndFormula arrayConstraints = AndFormula.generate(constraintsList);
-            formula = ImpliesFormula.create(arrayConstraints, formula);
+            AndFormula arrayWriteConstraints = AndFormula
+                    .generate(constraintsList);
+            formula = ImpliesFormula.create(arrayWriteConstraints, formula);
             storeConstraints(constraints, noDependenceVars);
+            constraints.clear();
         }
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
