@@ -50,11 +50,11 @@
 
 (declare-fun ZERO () Value)
 
-;(declare-fun forward () Control)
-;(declare-fun squash  () Control)
+(declare-fun forward () Control)
+(declare-fun squash  () Control)
 
-(declare-fun forward () Bool)
-(declare-fun squash  () Bool)
+; (declare-fun forward () Bool)
+; (declare-fun squash  () Bool)
 
 (define-fun r_data (
   (mem    (Array Value Value))
