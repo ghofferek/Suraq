@@ -250,9 +250,13 @@ public class TransitivityCongruenceChain {
     }
 
     /**
-     * Constructs a new <code>TransitivityCongruenceChain</code>.
+     * Constructs a new <code>TransitivityCongruenceChain</code> from a list of
+     * justifications.
      * 
+     * @param start
+     * @param end
      * @param path
+     * @param node
      */
     private TransitivityCongruenceChain(DomainTerm start, DomainTerm end,
             List<Justification> path, VeritProofNode node) {
@@ -260,9 +264,13 @@ public class TransitivityCongruenceChain {
     }
 
     /**
-     * Constructs a new <code>TransitivityCongruenceChain</code>.
+     * Constructs a new <code>TransitivityCongruenceChain</code> from a list of
+     * justifications.
      * 
+     * @param start
+     * @param end
      * @param path
+     * @param proof
      */
     private TransitivityCongruenceChain(DomainTerm start, DomainTerm end,
             List<Justification> path, VeritProof proof) {
@@ -301,10 +309,137 @@ public class TransitivityCongruenceChain {
 
         this.splitUncolorableCongruenceLinks();
 
+        int startPartition = this.getStartPartition();
+        int endPartition = this.getEndPartition();
+        assert (startPartition == endPartition || startPartition == -1 || endPartition == -1);
+
+        TransitivityCongruenceChainElement currentElement = this.start;
+        TransitivityCongruenceChain firstLocalChunk = null;
+        TransitivityCongruenceChain chainWithGlobalEnds = null;
+        TransitivityCongruenceChain lastLocalChunk = null;
+
+        // Create chain for first local chunk
+        if (startPartition > 0) {
+            List<Justification> path = new ArrayList<Justification>();
+            DomainTerm currentTerm = null;
+            while (currentElement.getTermPartition() == startPartition
+                    || currentElement.getTermPartition() == -1) {
+                path.add(currentElement.getJustficiation());
+                currentTerm = currentElement.getTerm();
+                currentElement = currentElement.getNext();
+                assert (currentElement != null); // GH: I think this method is
+                                                 // only called on nodes that
+                                                 // actually need splitting
+            }
+            firstLocalChunk = new TransitivityCongruenceChain(
+                    this.start.getTerm(), currentTerm, path, this.proof);
+            currentElement = this.getPredecessor(currentElement);
+            assert (currentElement.getTermPartition() == -1);
+        }
+
+        // Create chain for last local chunk
+        TransitivityCongruenceChainElement globalStart = currentElement;
+        TransitivityCongruenceChainElement globalEnd = null;
+        assert (globalStart.getTermPartition() == -1);
+        if (endPartition > 0) {
+            currentElement = this.getEnd();
+            List<Justification> path = new ArrayList<Justification>();
+            assert (currentElement.getNext() == null);
+            while (currentElement.getTermPartition() == endPartition
+                    || currentElement.getTermPartition() == -1) {
+                path.add(0, currentElement.getJustficiation());
+                currentElement = this.getPredecessor(currentElement);
+            }
+            currentElement = currentElement.getNext();
+            assert (currentElement.getTermPartition() == -1);
+            lastLocalChunk = new TransitivityCongruenceChain(
+                    currentElement.getTerm(), this.getEndTerm(), path,
+                    this.proof);
+            globalEnd = currentElement;
+        }
+
+        assert (globalStart != globalEnd);
+
+        // Create chain with two global ends
+        currentElement = globalStart;
+        List<Justification> path = new ArrayList<Justification>();
+        while (currentElement != globalEnd) {
+            path.add(currentElement.getJustficiation());
+            currentElement = currentElement.getNext();
+            assert (currentElement != null);
+        }
+        assert (currentElement == globalEnd);
+        path.add(currentElement.getJustficiation());
+        chainWithGlobalEnds = new TransitivityCongruenceChain(
+                globalStart.getTerm(), globalEnd.getTerm(), path, this.proof);
+
+        VeritProofNode proofForMidSection = chainWithGlobalEnds
+                .chainWithGlobalEndsToColorableProof();
+
+        if (firstLocalChunk == null && lastLocalChunk == null)
+            return proofForMidSection;
+
+        // Create "shortcut"-literal for mid section
+        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        terms.add(globalStart.getTerm());
+        terms.add(globalEnd.getTerm());
+        DomainEq shortcutLiteral = DomainEq.create(terms, true);
+
+        // Create conclusions for new node (leaf with firstChunk, shortcut,
+        // lastChunk)
+        List<Formula> conclusions = new ArrayList<Formula>();
+        if (firstLocalChunk != null)
+            conclusions.addAll(firstLocalChunk.usedLiterals());
+        conclusions.add(Util.invertLiteral(shortcutLiteral));
+        if (lastLocalChunk != null)
+            conclusions.addAll(lastLocalChunk.usedLiterals());
+        VeritProofNode firstShortcutLast = this.proof.addProofSet("fsl_"
+                + TransitivityCongruenceChain.proofNodeCounter++,
+                VeriTToken.EQ_TRANSITIVE, conclusions, null, null);
+
+        // Create the final result
+        List<VeritProofNode> resultSubProofs = new ArrayList<VeritProofNode>(2);
+        resultSubProofs.add(firstShortcutLast);
+        resultSubProofs.add(proofForMidSection);
+        List<Formula> resultConclusions = new ArrayList<Formula>();
+        for (Formula literal : firstShortcutLast.getLiteralConclusions()) {
+            if (!resultConclusions.contains(literal))
+                resultConclusions.add(literal);
+        }
+        for (Formula literal : proofForMidSection.getLiteralConclusions()) {
+            if (!resultConclusions.contains(literal))
+                resultConclusions.add(literal);
+        }
+        while (resultConclusions.contains(shortcutLiteral))
+            resultConclusions.remove(shortcutLiteral);
+        while (resultConclusions.contains(Util.invertLiteral(shortcutLiteral)))
+            resultConclusions.remove(Util.invertLiteral(shortcutLiteral));
+
+        VeritProofNode result = this.proof
+                .addProofSet("split_"
+                        + TransitivityCongruenceChain.proofNodeCounter++,
+                        VeriTToken.RESOLUTION, resultConclusions,
+                        resultSubProofs, null);
+
+        return result;
+    }
+
+    // TODO
+
+    /**
+     * Converts a chain with two global Ends into a colorable proof.
+     * 
+     * @return the colorable proof.
+     */
+    private VeritProofNode chainWithGlobalEndsToColorableProof() {
+
+        assert (this.getStartPartition() == -1);
+        assert (this.getEndPartition() == -1);
+
         Set<Integer> partitions = new HashSet<Integer>();
         TransitivityCongruenceChainElement newStart = null;
         TransitivityCongruenceChainElement current = start;
-        while (true) {
+        while (current != null) {
             partitions.addAll(current.getTerm().getPartitionsFromSymbols());
             partitions.remove(-1);
             if (!current.hasNext() || partitions.size() > 1) {
@@ -314,8 +449,12 @@ public class TransitivityCongruenceChain {
             }
             current = current.getNext();
         }
-        newStart = current;
+        if (current == null)
+            newStart = this.getEnd();
+        else
+            newStart = this.getPredecessor(current);
         assert (newStart != start);
+        assert (newStart.getTermPartition() == -1);
 
         // Collect literals from the first part of the chain
         List<Formula> conclusions = new ArrayList<Formula>();
@@ -325,6 +464,11 @@ public class TransitivityCongruenceChain {
                 conclusions.add(NotFormula.create(literal));
             current = current.getNext();
         }
+        // Also add literals for the global term at the interface to the next
+        // part of the chain
+        assert (current == newStart);
+        for (Formula literal : current.usedLiterals())
+            conclusions.add(NotFormula.create(literal));
 
         // Create and add the "shortcut"-literal, that connect from current to
         // the end. This one will be used for resolution.
@@ -354,7 +498,9 @@ public class TransitivityCongruenceChain {
 
         TransitivityCongruenceChain secondPart = new TransitivityCongruenceChain(
                 newStart, target, proof);
-        VeritProofNode node2 = secondPart.toColorableProof();
+        assert (secondPart.getStartPartition() == -1);
+        assert (secondPart.getEndPartition() == -1);
+        VeritProofNode node2 = secondPart.chainWithGlobalEndsToColorableProof();
 
         List<VeritProofNode> clauses = new ArrayList<VeritProofNode>(2);
         clauses.add(node1);
@@ -772,6 +918,30 @@ public class TransitivityCongruenceChain {
     }
 
     /**
+     * 
+     * @return the partition of the start term.
+     */
+    public int getStartPartition() {
+        Set<Integer> partitions = start.getTerm().getPartitionsFromSymbols();
+        if (partitions.size() > 1)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        return partitions.iterator().next();
+    }
+
+    /**
+     * 
+     * @return the partition of the end term.
+     */
+    public int getEndPartition() {
+        Set<Integer> partitions = this.getEndTerm().getPartitionsFromSymbols();
+        if (partitions.size() > 1)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        return partitions.iterator().next();
+    }
+
+    /**
      * @return the reversed chain
      */
     public TransitivityCongruenceChain reverse() {
@@ -787,6 +957,24 @@ public class TransitivityCongruenceChain {
                 this.getEndTerm(), this.start.getTerm(), reverseJustifications,
                 this.proof);
         return result;
+    }
+
+    /**
+     * 
+     * @param element
+     * @return the predecessor of <code>element</code> in this chain, or
+     *         <code>null</code> if either <code>element</code> is not part of
+     *         the chain, or is the first element.
+     */
+    public TransitivityCongruenceChainElement getPredecessor(
+            TransitivityCongruenceChainElement element) {
+        TransitivityCongruenceChainElement currentElement = this.start;
+        while (currentElement != null) {
+            if (currentElement.getNext().equals(element))
+                return currentElement;
+            currentElement = currentElement.getNext();
+        }
+        return null;
     }
 
 }

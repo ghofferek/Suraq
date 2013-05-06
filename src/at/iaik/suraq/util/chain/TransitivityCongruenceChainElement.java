@@ -326,6 +326,18 @@ public class TransitivityCongruenceChainElement {
     }
 
     /**
+     * 
+     * @return the partition of the term of this element.
+     */
+    public int getTermPartition() {
+        Set<Integer> partitions = this.term.getPartitionsFromSymbols();
+        if (partitions.size() > 1)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        return partitions.iterator().next();
+    }
+
+    /**
      * @return
      */
     public Justification getJustficiation() {
