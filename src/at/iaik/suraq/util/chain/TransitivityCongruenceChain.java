@@ -282,6 +282,7 @@ public class TransitivityCongruenceChain {
         this.proof = proof;
 
         for (Justification justification : path) {
+            assert (justification != null);
             if (justification.isEqualityJustification()) {
                 boolean attached = this.getEnd().tryAttach(
                         justification.getEqualityJustification());
@@ -331,6 +332,7 @@ public class TransitivityCongruenceChain {
                                                  // only called on nodes that
                                                  // actually need splitting
             }
+            path.remove(path.size() - 1);
             firstLocalChunk = new TransitivityCongruenceChain(
                     this.start.getTerm(), currentTerm, path, this.proof);
             currentElement = this.getPredecessor(currentElement);
@@ -343,13 +345,15 @@ public class TransitivityCongruenceChain {
         assert (globalStart.getTermPartition() == -1);
         if (endPartition > 0) {
             currentElement = this.getEnd();
-            List<Justification> path = new ArrayList<Justification>();
             assert (currentElement.getNext() == null);
+            currentElement = this.getPredecessor(currentElement);
+            List<Justification> path = new ArrayList<Justification>();
             while (currentElement.getTermPartition() == endPartition
                     || currentElement.getTermPartition() == -1) {
                 path.add(0, currentElement.getJustficiation());
                 currentElement = this.getPredecessor(currentElement);
             }
+            assert (!path.isEmpty());
             currentElement = currentElement.getNext();
             assert (currentElement.getTermPartition() == -1);
             lastLocalChunk = new TransitivityCongruenceChain(
@@ -369,7 +373,6 @@ public class TransitivityCongruenceChain {
             assert (currentElement != null);
         }
         assert (currentElement == globalEnd);
-        path.add(currentElement.getJustficiation());
         chainWithGlobalEnds = new TransitivityCongruenceChain(
                 globalStart.getTerm(), globalEnd.getTerm(), path, this.proof);
 
@@ -389,10 +392,22 @@ public class TransitivityCongruenceChain {
         // lastChunk)
         List<Formula> conclusions = new ArrayList<Formula>();
         if (firstLocalChunk != null)
-            conclusions.addAll(firstLocalChunk.usedLiterals());
+            conclusions.addAll(Util.invertAllLiterals(firstLocalChunk
+                    .usedLiterals()));
         conclusions.add(Util.invertLiteral(shortcutLiteral));
         if (lastLocalChunk != null)
-            conclusions.addAll(lastLocalChunk.usedLiterals());
+            conclusions.addAll(Util.invertAllLiterals(lastLocalChunk
+                    .usedLiterals()));
+        List<DomainTerm> impliedLiteralTerms = new ArrayList<DomainTerm>(2);
+        impliedLiteralTerms
+                .add((DomainTerm) (firstLocalChunk != null ? firstLocalChunk
+                        .getStart().getTerm() : shortcutLiteral.getTerms().get(
+                        0)));
+        impliedLiteralTerms
+                .add((DomainTerm) (lastLocalChunk != null ? lastLocalChunk
+                        .getEndTerm() : shortcutLiteral.getTerms().get(1)));
+        DomainEq impliedLiteral = DomainEq.create(impliedLiteralTerms, true);
+        conclusions.add(impliedLiteral);
         VeritProofNode firstShortcutLast = this.proof.addProofSet("fsl_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.EQ_TRANSITIVE, conclusions, null, null);
@@ -442,7 +457,7 @@ public class TransitivityCongruenceChain {
         while (current != null) {
             partitions.addAll(current.getTerm().getPartitionsFromSymbols());
             partitions.remove(-1);
-            if (!current.hasNext() || partitions.size() > 1) {
+            if (partitions.size() > 1) {
                 partitions.removeAll(current.getTerm()
                         .getPartitionsFromSymbols());
                 break;

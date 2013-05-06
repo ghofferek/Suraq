@@ -1214,4 +1214,16 @@ public final class Util {
         partitions.remove(-1);
         return partitions.isEmpty();
     }
+
+    /**
+     * @param usedLiterals
+     * @return
+     */
+    public static List<Formula> invertAllLiterals(Collection<Formula> literals) {
+        List<Formula> result = new ArrayList<Formula>(literals.size());
+        for (Formula literal : literals) {
+            result.add(Util.invertLiteral(literal));
+        }
+        return result;
+    }
 }

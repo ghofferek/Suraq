@@ -804,7 +804,7 @@ public class VeritProofNode implements Serializable {
             if (!Util.isLiteral(literal))
                 return failOnMessage("Found non-literal!");
             if (!Util.isNegativeLiteral(literal))
-                return failOnMessage("Found unexpected negative literal!");
+                return failOnMessage("Found unexpected positive literal!");
             if (!(Util.makeLiteralPositive(literal) instanceof EqualityFormula))
                 return failOnMessage("Found unexpected non-equality literal!");
             if (!((EqualityFormula) Util.makeLiteralPositive(literal))
