@@ -118,8 +118,12 @@ public class CongruenceClosure {
     public boolean checkImplied(DomainEq formula) {
         assert (formula.getTerms().size() == 2);
         assert (formula.isEqual());
-        Term term1 = formula.getTerms().get(0);
-        Term term2 = formula.getTerms().get(1);
+        DomainTerm term1 = (DomainTerm) formula.getTerms().get(0);
+        DomainTerm term2 = (DomainTerm) formula.getTerms().get(1);
+
+        this.addTerm(term1);
+        this.addTerm(term2);
+        this.merge();
 
         for (Set<DomainTerm> equivClass : equivClasses) {
             if (equivClass.contains(term1) && equivClass.contains(term2))

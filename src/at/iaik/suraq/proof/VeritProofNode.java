@@ -1303,15 +1303,19 @@ public class VeritProofNode implements Serializable {
         assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED));
         assert (this.checkCongruencePred());
 
-        // Assuming the implied literal is the last one and the
-        // inverse predicate literal is the second to last
+        // Here, the last literal can also be negative.
+        assert (Util
+                .isAtom(literalConclusions.get(literalConclusions.size() - 1)) ^ Util
+                .isAtom(literalConclusions.get(literalConclusions.size() - 2)));
+        int posIndex = Util.isAtom(literalConclusions.get(literalConclusions
+                .size() - 1)) ? literalConclusions.size() - 1
+                : literalConclusions.size() - 2;
+        int negIndex = posIndex == literalConclusions.size() - 1 ? posIndex - 1
+                : posIndex + 1;
         UninterpretedPredicateInstance impliedLiteral = (UninterpretedPredicateInstance) literalConclusions
-                .get(literalConclusions.size() - 1);
-        UninterpretedPredicateInstance inversePredicateLiteral = (UninterpretedPredicateInstance) literalConclusions
-                .get(literalConclusions.size() - 2);
-
-        assert (Util.isAtom(impliedLiteral));
-        assert (Util.isNegativeLiteral(inversePredicateLiteral));
+                .get(posIndex);
+        UninterpretedPredicateInstance inversePredicateLiteral = (UninterpretedPredicateInstance) Util
+                .makeLiteralPositive(literalConclusions.get(negIndex));
 
         // FIXME this method presently only support unary predicates!
         if (impliedLiteral.getParameters().size() != 1
@@ -1336,7 +1340,8 @@ public class VeritProofNode implements Serializable {
             assert (Util.isLiteral(literalConclusions.get(count)));
             assert (Util.isNegativeLiteral(literalConclusions.get(count)));
             assert (Util.makeLiteralPositive(literalConclusions.get(count)) instanceof DomainEq);
-            otherLiterals.add((DomainEq) literalConclusions.get(count));
+            otherLiterals.add((DomainEq) Util
+                    .makeLiteralPositive(literalConclusions.get(count)));
         }
 
         TransitivityCongruenceChain chain1 = TransitivityCongruenceChain
@@ -1366,7 +1371,7 @@ public class VeritProofNode implements Serializable {
         DomainEq equality1 = DomainEq.create(terms1, true);
         NotFormula disequality1 = NotFormula.create(equality1);
         literals1.add(disequality1);
-        literals1.add(inversePredicateLiteral);
+        literals1.add(NotFormula.create(inversePredicateLiteral));
         literals1.add(globalInstancePositive);
         VeritProofNode predicateNode1 = new VeritProofNode(
                 "pred1_" + this.name, VeriTToken.EQ_CONGRUENT_PRED, literals1,
@@ -1378,7 +1383,7 @@ public class VeritProofNode implements Serializable {
         List<Formula> literalsLeft = new ArrayList<Formula>(
                 chain1Node.getLiteralConclusions());
         literalsLeft.remove(literalsLeft.size() - 1);
-        literalsLeft.add(inversePredicateLiteral);
+        literalsLeft.add(NotFormula.create(inversePredicateLiteral));
         literalsLeft.add(globalInstancePositive);
         VeritProofNode left = new VeritProofNode("predLeft_" + this.name,
                 VeriTToken.RESOLUTION, literalsLeft, leftSubProofs, null,

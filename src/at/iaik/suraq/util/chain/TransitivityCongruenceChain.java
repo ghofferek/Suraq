@@ -361,6 +361,9 @@ public class TransitivityCongruenceChain {
                     this.proof);
             globalEnd = currentElement;
         }
+        if (globalEnd == null)
+            globalEnd = this.getEnd();
+        assert (globalEnd.getTermPartition() == -1);
 
         assert (globalStart != globalEnd);
 
@@ -438,8 +441,6 @@ public class TransitivityCongruenceChain {
 
         return result;
     }
-
-    // TODO
 
     /**
      * Converts a chain with two global Ends into a colorable proof.
