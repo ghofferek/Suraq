@@ -82,6 +82,17 @@ public class VeritProofNode implements Serializable {
     private final VeritProof proof;
 
     /**
+     * Used to disable printing of failure message while checking TRANS_CONGR
+     * nodes.
+     */
+    private boolean suppressFailureMessage = false;
+
+    /**
+     * Stores suppressed messages
+     */
+    private String suppressedMessage = null;
+
+    /**
      * Do not call this constructor by yourself. Use VeritProof to create this
      * class.
      * 
@@ -491,6 +502,9 @@ public class VeritProofNode implements Serializable {
      */
     protected void makeStronger(VeritProofNode weakerSubProof,
             VeritProofNode strongerSubProof) {
+        if (weakerSubProof == strongerSubProof)
+            return;
+        assert (weakerSubProof != strongerSubProof);
         assert (weakerSubProof != null);
         assert (strongerSubProof != null);
         assert (this.subProofs.size() == 2);
@@ -668,6 +682,19 @@ public class VeritProofNode implements Serializable {
             return checkResolution();
         }
 
+        if (this.type.equals(VeriTToken.TRANS_CONGR)) {
+            this.suppressFailureMessage = true;
+            boolean result = checkTransitive() || checkCongruence()
+                    || checkCongruencePred();
+            this.suppressFailureMessage = false;
+            if (!result) {
+                assert (suppressedMessage != null);
+                System.out.println(suppressedMessage);
+                suppressedMessage = null;
+            }
+            return result;
+        }
+
         // unknown node type
         failOnMessage("Unknown node type!");
         assert (false);
@@ -688,10 +715,17 @@ public class VeritProofNode implements Serializable {
         if (message == null)
             return true;
         assert (message != null);
-        System.out.println("ERROR: Check of node '" + this.name + "' failed.");
-        System.out.println(message);
-        System.out.println("Node data follows:");
-        this.toString();
+        StringBuffer messageBuffer = new StringBuffer();
+        messageBuffer.append("ERROR: Check of node '" + this.name
+                + "' failed.\n");
+        messageBuffer.append(message);
+        messageBuffer.append("\nNode data follows:\n");
+        messageBuffer.append(this.toString());
+        messageBuffer.append("\n");
+        if (this.suppressFailureMessage) {
+            suppressedMessage += messageBuffer.toString();
+        } else
+            System.out.println(messageBuffer.toString());
 
         return false;
     }
@@ -776,7 +810,8 @@ public class VeritProofNode implements Serializable {
      *         instantiation.
      */
     private boolean checkTransitive() {
-        assert (this.type.equals(VeriTToken.EQ_TRANSITIVE));
+        assert (this.type.equals(VeriTToken.EQ_TRANSITIVE) || this.type
+                .equals(VeriTToken.TRANS_CONGR));
         if (literalConclusions.size() < 3)
             return failOnMessage("Transitivity axiom with less than 3 literals! Number: "
                     + literalConclusions.size());
@@ -830,7 +865,6 @@ public class VeritProofNode implements Serializable {
         } else {
 
             assert (literalConclusions.containsAll(path));
-            assert (path.size() == literalConclusions.size() - 1);
         }
         return true;
     }
@@ -842,7 +876,8 @@ public class VeritProofNode implements Serializable {
      *         instantiation.
      */
     private boolean checkCongruencePred() {
-        assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED));
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED) || this.type
+                .equals(VeriTToken.TRANS_CONGR));
 
         if (literalConclusions.size() < 3)
             return failOnMessage("Less than 3 literals in predicate congruence axiom! Number: "
@@ -946,7 +981,8 @@ public class VeritProofNode implements Serializable {
      *         instantiation.
      */
     private boolean checkCongruence() {
-        assert (this.type.equals(VeriTToken.EQ_CONGRUENT));
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT) || this.type
+                .equals(VeriTToken.TRANS_CONGR));
 
         if (literalConclusions.size() < 2)
             return failOnMessage("Too few conclusion literals: "
@@ -1391,8 +1427,8 @@ public class VeritProofNode implements Serializable {
 
         List<Formula> literals2 = new ArrayList<Formula>();
         List<DomainTerm> terms2 = new ArrayList<DomainTerm>(2);
-        terms1.add(globalTerm);
-        terms1.add(term2);
+        terms2.add(globalTerm);
+        terms2.add(term2);
         DomainEq equality2 = DomainEq.create(terms2, true);
         NotFormula disequality2 = NotFormula.create(equality2);
         literals2.add(disequality2);

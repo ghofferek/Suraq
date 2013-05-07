@@ -34,6 +34,11 @@ public class VeriTToken implements Serializable {
             .generate("eq_reflexive");
 
     /**
+     * A token for leafs that mix transitivity and congruence
+     */
+    public final static Token TRANS_CONGR = VeriTToken.generate("trans_congr");
+
+    /**
      * returns an existing token with that name or returns a new one.
      * 
      * @param name

@@ -51,6 +51,8 @@ public abstract class EqualityFormula implements Formula {
      *            it is an inequality.
      */
     protected EqualityFormula(Collection<? extends Term> terms, boolean equal) {
+        assert (terms != null);
+        assert (terms.size() > 1);
         this.equal = equal;
         ArrayList<Term> termList = new ArrayList<Term>(terms);
         // for (Term term : terms)

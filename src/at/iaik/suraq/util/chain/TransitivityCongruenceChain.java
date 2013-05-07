@@ -337,9 +337,8 @@ public class TransitivityCongruenceChain {
                 path.add(currentElement.getJustficiation());
                 currentTerm = currentElement.getTerm();
                 currentElement = currentElement.getNext();
-                assert (currentElement != null); // GH: I think this method is
-                                                 // only called on nodes that
-                                                 // actually need splitting
+                if (currentElement == null)
+                    return this.toColorableProofBaseCase();
             }
             path.remove(path.size() - 1);
             firstLocalChunk = new TransitivityCongruenceChain(
@@ -356,10 +355,13 @@ public class TransitivityCongruenceChain {
             currentElement = this.getEnd();
             assert (currentElement.getNext() == null);
             currentElement = this.getPredecessor(currentElement);
+            assert (currentElement != null);
             List<Justification> path = new ArrayList<Justification>();
             while (currentElement.getTermPartition() == endPartition
                     || currentElement.getTermPartition() == -1) {
                 path.add(0, currentElement.getJustficiation());
+                if (currentElement == this.start)
+                    return this.toColorableProofBaseCase();
                 currentElement = this.getPredecessor(currentElement);
             }
             assert (!path.isEmpty());
@@ -422,7 +424,7 @@ public class TransitivityCongruenceChain {
         conclusions.add(impliedLiteral);
         VeritProofNode firstShortcutLast = this.proof.addProofSet("fsl_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.EQ_TRANSITIVE, conclusions, null, null);
+                VeriTToken.TRANS_CONGR, conclusions, null, null);
 
         // Create the final result
         List<VeritProofNode> resultSubProofs = new ArrayList<VeritProofNode>(2);
@@ -448,6 +450,35 @@ public class TransitivityCongruenceChain {
                         VeriTToken.RESOLUTION, resultConclusions,
                         resultSubProofs, null);
 
+        return result;
+    }
+
+    /**
+     * Call only on chains that span only one partition!
+     * 
+     * @return a (colorable) VeritProofNode for this chain.
+     */
+    private VeritProofNode toColorableProofBaseCase() {
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() <= 1);
+        assert (this.proof != null);
+
+        Set<Formula> usedLiterals = this.usedLiterals();
+        List<Formula> conclusions = new ArrayList<Formula>(
+                usedLiterals.size() + 1);
+        conclusions.addAll(Util.invertAllLiterals(usedLiterals));
+
+        // Create implied Literal
+        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        terms.add(this.getStart().getTerm());
+        terms.add(this.getEndTerm());
+        DomainEq impliedLiteral = DomainEq.create(terms, true);
+        conclusions.add(impliedLiteral);
+
+        VeritProofNode result = proof.addProofSet("col_"
+                + TransitivityCongruenceChain.proofNodeCounter++,
+                VeriTToken.TRANS_CONGR, conclusions, null, null);
         return result;
     }
 
@@ -513,8 +544,8 @@ public class TransitivityCongruenceChain {
         Util.removeReflexiveLiterals(conclusions);
 
         VeritProofNode node1 = proof.addProofSet(
-                "tcc_left_" + proof.getClauseCounter(),
-                VeriTToken.EQ_TRANSITIVE, conclusions, null, null);
+                "tcc_left_" + proof.getClauseCounter(), VeriTToken.TRANS_CONGR,
+                conclusions, null, null);
 
         if (newStart == this.getEnd()) {
             // base case for recursion; whole chain in one partition
@@ -538,7 +569,7 @@ public class TransitivityCongruenceChain {
 
         VeritProofNode resNode = proof.addProofSet("tcc_res_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.RESOLUTION, conclusions, clauses, null);
+                VeriTToken.RESOLUTION, finalConclusions, clauses, null);
 
         return resNode;
     }
@@ -830,8 +861,11 @@ public class TransitivityCongruenceChain {
         assert (start.hasNext());
         assert (start.getTerm().equals(patch.getStart().getTerm()));
         assert (start.getNext().getTerm().equals(patch.getEndTerm()));
+
+        // Right splice must come first, otherwise we already overwrite
+        // start.getNext()
+        start.getNext().makeRightSplice(patch.getEnd());
         start.makeLeftSplice(patch.getStart());
-        patch.getEnd().makeRightSplice(start.getNext());
     }
 
     /**
@@ -1008,8 +1042,9 @@ public class TransitivityCongruenceChain {
      */
     public TransitivityCongruenceChainElement getPredecessor(
             TransitivityCongruenceChainElement element) {
+        assert (element != this.start);
         TransitivityCongruenceChainElement currentElement = this.start;
-        while (currentElement != null) {
+        while (currentElement.hasNext()) {
             if (currentElement.getNext().equals(element))
                 return currentElement;
             currentElement = currentElement.getNext();
