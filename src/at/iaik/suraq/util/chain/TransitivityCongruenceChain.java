@@ -128,11 +128,19 @@ public class TransitivityCongruenceChain {
             for (DomainTerm term : additionalTerms)
                 graph.addNode(term);
         }
+        assert (impliedLiteral.getTerms().size() == 2);
+        assert (impliedLiteral.getTerms().get(0) instanceof DomainTerm);
+        assert (impliedLiteral.getTerms().get(1) instanceof DomainTerm);
+        graph.addNode((DomainTerm) impliedLiteral.getTerms().get(0));
+        graph.addNode((DomainTerm) impliedLiteral.getTerms().get(1));
+        boolean addedSomething = true;
 
         List<Justification> path = graph.findPath((DomainTerm) impliedLiteral
                 .getTerms().get(0),
                 (DomainTerm) impliedLiteral.getTerms().get(1));
         while (path == null) {
+            assert (addedSomething);
+            addedSomething = false;
             Set<DomainTerm> nodes = graph.getNodes();
             for (DomainTerm term1 : nodes) {
                 if (!(term1 instanceof UninterpretedFunctionInstance))
@@ -173,6 +181,7 @@ public class TransitivityCongruenceChain {
                         graph.addEdge(term1, term2, completeLocalJustification);
                         graph.addEdge(term2, term1,
                                 completeLocalJustification.reverse());
+                        addedSomething = true;
                     }
                 }
             }
@@ -547,6 +556,9 @@ public class TransitivityCongruenceChain {
                 partitions.addAll(current.getTerm().getPartitionsFromSymbols());
                 partitions.addAll(current.getNext().getTerm()
                         .getPartitionsFromSymbols());
+                for (TransitivityCongruenceChain chain : current
+                        .getCongruenceJustification())
+                    partitions.addAll(chain.getPartitionsFromSymbols());
                 partitions.remove(-1);
                 if (partitions.size() > 1)
                     this.splitUncolorableCongruenceLink(current);
@@ -582,18 +594,22 @@ public class TransitivityCongruenceChain {
                     partitions.addAll(current.getTerm()
                             .getPartitionsFromSymbols());
                     partitions.remove(-1);
-                    if (!current.hasNext() || partitions.size() > 1) {
+                    if (partitions.size() > 1) {
                         partitions.removeAll(current.getTerm()
                                 .getPartitionsFromSymbols());
+                        current = chainSegment.getPredecessor(current);
                         break;
                     }
+                    if (!current.hasNext())
+                        break;
                     current = current.getNext();
                 }
-                newStart = current;
-                assert (newStart != chainSegment.start);
-                if (!newStart.hasNext()) { // whole chain is one segment.
+                if (!current.hasNext()) { // whole chain is one segment.
                     break;
                 } else {
+                    newStart = current;
+                    assert (newStart.getTermPartition() == -1);
+                    assert (newStart != chainSegment.start);
                     chainSegment = chainSegment.split(newStart);
                 }
             }
@@ -636,6 +652,7 @@ public class TransitivityCongruenceChain {
             partitions = firstSegment.getPartitionsFromSymbols();
             partitions.remove(-1);
             assert (partitions.size() <= 1);
+            assert (partitions.isEmpty() || partitions.contains(leftPartition));
             if ((partitions.isEmpty() || partitions.contains(leftPartition))
                     && segments.size() > 1) {
                 firstIntermediateParameters.add(firstSegment.getEndTerm());
@@ -669,38 +686,45 @@ public class TransitivityCongruenceChain {
             for (List<TransitivityCongruenceChain> segments : listOfSegments) {
                 assert (!segments.isEmpty());
                 TransitivityCongruenceChain currentSegment = segments.get(0);
-                partitions.clear();
-                partitions = currentSegment.getPartitionsFromSymbols();
-                partitions.remove(-1);
-                assert (partitions.size() <= 1);
-                if (!partitions.isEmpty()) {
-                    if (partitionOfThisStep == null) {
-                        partitionOfThisStep = partitions.iterator().next();
-                        currentJustification.add(currentSegment);
-                        currentIntermediateParameters.add(currentSegment
-                                .getEndTerm());
-                        segments.remove(0);
-                    } else {
-                        if (partitions.iterator().next()
-                                .equals(partitionOfThisStep)) {
+                if (segments.size() == 1) {
+                    currentJustification.add(new TransitivityCongruenceChain(
+                            currentSegment.start.getTerm(), this.proof));
+                    currentIntermediateParameters.add(currentSegment.start
+                            .getTerm());
+                } else {
+                    partitions.clear();
+                    partitions = currentSegment.getPartitionsFromSymbols();
+                    partitions.remove(-1);
+                    assert (partitions.size() <= 1);
+                    if (!partitions.isEmpty()) {
+                        if (partitionOfThisStep == null) {
+                            partitionOfThisStep = partitions.iterator().next();
                             currentJustification.add(currentSegment);
                             currentIntermediateParameters.add(currentSegment
                                     .getEndTerm());
                             segments.remove(0);
                         } else {
-                            currentJustification
-                                    .add(new TransitivityCongruenceChain(
-                                            currentSegment.start.getTerm(),
-                                            null));
-                            currentIntermediateParameters
-                                    .add(currentSegment.start.getTerm());
+                            if (partitions.iterator().next()
+                                    .equals(partitionOfThisStep)) {
+                                currentJustification.add(currentSegment);
+                                currentIntermediateParameters
+                                        .add(currentSegment.getEndTerm());
+                                segments.remove(0);
+                            } else {
+                                currentJustification
+                                        .add(new TransitivityCongruenceChain(
+                                                currentSegment.start.getTerm(),
+                                                this.proof));
+                                currentIntermediateParameters
+                                        .add(currentSegment.start.getTerm());
+                            }
                         }
+                    } else {
+                        currentJustification.add(currentSegment);
+                        currentIntermediateParameters.add(currentSegment
+                                .getEndTerm());
+                        segments.remove(0);
                     }
-                } else {
-                    currentJustification.add(currentSegment);
-                    currentIntermediateParameters.add(currentSegment
-                            .getEndTerm());
-                    segments.remove(0);
                 }
             }
             try {
@@ -734,7 +758,7 @@ public class TransitivityCongruenceChain {
         }
         try {
             nextTerm = UninterpretedFunctionInstance.create(function,
-                    firstIntermediateParameters);
+                    lastIntermediateParameters);
         } catch (Exception exc) {
             throw new RuntimeException(
                     "Unexpected exception while creating UninterpretedFunctionInstance. This should not happen.",
@@ -759,13 +783,13 @@ public class TransitivityCongruenceChain {
 
         assert (element.hasNext());
 
-        TransitivityCongruenceChainElement current = this.start;
-        Set<Integer> partitions1 = new HashSet<Integer>();
-        while (current != element) {
-            partitions1.addAll(current.getTerm().getPartitionsFromSymbols());
-            current = current.getNext();
-            assert (current != null);
-        }
+        // TransitivityCongruenceChainElement current = this.start;
+        // Set<Integer> partitions1 = new HashSet<Integer>();
+        // while (current != element) {
+        // partitions1.addAll(current.getTerm().getPartitionsFromSymbols());
+        // current = current.getNext();
+        // assert (current != null);
+        // }
 
         TransitivityCongruenceChain result = new TransitivityCongruenceChain(
                 new TransitivityCongruenceChainElement(element), target, proof);
