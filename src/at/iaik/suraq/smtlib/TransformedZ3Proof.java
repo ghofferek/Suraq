@@ -240,17 +240,24 @@ public class TransformedZ3Proof extends Z3Proof {
         // assert (this.checkZ3ProofNode());
     }
 
-    public TransformedZ3Proof(ResNode node, Map<Integer, Formula> literalMap) {
+    public TransformedZ3Proof(ResNode node, Map<Integer, Formula> literalMap,
+            Map<ResNode, TransformedZ3Proof> cache) {
 
-        // FIXME Don't unwind the DAG! Reuse nodes where possible!
+        assert (cache != null);
+        assert (!cache.containsKey(node));
 
         if (!node.isLeaf) { // CREATE RESOLUTION NODE
 
             this.proofType = SExpressionConstants.UNIT_RESOLUTION;
             this.literal = literalMap.get(node.pivot);
 
-            this.subProofs.add(new TransformedZ3Proof(node.left, literalMap));
-            this.subProofs.add(new TransformedZ3Proof(node.right, literalMap));
+            TransformedZ3Proof left = cache.get(node.left);
+            this.subProofs.add(left == null ? new TransformedZ3Proof(node.left,
+                    literalMap, cache) : left);
+
+            TransformedZ3Proof right = cache.get(node.right);
+            this.subProofs.add(right == null ? new TransformedZ3Proof(
+                    node.right, literalMap, cache) : right);
         } else { // CREATE ASSERTED NODE
 
             this.proofType = SExpressionConstants.ASSERTED;
@@ -271,7 +278,7 @@ public class TransformedZ3Proof extends Z3Proof {
         this.consequent = (OrFormula.generate(disjuncts))
                 .transformToConsequentsForm();
 
-        this.recomputeObsoleteLiterals();
+        // this.recomputeObsoleteLiterals(); // What's this for??
 
         // TODO Check: Should this be set for leafs only?
         // assign global clauses to part 1 (arbitrary choice)
@@ -282,6 +289,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
         assert (this.assertPartition > 0 || !this.proofType
                 .equals(SExpressionConstants.ASSERTED));
+
+        cache.put(node, this);
     }
 
     private void computeHasBeenMadeLocal() {

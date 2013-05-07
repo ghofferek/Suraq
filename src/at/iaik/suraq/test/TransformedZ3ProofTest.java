@@ -435,7 +435,7 @@ public class TransformedZ3ProofTest {
         // Transform back into Z3Proof format
         @SuppressWarnings("unused")
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
-                resolutionProof.getRoot(), Util.getLiteralMap());
+                resolutionProof.getRoot(), Util.getLiteralMap(), null);
 
         // System.out.println(recoveredProof);
         // System.out.println(recoveredProof.prettyPrint());

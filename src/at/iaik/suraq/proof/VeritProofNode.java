@@ -1281,6 +1281,8 @@ public class VeritProofNode implements Serializable {
             return true;
         if (type.equals(VeriTToken.EQ_TRANSITIVE))
             return true;
+        if (type.equals(VeriTToken.TRANS_CONGR))
+            return true;
 
         return false;
     }
@@ -1463,5 +1465,15 @@ public class VeritProofNode implements Serializable {
                 this.proof);
 
         return result;
+    }
+
+    /**
+     * @return <code>true</code> iff this node has symbols from no more than one
+     *         partition.
+     */
+    public boolean isColorable() {
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        return partitions.size() <= 1;
     }
 }

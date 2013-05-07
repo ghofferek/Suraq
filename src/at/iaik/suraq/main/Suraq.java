@@ -706,7 +706,7 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("  Recover resolution proof...");
         timer.start();
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
-                resolutionProof.getRoot(), Util.getLiteralMap());
+                resolutionProof.getRoot(), Util.getLiteralMap(), null);
         resolutionProof = null; // Allow this to be garbage collected
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer

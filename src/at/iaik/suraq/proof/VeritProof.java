@@ -956,8 +956,9 @@ public class VeritProof implements Serializable {
         resProof.checkProof(false);
         resProof.tranformResProofs();
 
+        Map<ResNode, TransformedZ3Proof> cache = new HashMap<ResNode, TransformedZ3Proof>();
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
-                resProof.getRoot(), literalMap);
+                resProof.getRoot(), literalMap, cache);
 
         return recoveredProof;
     }

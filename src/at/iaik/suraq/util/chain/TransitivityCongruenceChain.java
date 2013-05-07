@@ -520,11 +520,6 @@ public class TransitivityCongruenceChain {
                 conclusions.add(NotFormula.create(literal));
             current = current.getNext();
         }
-        // Also add literals for the global term at the interface to the next
-        // part of the chain
-        assert (current == newStart);
-        for (Formula literal : current.usedLiterals())
-            conclusions.add(NotFormula.create(literal));
 
         // Create and add the "shortcut"-literal, that connect from current to
         // the end. This one will be used for resolution.
@@ -543,9 +538,10 @@ public class TransitivityCongruenceChain {
         // Remove negative reflexive literals (they are false anyway)
         Util.removeReflexiveLiterals(conclusions);
 
-        VeritProofNode node1 = proof.addProofSet(
-                "tcc_left_" + proof.getClauseCounter(), VeriTToken.TRANS_CONGR,
-                conclusions, null, null);
+        VeritProofNode node1 = proof.addProofSet("tcc_left_"
+                + TransitivityCongruenceChain.proofNodeCounter++,
+                VeriTToken.TRANS_CONGR, conclusions, null, null);
+        assert (node1.isColorable());
 
         if (newStart == this.getEnd()) {
             // base case for recursion; whole chain in one partition
