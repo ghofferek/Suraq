@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -613,6 +614,22 @@ public class VeritProofNode implements Serializable {
         }
         str += "))";
         str = str.replaceAll("\\s{2,}", " ").replace("\n", "");
+
+        if (subProofs != null) {
+            if (subProofs.size() > 0) {
+                str += "\nConclusions of subproofs:";
+                for (VeritProofNode subproof : subProofs) {
+                    str += "\n" + subproof.name + ": ";
+                    for (Formula conclusion : subproof.literalConclusions) {
+                        str += " "
+                                + conclusion.toString()
+                                        .replaceAll("\\s{2,}", " ")
+                                        .replace("\n", "");
+                    }
+                }
+            }
+        }
+
         return str;
     }
 
@@ -753,7 +770,10 @@ public class VeritProofNode implements Serializable {
                 Formula invertedLiteral = Util.invertLiteral(literal);
                 if (!subProofs.get(1).literalConclusions
                         .contains(invertedLiteral))
-                    return failOnMessage("Resolving literal not found in inverse polarity in other subproof!");
+                    return failOnMessage("Resolving literal "
+                            + literal.toString().replaceAll("\\s{2,}", " ")
+                                    .replace("\n", "")
+                            + " from first subproof not found in inverse polarity in other subproof!");
                 else
                     resolvingLiteralFound = true;
             }
@@ -768,7 +788,10 @@ public class VeritProofNode implements Serializable {
                 Formula invertedLiteral = Util.invertLiteral(literal);
                 if (!subProofs.get(0).literalConclusions
                         .contains(invertedLiteral))
-                    return failOnMessage("Resolving literal not found in inverse polarity in other subproof!");
+                    return failOnMessage("Resolving literal "
+                            + literal.toString().replaceAll("\\s{2,}", " ")
+                                    .replace("\n", "")
+                            + " from second subproof not found in inverse polarity in other subproof!");
                 else
                     resolvingLiteralFound = true;
             }
@@ -1475,5 +1498,66 @@ public class VeritProofNode implements Serializable {
         Set<Integer> partitions = this.getPartitionsFromSymbols();
         partitions.remove(-1);
         return partitions.size() <= 1;
+    }
+
+    /**
+     * Recursively replaces the given <code>inverseBadLiteral</code> in this
+     * subtree and returns new nodes where it has been replaced by the
+     * <code>definingLiterals</code> instead.
+     * 
+     * @param inverseBadLiteral
+     *            the literal to replace
+     * @param definingLiterals
+     *            the defining literals to put in instead
+     * @param dagOperationCache
+     *            a cache for not unwinding the DAG.
+     * @return a new node in whose subtree <code>inverseBadLiteral</code> does
+     *         not occur any more
+     */
+    protected VeritProofNode replaceInverseBadLiteral(
+            Formula inverseBadLiteral, List<Formula> definingLiterals,
+            Map<VeritProofNode, VeritProofNode> dagOperationCache) {
+        assert (inverseBadLiteral != null);
+        assert (definingLiterals != null);
+        assert (dagOperationCache != null);
+
+        VeritProofNode result = dagOperationCache.get(this);
+        if (result != null)
+            return result;
+
+        assert (this.literalConclusions.contains(inverseBadLiteral) || this.subProofs
+                .size() == 2);
+
+        String newName = proof.freshNodeName("repl", this.name);
+        List<VeritProofNode> newSubProofs = null;
+        List<Formula> newConclusions = new ArrayList<Formula>(
+                this.literalConclusions.size());
+        for (Formula literal : this.literalConclusions) {
+            if (literal.equals(inverseBadLiteral))
+                newConclusions.addAll(definingLiterals);
+            else
+                newConclusions.add(literal);
+        }
+
+        assert (!newConclusions.contains(inverseBadLiteral));
+
+        if (this.subProofs.size() != 0) {
+            assert (this.subProofs.size() == 2);
+            assert (this.type.equals(VeriTToken.RESOLUTION));
+            newSubProofs = new ArrayList<VeritProofNode>(2);
+            for (VeritProofNode subProof : this.subProofs) {
+                if (subProof.literalConclusions.contains(inverseBadLiteral))
+                    newSubProofs.add(subProof.replaceInverseBadLiteral(
+                            inverseBadLiteral, definingLiterals,
+                            dagOperationCache));
+                else
+                    newSubProofs.add(subProof);
+            }
+        }
+
+        result = this.proof.addProofSet(newName, this.type, newConclusions,
+                newSubProofs, null, false);
+        dagOperationCache.put(this, result);
+        return result;
     }
 }

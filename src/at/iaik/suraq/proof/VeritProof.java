@@ -27,7 +27,6 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.MutableInteger;
-import at.iaik.suraq.util.Stack;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
@@ -224,7 +223,9 @@ public class VeritProof implements Serializable {
      * @param node
      */
     private void addNodeToInternalDataStructures(VeritProofNode node) {
-        assert (proofSets.get(node.getName()) == null);
+        if (proofSets.get(node.getName()) != null) {
+            throw new RuntimeException("Duplicate node name: " + node.getName());
+        }
         this.clauseCounter++;
         proofSets.put(node.getName(), node);
         nodeCache.put(ImmutableSet.create(node.getLiteralConclusionsAsSet()),
@@ -639,7 +640,7 @@ public class VeritProof implements Serializable {
      * Cleans the proof of bad literals and splits leafs into colorable parts.
      */
     public void cleanProof() {
-        assert (this.checkProof());
+        // assert (this.checkProof());
         Util.printToSystemOutWithWallClockTimePrefix("Number of bad leafs to clean: "
                 + this.goodDefinitionsOfBadLiterals.size());
         VeritProofNode currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
@@ -686,6 +687,7 @@ public class VeritProof implements Serializable {
                 replacement = leafToClean.splitPredicateLeaf();
             } else {
                 // Unexpected proof type!
+                System.out.println(leafToClean.toString());
                 assert (false);
             }
             assert (replacement != null);
@@ -800,82 +802,95 @@ public class VeritProof implements Serializable {
         }
         VeritProofNode turningPoint = currentNode;
 
-        // Go back up the other way, record the path
-        Stack<VeritProofNode> path = new Stack<VeritProofNode>();
-        path.push(currentNode);
-        while (!currentNode.getSubProofs().isEmpty()) {
-            boolean found = false;
-            for (VeritProofNode currentChild : currentNode.getSubProofs()) {
-                if (currentChild.getLiteralConclusionsAsSet().contains(
-                        inverseBadLiteral)) {
-                    currentNode = currentChild;
-                    path.push(currentNode);
-                    found = true;
-                    break;
-                }
-            }
-            assert (found);
-        }
-        assert (currentNode.getSubProofs().isEmpty());
-
-        // Replace nodes on the path
-        VeritProofNode oldPreviousNode = null;
-        VeritProofNode newPreviousNode = null;
-        currentNode = path.pop();
-        while (true) {
-            List<Formula> newConclusion = new ArrayList<Formula>();
-            for (Formula literal : currentNode.getLiteralConclusions()) {
-                if (literal.equals(inverseBadLiteral))
-                    newConclusion.addAll(definingLiterals);
-                else
-                    newConclusion.add(literal);
-            }
-
-            List<VeritProofNode> newClauses = new ArrayList<VeritProofNode>();
-            for (VeritProofNode node : currentNode.getSubProofs()) {
-                if (node == oldPreviousNode) {
-                    assert (newPreviousNode != null);
-                    newClauses.add(newPreviousNode);
-                } else
-                    newClauses.add(node);
-            }
-
-            // check node cache for an existing node
-            VeritProofNode newNode = null;
-            WeakReference<VeritProofNode> reference = nodeCache
-                    .get(ImmutableSet.create(newConclusion));
-            if (reference != null) {
-                newNode = reference.get();
-                if (newNode != null) {
-                    // Check whether its a node on the path. If so, do not take
-                    // it.
-                    if (path.contains(newNode) || newNode.equals(turningPoint))
-                        newNode = null;
-                }
-            }
-
-            if (newNode == null) {
-                newNode = new VeritProofNode("repl" + currentNode.getName(),
-                        currentNode.getType(), newConclusion, newClauses,
-                        currentNode.getIargs(), this);
-                nodeCache.put(ImmutableSet.create(newConclusion),
-                        new WeakReference<VeritProofNode>(newNode));
-            }
-
-            // update variables
-            newPreviousNode = newNode;
-            oldPreviousNode = currentNode;
-            if (path.isEmpty())
-                break;
-            else
-                currentNode = path.pop();
-        }
-
-        assert (currentNode == turningPoint);
-        currentNode = newPreviousNode;
+        // Replace inverse bad literal in other subtree
+        Map<VeritProofNode, VeritProofNode> dagOperationCache = new HashMap<VeritProofNode, VeritProofNode>();
+        VeritProofNode otherChild = turningPoint
+                .getChildWithLiteralInOppositePolarity(badLiteral);
+        assert (otherChild.getLiteralConclusions().contains(inverseBadLiteral));
+        VeritProofNode updatedTurningPointChild = otherChild
+                .replaceInverseBadLiteral(inverseBadLiteral, definingLiterals,
+                        dagOperationCache);
+        //
+        // // OLD CODE
+        // // Go back up the other way, record the path
+        // Stack<VeritProofNode> path = new Stack<VeritProofNode>();
+        // path.push(currentNode);
+        // while (!currentNode.getSubProofs().isEmpty()) {
+        // boolean found = false;
+        // for (VeritProofNode currentChild : currentNode.getSubProofs()) {
+        // if (currentChild.getLiteralConclusionsAsSet().contains(
+        // inverseBadLiteral)) {
+        // // Currently, we cannot handle the case that both subproofs
+        // // contain the inverse bad literal
+        // assert (!found);
+        // currentNode = currentChild;
+        // path.push(currentNode);
+        // found = true;
+        // }
+        // }
+        // assert (found);
+        // }
+        // assert (currentNode.getSubProofs().isEmpty());
+        //
+        // // Replace nodes on the path
+        // VeritProofNode oldPreviousNode = null;
+        // VeritProofNode newPreviousNode = null;
+        // currentNode = path.pop();
+        // while (true) {
+        // List<Formula> newConclusion = new ArrayList<Formula>();
+        // for (Formula literal : currentNode.getLiteralConclusions()) {
+        // if (literal.equals(inverseBadLiteral))
+        // newConclusion.addAll(definingLiterals);
+        // else
+        // newConclusion.add(literal);
+        // }
+        //
+        // List<VeritProofNode> newClauses = new ArrayList<VeritProofNode>();
+        // for (VeritProofNode node : currentNode.getSubProofs()) {
+        // if (node == oldPreviousNode) {
+        // assert (newPreviousNode != null);
+        // newClauses.add(newPreviousNode);
+        // } else
+        // newClauses.add(node);
+        // }
+        //
+        // // check node cache for an existing node
+        // VeritProofNode newNode = null;
+        // WeakReference<VeritProofNode> reference = nodeCache
+        // .get(ImmutableSet.create(newConclusion));
+        // if (reference != null) {
+        // newNode = reference.get();
+        // if (newNode != null) {
+        // // Check whether its a node on the path. If so, do not take
+        // // it.
+        // if (path.contains(newNode) || newNode.equals(turningPoint))
+        // newNode = null;
+        // }
+        // }
+        //
+        // if (newNode == null) {
+        // newNode = new VeritProofNode("repl" + currentNode.getName(),
+        // currentNode.getType(), newConclusion, newClauses,
+        // currentNode.getIargs(), this);
+        // nodeCache.put(ImmutableSet.create(newConclusion),
+        // new WeakReference<VeritProofNode>(newNode));
+        // }
+        //
+        // // update variables
+        // newPreviousNode = newNode;
+        // oldPreviousNode = currentNode;
+        // if (path.isEmpty())
+        // break;
+        // else
+        // currentNode = path.pop();
+        // }
+        //
+        // assert (currentNode == turningPoint);
+        // currentNode = newPreviousNode;
 
         // Resolve literals that should already have been resolved before the
         // turning point
+        currentNode = updatedTurningPointChild;
         while (true) {
             Set<Formula> literalsToResolve = new HashSet<Formula>();
             literalsToResolve.addAll(currentNode.getLiteralConclusionsAsSet());
@@ -903,17 +918,17 @@ public class VeritProof implements Serializable {
 
             VeritProofNode newNode = null;
 
-            WeakReference<VeritProofNode> reference = nodeCache
-                    .get(ImmutableSet.create(newConclusion));
-            if (reference != null) {
-                newNode = reference.get();
-                if (newNode != null) {
-                    // Check whether its a node on the path. If so, do not take
-                    // it.
-                    if (path.contains(newNode) || newNode.equals(turningPoint))
-                        newNode = null;
-                }
-            }
+            // WeakReference<VeritProofNode> reference = nodeCache
+            // .get(ImmutableSet.create(newConclusion));
+            // if (reference != null) {
+            // newNode = reference.get();
+            // if (newNode != null) {
+            // // Check whether its a node on the path. If so, do not take
+            // // it.
+            // if (path.contains(newNode) || newNode.equals(turningPoint))
+            // newNode = null;
+            // }
+            // }
             if (newNode == null) {
                 newNode = new VeritProofNode("res."
                         + newClauses.get(0).getName() + "."
@@ -1100,6 +1115,36 @@ public class VeritProof implements Serializable {
      */
     public int size() {
         return proofSets.size();
+    }
+
+    /**
+     * Returns a node name that does not yet exist in the proof. The name will
+     * be of the form <code>prefix + number + suffix</code>, where number is
+     * either the empty string or the smallest (positive) number such that the
+     * name is fresh.
+     * 
+     * @param prefix
+     * @param suffix
+     * @return a node name that does not yet exist in the proof.
+     */
+    public String freshNodeName(String prefix, String suffix) {
+        assert (prefix != null);
+        assert (suffix != null);
+
+        String name = prefix + suffix;
+        if (!proofSets.containsKey(name))
+            return name;
+
+        int number = 1;
+        while (number > 0) {
+            name = prefix + number + suffix;
+            if (!proofSets.containsKey(name))
+                return name;
+            number++;
+        }
+        // No fresh name found
+        assert (false);
+        return null;
     }
 
     // Methods for serialization/deserialization

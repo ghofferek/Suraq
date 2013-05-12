@@ -519,7 +519,7 @@ public class Suraq implements Runnable {
             VeritProof proof, List<PropositionalVariable> controlVars) {
 
         Timer timer = new Timer();
-        assert (proof.checkProof());
+        // assert (proof.checkProof());
         Util.printToSystemOutWithWallClockTimePrefix("  Cleaning veriT proof...");
         timer.start();
         proof.cleanProof();
