@@ -624,10 +624,10 @@ public abstract class SMTLibParser extends Parser {
 
         UninterpretedFunction function = isUninterpredFunctionInstance(expression);
         if (function != null) {
-            if (function.getType().equals(SExpressionConstants.BOOL_TYPE))
-                throw new ParseError(expression,
-                        "Boolean uninterpreted function encountered, where Term was expected: "
-                                + function.getName().toString());
+            // if (function.getType().equals(SExpressionConstants.BOOL_TYPE))
+            // throw new ParseError(expression,
+            // "Boolean uninterpreted function encountered, where Term was expected: "
+            // + function.getName().toString());
             if (function.getNumParams() != expression.getChildren().size() - 1)
                 throw new ParseError(expression, "Function '"
                         + function.getName() + "' expects "
@@ -642,8 +642,15 @@ public abstract class SMTLibParser extends Parser {
             }
             try {
                 int partition = getPartitionUninterpretedFunction(function);
-                return UninterpretedFunctionInstance.create(function,
-                        parameters, partition);
+                if (function.getType().equals(SExpressionConstants.VALUE_TYPE))
+                    return UninterpretedFunctionInstance.create(function,
+                            parameters, partition);
+                else {
+                    assert (function.getType()
+                            .equals(SExpressionConstants.BOOL_TYPE));
+                    return UninterpretedPredicateInstance.create(function,
+                            parameters, partition);
+                }
             } catch (SuraqException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing uninterpreted function instance.");

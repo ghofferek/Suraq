@@ -289,7 +289,17 @@ public class VeritProof implements Serializable {
     protected void removeDanglingProofNode(VeritProofNode node) {
         assert (node.getParents().isEmpty());
         proofSets.remove(node.getName());
-        goodDefinitionsOfBadLiterals.remove(node);
+        // goodDefinitionsOfBadLiterals.remove(node);
+        // Workaround because removal seems to be broken
+        Set<VeritProofNode> tmp = new HashSet<VeritProofNode>();
+        for (VeritProofNode otherNode : goodDefinitionsOfBadLiterals) {
+            if (!otherNode.equals(node))
+                tmp.add(otherNode);
+        }
+        goodDefinitionsOfBadLiterals.clear();
+        goodDefinitionsOfBadLiterals.addAll(tmp);
+        // End workaround
+        assert (!goodDefinitionsOfBadLiterals.contains(node));
         removeFromCache(node);
 
         for (VeritProofNode child : node.getSubProofs()) {
@@ -944,7 +954,10 @@ public class VeritProof implements Serializable {
         assert (turningPoint.getLiteralConclusionsAsSet().equals(currentNode
                 .getLiteralConclusionsAsSet()));
         for (VeritProofNode parent : turningPoint.getParents()) {
+            turningPoint.removeParent(parent);
+            assert (!turningPoint.getParents().contains(parent));
             boolean updated = parent.updateProofNode(turningPoint, currentNode);
+            assert (!parent.getSubProofs().contains(turningPoint));
             assert (updated);
         }
     }

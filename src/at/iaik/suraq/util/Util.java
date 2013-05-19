@@ -1226,4 +1226,36 @@ public final class Util {
         }
         return result;
     }
+
+    /**
+     * Reverses the order of the terms in the given <code>literal</code>.
+     * <code>literal</code> must be an <code>EqualityFormula</code> with exactly
+     * two terms. A negated literal is also allowed. If the literal is not an
+     * equality literal, it is returned unchanged.
+     * 
+     * @param literal
+     * @return the literal with terms in reversed order.
+     */
+    public static Formula reverseTermsInLiteral(Formula literal) {
+        assert (Util.isLiteral(literal));
+        if (!(Util.makeLiteralPositive(literal) instanceof EqualityFormula))
+            return literal;
+        EqualityFormula eq = (EqualityFormula) Util
+                .makeLiteralPositive(literal);
+        assert (eq.getTerms().size() == 2);
+        List<Term> terms = new ArrayList<Term>(2);
+        terms.add(eq.getTerms().get(1));
+        terms.add(eq.getTerms().get(0));
+        EqualityFormula newEq;
+        try {
+            newEq = EqualityFormula.create(terms, true);
+        } catch (IncomparableTermsException exc) {
+            throw new RuntimeException(
+                    "Unexpected exception while trying to reverse terms in literal.");
+        }
+        if (Util.getSignValue(literal))
+            return newEq;
+        else
+            return NotFormula.create(newEq);
+    }
 }

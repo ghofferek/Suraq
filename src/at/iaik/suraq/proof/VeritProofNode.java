@@ -45,6 +45,8 @@ public class VeritProofNode implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private final int hashCode;
+
     /**
      * The name of the VeritProofNode. E.g. ".c11"
      */
@@ -219,6 +221,9 @@ public class VeritProofNode implements Serializable {
         assert (this.checkProofNode());
         assert (proof != null);
         proof.addProofNode(this);
+
+        this.hashCode = literalConclusions.hashCode() + 32 * name.hashCode()
+                + 64 * type.hashCode();
     }
 
     /**
@@ -386,12 +391,18 @@ public class VeritProofNode implements Serializable {
      *            the parent to remove
      */
     protected void removeParent(VeritProofNode parent) {
-        if (parents.contains(parent)) {
-            parents.remove(parent);
-            if (parents.isEmpty())
-                this.kill();
+        Set<VeritProofNode> newParents = new HashSet<VeritProofNode>();
+        // Workaround becausre removal seems to be broken
+        for (VeritProofNode otherParent : parents) {
+            if (!parent.equals(otherParent))
+                newParents.add(otherParent);
         }
-
+        parents.clear();
+        parents.addAll(newParents);
+        // end workaround
+        assert (!parents.contains(parent));
+        if (parents.isEmpty())
+            this.kill();
     }
 
     /**
@@ -437,7 +448,8 @@ public class VeritProofNode implements Serializable {
             VeritProofNode newSubProof) {
         assert (oldSubProof != null);
         assert (newSubProof != null);
-        assert (oldSubProof.getParents().contains(this));
+        // assert (oldSubProof.getParents().contains(this)); // Parent is
+        // removed before update
         assert (this.subProofs.size() == 2);
         assert (this.type.equals(VeriTToken.RESOLUTION));
 
@@ -762,9 +774,46 @@ public class VeritProofNode implements Serializable {
             return failOnMessage("Resolution with number of subproofs !=2. Number: "
                     + subProofs.size());
 
+        // Special case if one of the two children is a "LEM instance" (a \/ ~a)
+        if (subProofs.get(0).isLEM()) {
+            Formula literal = Util
+                    .makeLiteralPositive(subProofs.get(0).literalConclusions
+                            .get(0));
+            if (!subProofs.get(1).literalConclusions.contains(literal)
+                    && !subProofs.get(1).literalConclusions.contains(Util
+                            .invertLiteral(literal)))
+                return failOnMessage("LEM literal not found in other subproof!");
+            if (!literalConclusions
+                    .containsAll(subProofs.get(1).literalConclusions))
+                return failOnMessage("Missing a literal after LEM resolution.");
+            if (!subProofs.get(1).literalConclusions
+                    .containsAll(literalConclusions))
+                return failOnMessage("Too much literals after LEM resolution.");
+            return true;
+        }
+
+        if (subProofs.get(1).isLEM()) {
+            Formula literal = Util
+                    .makeLiteralPositive(subProofs.get(1).literalConclusions
+                            .get(0));
+            if (!subProofs.get(0).literalConclusions.contains(literal)
+                    && !subProofs.get(0).literalConclusions.contains(Util
+                            .invertLiteral(literal)))
+                return failOnMessage("LEM literal not found in other subproof!");
+            if (!literalConclusions
+                    .containsAll(subProofs.get(0).literalConclusions))
+                return failOnMessage("Missing a literal after LEM resolution.");
+            if (subProofs.get(0).literalConclusions
+                    .containsAll(literalConclusions))
+                return failOnMessage("Too much literals after LEM resolution.");
+            return true;
+        }
+
         boolean resolvingLiteralFound = false;
         for (Formula literal : subProofs.get(0).literalConclusions) {
-            if (!literalConclusions.contains(literal)) {
+            if (!literalConclusions.contains(literal)
+                    && !literalConclusions.contains(Util
+                            .reverseTermsInLiteral(literal))) {
                 if (resolvingLiteralFound)
                     return failOnMessage("Found more than one resolving literal!");
                 Formula invertedLiteral = Util.invertLiteral(literal);
@@ -782,7 +831,9 @@ public class VeritProofNode implements Serializable {
             return failOnMessage("No resolving literal found!");
         resolvingLiteralFound = false;
         for (Formula literal : subProofs.get(1).literalConclusions) {
-            if (!literalConclusions.contains(literal)) {
+            if (!literalConclusions.contains(literal)
+                    && !literalConclusions.contains(Util
+                            .reverseTermsInLiteral(literal))) {
                 if (resolvingLiteralFound)
                     return failOnMessage("Found more than one resolving literal!");
                 Formula invertedLiteral = Util.invertLiteral(literal);
@@ -827,6 +878,23 @@ public class VeritProofNode implements Serializable {
     }
 
     /**
+     * @return <code>true</code> iff this is an instance of the law of excluded
+     *         middle (LEM).
+     */
+    private boolean isLEM() {
+        if (literalConclusions.size() != 2)
+            return false;
+        assert (literalConclusions.size() == 2);
+        Formula lit1 = literalConclusions.get(0);
+        Formula lit2 = literalConclusions.get(1);
+        if (Util.makeLiteralPositive(lit1).equals(
+                Util.makeLiteralPositive(lit2))
+                && (Util.getSignValue(lit1) ^ Util.getSignValue(lit2)))
+            return true;
+        return false;
+    }
+
+    /**
      * Call only on nodes with type <code>EQ_TRANSITIVE</code>.
      * 
      * @return <code>true</code> iff this is a valid transitivity axiom
@@ -835,6 +903,13 @@ public class VeritProofNode implements Serializable {
     private boolean checkTransitive() {
         assert (this.type.equals(VeriTToken.EQ_TRANSITIVE) || this.type
                 .equals(VeriTToken.TRANS_CONGR));
+        if (literalConclusions.size() == 2) {
+            if (!isLEM())
+                return failOnMessage("Transitivity with size two that is not a LEM.");
+            else
+                return true;
+
+        }
         if (literalConclusions.size() < 3)
             return failOnMessage("Transitivity axiom with less than 3 literals! Number: "
                     + literalConclusions.size());
@@ -1065,6 +1140,7 @@ public class VeritProofNode implements Serializable {
         // Taking the assumption that equalities in the axiom instantiation
         // occur in the same order as they occur as parameters to the
         // uninterpreted function
+        boolean allOk = true;
         for (int count = 0; count < terms1.size(); count++) {
 
             // For each parameter (-pair), search for negated equality.
@@ -1096,6 +1172,7 @@ public class VeritProofNode implements Serializable {
 
             // Try via transitivity chain
             Graph<Term, Formula> equalityGraph = new Graph<Term, Formula>();
+            allOk = true;
             for (Formula currentLiteral : literalConclusions.subList(0,
                     literalConclusions.size() - 1)) {
                 if (!Util.isLiteral(currentLiteral))
@@ -1128,9 +1205,25 @@ public class VeritProofNode implements Serializable {
                 continue;
             }
 
-            // Not found any matching equality.
-            return failOnMessage("Not found an equality path for parameter number "
-                    + count);
+            // Not found any matching equality. Try with Congruence Closure
+            // instead, as the graph does not merge congruences automatically
+            allOk = false;
+            break;
+
+        }
+        if (!allOk) { // check with Congruence Closure
+            List<EqualityFormula> positiveLiterals = new ArrayList<EqualityFormula>(
+                    literalConclusions.size() - 1);
+            for (Formula literal : literalConclusions.subList(0,
+                    literalConclusions.size() - 1)) {
+                assert (Util.makeLiteralPositive(literal) instanceof EqualityFormula);
+                positiveLiterals.add((EqualityFormula) Util
+                        .makeLiteralPositive(literal));
+            }
+            assert (impliedLiteral instanceof DomainEq);
+            if (!CongruenceClosure.checkLiteralImplication(positiveLiterals,
+                    (DomainEq) impliedLiteral))
+                return failOnMessage("Could not prove congruence axiom with congruence closure.");
         }
         return true;
     }
@@ -1560,4 +1653,44 @@ public class VeritProofNode implements Serializable {
         dagOperationCache.put(this, result);
         return result;
     }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof VeritProofNode))
+            return false;
+
+        final VeritProofNode other = (VeritProofNode) obj;
+        if (this.hashCode != other.hashCode)
+            return false;
+        if (this.proof != other.proof)
+            return false;
+        if (!this.name.equals(other.name))
+            return false;
+        if (!this.type.equals(other.type))
+            return false;
+        if (!(this.iargs == null ? other.iargs == null : this.iargs
+                .equals(other.iargs)))
+            return false;
+        if (!(this.subProofs == null ? other.subProofs == null : this.subProofs
+                .equals(other.subProofs)))
+            return false;
+        if (!(this.parents == null ? other.parents == null : this.parents
+                .equals(other.parents)))
+            return false;
+        return true;
+    }
+
 }
