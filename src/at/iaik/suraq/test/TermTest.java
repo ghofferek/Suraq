@@ -3,8 +3,7 @@
  */
 package at.iaik.suraq.test;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import at.iaik.suraq.smtlib.formula.Term;
@@ -23,9 +22,11 @@ public class TermTest {
     @Test
     public void testConstants() throws ClassNotFoundException {
 
-        Assert.assertEquals(Class.forName("at.iaik.suraq.smtlib.formula.DomainTerm"),
+        Assert.assertEquals(
+                Class.forName("at.iaik.suraq.smtlib.formula.DomainTerm"),
                 Term.domainTermClass);
-        Assert.assertEquals(Class.forName("at.iaik.suraq.smtlib.formula.ArrayTerm"),
+        Assert.assertEquals(
+                Class.forName("at.iaik.suraq.smtlib.formula.ArrayTerm"),
                 Term.arrayTermClass);
         Assert.assertEquals(
                 Class.forName("at.iaik.suraq.smtlib.formula.PropositionalTerm"),

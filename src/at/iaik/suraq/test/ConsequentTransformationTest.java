@@ -6,8 +6,7 @@ package at.iaik.suraq.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import at.iaik.suraq.smtlib.formula.AndFormula;
@@ -116,7 +115,8 @@ public class ConsequentTransformationTest {
 
         // define input
         Formula propVar = PropositionalVariable.create("a");
-        Formula input = NotFormula.create(NotFormula.create(NotFormula.create(propVar)));
+        Formula input = NotFormula.create(NotFormula.create(NotFormula
+                .create(propVar)));
 
         // create expected output
         ArrayList<Formula> subFormulas = new ArrayList<Formula>();
@@ -258,7 +258,8 @@ public class ConsequentTransformationTest {
         List<Formula> inputAnd2Formulas = new ArrayList<Formula>();
         inputAnd2Formulas.add(a);
         inputAnd2Formulas.add(and1Formula);
-        Formula input = NotFormula.create(AndFormula.generate(inputAnd2Formulas));
+        Formula input = NotFormula.create(AndFormula
+                .generate(inputAnd2Formulas));
 
         // create expected output
         List<Formula> subFormulas = new ArrayList<Formula>();

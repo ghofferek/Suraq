@@ -2101,7 +2101,7 @@ public class Suraq implements Runnable {
             // int state = qbfSolver.getState();
             // if(state == QBFSolver.SAT)
             System.err
-                    .println("System.exit(0) in Suraq.java(1518) because of QBF.");
+                    .println("System.exit(0) in Suraq.java(2104) because of QBF.");
             Suraq.extTimer.stopReset("after QBF enc");
             System.exit(0);
             return null;
