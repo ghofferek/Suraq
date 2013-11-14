@@ -122,7 +122,7 @@ public class VeritProofNode implements Serializable {
         assert ((new HashSet<Formula>(reducedConclusions)).size() == reducedConclusions
                 .size());
 
-        List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>();
+        List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>(2);
         ArrayList<Formula> tmpLiteralConclusions = new ArrayList<Formula>();
 
         if (this.type.equals(VeriTToken.RESOLUTION) && clauses.size() > 2) {
@@ -214,7 +214,7 @@ public class VeritProofNode implements Serializable {
 
         for (VeritProofNode child : this.subProofs)
             child.addParent(this);
-        this.parents = new HashSet<VeritProofNode>();
+        this.parents = new HashSet<VeritProofNode>(4);
         this.iargs = iargs == null ? null : new Integer(iargs);
         this.proof = proof;
 
@@ -392,7 +392,7 @@ public class VeritProofNode implements Serializable {
      */
     protected void removeParent(VeritProofNode parent) {
         Set<VeritProofNode> newParents = new HashSet<VeritProofNode>();
-        // Workaround becausre removal seems to be broken
+        // Workaround because removal seems to be broken
         for (VeritProofNode otherParent : parents) {
             if (!parent.equals(otherParent))
                 newParents.add(otherParent);

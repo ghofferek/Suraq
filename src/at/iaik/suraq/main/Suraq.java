@@ -1359,6 +1359,7 @@ public class Suraq implements Runnable {
         }
 
         if (cache == null) {
+            Util.printMemoryInformation();
             Util.printToSystemOutWithWallClockTimePrefix("start input transformations");
             Timer inputTransformationTimer = new Timer();
             inputTransformationTimer.start();
@@ -1367,6 +1368,7 @@ public class Suraq implements Runnable {
             inputTransformationTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("finished input transformations in "
                     + inputTransformationTimer + ".\n");
+            Util.printMemoryInformation();
 
             Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
             Timer proofcalculationTimer = new Timer();
@@ -1384,7 +1386,7 @@ public class Suraq implements Runnable {
             } catch (FileNotFoundException exc) {
                 throw new RuntimeException(exc);
             }
-
+            Util.printMemoryInformation();
             Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
             Timer parseTimer = new Timer();
             parseTimer.start();
@@ -1427,6 +1429,7 @@ public class Suraq implements Runnable {
         }
 
         assert (veritProof != null);
+        Util.printMemoryInformation();
         iteTrees = proofTransformationAndInterpolation(veritProof,
                 controlVariables);
 

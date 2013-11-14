@@ -4,6 +4,7 @@
 package at.iaik.suraq.util;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +57,12 @@ public final class Util {
     private static Map<Integer, ResNode> resNodes = new HashMap<Integer, ResNode>();
     private static ResProof resProof;
     private static Map<Integer, Formula> literalMap = new HashMap<Integer, Formula>();
+
+    public static final DecimalFormat byteAmountFormatter = new DecimalFormat(
+            "000,000,000,000");
+
+    public static final DecimalFormat largeNumberFormatter = new DecimalFormat(
+            "###,###,###,###");
 
     /**
      * Counts the number of Tseitin vars that have been introduced so far. This
@@ -1200,6 +1207,23 @@ public final class Util {
                 DateFormat.MEDIUM, DateFormat.MEDIUM);
         String dateTimeString = dateFormat.format(new Date());
         System.out.println("[" + dateTimeString + "] " + line);
+    }
+
+    public static void printMemoryInformation() {
+        System.out
+                .println("--------------------------------------------------------------------------------");
+        System.out.println("MEMORY INFORMATION:");
+        System.out.println("Total Memory: "
+                + Util.byteAmountFormatter.format(Runtime.getRuntime()
+                        .totalMemory()));
+        System.out.println("Free Memory : "
+                + Util.byteAmountFormatter.format(Runtime.getRuntime()
+                        .freeMemory()));
+        System.out.println("Max. Memory : "
+                + Util.byteAmountFormatter.format(Runtime.getRuntime()
+                        .maxMemory()));
+        System.out
+                .println("--------------------------------------------------------------------------------");
     }
 
     /**
