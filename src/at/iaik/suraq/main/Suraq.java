@@ -345,6 +345,10 @@ public class Suraq implements Runnable {
             // DebugHelper.getInstance().stringtoFile(tseitinPartitions.toString(),
             // "tseitin-all.txt");
 
+            if (options.getDumpSMTQueryFile() != null) {
+                dumpSMTQuery(options.getDumpSMTQueryFile());
+            }
+
             allPartitionsTimer.end();
             Util.printToSystemOutWithWallClockTimePrefix("  All partitions done. ("
                     + allPartitionsTimer + ")");
@@ -1372,10 +1376,6 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("finished input transformations in "
                     + inputTransformationTimer + ".\n");
             Util.printMemoryInformation();
-
-            if (options.getDumpSMTQueryFile() != null) {
-                dumpSMTQuery(solverInputStr, options.getDumpSMTQueryFile());
-            }
 
             Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
             Timer proofcalculationTimer = new Timer();
@@ -2686,28 +2686,40 @@ public class Suraq implements Runnable {
     }
 
     /**
-     * Dump the given <code>query</code> to the given <code>filename</code>.
-     * Some extra information will be prepended.
+     * Dump the assertPartitionFormulas (and the required declarations) to the
+     * given <code>filename</code>. Some extra information will be prepended.
      * 
      * @param query
      * @param filename
      */
-    private void dumpSMTQuery(String query, String filename) {
+    private void dumpSMTQuery(String filename) {
         try {
+            Util.printToSystemOutWithWallClockTimePrefix("Dumping SMT query to file "
+                    + filename);
             File file = new File(filename);
             FileWriter writer = new FileWriter(file);
             writer.write("; This SMT file was created by the SURAQ synthesis tool.\n");
             writer.write("; Date and time of creation: ");
-            writer.write(new SimpleDateFormat("yyyyMMdd_HHmm").format(Calendar
-                    .getInstance().getTime()));
+            writer.write(new SimpleDateFormat("yyyy-MM-dd HH:mm")
+                    .format(Calendar.getInstance().getTime()));
             writer.write("\n");
             writer.write("; Original spec file: ");
             writer.write(SuraqOptions.getInstance().getInput());
             writer.write("\n");
             writer.write("; Expected result: UNSAT\n;\n");
-            writer.write("; For more information contact Georg Hofferek <georg.hofferek@iaik.tugraz.at>\n\n");
+            writer.write("; For more information contact Georg Hofferek <georg.hofferek@iaik.tugraz.at>.\n\n");
 
-            writer.write(query);
+            writer.write(SExpressionConstants.SET_LOGIC_QF_UF.toString());
+            writer.write(SExpressionConstants.DECLARE_SORT_VALUE.toString());
+            writer.write(declarationStr);
+            writer.write("\n");
+            for (Integer key : assertPartitionFormulas.keySet()) {
+                Formula partitionFormula = assertPartitionFormulas.get(key);
+                writer.write("(assert ");
+                writer.write(partitionFormula.toString());
+                writer.write(")\n");
+            }
+            writer.write(SExpressionConstants.CHECK_SAT.toString());
             writer.close();
         } catch (IOException exc) {
             System.out
