@@ -130,6 +130,7 @@ public class VeriTSolver {
                 + " --proof=" + proofFile // temporary file
                 + " --proof-with-sharing" //
                 + " --proof-prune" //
+                + " --proof-merge" //
                 + " --input=smtlib2" //
                 + " --output=smtlib2" //
                 + " --disable-print-success" //
