@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +20,7 @@ import java.util.regex.Pattern;
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
+import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.resProof.Lit;
 import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
@@ -619,9 +621,10 @@ public final class Util {
     }
 
     /**
-     * @param resolutionAssociate
-     * @param transformedAntecedent
-     * @return
+     * @param clause1
+     * @param clause2
+     * @return the resolving literal in positive form, or <code>null</code> if
+     *         no such literal exists.
      */
     public static Formula findResolvingLiteral(OrFormula clause1,
             OrFormula clause2) {
@@ -648,8 +651,30 @@ public final class Util {
             }
 
         }
-        throw new RuntimeException(
-                "Did not find a matching literal in clauses.");
+        return null;
+    }
+
+    /**
+     * Finds the resolving literal between the given proof nodes.
+     * 
+     * @param subProofs
+     *            must be of size 2.
+     * @return the resolving literal (in positive form), or <code>null</code> if
+     *         no such literal exists.
+     */
+    public static Formula findResolvingLiteral(
+            Collection<VeritProofNode> subProofs) {
+        assert (subProofs.size() == 2);
+        Iterator<VeritProofNode> iterator = subProofs.iterator();
+        assert (iterator.hasNext());
+        VeritProofNode node1 = iterator.next();
+        assert (iterator.hasNext());
+        VeritProofNode node2 = iterator.next();
+        assert (node1 != null);
+        assert (node2 != null);
+        assert (!iterator.hasNext());
+        return Util.findResolvingLiteral(node1.getConclusionsAsOrFormula(),
+                node2.getConclusionsAsOrFormula());
     }
 
     /**

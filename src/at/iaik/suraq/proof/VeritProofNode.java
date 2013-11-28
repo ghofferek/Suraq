@@ -1621,19 +1621,8 @@ public class VeritProofNode implements Serializable {
         assert (this.literalConclusions.contains(inverseBadLiteral) || this.subProofs
                 .size() == 2);
 
-        String newName = proof.freshNodeName("repl", this.name);
+        // Recursive Calls
         List<VeritProofNode> newSubProofs = null;
-        List<Formula> newConclusions = new ArrayList<Formula>(
-                this.literalConclusions.size());
-        for (Formula literal : this.literalConclusions) {
-            if (literal.equals(inverseBadLiteral))
-                newConclusions.addAll(definingLiterals);
-            else
-                newConclusions.add(literal);
-        }
-
-        assert (!newConclusions.contains(inverseBadLiteral));
-
         if (this.subProofs.size() != 0) {
             assert (this.subProofs.size() == 2);
             assert (this.type.equals(VeriTToken.RESOLUTION));
@@ -1647,6 +1636,31 @@ public class VeritProofNode implements Serializable {
                     newSubProofs.add(subProof);
             }
         }
+
+        // If this node resolves one of the defining literals, this literal
+        // should not be reintroduced into any nodes that are below (i.e.,
+        // closer to the root as) this node.
+        Formula resolvingLiteral = Util.findResolvingLiteral(newSubProofs);
+        assert (resolvingLiteral != null);
+        definingLiterals.remove(resolvingLiteral);
+        definingLiterals.remove(Util.invertLiteral(resolvingLiteral));
+
+        // Prepare new node contents
+        String newName = proof.freshNodeName("repl", this.name);
+        List<Formula> newConclusions = new ArrayList<Formula>(
+                this.literalConclusions.size());
+        for (Formula literal : this.literalConclusions) {
+            if (literal.equals(inverseBadLiteral)) {
+                for (Formula definingLiteral : definingLiterals) {
+                    if (!newConclusions.contains(definingLiteral))
+                        newConclusions.add(definingLiteral);
+                }
+            } else {
+                if (!newConclusions.contains(literal))
+                    newConclusions.add(literal);
+            }
+        }
+        assert (!newConclusions.contains(inverseBadLiteral));
 
         result = this.proof.addProofSet(newName, this.type, newConclusions,
                 newSubProofs, null, false);
