@@ -1,5 +1,6 @@
 package at.iaik.suraq.parser;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,7 +50,12 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.smtlib.formula.XorFormula;
 
-public abstract class SMTLibParser extends Parser {
+public abstract class SMTLibParser extends Parser implements Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * maps containing proof references

@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,14 +21,18 @@ import at.iaik.suraq.util.ImmutableHashMap;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class FunctionMacro {
+public abstract class FunctionMacro implements Serializable {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     /**
      * The name of this macro.
      */
     protected final Token name;
     protected final List<Token> parameters;
-	
+
     /**
      * The map of parameters to their types.
      */
@@ -69,18 +74,17 @@ public abstract class FunctionMacro {
      * @param macro
      *            the macro to (deep) copy.
      */
-    /*private FunctionMacro(FunctionMacro macro) {
-
-        this.name = (Token) macro.name.deepCopy();
-        this.parameters = new ArrayList<Token>();
-        for (Token parameter : macro.parameters)
-            this.parameters.add((Token) parameter.deepCopy());
-        HashMap<Token, SExpression> tmp = new HashMap<Token, SExpression>();
-        for (Token token : macro.paramMap.keySet())
-            tmp.put((Token) token.deepCopy(),
-                    macro.paramMap.get(token).deepCopy());
-        this.paramMap = new ImmutableHashMap<Token, SExpression>(tmp);
-    }*/
+    /*
+     * private FunctionMacro(FunctionMacro macro) {
+     * 
+     * this.name = (Token) macro.name.deepCopy(); this.parameters = new
+     * ArrayList<Token>(); for (Token parameter : macro.parameters)
+     * this.parameters.add((Token) parameter.deepCopy()); HashMap<Token,
+     * SExpression> tmp = new HashMap<Token, SExpression>(); for (Token token :
+     * macro.paramMap.keySet()) tmp.put((Token) token.deepCopy(),
+     * macro.paramMap.get(token).deepCopy()); this.paramMap = new
+     * ImmutableHashMap<Token, SExpression>(tmp); }
+     */
 
     /**
      * @return the <code>name</code>
@@ -209,7 +213,7 @@ public abstract class FunctionMacro {
 
         return new SExpression(tmp);
     }
-    
+
     /**
      * Returns the elements assert-partition.
      * 

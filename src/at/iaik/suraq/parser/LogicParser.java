@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.parser;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,8 +31,12 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class LogicParser extends SMTLibParser {
+public class LogicParser extends SMTLibParser implements Serializable {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     /**
      * The formula that results from parsing.
      */
@@ -224,7 +229,8 @@ public class LogicParser extends SMTLibParser {
 
             TermFunctionMacro macro;
             try {
-                macro = TermFunctionMacro.create(name, paramsList, paramMap, body);
+                macro = TermFunctionMacro.create(name, paramsList, paramMap,
+                        body);
             } catch (InvalidParametersException exc) {
                 throw new RuntimeException(
                         "Unexpected situation while parsing macro parameters",
@@ -369,8 +375,8 @@ public class LogicParser extends SMTLibParser {
                     + type.toString());
         assert (type instanceof Token);
 
-        if (!functions.add(UninterpretedFunction.create(name, param_list.size(),
-                (Token) type))) {
+        if (!functions.add(UninterpretedFunction.create(name,
+                param_list.size(), (Token) type))) {
             throw new ParseError(name, "Duplicate function definition: "
                     + name.toString());
         }

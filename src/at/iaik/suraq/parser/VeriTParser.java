@@ -39,6 +39,11 @@ import at.iaik.suraq.util.Util;
 
 public class VeriTParser extends Parser {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private final BufferedReader reader;
 
     /**

@@ -24,6 +24,11 @@ import at.iaik.suraq.sexp.Token;
 public class SExpParser extends Parser {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
      * The current state of this parser. If <code>true</code> it's processing a
      * comment.
      */
@@ -271,12 +276,12 @@ public class SExpParser extends Parser {
         }
 
         if (currentExpr != null)
-            currentExpr.addChild(Token.generate(currentToken, currentLineNumber,
-                    currentColumnNumber));
+            currentExpr.addChild(Token.generate(currentToken,
+                    currentLineNumber, currentColumnNumber));
         else {
             assert (parentExpr.size() == 1);
             parentExpr.peek().addChild(
-            		Token.generate(currentToken, currentLineNumber,
+                    Token.generate(currentToken, currentLineNumber,
                             currentColumnNumber));
         }
         currentToken = null;

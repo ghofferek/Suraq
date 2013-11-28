@@ -35,6 +35,8 @@ public final class SuraqOptions {
     private static final boolean performQBFEncoderDefault = false;
     private static final boolean performVeriTSolverDefault = false;
 
+    private static final String dumpSMTQueryFileDefault = null;
+
     /**
      * Default value for verbose option.
      */
@@ -156,6 +158,11 @@ public final class SuraqOptions {
     private final Boolean newVeritCacheValue;
 
     /**
+     * The value of the dumpSMTQueryFile option.
+     */
+    private final String dumpSMTQueryFileValue;
+
+    /**
      * The parser that stores the (parsed) command-line options.
      */
     private final CmdLineParser cmdLineParser = new CmdLineParser();
@@ -228,6 +235,9 @@ public final class SuraqOptions {
         Option newVeritCacheOption = cmdLineParser
                 .addBooleanOption("newVeritCache");
 
+        Option dumpSMTQueryFileOption = cmdLineParser
+                .addStringOption("dumpSMTQueryFile");
+
         try {
             cmdLineParser.parse(args);
         } catch (OptionException exc) {
@@ -261,6 +271,9 @@ public final class SuraqOptions {
 
         newVeritCacheValue = (Boolean) cmdLineParser
                 .getOptionValue(newVeritCacheOption);
+
+        dumpSMTQueryFileValue = (String) cmdLineParser
+                .getOptionValue(dumpSMTQueryFileOption);
 
         int end = getInput().lastIndexOf(".");
 
@@ -474,4 +487,8 @@ public final class SuraqOptions {
                 : newVeritCacheValue;
     }
 
+    public String getDumpSMTQueryFile() {
+        return dumpSMTQueryFileValue == null ? SuraqOptions.dumpSMTQueryFileDefault
+                : dumpSMTQueryFileValue;
+    }
 }

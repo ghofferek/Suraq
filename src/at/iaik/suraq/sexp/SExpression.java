@@ -3,6 +3,7 @@
  */
 package at.iaik.suraq.sexp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,12 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class SExpression {
+public class SExpression implements Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * the line number in the source file corresponding to this expression

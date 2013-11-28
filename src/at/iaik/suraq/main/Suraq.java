@@ -10,7 +10,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,6 +51,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
+import at.iaik.suraq.smtsolver.VeriTSolver;
 import at.iaik.suraq.util.BenchmarkTimer;
 import at.iaik.suraq.util.DagOperationManager;
 import at.iaik.suraq.util.DebugHelper;
@@ -1370,6 +1373,10 @@ public class Suraq implements Runnable {
                     + inputTransformationTimer + ".\n");
             Util.printMemoryInformation();
 
+            if (options.getDumpSMTQueryFile() != null) {
+                dumpSMTQuery(solverInputStr, options.getDumpSMTQueryFile());
+            }
+
             Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
             Timer proofcalculationTimer = new Timer();
             proofcalculationTimer.start();
@@ -2675,6 +2682,36 @@ public class Suraq implements Runnable {
                     + depth + " (computed in " + depthTimer + ")");
             System.out.println();
             System.out.println();
+        }
+    }
+
+    /**
+     * Dump the given <code>query</code> to the given <code>filename</code>.
+     * Some extra information will be prepended.
+     * 
+     * @param query
+     * @param filename
+     */
+    private void dumpSMTQuery(String query, String filename) {
+        try {
+            File file = new File(filename);
+            FileWriter writer = new FileWriter(file);
+            writer.write("; This SMT file was created by the SURAQ synthesis tool.\n");
+            writer.write("; Date and time of creation: ");
+            writer.write(new SimpleDateFormat("yyyyMMdd_HHmm").format(Calendar
+                    .getInstance().getTime()));
+            writer.write("\n");
+            writer.write("; Original spec file: ");
+            writer.write(SuraqOptions.getInstance().getInput());
+            writer.write("\n");
+            writer.write("; Expected result: UNSAT\n;\n");
+            writer.write("; For more information contact Georg Hofferek <georg.hofferek@iaik.tugraz.at>\n\n");
+
+            writer.write(query);
+            writer.close();
+        } catch (IOException exc) {
+            System.out
+                    .println("ERROR: IOException occured while dumping SMT query. Dump may be incomplete.");
         }
     }
 }

@@ -3,13 +3,18 @@
  */
 package at.iaik.suraq.util;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class ImmutableHashMap<E, V> implements Map<E, V> {
+public class ImmutableHashMap<E, V> implements Map<E, V>, Serializable {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     protected final HashMap<E, V> internalMap;
 
     public ImmutableHashMap(Map<E, V> map) {

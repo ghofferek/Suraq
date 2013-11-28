@@ -39,6 +39,11 @@ import at.iaik.suraq.util.Timer;
 public class TseitinParser extends SMTLibParser {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
      * The formula that results from parsing.
      */
     private Formula rootFormula = null;
@@ -99,30 +104,28 @@ public class TseitinParser extends SMTLibParser {
 
         int numChildren = goalExpr.size();
 
-        assert (goalExpr.getChildren().get(numChildren - 4).equals(Token.generate(
-                ":precision")));
-        assert (goalExpr.getChildren().get(numChildren - 3).equals(Token.generate(
-                "precise")));
-        assert (goalExpr.getChildren().get(numChildren - 2).equals(Token.generate(
-                ":depth")));
+        assert (goalExpr.getChildren().get(numChildren - 4).equals(Token
+                .generate(":precision")));
+        assert (goalExpr.getChildren().get(numChildren - 3).equals(Token
+                .generate("precise")));
+        assert (goalExpr.getChildren().get(numChildren - 2).equals(Token
+                .generate(":depth")));
 
         goalExpr.removeChild(numChildren - 1);
         goalExpr.removeChild(numChildren - 2);
         goalExpr.removeChild(numChildren - 3);
         goalExpr.removeChild(numChildren - 4);
-        //System.out.print(""+goalExpr.getChildren().size());
+        // System.out.print(""+goalExpr.getChildren().size());
 
         List<Formula> clauses = new ArrayList<Formula>();
         List<SExpression> tmp = goalExpr.getChildren();
         int size = tmp.size();
-        int step = size / 100 +1;
+        int step = size / 100 + 1;
         // chillebold: here are to many saved reads (> 2Mrd.) on DomainVar
-        for (int i=0; i < size; i++)
-        {
-            if(i%step == 0)
-            {
-                System.out.print(" "+(i/step)+"%");
-                if((i/step)%10 == 9)
+        for (int i = 0; i < size; i++) {
+            if (i % step == 0) {
+                System.out.print(" " + (i / step) + "%");
+                if ((i / step) % 10 == 9)
                     System.out.print("\n");
             }
             SExpression expr = tmp.get(i);
@@ -133,8 +136,8 @@ public class TseitinParser extends SMTLibParser {
         List<PropositionalVariable> tmpList = new ArrayList<PropositionalVariable>(
                 tseitinVariables.size());
         for (PropositionalVariable var : tseitinVariables) {
-            PropositionalVariable newVar = PropositionalVariable.create(
-                    var.getVarName() + "_p!" + partition);
+            PropositionalVariable newVar = PropositionalVariable.create(var
+                    .getVarName() + "_p!" + partition);
             renameMap.put(Token.generate(var.getVarName()), newVar);
             tmpList.add(newVar);
         }
@@ -142,7 +145,8 @@ public class TseitinParser extends SMTLibParser {
         tseitinVariables.clear();
         tseitinVariables.addAll(tmpList);
 
-        rootFormula = (AndFormula.generate(clauses)).substituteFormula(renameMap);
+        rootFormula = (AndFormula.generate(clauses))
+                .substituteFormula(renameMap);
         parsingSuccessfull = true;
     }
 
@@ -252,12 +256,12 @@ public class TseitinParser extends SMTLibParser {
                         Collections.sort(tseitinIndices);
                         if (tseitinIndices.get(numTseitinVars - 1) <= currTseitinIndex) {
                             if (currClauses.size() == 0) {
-                               /* System.out
-                                        .println("INFO: Encoding Tseitin variable "
-                                                + this.tseitinVariables.get(
-                                                        currTseitinIndex)
-                                                        .getVarName());
-                                                        */
+                                /*
+                                 * System.out
+                                 * .println("INFO: Encoding Tseitin variable " +
+                                 * this.tseitinVariables.get( currTseitinIndex)
+                                 * .getVarName());
+                                 */
                                 currClauses.add(clause);
                             } else
                                 finishCurrTseitinDef = true;
@@ -291,9 +295,10 @@ public class TseitinParser extends SMTLibParser {
                         }
                         assert (partition != 0);
 
-                        tseitinEncoding.put(PropositionalVariable.create(
-                                currTseitinVar.getVarName(), partition),
-                                formula);
+                        tseitinEncoding
+                                .put(PropositionalVariable.create(
+                                        currTseitinVar.getVarName(), partition),
+                                        formula);
 
                         currTseitinIndex++;
                         currClauses = new ArrayList<Formula>();
@@ -319,7 +324,7 @@ public class TseitinParser extends SMTLibParser {
     private Formula buildTseitinFormula(List<Formula> CurrClauses,
             PropositionalVariable tseitinVar) {
 
-        //System.out.println("start build tseitin formula.");
+        // System.out.println("start build tseitin formula.");
         Timer buildTseitinFormulaTimer = new Timer();
         buildTseitinFormulaTimer.start();
 
@@ -329,7 +334,8 @@ public class TseitinParser extends SMTLibParser {
         Formula negFormula = buildNegativeFormula(clauses, tseitinVar);
         assert (posFormula != null);
         assert (negFormula != null);
-        while (!checkEquivalenceOfFormulas(posFormula, negFormula)) {
+        while (!TseitinParser
+                .checkEquivalenceOfFormulas(posFormula, negFormula)) {
             clauses.remove(clauses.size() - 1); // remove last element from list
             posFormula = buildPositiveFormula(clauses, tseitinVar);
             negFormula = buildNegativeFormula(clauses, tseitinVar);
@@ -338,8 +344,8 @@ public class TseitinParser extends SMTLibParser {
         }
 
         buildTseitinFormulaTimer.stop();
-        //System.out.println("finished build tseitin formula in "
-        //        + buildTseitinFormulaTimer + ".\n");
+        // System.out.println("finished build tseitin formula in "
+        // + buildTseitinFormulaTimer + ".\n");
 
         return posFormula;
     }
@@ -379,9 +385,9 @@ public class TseitinParser extends SMTLibParser {
         if (!uif1.equals(uif2))
             return false;
 
-        if (!checkFormulaImplication(formula1, formula2))
+        if (!TseitinParser.checkFormulaImplication(formula1, formula2))
             return false;
-        if (!checkFormulaImplication(formula2, formula1))
+        if (!TseitinParser.checkFormulaImplication(formula2, formula1))
             return false;
 
         return true;
@@ -438,8 +444,8 @@ public class TseitinParser extends SMTLibParser {
                     function.getName(), function.getType(),
                     function.getNumParams()));
 
-        outputExpressions.add(new SExpression(Token.generate("assert"), SExpression
-                .fromString(formulaToCheck.toString())));
+        outputExpressions.add(new SExpression(Token.generate("assert"),
+                SExpression.fromString(formulaToCheck.toString())));
 
         outputExpressions.add(SExpressionConstants.CHECK_SAT);
         outputExpressions.add(SExpressionConstants.EXIT);
@@ -450,8 +456,9 @@ public class TseitinParser extends SMTLibParser {
 
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3Path());
-        //DebugHelper.getInstance().stringtoFile(smtstr, "debug-tseitin-check.txt");
-        //System.out.print('.');
+        // DebugHelper.getInstance().stringtoFile(smtstr,
+        // "debug-tseitin-check.txt");
+        // System.out.print('.');
         z3.solve(smtstr);
 
         switch (z3.getState()) {

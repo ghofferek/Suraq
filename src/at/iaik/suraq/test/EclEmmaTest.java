@@ -9,7 +9,7 @@ import at.iaik.suraq.main.ITEEquationReduction;
 import at.iaik.suraq.main.QBFEncoder;
 import at.iaik.suraq.main.QBFSolver;
 import at.iaik.suraq.main.Suraq;
-import at.iaik.suraq.main.VeriTSolver;
+import at.iaik.suraq.smtsolver.VeriTSolver;
 import at.iaik.suraq.util.FormulaCache;
 
 public class EclEmmaTest {

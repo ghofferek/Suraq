@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.parser;
 
+import java.io.Serializable;
+
 import at.iaik.suraq.exceptions.ParseError;
 
 /**
@@ -11,8 +13,12 @@ import at.iaik.suraq.exceptions.ParseError;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class Parser {
+public abstract class Parser implements Serializable {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     /**
      * Indicates whether or not parsing of the source associated with this
      * parser has already completed successfully.

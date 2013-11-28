@@ -1,7 +1,7 @@
 /**
  * Author: Christoph Hillebold <c.hillebold@student.tugraz.at>
  */
-package at.iaik.suraq.main;
+package at.iaik.suraq.smtsolver;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import at.iaik.suraq.main.QBFSolver;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.ProcessResult;
 import at.iaik.suraq.util.ProcessUtil;

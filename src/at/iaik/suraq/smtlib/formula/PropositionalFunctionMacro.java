@@ -28,6 +28,10 @@ import at.iaik.suraq.util.FormulaCache;
 public class PropositionalFunctionMacro extends FunctionMacro {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    /**
      * The body of this macro.
      */
     private final Formula body;
