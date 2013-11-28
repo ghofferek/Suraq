@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
@@ -171,24 +170,9 @@ public class VeritProofNode implements Serializable {
                         .equals(new HashSet<Formula>(reducedConclusions)))
                     break;
 
-                VeritProofNode intermediateNode = null;
-
-                // cache lookup
-                if (proof != null) {
-                    Matcher matcher = Util.digitsPattern.matcher(name);
-                    String number = null;
-                    if (matcher.find())
-                        number = matcher.group(1);
-                    else
-                        assert (false);
-                    intermediateNode = proof.cacheLookup(tmpLiteralConclusions,
-                            number);
-                }
-                if (intermediateNode == null) {
-                    intermediateNode = new VeritProofNode(name + "_i" + count,
-                            VeriTToken.RESOLUTION, tmpLiteralConclusions,
-                            tmpSubProofs, null, proof);
-                }
+                VeritProofNode intermediateNode = new VeritProofNode(name
+                        + "_i" + count, VeriTToken.RESOLUTION,
+                        tmpLiteralConclusions, tmpSubProofs, null, proof);
                 assert (intermediateNode != null);
                 tmpSubProofs.clear();
                 tmpSubProofs.add(intermediateNode);
@@ -1663,7 +1647,7 @@ public class VeritProofNode implements Serializable {
         assert (!newConclusions.contains(inverseBadLiteral));
 
         result = this.proof.addProofSet(newName, this.type, newConclusions,
-                newSubProofs, null, false);
+                newSubProofs, null);
         dagOperationCache.put(this, result);
         return result;
     }

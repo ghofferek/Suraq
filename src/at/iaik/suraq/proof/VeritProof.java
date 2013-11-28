@@ -6,16 +6,13 @@ package at.iaik.suraq.proof;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 
 import at.iaik.suraq.resProof.Lit;
 import at.iaik.suraq.resProof.ResNode;
@@ -50,21 +47,9 @@ public class VeritProof implements Serializable {
     private final HashMap<String, VeritProofNode> proofSets = new HashMap<String, VeritProofNode>();
 
     /**
-     * Maps names of nodes that are duplicates of others to their unique
-     * representation.
-     */
-    private final HashMap<String, WeakReference<VeritProofNode>> synonyms = new HashMap<String, WeakReference<VeritProofNode>>();
-
-    /**
      * The root of the proof. Can only be set once.
      */
     private VeritProofNode root = null;
-
-    /**
-     * A cache of nodes, indexed by their conclusions (represented as sets,
-     * since order is immaterial).
-     */
-    private final HashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>> nodeCache = new HashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>>();
 
     /**
      * This stores all <em>leaf</em> nodes where several good literals define a
@@ -93,7 +78,7 @@ public class VeritProof implements Serializable {
     public static boolean checkProofEnabled = true;
 
     /**
-     * Generates and returns a new VeritProofNode. It is automatically attached
+     * Returns a (new) <code>VeritProofNode</code>. It is automatically attached
      * to its clauses (as a Parent). Then the generated VeritProofNode is
      * returned.
      * 
@@ -108,40 +93,12 @@ public class VeritProof implements Serializable {
      *            the currently added
      * @param iargs
      *            a number as an Integer (e.g. 1)
-     * @return the newly created proof node
-     */
-    public VeritProofNode addProofSet(String name, Token type,
-            List<Formula> conclusions, List<VeritProofNode> clauses,
-            Integer iargs) {
-        return addProofSet(name, type, conclusions, clauses, iargs, true);
-    }
-
-    /**
-     * Returns a (new) <code>VeritProofNode</code>. It is automatically attached
-     * to its clauses (as a Parent). Then the generated VeritProofNode is
-     * returned. If <code>checkCache</code> is set to <code>true</code>, the
-     * <code>nodeCache</code> is checked for a fitting node before a new one is
-     * created.
      * 
-     * @param name
-     *            name of the Node (e.g. ".c22")
-     * @param type
-     *            type of the Node (e.g. VeriTToken.EQ_TRANSITIVE,...)
-     * @param conclusions
-     *            a list of Formulas
-     * @param clauses
-     *            a list of VeritProofNodes that are the clauses(=children) of
-     *            the currently added
-     * @param iargs
-     *            a number as an Integer (e.g. 1)
-     * @param checkCache
-     *            check the cache for a fitting existing node, before creating a
-     *            new one.
      * @return the requested proof node.
      */
     public VeritProofNode addProofSet(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
-            Integer iargs, boolean checkCache) {
+            Integer iargs) {
 
         assert (conclusions != null);
 
@@ -149,15 +106,7 @@ public class VeritProof implements Serializable {
             throw new RuntimeException("Name of proof node is not unique.");
 
         VeritProofNode node = null;
-        if (checkCache) {
-            Matcher matcher = Util.digitsPattern.matcher(name);
-            String number = null;
-            if (matcher.find())
-                number = matcher.group(1);
-            else
-                assert (false);
-            node = cacheLookup(conclusions, number);
-        }
+
         int partition = -38317; // Magic number, easy to find when it turns up
                                 // somewhere accidentally
         if (type.equals(VeriTToken.INPUT)) {
@@ -191,16 +140,20 @@ public class VeritProof implements Serializable {
             clauses = new ArrayList<VeritProofNode>();
             iargs = null;
         }
-        if (node == null) {
-            node = new VeritProofNode(name, type, conclusions, clauses, iargs,
-                    this);
-            assert (node != null);
-        } else
-            synonyms.put(name, new WeakReference<VeritProofNode>(node));
+
+        node = new VeritProofNode(name, type, conclusions, clauses, iargs, this);
         assert (node != null);
-        assert (nodeCache.size() <= proofSets.size());
+
+        assert (node != null);
         if (partition > 0)
             partitionsOfLeafs.put(node, partition);
+
+        // Check whether this is the root node
+        if (conclusions.size() == 0) {
+            assert (this.root == null);
+            this.root = node;
+        }
+
         return node;
     }
 
@@ -228,8 +181,6 @@ public class VeritProof implements Serializable {
         }
         this.clauseCounter++;
         proofSets.put(node.getName(), node);
-        nodeCache.put(ImmutableSet.create(node.getLiteralConclusionsAsSet()),
-                new WeakReference<VeritProofNode>(node));
 
         if (node.isGoodDefinitionOfBadLiteral()) {
             assert (!goodDefinitionsOfBadLiterals.contains(node));
@@ -276,7 +227,6 @@ public class VeritProof implements Serializable {
             assert (!goodDefinitionsOfBadLiterals.contains(proofNode));
         }
         proofSets.remove(proofNode.getName());
-        removeFromCache(proofNode);
     }
 
     /**
@@ -300,7 +250,6 @@ public class VeritProof implements Serializable {
         goodDefinitionsOfBadLiterals.addAll(tmp);
         // End workaround
         assert (!goodDefinitionsOfBadLiterals.contains(node));
-        removeFromCache(node);
 
         for (VeritProofNode child : node.getSubProofs()) {
             child.removeParent(node);
@@ -308,24 +257,6 @@ public class VeritProof implements Serializable {
                 removeDanglingProofNode(child);
         }
 
-        assert (nodeCache.size() <= proofSets.size());
-    }
-
-    /**
-     * Removes the given <code>node</code> from the <code>nodeCache</code> if it
-     * is there.
-     * 
-     * @param node
-     */
-    private void removeFromCache(VeritProofNode node) {
-        assert (node != null);
-        if (!nodeCache.keySet().contains(node.getLiteralConclusionsAsSet()))
-            return;
-        VeritProofNode cacheEntry = nodeCache.get(
-                node.getLiteralConclusionsAsSet()).get();
-        if (cacheEntry == node) {
-            nodeCache.remove(node.getLiteralConclusionsAsSet());
-        }
     }
 
     /**
@@ -337,9 +268,6 @@ public class VeritProof implements Serializable {
      */
     public VeritProofNode getProofNode(String name) {
         VeritProofNode node = proofSets.get(name);
-        if (node == null) {
-            node = synonyms.get(name) == null ? null : synonyms.get(name).get();
-        }
         assert (node != null);
         return node;
     }
@@ -429,9 +357,6 @@ public class VeritProof implements Serializable {
         if (proofSets.get(root.getName()) != root)
             return false;
 
-        if (nodeCache.size() > proofSets.size())
-            return false;
-
         Util.printToSystemOutWithWallClockTimePrefix("[INFO] Now performing checks on individual nodes...");
         int done = 0;
         int lastReported = 0;
@@ -476,13 +401,6 @@ public class VeritProof implements Serializable {
                 return false;
         }
 
-        for (WeakReference<VeritProofNode> reference : nodeCache.values()) {
-            if (reference.get() != null) {
-                if (proofSets.get(reference.get().getName()) != reference.get())
-                    return false;
-            }
-        }
-
         if (!this.isAcyclic())
             return false;
 
@@ -500,31 +418,6 @@ public class VeritProof implements Serializable {
      */
     public VeritProofNode getRoot() {
         return root;
-    }
-
-    /**
-     * Sets the root of this proof, unless it is already set.
-     * 
-     * @param root
-     *            the root to set. Must be a node of this proof and may not have
-     *            parents.
-     * @return <code>true</code> if the given root was set, <code>false</code>
-     *         if a root was already set earlier, or the given root does not
-     *         belong to this proof, or has parents, and thus no change was
-     *         done.
-     */
-    public boolean setRoot(VeritProofNode root) {
-        if (this.root == null) {
-            if (!proofSets.values().contains(root))
-                return false;
-            if (!root.getParents().isEmpty())
-                return false;
-            if (root.getProof() != this)
-                return false;
-            this.root = root;
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -612,39 +505,16 @@ public class VeritProof implements Serializable {
         result.add(node);
     }
 
-    /**
-     * 
-     * @return a node in this proof that proves <code>false</code>, or
-     *         <code>null</code> if no such node exists
-     */
-    public VeritProofNode findNodeProvingFalse() {
-        WeakReference<VeritProofNode> reference = nodeCache.get(ImmutableSet
-                .create(new HashSet<Formula>()));
-        return reference == null ? null : reference.get();
-    }
-
-    /**
-     * 
-     * @param conclusions
-     * @param number
-     *            if not <code>null</code>, the cache will only return nodes
-     *            which have this string in their name (<code>null</code> if no
-     *            such node exists).
-     * @return a node with the given <code>conclusions</code> or
-     *         <code>null</code> if no such node is in the cache.
-     */
-    public VeritProofNode cacheLookup(Collection<Formula> conclusions,
-            String number) {
-
-        ImmutableSet<Formula> set = ImmutableSet.create(conclusions);
-        VeritProofNode result = nodeCache.get(set) == null ? null : nodeCache
-                .get(set).get();
-        if (number != null && result != null) {
-            if (!result.getName().contains(number))
-                return null;
-        }
-        return result;
-    }
+    // /**
+    // *
+    // * @return a node in this proof that proves <code>false</code>, or
+    // * <code>null</code> if no such node exists
+    // */
+    // public VeritProofNode findNodeProvingFalse() {
+    // WeakReference<VeritProofNode> reference = nodeCache.get(ImmutableSet
+    // .create(new HashSet<Formula>()));
+    // return reference == null ? null : reference.get();
+    // }
 
     /**
      * Cleans the proof of bad literals and splits leafs into colorable parts.
@@ -944,8 +814,6 @@ public class VeritProof implements Serializable {
                         + newClauses.get(0).getName() + "."
                         + newClauses.get(1).getName(), VeriTToken.RESOLUTION,
                         newConclusion, newClauses, null, this);
-                nodeCache.put(ImmutableSet.create(newConclusion),
-                        new WeakReference<VeritProofNode>(newNode));
             }
             currentNode = newNode;
         }
@@ -1168,27 +1036,29 @@ public class VeritProof implements Serializable {
         out.writeObject(goodDefinitionsOfBadLiterals);
         out.writeObject(clauseCounter);
 
-        Map<String, VeritProofNode> synonymsCopy = new HashMap<String, VeritProofNode>();
-        for (String key : synonyms.keySet()) {
-            WeakReference<VeritProofNode> ref = synonyms.get(key);
-            if (ref != null) {
-                if (ref.get() != null) {
-                    synonymsCopy.put(key, ref.get());
-                }
-            }
-        }
-        out.writeObject(synonymsCopy);
+        // Map<String, VeritProofNode> synonymsCopy = new HashMap<String,
+        // VeritProofNode>();
+        // for (String key : synonyms.keySet()) {
+        // WeakReference<VeritProofNode> ref = synonyms.get(key);
+        // if (ref != null) {
+        // if (ref.get() != null) {
+        // synonymsCopy.put(key, ref.get());
+        // }
+        // }
+        // }
+        // out.writeObject(synonymsCopy);
 
-        Map<ImmutableSet<Formula>, VeritProofNode> nodeCacheCopy = new HashMap<ImmutableSet<Formula>, VeritProofNode>();
-        for (ImmutableSet<Formula> key : nodeCache.keySet()) {
-            WeakReference<VeritProofNode> ref = nodeCache.get(key);
-            if (ref != null) {
-                if (ref.get() != null) {
-                    nodeCacheCopy.put(key, ref.get());
-                }
-            }
-        }
-        out.writeObject(nodeCacheCopy);
+        // Map<ImmutableSet<Formula>, VeritProofNode> nodeCacheCopy = new
+        // HashMap<ImmutableSet<Formula>, VeritProofNode>();
+        // for (ImmutableSet<Formula> key : nodeCache.keySet()) {
+        // WeakReference<VeritProofNode> ref = nodeCache.get(key);
+        // if (ref != null) {
+        // if (ref.get() != null) {
+        // nodeCacheCopy.put(key, ref.get());
+        // }
+        // }
+        // }
+        // out.writeObject(nodeCacheCopy);
 
     }
 
@@ -1211,36 +1081,42 @@ public class VeritProof implements Serializable {
 
             clauseCounter = (Integer) in.readObject();
 
-            @SuppressWarnings("unchecked")
-            Map<String, VeritProofNode> synonymsCopy = (Map<String, VeritProofNode>) in
-                    .readObject();
-            Map<String, WeakReference<VeritProofNode>> synonymsTmp = new HashMap<String, WeakReference<VeritProofNode>>();
-            for (String key : synonymsCopy.keySet()) {
-                if (synonymsCopy.get(key) != null) {
-                    synonymsTmp.put(key, new WeakReference<VeritProofNode>(
-                            synonymsCopy.get(key)));
-                }
-            }
-            Field synonymsField = VeritProof.class.getDeclaredField("synonyms");
-            synonymsField.setAccessible(true);
-            synonymsField.set(this, synonymsTmp);
-            synonymsField.setAccessible(false);
+            // @SuppressWarnings("unchecked")
+            // Map<String, VeritProofNode> synonymsCopy = (Map<String,
+            // VeritProofNode>) in
+            // .readObject();
+            // Map<String, WeakReference<VeritProofNode>> synonymsTmp = new
+            // HashMap<String, WeakReference<VeritProofNode>>();
+            // for (String key : synonymsCopy.keySet()) {
+            // if (synonymsCopy.get(key) != null) {
+            // synonymsTmp.put(key, new WeakReference<VeritProofNode>(
+            // synonymsCopy.get(key)));
+            // }
+            // }
+            // Field synonymsField =
+            // VeritProof.class.getDeclaredField("synonyms");
+            // synonymsField.setAccessible(true);
+            // synonymsField.set(this, synonymsTmp);
+            // synonymsField.setAccessible(false);
 
-            @SuppressWarnings("unchecked")
-            Map<ImmutableSet<Formula>, VeritProofNode> nodeCacheCopy = (Map<ImmutableSet<Formula>, VeritProofNode>) in
-                    .readObject();
-            Map<ImmutableSet<Formula>, WeakReference<VeritProofNode>> nodeCacheTmp = new HashMap<ImmutableSet<Formula>, WeakReference<VeritProofNode>>();
-            for (ImmutableSet<Formula> key : nodeCacheCopy.keySet()) {
-                if (nodeCacheCopy.get(key) != null) {
-                    nodeCacheTmp.put(key, new WeakReference<VeritProofNode>(
-                            nodeCacheCopy.get(key)));
-                }
-            }
-            Field nodeCacheField = VeritProof.class
-                    .getDeclaredField("nodeCache");
-            nodeCacheField.setAccessible(true);
-            nodeCacheField.set(this, nodeCacheTmp);
-            nodeCacheField.setAccessible(false);
+            // @SuppressWarnings("unchecked")
+            // Map<ImmutableSet<Formula>, VeritProofNode> nodeCacheCopy =
+            // (Map<ImmutableSet<Formula>, VeritProofNode>) in
+            // .readObject();
+            // Map<ImmutableSet<Formula>, WeakReference<VeritProofNode>>
+            // nodeCacheTmp = new HashMap<ImmutableSet<Formula>,
+            // WeakReference<VeritProofNode>>();
+            // for (ImmutableSet<Formula> key : nodeCacheCopy.keySet()) {
+            // if (nodeCacheCopy.get(key) != null) {
+            // nodeCacheTmp.put(key, new WeakReference<VeritProofNode>(
+            // nodeCacheCopy.get(key)));
+            // }
+            // }
+            // Field nodeCacheField = VeritProof.class
+            // .getDeclaredField("nodeCache");
+            // nodeCacheField.setAccessible(true);
+            // nodeCacheField.set(this, nodeCacheTmp);
+            // nodeCacheField.setAccessible(false);
 
         } catch (Exception exc) {
             throw new RuntimeException(exc);

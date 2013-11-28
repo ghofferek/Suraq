@@ -1072,7 +1072,6 @@ public class Suraq implements Runnable {
                         Util.printToSystemOutWithWallClockTimePrefix("Done parsing. (Took "
                                 + parseTimer.toString() + ")");
                         VeritProof veritProof = veriTParser.getProof();
-                        veritProof.setRoot(veritProof.findNodeProvingFalse());
                         veritProof.removeUnreachableNodes();
                         // DebugHelper.getInstance().stringtoFile(
                         // veritProof.toString(), "~parsed-verit-enc.txt");
@@ -1405,7 +1404,6 @@ public class Suraq implements Runnable {
             assert (veritProof != null);
             Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
                     + veritProof.size());
-            veritProof.setRoot(veritProof.findNodeProvingFalse());
             veritProof.removeUnreachableNodes();
             assert (veritProof.checkProof());
 
