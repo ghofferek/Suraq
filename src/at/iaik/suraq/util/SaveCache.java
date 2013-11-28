@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.Z3Proof;
@@ -61,6 +62,8 @@ public class SaveCache implements Serializable {
     // added for newVeritCache
     private final VeritProof veritProof;
 
+    private final LogicParser logicParser;
+
     public SaveCache(Set<PropositionalVariable> propsitionalVars,
             Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
             Set<UninterpretedFunction> uninterpretedFunctions,
@@ -89,6 +92,7 @@ public class SaveCache implements Serializable {
         noDependenceFunctionsCopies = null;
         veritProof = null;
         constraints = null;
+        logicParser = null;
 
         if (filename != null)
             this.saveToFile(filename);
@@ -123,6 +127,7 @@ public class SaveCache implements Serializable {
         this.noDependenceFunctionsCopies = noDependenceFunctionsCopies;
         veritProof = null;
         constraints = null;
+        logicParser = null;
         if (filename != null)
             this.saveToFile(filename);
     }
@@ -156,7 +161,7 @@ public class SaveCache implements Serializable {
             VeritProof veriTProof,
             Map<Token, List<Term>> noDependenceVarsCopies,
             Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies,
-            Set<Formula> constraints) {
+            Set<Formula> constraints, LogicParser logicParser) {
         this.propsitionalVars = propsitionalVars;
         this.domainVars = domainVars;
         this.arrayVars = arrayVars;
@@ -175,6 +180,7 @@ public class SaveCache implements Serializable {
         this.noDependenceVarsCopies = noDependenceVarsCopies;
         this.noDependenceFunctionsCopies = noDependenceFunctionsCopies;
         this.constraints = constraints;
+        this.logicParser = logicParser;
         veriTProofFile = null;
         if (filename != null)
             this.saveToFile(filename);
@@ -328,5 +334,9 @@ public class SaveCache implements Serializable {
 
     public Set<Formula> getConstraints() {
         return constraints;
+    }
+
+    public LogicParser getLogicParser() {
+        return logicParser;
     }
 }

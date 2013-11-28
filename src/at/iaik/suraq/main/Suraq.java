@@ -1403,7 +1403,7 @@ public class Suraq implements Runnable {
             assert (veritProof.checkProof());
 
             // Now write to cache
-            Util.printToSystemOutWithWallClockTimePrefix("Now writing proof object to cache.");
+            Util.printToSystemOutWithWallClockTimePrefix("Now writing to cache.");
             Timer cacheWriteTimer = new Timer();
             cacheWriteTimer.start();
             cache = new SaveCache(propositionalVars, domainVars, arrayVars,
@@ -1411,7 +1411,7 @@ public class Suraq implements Runnable {
                     assertPartitionFormulas, tseitinEncoding,
                     saveCacheSerial.getPath(), veritProof,
                     noDependenceVarsCopies, noDependenceFunctionsCopies,
-                    constraints);
+                    constraints, logicParser);
             cacheWriteTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("Done writing to cache. Took "
                     + cacheWriteTimer);
@@ -1424,6 +1424,7 @@ public class Suraq implements Runnable {
                     + veritProof.size() + " nodes.");
             controlVariables = cache.getControlVars();
             constraints = cache.getConstraints();
+            logicParser = cache.getLogicParser();
             assert (controlVariables != null);
             readFieldsFromCache(cache);
         }
