@@ -916,8 +916,8 @@ public class VeritProof implements Serializable {
                             .containsValue(new Integer(resLiteralID)));
                     literalsID.put(Util.makeIdString(posLiteral), resLiteralID);
                     literalMap.put(resLiteralID, posLiteral);
-                    resProof.var_part[resLiteralID] = partition < 0 ? 0
-                            : partition;
+                    resProof.var_part.put(resLiteralID, partition < 0 ? 0
+                            : partition);
                 }
                 resClause
                         .add(new Lit(resLiteralID, Util.getSignValue(literal)));

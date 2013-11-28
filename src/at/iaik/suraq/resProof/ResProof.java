@@ -9,25 +9,34 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 public class ResProof {
 
-    public static final int MAX_PROOF_SIZE = 100000;
-    public static final int MAX_LIT_NUM = 10000;
+    // public static final int MAX_PROOF_SIZE = 100000;
+    // public static final int MAX_LIT_NUM = 10000;
 
     /* Essential fields */
     public ResNode root = null;
     public int nodeCount = 1;
-    public int[] var_part = new int[ResProof.MAX_LIT_NUM];
-    public boolean[] visited = new boolean[ResProof.MAX_PROOF_SIZE];
+
+    // public int[] var_part = new int[ResProof.MAX_LIT_NUM];
+    public Map<Integer, Integer> var_part = new HashMap<Integer, Integer>();
+
+    // public boolean[] visited = new boolean[ResProof.MAX_PROOF_SIZE];
+    public Set<Integer> visited = new HashSet<Integer>();
 
     /* Proof vital */
     public boolean vitalInfoFresh = false;
-    public ResNode[] nodeRef = new ResNode[ResProof.MAX_PROOF_SIZE];
+
+    // public ResNode[] nodeRef = new ResNode[ResProof.MAX_PROOF_SIZE];
+    public Map<Integer, ResNode> nodeRef = new HashMap<Integer, ResNode>();
+
     public int numberOfNodes;
     public HashSet<ResNode> leaves = new HashSet<ResNode>();
 
@@ -36,8 +45,6 @@ public class ResProof {
 
     public ResProof() {
         root = new ResNode(0, false);
-        Arrays.fill(nodeRef, null);
-        Arrays.fill(var_part, -1);
     }
 
     // part for axioms should be 0
@@ -63,7 +70,7 @@ public class ResProof {
     private void incNodeCount(ResNode n) {
         // nodeRef[nodeCount] = n;
         nodeCount++;
-        assert (nodeCount < ResProof.MAX_PROOF_SIZE);
+        assert (nodeCount < Integer.MAX_VALUE);
     }
 
     public void setRoot(ResNode n) {
@@ -81,28 +88,28 @@ public class ResProof {
      */
     public void disruptVitals() {
         vitalInfoFresh = false;
-        Arrays.fill(nodeRef, null);
+        nodeRef.clear();
         numberOfNodes = 0;
         leaves.clear();
     }
 
     public void recComputeVitals(ResNode n) {
-        if (visited[n.id])
+        if (visited.contains(n.id))
             return;
         numberOfNodes++;
-        nodeRef[n.id] = n;
+        nodeRef.put(n.id, n);
         if (n.isLeaf) {
             leaves.add(n);
         } else {
             recComputeVitals(n.left);
             recComputeVitals(n.right);
         }
-        visited[n.id] = true;
+        visited.add(n.id);
     }
 
     public void computeVitals() {
         disruptVitals();
-        Arrays.fill(visited, false);
+        visited.clear();
         ResNode root = getRoot();
         if (root != null)
             recComputeVitals(root);
@@ -113,7 +120,7 @@ public class ResProof {
      * Dumping/loading the proofs in a file
      */
     void recDumpProof(BufferedWriter wr, ResNode n) throws IOException {
-        if (visited[n.id])
+        if (visited.contains(n.id))
             return;
         if (n.isLeaf) {
             wr.write(String.valueOf(n.id));
@@ -141,21 +148,21 @@ public class ResProof {
             wr.write(" ");
         }
         wr.write("\n");
-        visited[n.id] = true;
+        visited.add(n.id);
     }
 
     public void dumpProof(String file) {
         // String file = "tmp/test.res";
-        Arrays.fill(visited, false);
+        visited.clear();
         try {
             // create FileOutputStream object
             File fl = new File(file);
             FileWriter fs = new FileWriter(fl);
             BufferedWriter wr = new BufferedWriter(fs);
-            for (int v = 1; var_part[v] != -1; v++) {
+            for (int v = 1; var_part.get(v) != -1; v++) {
                 wr.write(String.valueOf(v));
                 wr.write(" ");
-                wr.write(String.valueOf(var_part[v]));
+                wr.write(String.valueOf(var_part.get(v)));
                 wr.write("\n");
             }
             wr.write(String.valueOf(0));
@@ -190,7 +197,7 @@ public class ResProof {
                     break;
                 // "var and only parts should be there"
                 assert (is.length == 2);
-                var_part[v] = Integer.parseInt(is[1]);
+                var_part.put(v, Integer.parseInt(is[1]));
             }
             ResNode n = null;
             while ((rdLine = rd.readLine()) != null) {
@@ -210,9 +217,10 @@ public class ResProof {
                 } else {
                     int lid = Integer.parseInt(is[2]);
                     int rid = Integer.parseInt(is[3]);
-                    n = addIntNode(null, nodeRef[lid], nodeRef[rid], piv);
+                    n = addIntNode(null, nodeRef.get(lid), nodeRef.get(rid),
+                            piv);
                 }
-                nodeRef[id] = n;
+                nodeRef.put(id, n);
             }
             setRoot(n);
             rd.close();
@@ -227,7 +235,7 @@ public class ResProof {
      */
 
     void recCheckProof(ResNode n) {
-        if (visited[n.id])
+        if (visited.contains(n.id))
             return;
         if (printWhileChecking)
             System.out.println(n);
@@ -238,10 +246,10 @@ public class ResProof {
             Iterator<Lit> iter = n.cl.iterator();
             while (iter.hasNext()) {
                 Lit l = iter.next();
-                assert (var_part[l.var()] != -1);// "a local with uninitialized partition",
+                assert (var_part.get(l.var()) != -1);// "a local with uninitialized partition",
 
-                if (var_part[l.var()] != 0)
-                    assert (var_part[l.var()] == n.part);// "a local is in wrong partition!",
+                if (var_part.get(l.var()) != 0)
+                    assert (var_part.get(l.var()) == n.part);// "a local is in wrong partition!",
             }
         } else {
             assert (n.left != null && n.right != null); // "A parent missing!",
@@ -254,7 +262,7 @@ public class ResProof {
             recCheckProof(n.left);
             recCheckProof(n.right);
         }
-        visited[n.id] = true;
+        visited.add(n.id);
     }
 
     public void checkProof(boolean doPrint) {
@@ -268,11 +276,11 @@ public class ResProof {
                 System.out.println("Number of active nodes" + "<" + nodeCount);
             }
             System.out.print("var partitions:");
-            for (int v = 1; var_part[v] != -1; v++)
-                System.out.print(" " + v + ":p" + var_part[v]);
+            for (Integer v : var_part.keySet())
+                System.out.print(" " + v + ":p" + var_part.get(v));
             System.out.println("\n==========================================");
         }
-        Arrays.fill(visited, false);
+        visited.clear();
         ResNode root = getRoot();
         if (root != null) {
             recCheckProof(root);
@@ -285,16 +293,16 @@ public class ResProof {
     // Start : remove double literals
 
     void recRmDoubleLits(ResNode n) {
-        if (visited[n.id])
+        if (visited.contains(n.id))
             return;
         if (n.isLeaf) {
-            visited[n.id] = true;
+            visited.add(n.id);
             return;
         }
 
         recRmDoubleLits(n.left);
         recRmDoubleLits(n.right);
-        visited[n.id] = true;
+        visited.add(n.id);
         // Node may get removed in refresh
         if (!n.refresh())
             return;
@@ -308,7 +316,7 @@ public class ResProof {
 
     public void rmDoubleLits() {
         disruptVitals();
-        Arrays.fill(visited, false);
+        visited.clear();
         recRmDoubleLits(getRoot());
     }
 
@@ -347,7 +355,7 @@ public class ResProof {
                 return;
             }
             // if pivot is global then return
-            if (var_part[n.pivot] == 0)
+            if (var_part.get(n.pivot) == 0)
                 return;
 
             // Check and fix if parents pivot is in n
@@ -462,15 +470,15 @@ public class ResProof {
     }
 
     void recDeLocalizeProof(ResNode n) {
-        if (visited[n.id])
+        if (visited.contains(n.id))
             return;
         if (n.isLeaf || n.part != -1) {
-            visited[n.id] = true;
+            visited.add(n.id);
             return;
         }
         recDeLocalizeProof(n.left);
         recDeLocalizeProof(n.right);
-        visited[n.id] = true;
+        visited.add(n.id);
 
         // Node may get removed in refresh
         if (!n.refresh())
@@ -481,7 +489,7 @@ public class ResProof {
 
     public void deLocalizeProof() {
         disruptVitals();
-        Arrays.fill(visited, false);
+        visited.clear();
         recDeLocalizeProof(getRoot());
     }
 

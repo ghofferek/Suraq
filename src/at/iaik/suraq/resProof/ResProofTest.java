@@ -23,8 +23,8 @@ public class ResProofTest {
         System.out.println("Example 1=>");
         ResProof prf = new ResProof();
 
-        prf.var_part[1] = 0;
-        prf.var_part[2] = 0;
+        prf.var_part.put(1, 0);
+        prf.var_part.put(2, 0);
 
         List<Lit> c1 = Arrays.asList(new Lit(1, true), new Lit(2, false));
         List<Lit> c2 = Arrays.asList(new Lit(1, false));
@@ -54,9 +54,9 @@ public class ResProofTest {
         List<Lit> c3 = Arrays.asList(new Lit(g2, false), new Lit(l, false));
         List<Lit> c4 = Arrays.asList(new Lit(g2, true));
 
-        prf.var_part[g1] = 0; // global variable
-        prf.var_part[g2] = 0; // global variable
-        prf.var_part[l] = 2; // partition 2 local variable
+        prf.var_part.put(g1, 0); // global variable
+        prf.var_part.put(g2, 0); // global variable
+        prf.var_part.put(l, 2); // partition 2 local variable
 
         ResNode n1 = prf.addLeaf(c1, 1);
         ResNode n2 = prf.addLeaf(c2, 2);
@@ -85,10 +85,10 @@ public class ResProofTest {
         int g2 = 3;
         int g3 = 4;
 
-        prf.var_part[l] = 1;
-        prf.var_part[g1] = 0;
-        prf.var_part[g2] = 0;
-        prf.var_part[g3] = 0;
+        prf.var_part.put(l, 1);
+        prf.var_part.put(g1, 0);
+        prf.var_part.put(g2, 0);
+        prf.var_part.put(g3, 0);
 
         List<Lit> c1 = Arrays.asList(new Lit(g1, T), new Lit(l, T));
         List<Lit> c2 = Arrays.asList(new Lit(g1, F));
@@ -141,5 +141,10 @@ public class ResProofTest {
         if (b)
             test();
         return b;
+    }
+
+    public static void main(String[] args) {
+        ResProofTest test = new ResProofTest();
+        test.test();
     }
 }

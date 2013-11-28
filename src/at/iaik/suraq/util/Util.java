@@ -847,8 +847,8 @@ public final class Util {
                             resLiteralID);
                     Util.literalMap.put(resLiteralID, posLiteral);
 
-                    Util.resProof.var_part[resLiteralID] = partition < 0 ? 0
-                            : partition;
+                    Util.resProof.var_part.put(resLiteralID, partition < 0 ? 0
+                            : partition);
                 }
                 resClause
                         .add(new Lit(resLiteralID, Util.getSignValue(literal)));
