@@ -323,6 +323,10 @@ public class Suraq implements Runnable {
         // ex.printStackTrace();
         // }
 
+        if (options.getDumpSMTQueryFile() != null) {
+            dumpSMTQuery(options.getDumpSMTQueryFile());
+        }
+
         Util.printToSystemOutWithWallClockTimePrefix("  Simplifying assert-partitions and tseitin-cnf encoding...");
 
         Timer allPartitionsTimer = new Timer();
@@ -344,10 +348,6 @@ public class Suraq implements Runnable {
             Suraq.extTimer.stopReset("after tseitin");
             // DebugHelper.getInstance().stringtoFile(tseitinPartitions.toString(),
             // "tseitin-all.txt");
-
-            if (options.getDumpSMTQueryFile() != null) {
-                dumpSMTQuery(options.getDumpSMTQueryFile());
-            }
 
             allPartitionsTimer.end();
             Util.printToSystemOutWithWallClockTimePrefix("  All partitions done. ("
@@ -2232,23 +2232,24 @@ public class Suraq implements Runnable {
 
         for (int count = 0; count < (1 << controlSignals.size()); count++) {
             Util.printToSystemOutWithWallClockTimePrefix("  Writing assert-partition number "
-                    + count + "<" + (1 << controlSignals.size()));
+                    + count + " of " + (1 << controlSignals.size()));
             Formula tempFormula = formula;// .deepFormulaCopy();
             Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
             Map<Token, UninterpretedFunction> ufSubstitutions = new HashMap<Token, UninterpretedFunction>();
 
             // Debug counters for progress statistics:
-            int step = noDependenceVars.size() / 100;
-            if (step == 0)
-                step = 1;
             Util.printToSystemOutWithWallClockTimePrefix("There are "
                     + noDependenceVars.size() + " nodepvars");
-            int i = 0;
+            // int varCount = 0;
+            // int lastPrint = 0;
 
             for (Token var : noDependenceVars) {
-                if (++i % step == 0) { // progress information by chillebold
-                    System.out.print((i / step) + "% ");
-                }
+                // if (varCount++ >= (int) Math.ceil(lastPrint
+                // * ((double) noDependenceVars.size() / 100))) {
+                // System.out.print((++lastPrint) + "% ");
+                // }
+                // if (lastPrint == 100 || varCount == noDependenceVars.size())
+                // System.out.println();
                 if (noDependenceVarsCopies.containsKey(var))
                     // it's a variable
                     variableSubstitutions.put(var,
@@ -2713,7 +2714,10 @@ public class Suraq implements Runnable {
             writer.write(SExpressionConstants.DECLARE_SORT_VALUE.toString());
             writer.write(declarationStr);
             writer.write("\n");
+            int count = 0;
             for (Integer key : assertPartitionFormulas.keySet()) {
+                Util.printToSystemOutWithWallClockTimePrefix("Dumping partition "
+                        + ++count + " of " + assertPartitionFormulas.size());
                 Formula partitionFormula = assertPartitionFormulas.get(key);
                 writer.write("(assert ");
                 writer.write(partitionFormula.toString());
@@ -2722,8 +2726,11 @@ public class Suraq implements Runnable {
             writer.write(SExpressionConstants.CHECK_SAT.toString());
             writer.close();
         } catch (IOException exc) {
-            System.out
-                    .println("ERROR: IOException occured while dumping SMT query. Dump may be incomplete.");
+            Util.printToSystemOutWithWallClockTimePrefix("ERROR: IOException occured while dumping SMT query. Dump may be incomplete.");
+        }
+        if (SuraqOptions.getInstance().getExitAfterDump()) {
+            Util.printToSystemOutWithWallClockTimePrefix("Done dumping. Will exit now because exitAfterDump was specified.");
+            System.exit(0);
         }
     }
 }

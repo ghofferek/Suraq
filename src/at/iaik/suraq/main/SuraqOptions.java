@@ -36,6 +36,7 @@ public final class SuraqOptions {
     private static final boolean performVeriTSolverDefault = false;
 
     private static final String dumpSMTQueryFileDefault = null;
+    private static final boolean exitAfterDumpDefault = false;
 
     /**
      * Default value for verbose option.
@@ -163,6 +164,11 @@ public final class SuraqOptions {
     private final String dumpSMTQueryFileValue;
 
     /**
+     * The value of the exitAfterDumpValue option.
+     */
+    private final Boolean exitAfterDumpValue;
+
+    /**
      * The parser that stores the (parsed) command-line options.
      */
     private final CmdLineParser cmdLineParser = new CmdLineParser();
@@ -238,6 +244,9 @@ public final class SuraqOptions {
         Option dumpSMTQueryFileOption = cmdLineParser
                 .addStringOption("dumpSMTQueryFile");
 
+        Option exitAfterDumpOption = cmdLineParser
+                .addBooleanOption("exitAfterDump");
+
         try {
             cmdLineParser.parse(args);
         } catch (OptionException exc) {
@@ -274,6 +283,9 @@ public final class SuraqOptions {
 
         dumpSMTQueryFileValue = (String) cmdLineParser
                 .getOptionValue(dumpSMTQueryFileOption);
+
+        exitAfterDumpValue = (Boolean) cmdLineParser
+                .getOptionValue(exitAfterDumpOption);
 
         int end = getInput().lastIndexOf(".");
 
@@ -490,5 +502,10 @@ public final class SuraqOptions {
     public String getDumpSMTQueryFile() {
         return dumpSMTQueryFileValue == null ? SuraqOptions.dumpSMTQueryFileDefault
                 : dumpSMTQueryFileValue;
+    }
+
+    public boolean getExitAfterDump() {
+        return exitAfterDumpValue == null ? SuraqOptions.exitAfterDumpDefault
+                : exitAfterDumpValue;
     }
 }
