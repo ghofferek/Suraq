@@ -1635,15 +1635,15 @@ public class VeritProofNode implements Serializable {
                 else
                     newSubProofs.add(subProof);
             }
-        }
 
-        // If this node resolves one of the defining literals, this literal
-        // should not be reintroduced into any nodes that are below (i.e.,
-        // closer to the root as) this node.
-        Formula resolvingLiteral = Util.findResolvingLiteral(newSubProofs);
-        assert (resolvingLiteral != null);
-        definingLiterals.remove(resolvingLiteral);
-        definingLiterals.remove(Util.invertLiteral(resolvingLiteral));
+            // If this node resolves one of the defining literals, this literal
+            // should not be reintroduced into any nodes that are below (i.e.,
+            // closer to the root as) this node.
+            Formula resolvingLiteral = Util.findResolvingLiteral(newSubProofs);
+            assert (resolvingLiteral != null);
+            definingLiterals.remove(resolvingLiteral);
+            definingLiterals.remove(Util.invertLiteral(resolvingLiteral));
+        }
 
         // Prepare new node contents
         String newName = proof.freshNodeName("repl", this.name);

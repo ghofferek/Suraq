@@ -664,6 +664,7 @@ public final class Util {
      */
     public static Formula findResolvingLiteral(
             Collection<VeritProofNode> subProofs) {
+        assert (subProofs != null);
         assert (subProofs.size() == 2);
         Iterator<VeritProofNode> iterator = subProofs.iterator();
         assert (iterator.hasNext());
