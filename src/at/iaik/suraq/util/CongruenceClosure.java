@@ -14,6 +14,7 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
@@ -245,7 +246,9 @@ public class CongruenceClosure {
 
     /**
      * This check assumes that only one positive literal is present in the
-     * <code>literals</code>.
+     * <code>literals</code>. If the given literals contains anything that
+     * should not occur in a theory lemma (e.g. Tseitin variables)
+     * <code>false</code> is returned.
      * 
      * @param literals
      *            a collection of literals (only one positive)
@@ -258,19 +261,30 @@ public class CongruenceClosure {
         CongruenceClosure cc = new CongruenceClosure();
         Formula impliedLiteral = null;
         for (Formula literal : literals) {
+            if (literal instanceof PropositionalVariable) {
+                // e.g. Tseitin variable, or something from the input
+                return false;
+            }
             if (Util.isNegativeLiteral(literal)) {
                 Formula positiveLiteral = Util.makeLiteralPositive(literal);
                 if (positiveLiteral instanceof DomainEq) {
                     cc.addEquality((DomainEq) positiveLiteral);
                 }
             } else {
-                assert (impliedLiteral == null); // We assume there is only one
-                                                 // implied literal
+                if (impliedLiteral != null) {
+                    // More than one implied literal means this is not a theory
+                    // lemma
+                    return false;
+                }
+
                 assert (Util.isAtom(literal));
                 impliedLiteral = literal;
             }
         }
-        assert (impliedLiteral != null);
+        if (impliedLiteral == null) {
+            // No implied literal means this is not a theory lemma
+            return false;
+        }
         assert (Util.isLiteral(impliedLiteral));
         assert (!Util.isNegativeLiteral(impliedLiteral));
 
@@ -296,12 +310,17 @@ public class CongruenceClosure {
                 if (!predicateInstance.getFunction().equals(
                         positiveInstance.getFunction()))
                     continue;
-                assert (predicateInstance == null); // Only one matching
-                                                    // negative instance is
-                                                    // assumed to exist
+                if (negativeInstance != null) {
+                    // Only one matching instance should exist in a theory lemma
+                    return false;
+                }
                 negativeInstance = predicateInstance;
             }
-            assert (negativeInstance != null);
+            if (negativeInstance == null) {
+                // No matching instance found
+                // Not a theory lemma
+                return false;
+            }
             assert (positiveInstance.getFunction().equals(negativeInstance
                     .getFunction()));
             assert (positiveInstance.getFunction().getNumParams() == negativeInstance

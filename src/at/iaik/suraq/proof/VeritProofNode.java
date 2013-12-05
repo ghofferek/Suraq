@@ -93,6 +93,7 @@ public class VeritProofNode implements Serializable {
     /**
      * Stores suppressed messages
      */
+    @SuppressWarnings("unused")
     private String suppressedMessage = null;
 
     /**
@@ -111,8 +112,8 @@ public class VeritProofNode implements Serializable {
             Integer iargs, VeritProof proof) {
 
         assert (name != null);
-        final boolean isTheoryLemma = CongruenceClosure
-                .checkTheoryLemma(conclusions);
+        final boolean isTheoryLemma = type.equals(VeriTToken.INPUT) ? false
+                : CongruenceClosure.checkTheoryLemma(conclusions);
         List<Formula> reducedConclusions = new ArrayList<Formula>();
         for (Formula literal : conclusions) {
             if (!reducedConclusions.contains(literal))
@@ -124,7 +125,8 @@ public class VeritProofNode implements Serializable {
         List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>(2);
         ArrayList<Formula> tmpLiteralConclusions = new ArrayList<Formula>();
 
-        if (this.type.equals(VeriTToken.RESOLUTION) && clauses.size() > 2
+        if (type.equals(VeriTToken.RESOLUTION)
+                && (clauses == null ? false : clauses.size() > 2)
                 && !isTheoryLemma) {
             // Clauses are left-associative
             List<VeritProofNode> remainingNodes = new LinkedList<VeritProofNode>(
@@ -134,24 +136,10 @@ public class VeritProofNode implements Serializable {
                 assert (remainingNodes.size() > 2);
                 List<VeritProofNode> currentNodes = new ArrayList<VeritProofNode>(
                         remainingNodes.subList(0, 2));
-                Formula resolvingLiteral = findResolvingLiteral(currentNodes
-                        .get(0).getLiteralConclusions(), currentNodes.get(1)
-                        .getLiteralConclusions()); // clause1 polarity
-                assert (resolvingLiteral != null);
+                List<Formula> currentConclusions = conclusionsOfResolution(
+                        currentNodes.get(0).getLiteralConclusions(),
+                        currentNodes.get(1).getLiteralConclusions());
 
-                List<Formula> currentConclusions = new LinkedList<Formula>();
-                for (Formula literal : currentNodes.get(0)
-                        .getLiteralConclusions()) {
-                    if (!literal.equals(resolvingLiteral)
-                            && !currentConclusions.contains(literal))
-                        currentConclusions.add(literal);
-                }
-                for (Formula literal : currentNodes.get(1)
-                        .getLiteralConclusions()) {
-                    if (!literal.equals(Util.invertLiteral(resolvingLiteral))
-                            && !currentConclusions.contains(literal))
-                        currentConclusions.add(literal);
-                }
                 VeritProofNode intermediateNode = new VeritProofNode(name + "i"
                         + (++count), VeriTToken.RESOLUTION, currentConclusions,
                         currentNodes, null, proof);
@@ -167,7 +155,8 @@ public class VeritProofNode implements Serializable {
                     break;
                 }
             }
-
+            assert (tmpSubProofs.size() == 2 || !type
+                    .equals(VeriTToken.RESOLUTION));
             // OLD CODE
             //
             // List<VeritProofNode> remainingClauses = new
@@ -235,19 +224,17 @@ public class VeritProofNode implements Serializable {
 
         assert (tmpLiteralConclusions != null);
         assert (tmpSubProofs != null);
-        assert (tmpSubProofs.size() == 2 || !type.equals(VeriTToken.RESOLUTION));
 
         if (isTheoryLemma) {
             this.subProofs = new ArrayList<VeritProofNode>(0);
-            this.name = "lem." + name;
             this.type = VeriTToken.TRANS_CONGR;
         } else {
             this.subProofs = tmpSubProofs;
-            this.name = name;
             this.type = type;
             for (VeritProofNode child : this.subProofs)
                 child.addParent(this);
         }
+        this.name = name;
         this.parents = new HashSet<VeritProofNode>(2);
         this.iargs = iargs == null ? null : new Integer(iargs);
         this.proof = proof;
@@ -785,16 +772,16 @@ public class VeritProofNode implements Serializable {
         }
 
         if (this.type.equals(VeriTToken.TRANS_CONGR)) {
-            this.suppressFailureMessage = true;
-            boolean result = checkTransitive() || checkCongruence()
-                    || checkCongruencePred();
-            this.suppressFailureMessage = false;
-            if (!result) {
-                assert (suppressedMessage != null);
-                System.out.println(suppressedMessage);
-                suppressedMessage = null;
-            }
-            return result;
+            // this.suppressFailureMessage = true;
+            // boolean result = checkTransitive() || checkCongruence()
+            // || checkCongruencePred();
+            // this.suppressFailureMessage = false;
+            // if (!result) {
+            // assert (suppressedMessage != null);
+            // System.out.println(suppressedMessage);
+            // suppressedMessage = null;
+            // }
+            return checkTransCongr();
         }
 
         // unknown node type
@@ -1298,6 +1285,20 @@ public class VeritProofNode implements Serializable {
                     (DomainEq) impliedLiteral))
                 return failOnMessage("Could not prove congruence axiom with congruence closure.");
         }
+        return true;
+    }
+
+    /**
+     * Call only on nodes with types <code>TRANS_CONGR</code>.
+     * 
+     * @return
+     */
+    private boolean checkTransCongr() {
+        assert (this.type.equals(VeriTToken.TRANS_CONGR));
+        if (!this.subProofs.isEmpty())
+            return failOnMessage("TRANS_CONGR with non-empty subproofs.");
+        if (!CongruenceClosure.checkVeritProofNode(this))
+            return failOnMessage("Congruence closure failed.");
         return true;
     }
 
