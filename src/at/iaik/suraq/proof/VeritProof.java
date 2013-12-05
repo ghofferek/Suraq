@@ -810,10 +810,9 @@ public class VeritProof implements Serializable {
             // }
             // }
             if (newNode == null) {
-                newNode = new VeritProofNode("res."
-                        + newClauses.get(0).getName() + "."
-                        + newClauses.get(1).getName(), VeriTToken.RESOLUTION,
-                        newConclusion, newClauses, null, this);
+                newNode = new VeritProofNode(this.freshNodeName("res.", ""),
+                        VeriTToken.RESOLUTION, newConclusion, newClauses, null,
+                        this);
             }
             currentNode = newNode;
         }
