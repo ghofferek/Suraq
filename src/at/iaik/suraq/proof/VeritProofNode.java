@@ -110,9 +110,8 @@ public class VeritProofNode implements Serializable {
             Integer iargs, VeritProof proof) {
 
         assert (name != null);
-        this.name = name;
-        this.type = type;
-
+        final boolean isTheoryLemma = CongruenceClosure
+                .checkTheoryLemma(conclusions);
         List<Formula> reducedConclusions = new ArrayList<Formula>();
         for (Formula literal : conclusions) {
             if (!reducedConclusions.contains(literal))
@@ -124,7 +123,8 @@ public class VeritProofNode implements Serializable {
         List<VeritProofNode> tmpSubProofs = new ArrayList<VeritProofNode>(2);
         ArrayList<Formula> tmpLiteralConclusions = new ArrayList<Formula>();
 
-        if (this.type.equals(VeriTToken.RESOLUTION) && clauses.size() > 2) {
+        if (this.type.equals(VeriTToken.RESOLUTION) && clauses.size() > 2
+                && !isTheoryLemma) {
             List<VeritProofNode> remainingClauses = new ArrayList<VeritProofNode>(
                     clauses);
             assert (!remainingClauses.isEmpty());
@@ -192,15 +192,23 @@ public class VeritProofNode implements Serializable {
         assert (tmpSubProofs.size() == 2 || !type.equals(VeriTToken.RESOLUTION));
         assert ((new HashSet<Formula>(tmpLiteralConclusions))
                 .equals(new HashSet<Formula>(reducedConclusions)));
-        this.subProofs = tmpSubProofs;
-        this.literalConclusions = new ImmutableArrayList<Formula>(
-                tmpLiteralConclusions);
 
-        for (VeritProofNode child : this.subProofs)
-            child.addParent(this);
-        this.parents = new HashSet<VeritProofNode>(4);
+        if (isTheoryLemma) {
+            this.subProofs = new ArrayList<VeritProofNode>(0);
+            this.name = "lem." + name;
+            this.type = VeriTToken.TRANS_CONGR;
+        } else {
+            this.subProofs = tmpSubProofs;
+            this.name = name;
+            this.type = type;
+            for (VeritProofNode child : this.subProofs)
+                child.addParent(this);
+        }
+        this.parents = new HashSet<VeritProofNode>(2);
         this.iargs = iargs == null ? null : new Integer(iargs);
         this.proof = proof;
+        this.literalConclusions = new ImmutableArrayList<Formula>(
+                tmpLiteralConclusions);
 
         assert (this.checkProofNode());
         assert (proof != null);
@@ -323,12 +331,10 @@ public class VeritProofNode implements Serializable {
      * returns an immutable copy of clauses. You cannot modify the list
      * directly. Use the VeritProof-Class instead!
      * 
-     * @return an immutable copy of the subproofs, or <code>null</code> if this
-     *         is a leaf.
+     * @return an immutable copy of the subproofs (might be empty)
      */
     public ImmutableArrayList<VeritProofNode> getSubProofs() {
-        if (subProofs == null)
-            return null;
+        assert (subProofs != null);
         return new ImmutableArrayList<VeritProofNode>(subProofs);
     }
 
@@ -648,13 +654,13 @@ public class VeritProofNode implements Serializable {
 
         if (this.type.equals(VeriTToken.AND)) {
             // This type will be removed after parsing.
-            // --> not detailed checks
+            // --> no detailed checks
             return true;
         }
 
         if (this.type.equals(VeriTToken.OR)) {
             // This type will be removed after parsing.
-            // --> not detailed checks
+            // --> no detailed checks
             return true;
         }
 
@@ -1370,6 +1376,9 @@ public class VeritProofNode implements Serializable {
     }
 
     /**
+     * Checks whether this is a theory axiom, based solely on the type of the
+     * node.
+     * 
      * @return <code>true</code> if this is an axiom.
      */
     public boolean isAxiom() {

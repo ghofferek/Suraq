@@ -286,6 +286,7 @@ public class VeritProof implements Serializable {
      * @return one good definition of a bad literal occurring in this proof, or
      *         <code>null</code> if no such node exists.
      */
+    @SuppressWarnings("unused")
     private VeritProofNode getOneGoodDefinitionOfBadLiteral() {
         return goodDefinitionsOfBadLiterals.isEmpty() ? null
                 : goodDefinitionsOfBadLiterals.iterator().next();
@@ -346,7 +347,7 @@ public class VeritProof implements Serializable {
 
         Util.printToSystemOutWithWallClockTimePrefix("[INFO] Starting a complete proof check...");
         Util.printToSystemOutWithWallClockTimePrefix("[INFO] Size of proof: "
-                + this.size());
+                + Util.largeNumberFormatter.format(this.size()));
         Timer timer = new Timer();
         timer.start();
 
@@ -355,6 +356,8 @@ public class VeritProof implements Serializable {
         if (!root.getParents().isEmpty())
             return false;
         if (proofNodes.get(root.getName()) != root)
+            return false;
+        if (!root.getLiteralConclusions().isEmpty())
             return false;
 
         Util.printToSystemOutWithWallClockTimePrefix("[INFO] Now performing checks on individual nodes...");
@@ -521,18 +524,18 @@ public class VeritProof implements Serializable {
      */
     public void cleanProof() {
         // assert (this.checkProof());
-        Util.printToSystemOutWithWallClockTimePrefix("Number of bad leafs to clean: "
-                + this.goodDefinitionsOfBadLiterals.size());
-        VeritProofNode currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
-        while (currentLeaf != null) {
-            Util.printToSystemOutWithWallClockTimePrefix("  Cleaning leaf "
-                    + currentLeaf.getName());
-            cleanProof(currentLeaf);
-            removeUnreachableNodes();
-            currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
-        }
-        assert (this.hasNoBadLiterals());
-        assert (this.checkProof());
+        // Util.printToSystemOutWithWallClockTimePrefix("Number of bad leafs to clean: "
+        // + this.goodDefinitionsOfBadLiterals.size());
+        // VeritProofNode currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
+        // while (currentLeaf != null) {
+        // Util.printToSystemOutWithWallClockTimePrefix("  Cleaning leaf "
+        // + currentLeaf.getName());
+        // cleanProof(currentLeaf);
+        // removeUnreachableNodes();
+        // currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
+        // }
+        // assert (this.hasNoBadLiterals());
+        // assert (this.checkProof());
 
         Set<VeritProofNode> leafs = this.getLeafs();
         Util.printToSystemOutWithWallClockTimePrefix("Found " + leafs.size()
@@ -645,6 +648,7 @@ public class VeritProof implements Serializable {
      * @param currentLeaf
      *            a good definition of a bad literal
      */
+    @SuppressWarnings("unused")
     private void cleanProof(VeritProofNode currentLeaf) {
         assert (currentLeaf.isLeaf());
         assert (currentLeaf.isGoodDefinitionOfBadLiteral());

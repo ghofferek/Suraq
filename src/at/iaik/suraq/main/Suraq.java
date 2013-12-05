@@ -1403,9 +1403,12 @@ public class Suraq implements Runnable {
             veritProof = veriTParser.getProof();
             assert (veritProof != null);
             Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
-                    + veritProof.size());
+                    + Util.largeNumberFormatter.format(veritProof.size()));
             veritProof.removeUnreachableNodes();
+            Util.printToSystemOutWithWallClockTimePrefix("Proof size (after removing unreachable nodes): "
+                    + Util.largeNumberFormatter.format(veritProof.size()));
             assert (veritProof.checkProof());
+            assert (veritProof.hasNoBadLiterals());
 
             // Now write to cache
             Util.printToSystemOutWithWallClockTimePrefix("Now writing to cache.");

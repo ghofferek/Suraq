@@ -244,31 +244,98 @@ public class CongruenceClosure {
     }
 
     /**
+     * This check assumes that only one positive literal is present in the
+     * <code>literals</code>.
      * 
-     * @param node
-     * @return <code>true</code> if the given <code>node</code> is a theory
-     *         tautology.
+     * @param literals
+     *            a collection of literals (only one positive)
+     * @return <code>true</code> if the given <code>literals</code> are a theory
+     *         lemma
      */
-    public static boolean checkVeritProofNode(VeritProofNode node) {
-        assert (node.getSubProofs().isEmpty());
+    public static boolean checkTheoryLemma(
+            Collection<? extends Formula> literals) {
+        assert (literals != null);
         CongruenceClosure cc = new CongruenceClosure();
-        for (Formula literal : node.getLiteralConclusions().subList(0,
-                node.getLiteralConclusions().size() - 1)) {
-            assert (Util.isNegativeLiteral(literal));
-            Formula positiveLiteral = Util.makeLiteralPositive(literal);
-            assert (positiveLiteral instanceof DomainEq);
-            cc.addEquality((DomainEq) positiveLiteral);
+        Formula impliedLiteral = null;
+        for (Formula literal : literals) {
+            if (Util.isNegativeLiteral(literal)) {
+                Formula positiveLiteral = Util.makeLiteralPositive(literal);
+                if (positiveLiteral instanceof DomainEq) {
+                    cc.addEquality((DomainEq) positiveLiteral);
+                }
+            } else {
+                assert (impliedLiteral == null); // We assume there is only one
+                                                 // implied literal
+                assert (Util.isAtom(literal));
+                impliedLiteral = literal;
+            }
         }
-        Formula impliedLiteral = node.getLiteralConclusions().get(
-                node.getLiteralConclusions().size() - 1);
+        assert (impliedLiteral != null);
         assert (Util.isLiteral(impliedLiteral));
         assert (!Util.isNegativeLiteral(impliedLiteral));
-        assert (impliedLiteral instanceof DomainEq);
-        assert (((DomainEq) impliedLiteral).getTerms().size() == 2);
-        cc.addTerm((DomainTerm) ((DomainEq) impliedLiteral).getTerms().get(0));
-        cc.addTerm((DomainTerm) ((DomainEq) impliedLiteral).getTerms().get(1));
-        cc.merge();
-        return cc.checkImplied((DomainEq) impliedLiteral);
+
+        if (impliedLiteral instanceof DomainEq) {
+            assert (((DomainEq) impliedLiteral).getTerms().size() == 2);
+            cc.addTerm((DomainTerm) ((DomainEq) impliedLiteral).getTerms().get(
+                    0));
+            cc.addTerm((DomainTerm) ((DomainEq) impliedLiteral).getTerms().get(
+                    1));
+            cc.merge();
+            return cc.checkImplied((DomainEq) impliedLiteral);
+        } else {
+            assert (impliedLiteral instanceof UninterpretedPredicateInstance);
+            UninterpretedPredicateInstance positiveInstance = (UninterpretedPredicateInstance) impliedLiteral;
+            UninterpretedPredicateInstance negativeInstance = null;
+            for (Formula literal : literals) {
+                if (!Util.isNegativeLiteral(literal))
+                    continue;
+                Formula positiveLiteral = Util.makeLiteralPositive(literal);
+                if (!(positiveLiteral instanceof UninterpretedPredicateInstance))
+                    continue;
+                UninterpretedPredicateInstance predicateInstance = (UninterpretedPredicateInstance) positiveLiteral;
+                if (!predicateInstance.getFunction().equals(
+                        positiveInstance.getFunction()))
+                    continue;
+                assert (predicateInstance == null); // Only one matching
+                                                    // negative instance is
+                                                    // assumed to exist
+                negativeInstance = predicateInstance;
+            }
+            assert (negativeInstance != null);
+            assert (positiveInstance.getFunction().equals(negativeInstance
+                    .getFunction()));
+            assert (positiveInstance.getFunction().getNumParams() == negativeInstance
+                    .getFunction().getNumParams());
+            assert (positiveInstance.getParameters().size() == negativeInstance
+                    .getParameters().size());
+
+            for (int count = 0; count < positiveInstance.getFunction()
+                    .getNumParams(); count++) {
+                DomainTerm term1 = positiveInstance.getParameters().get(count);
+                DomainTerm term2 = negativeInstance.getParameters().get(count);
+                List<DomainTerm> domainTerms = new ArrayList<DomainTerm>(2);
+                domainTerms.add(term1);
+                domainTerms.add(term2);
+                DomainEq equalityToCheck = DomainEq.create(domainTerms, true);
+                if (!cc.checkImplied(equalityToCheck))
+                    return false;
+            }
+            return true;
+        }
+    }
+
+    /**
+     * This check assumes that only one positive literal is present in the
+     * conclusion. This should hold for veriT proofs, because every (original)
+     * theory-lemma leaf has only one positive literal and every resolution
+     * eliminates one positive literal.
+     * 
+     * @param node
+     * @return <code>true</code> if the given <code>node</code>'s conclusion is
+     *         a theory lemma.
+     */
+    public static boolean checkVeritProofNode(VeritProofNode node) {
+        return CongruenceClosure.checkTheoryLemma(node.getLiteralConclusions());
     }
 
     /**
