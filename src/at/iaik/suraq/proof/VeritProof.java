@@ -42,9 +42,9 @@ public class VeritProof implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * ProofSets = ProofNodes. The key is the name (e.g. ".c44")
+     * Map from proof node names (e.g. ".c44") to nodes.
      */
-    private final HashMap<String, VeritProofNode> proofSets = new HashMap<String, VeritProofNode>();
+    private final HashMap<String, VeritProofNode> proofNodes = new HashMap<String, VeritProofNode>();
 
     /**
      * The root of the proof. Can only be set once.
@@ -102,7 +102,7 @@ public class VeritProof implements Serializable {
 
         assert (conclusions != null);
 
-        if (proofSets.keySet().contains(name))
+        if (proofNodes.keySet().contains(name))
             throw new RuntimeException("Name of proof node is not unique.");
 
         VeritProofNode node = null;
@@ -176,11 +176,11 @@ public class VeritProof implements Serializable {
      * @param node
      */
     private void addNodeToInternalDataStructures(VeritProofNode node) {
-        if (proofSets.get(node.getName()) != null) {
+        if (proofNodes.get(node.getName()) != null) {
             throw new RuntimeException("Duplicate node name: " + node.getName());
         }
         this.clauseCounter++;
-        proofSets.put(node.getName(), node);
+        proofNodes.put(node.getName(), node);
 
         if (node.isGoodDefinitionOfBadLiteral()) {
             assert (!goodDefinitionsOfBadLiterals.contains(node));
@@ -198,7 +198,7 @@ public class VeritProof implements Serializable {
      */
     public int getLiteralConclusionsCount() {
         int size = 0;
-        for (VeritProofNode proofSet : proofSets.values()) {
+        for (VeritProofNode proofSet : proofNodes.values()) {
             List<Formula> litConclusions = proofSet.getLiteralConclusions();
             if (litConclusions != null)
                 size += litConclusions.size();
@@ -226,7 +226,7 @@ public class VeritProof implements Serializable {
             goodDefinitionsOfBadLiterals.remove(proofNode);
             assert (!goodDefinitionsOfBadLiterals.contains(proofNode));
         }
-        proofSets.remove(proofNode.getName());
+        proofNodes.remove(proofNode.getName());
     }
 
     /**
@@ -238,7 +238,7 @@ public class VeritProof implements Serializable {
      */
     protected void removeDanglingProofNode(VeritProofNode node) {
         assert (node.getParents().isEmpty());
-        proofSets.remove(node.getName());
+        proofNodes.remove(node.getName());
         // goodDefinitionsOfBadLiterals.remove(node);
         // Workaround because removal seems to be broken
         Set<VeritProofNode> tmp = new HashSet<VeritProofNode>();
@@ -267,7 +267,7 @@ public class VeritProof implements Serializable {
      * @return the VeritProofNode
      */
     public VeritProofNode getProofNode(String name) {
-        VeritProofNode node = proofSets.get(name);
+        VeritProofNode node = proofNodes.get(name);
         assert (node != null);
         return node;
     }
@@ -278,7 +278,7 @@ public class VeritProof implements Serializable {
      * @return an immutable set of all nodes of this proof
      */
     public ImmutableSet<VeritProofNode> getProofNodes() {
-        return ImmutableSet.create(proofSets.values());
+        return ImmutableSet.create(proofNodes.values());
     }
 
     /**
@@ -309,7 +309,7 @@ public class VeritProof implements Serializable {
      * @return <code>true</code> if this proof does not contain bad literals
      */
     public boolean hasNoBadLiterals() {
-        for (VeritProofNode node : proofSets.values()) {
+        for (VeritProofNode node : proofNodes.values()) {
             for (Formula literal : node.getLiteralConclusions()) {
                 assert (Util.isLiteral(literal));
                 if (Util.isBadLiteral(literal))
@@ -326,11 +326,11 @@ public class VeritProof implements Serializable {
      * <li>The parent-child-relations match</li>
      * <li>All nodes claim to belong to this proof</li>
      * <li>All nodes in the cache and the goodDefinitionOfBadLiterals are also
-     * in the proofSets</li>
-     * <li>The root is not <code>null</code>, and belongs to the proofSets</li>
+     * in the proofNodes</li>
+     * <li>The root is not <code>null</code>, and belongs to the proofNodes</li>
      * <li>The root has no parents</li>
      * <li>All nodes, except the root, have at least one parent</li>
-     * <li>For each node in the proofSets, there is a node with the same
+     * <li>For each node in the proofNodes, there is a node with the same
      * conclusion in the nodeCache</li>
      * </ul>
      * Easy checks are performed first (early fail strategy).
@@ -354,14 +354,14 @@ public class VeritProof implements Serializable {
             return false;
         if (!root.getParents().isEmpty())
             return false;
-        if (proofSets.get(root.getName()) != root)
+        if (proofNodes.get(root.getName()) != root)
             return false;
 
         Util.printToSystemOutWithWallClockTimePrefix("[INFO] Now performing checks on individual nodes...");
         int done = 0;
         int lastReported = 0;
-        for (VeritProofNode node : proofSets.values()) {
-            int percentage = (int) Math.floor(((double) done++ / proofSets
+        for (VeritProofNode node : proofNodes.values()) {
+            int percentage = (int) Math.floor(((double) done++ / proofNodes
                     .size()) * 100);
             if (percentage >= lastReported + 10) {
                 lastReported += 10;
@@ -397,7 +397,7 @@ public class VeritProof implements Serializable {
         Util.printToSystemOutWithWallClockTimePrefix("  All checks on individual nodes done.");
 
         for (VeritProofNode node : goodDefinitionsOfBadLiterals) {
-            if (proofSets.get(node.getName()) != node)
+            if (proofNodes.get(node.getName()) != node)
                 return false;
         }
 
@@ -446,7 +446,7 @@ public class VeritProof implements Serializable {
 
         Set<VeritProofNode> reachableNodes = getReachableNodes();
         Set<VeritProofNode> unreachableNodes = new HashSet<VeritProofNode>(
-                proofSets.values());
+                proofNodes.values());
         unreachableNodes.removeAll(reachableNodes);
 
         Set<VeritProofNode> parentlessUnreachableNodes = new HashSet<VeritProofNode>();
@@ -470,8 +470,8 @@ public class VeritProof implements Serializable {
             this.removeDanglingProofNode(node);
 
         // Done. Just some final assertions.
-        assert (proofSets.size() == reachableNodes.size());
-        assert ((new HashSet<VeritProofNode>(proofSets.values()))
+        assert (proofNodes.size() == reachableNodes.size());
+        assert ((new HashSet<VeritProofNode>(proofNodes.values()))
                 .equals(reachableNodes));
     }
 
@@ -587,7 +587,7 @@ public class VeritProof implements Serializable {
      * @return <code>true</code> all leafs of this proof are colorable.
      */
     public boolean isColorable() {
-        for (VeritProofNode node : proofSets.values()) {
+        for (VeritProofNode node : proofNodes.values()) {
             if (!node.isLeaf())
                 continue;
             else {
@@ -632,7 +632,7 @@ public class VeritProof implements Serializable {
      */
     public Set<VeritProofNode> getLeafs() {
         Set<VeritProofNode> result = new HashSet<VeritProofNode>();
-        for (VeritProofNode node : proofSets.values()) {
+        for (VeritProofNode node : proofNodes.values()) {
             if (node.isLeaf())
                 result.add(node);
         }
@@ -989,12 +989,12 @@ public class VeritProof implements Serializable {
 
     /**
      * Returns the size of this proof. More precisely, returns the number of
-     * nodes currently stored in the internal map <code>proofSets</code>.
+     * nodes currently stored in the internal map <code>proofNodes</code>.
      * 
      * @return the number of nodes in this proof.
      */
     public int size() {
-        return proofSets.size();
+        return proofNodes.size();
     }
 
     /**
@@ -1012,13 +1012,13 @@ public class VeritProof implements Serializable {
         assert (suffix != null);
 
         String name = prefix + suffix;
-        if (!proofSets.containsKey(name))
+        if (!proofNodes.containsKey(name))
             return name;
 
         int number = 1;
         while (number > 0) {
             name = prefix + number + suffix;
-            if (!proofSets.containsKey(name))
+            if (!proofNodes.containsKey(name))
                 return name;
             number++;
         }
@@ -1030,7 +1030,7 @@ public class VeritProof implements Serializable {
     // Methods for serialization/deserialization
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        out.writeObject(proofSets);
+        out.writeObject(proofNodes);
         out.writeObject(root);
         out.writeObject(goodDefinitionsOfBadLiterals);
         out.writeObject(clauseCounter);
@@ -1065,7 +1065,7 @@ public class VeritProof implements Serializable {
             ClassNotFoundException {
         try {
             Field proofSetsField = VeritProof.class
-                    .getDeclaredField("proofSets");
+                    .getDeclaredField("proofNodes");
             proofSetsField.setAccessible(true);
             proofSetsField.set(this, in.readObject());
             proofSetsField.setAccessible(false);
