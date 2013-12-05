@@ -422,7 +422,7 @@ public class TransitivityCongruenceChain {
                         .getEndTerm() : shortcutLiteral.getTerms().get(1)));
         DomainEq impliedLiteral = DomainEq.create(impliedLiteralTerms, true);
         conclusions.add(impliedLiteral);
-        VeritProofNode firstShortcutLast = this.proof.addProofSet("fsl_"
+        VeritProofNode firstShortcutLast = this.proof.addProofNode("fsl_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.TRANS_CONGR, conclusions, null, null);
 
@@ -445,7 +445,7 @@ public class TransitivityCongruenceChain {
             resultConclusions.remove(Util.invertLiteral(shortcutLiteral));
 
         VeritProofNode result = this.proof
-                .addProofSet("split_"
+                .addProofNode("split_"
                         + TransitivityCongruenceChain.proofNodeCounter++,
                         VeriTToken.RESOLUTION, resultConclusions,
                         resultSubProofs, null);
@@ -476,7 +476,7 @@ public class TransitivityCongruenceChain {
         DomainEq impliedLiteral = DomainEq.create(terms, true);
         conclusions.add(impliedLiteral);
 
-        VeritProofNode result = proof.addProofSet("col_"
+        VeritProofNode result = proof.addProofNode("col_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.TRANS_CONGR, conclusions, null, null);
         return result;
@@ -538,7 +538,7 @@ public class TransitivityCongruenceChain {
         // Remove negative reflexive literals (they are false anyway)
         Util.removeReflexiveLiterals(conclusions);
 
-        VeritProofNode node1 = proof.addProofSet("tcc_left_"
+        VeritProofNode node1 = proof.addProofNode("tcc_left_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.TRANS_CONGR, conclusions, null, null);
         assert (node1.isColorable());
@@ -563,7 +563,7 @@ public class TransitivityCongruenceChain {
         finalConclusions.remove(resolvingLiteral);
         finalConclusions.remove(Util.invertLiteral(resolvingLiteral));
 
-        VeritProofNode resNode = proof.addProofSet("tcc_res_"
+        VeritProofNode resNode = proof.addProofNode("tcc_res_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.RESOLUTION, finalConclusions, clauses, null);
 

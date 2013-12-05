@@ -1646,7 +1646,7 @@ public class VeritProofNode implements Serializable {
         }
         assert (!newConclusions.contains(inverseBadLiteral));
 
-        result = this.proof.addProofSet(newName, this.type, newConclusions,
+        result = this.proof.addProofNode(newName, this.type, newConclusions,
                 newSubProofs, null);
         dagOperationCache.put(this, result);
         return result;

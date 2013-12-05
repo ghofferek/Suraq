@@ -275,7 +275,7 @@ public class VeriTParser extends Parser {
 
                 // Store the ProofNode to the Proof
                 assert (conclusions != null);
-                proof.addProofSet(name, type, conclusions, parsed_clauses2,
+                proof.addProofNode(name, type, conclusions, parsed_clauses2,
                         parsed_iargs);
 
                 // read next line

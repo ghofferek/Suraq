@@ -96,7 +96,7 @@ public class VeritProof implements Serializable {
      * 
      * @return the requested proof node.
      */
-    public VeritProofNode addProofSet(String name, Token type,
+    public VeritProofNode addProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs) {
 
