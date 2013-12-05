@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,61 +126,106 @@ public class VeritProofNode implements Serializable {
 
         if (this.type.equals(VeriTToken.RESOLUTION) && clauses.size() > 2
                 && !isTheoryLemma) {
-            List<VeritProofNode> remainingClauses = new ArrayList<VeritProofNode>(
+            // Clauses are left-associative
+            List<VeritProofNode> remainingNodes = new LinkedList<VeritProofNode>(
                     clauses);
-            assert (!remainingClauses.isEmpty());
-            tmpSubProofs.add(remainingClauses.remove(0));
-
             int count = 0;
             while (true) {
-                count++;
-                assert (!remainingClauses.isEmpty());
-                assert (tmpSubProofs.size() == 1);
-                assert (tmpLiteralConclusions.isEmpty());
+                assert (remainingNodes.size() > 2);
+                List<VeritProofNode> currentNodes = new ArrayList<VeritProofNode>(
+                        remainingNodes.subList(0, 2));
+                Formula resolvingLiteral = findResolvingLiteral(currentNodes
+                        .get(0).getLiteralConclusions(), currentNodes.get(1)
+                        .getLiteralConclusions()); // clause1 polarity
+                assert (resolvingLiteral != null);
 
-                Formula literal = null;
-
-                // Try using the "next" remaining clause
-                literal = findResolvingLiteral(tmpSubProofs.get(0)
-                        .getLiteralConclusions(), remainingClauses.get(0)
-                        .getLiteralConclusions());
-                if (literal != null) {
-                    tmpSubProofs.add(remainingClauses.remove(0));
-                } else { // Pick an arbitrary clause for resolution
-                    literal = pickAndUseFittingClause(remainingClauses,
-                            tmpSubProofs, reducedConclusions);
-                }
-                assert (tmpSubProofs.size() == 2);
-                assert (literal != null);
-
-                assert (tmpLiteralConclusions.isEmpty());
-                for (Formula currentLiteral : tmpSubProofs.get(0)
+                List<Formula> currentConclusions = new LinkedList<Formula>();
+                for (Formula literal : currentNodes.get(0)
                         .getLiteralConclusions()) {
-                    if (!tmpLiteralConclusions.contains(currentLiteral))
-                        tmpLiteralConclusions.add(currentLiteral);
+                    if (!literal.equals(resolvingLiteral)
+                            && !currentConclusions.contains(literal))
+                        currentConclusions.add(literal);
                 }
-                for (Formula currentLiteral : tmpSubProofs.get(1)
+                for (Formula literal : currentNodes.get(1)
                         .getLiteralConclusions()) {
-                    if (!tmpLiteralConclusions.contains(currentLiteral))
-                        tmpLiteralConclusions.add(currentLiteral);
+                    if (!literal.equals(Util.invertLiteral(resolvingLiteral))
+                            && !currentConclusions.contains(literal))
+                        currentConclusions.add(literal);
                 }
-                tmpLiteralConclusions.remove(literal);
-                tmpLiteralConclusions.remove(Util.invertLiteral(literal));
-
-                if ((new HashSet<Formula>(tmpLiteralConclusions))
-                        .equals(new HashSet<Formula>(reducedConclusions)))
+                VeritProofNode intermediateNode = new VeritProofNode(name + "i"
+                        + (++count), VeriTToken.RESOLUTION, currentConclusions,
+                        currentNodes, null, proof);
+                remainingNodes.remove(1);
+                remainingNodes.remove(0);
+                remainingNodes.add(0, intermediateNode);
+                if (remainingNodes.size() == 2) {
+                    tmpSubProofs = remainingNodes;
+                    tmpLiteralConclusions = new ArrayList<Formula>(
+                            conclusionsOfResolution(tmpSubProofs.get(0)
+                                    .getLiteralConclusions(),
+                                    tmpSubProofs.get(1).getLiteralConclusions()));
                     break;
-
-                VeritProofNode intermediateNode = new VeritProofNode(name
-                        + "_i" + count, VeriTToken.RESOLUTION,
-                        tmpLiteralConclusions, tmpSubProofs, null, proof);
-                assert (intermediateNode != null);
-                tmpSubProofs.clear();
-                tmpSubProofs.add(intermediateNode);
-                tmpLiteralConclusions.clear();
+                }
             }
-            assert (remainingClauses.isEmpty());
 
+            // OLD CODE
+            //
+            // List<VeritProofNode> remainingClauses = new
+            // ArrayList<VeritProofNode>(
+            // clauses);
+            // assert (!remainingClauses.isEmpty());
+            // tmpSubProofs.add(remainingClauses.remove(0));
+            //
+            // int count = 0;
+            // while (true) {
+            // count++;
+            // assert (!remainingClauses.isEmpty());
+            // assert (tmpSubProofs.size() == 1);
+            // assert (tmpLiteralConclusions.isEmpty());
+            //
+            // Formula literal = null;
+            //
+            // // Try using the "next" remaining clause
+            // literal = findResolvingLiteral(tmpSubProofs.get(0)
+            // .getLiteralConclusions(), remainingClauses.get(0)
+            // .getLiteralConclusions());
+            // if (literal != null) {
+            // tmpSubProofs.add(remainingClauses.remove(0));
+            // } else { // Pick an arbitrary clause for resolution
+            // literal = pickAndUseFittingClause(remainingClauses,
+            // tmpSubProofs, reducedConclusions);
+            // }
+            // assert (tmpSubProofs.size() == 2);
+            // assert (literal != null);
+            //
+            // assert (tmpLiteralConclusions.isEmpty());
+            // for (Formula currentLiteral : tmpSubProofs.get(0)
+            // .getLiteralConclusions()) {
+            // if (!tmpLiteralConclusions.contains(currentLiteral))
+            // tmpLiteralConclusions.add(currentLiteral);
+            // }
+            // for (Formula currentLiteral : tmpSubProofs.get(1)
+            // .getLiteralConclusions()) {
+            // if (!tmpLiteralConclusions.contains(currentLiteral))
+            // tmpLiteralConclusions.add(currentLiteral);
+            // }
+            // tmpLiteralConclusions.remove(literal);
+            // tmpLiteralConclusions.remove(Util.invertLiteral(literal));
+            //
+            // if ((new HashSet<Formula>(tmpLiteralConclusions))
+            // .equals(new HashSet<Formula>(reducedConclusions)))
+            // break;
+            //
+            // VeritProofNode intermediateNode = new VeritProofNode(name
+            // + "_i" + count, VeriTToken.RESOLUTION,
+            // tmpLiteralConclusions, tmpSubProofs, null, proof);
+            // assert (intermediateNode != null);
+            // tmpSubProofs.clear();
+            // tmpSubProofs.add(intermediateNode);
+            // tmpLiteralConclusions.clear();
+            // }
+            // assert (remainingClauses.isEmpty());
+            //
         } else {
             tmpLiteralConclusions = reducedConclusions == null ? new ArrayList<Formula>()
                     : new ArrayList<Formula>(reducedConclusions);
@@ -190,8 +236,6 @@ public class VeritProofNode implements Serializable {
         assert (tmpLiteralConclusions != null);
         assert (tmpSubProofs != null);
         assert (tmpSubProofs.size() == 2 || !type.equals(VeriTToken.RESOLUTION));
-        assert ((new HashSet<Formula>(tmpLiteralConclusions))
-                .equals(new HashSet<Formula>(reducedConclusions)));
 
         if (isTheoryLemma) {
             this.subProofs = new ArrayList<VeritProofNode>(0);
@@ -228,8 +272,8 @@ public class VeritProofNode implements Serializable {
      * @return the resolving literal (as it occurs in <code>clause1</code>
      *         polarity), or <code>null</code> if none exists
      */
-    private Formula findResolvingLiteral(List<Formula> clause1,
-            List<Formula> clause2) {
+    private Formula findResolvingLiteral(Collection<? extends Formula> clause1,
+            Collection<? extends Formula> clause2) {
         for (Formula literal : clause1) {
             assert (Util.isLiteral(literal));
             Formula invertedLiteral = Util.invertLiteral(literal);
@@ -237,6 +281,44 @@ public class VeritProofNode implements Serializable {
                 return literal;
         }
         return null;
+    }
+
+    /**
+     * Returns the conclusion resulting from resolution of the given literals.
+     * If the given literals have no resolving literal (or multiple resolving
+     * literals), the method will fail. The result will not contain any literal
+     * twice.
+     * 
+     * @param literals1
+     * @param literals2
+     * @return the conclusion of resolution of <code>literals1</code> and
+     *         <code>literals2</code>.
+     */
+    private List<Formula> conclusionsOfResolution(
+            Collection<? extends Formula> literals1,
+            Collection<? extends Formula> literals2) {
+
+        List<Formula> conclusions = new LinkedList<Formula>();
+        Formula resolvingLiteral = findResolvingLiteral(literals1, literals2);
+        assert (resolvingLiteral != null);
+
+        for (Formula literal : literals1) {
+            if (!literal.equals(resolvingLiteral)
+                    && !conclusions.contains(literal)) {
+                assert (!conclusions.contains(Util.invertLiteral(literal)));
+                conclusions.add(literal);
+            }
+        }
+        for (Formula literal : literals2) {
+            if (!literal.equals(Util.invertLiteral(resolvingLiteral))
+                    && !conclusions.contains(literal)) {
+                assert (!conclusions.contains(Util.invertLiteral(literal)));
+                conclusions.add(literal);
+            }
+        }
+
+        assert ((new HashSet<Formula>(conclusions).size() == conclusions.size()));
+        return conclusions;
     }
 
     /**
@@ -256,6 +338,7 @@ public class VeritProofNode implements Serializable {
      *            intermediate steps
      * @return the literal on which resolution is done, in arbitrary polarity.
      */
+    @SuppressWarnings("unused")
     private Formula pickAndUseFittingClause(
             List<VeritProofNode> remainingClauses,
             List<VeritProofNode> tmpSubProofs, Collection<Formula> conclusions) {
