@@ -59,9 +59,8 @@ public class TransitivityCongruenceChain {
         assert (node.isAxiom());
         assert (node.checkProofNode());
 
-        // Assuming the implied literal is the last one.
-        Formula impliedLiteral = node.getLiteralConclusions().get(
-                node.getLiteralConclusions().size() - 1);
+        Formula impliedLiteral = Util.getImpliedLiteral(node
+                .getLiteralConclusions());
         assert (Util.isLiteral(impliedLiteral));
         assert (!Util.isNegativeLiteral(impliedLiteral));
         assert (impliedLiteral instanceof DomainEq);
@@ -71,9 +70,11 @@ public class TransitivityCongruenceChain {
         assert (((DomainEq) impliedLiteral).getTerms().get(1) instanceof DomainTerm);
 
         List<DomainEq> equalities = new ArrayList<DomainEq>();
-        for (Formula literal : node.getLiteralConclusions().subList(0,
-                node.getLiteralConclusions().size() - 1)) {
-            assert (Util.isNegativeLiteral(literal));
+        for (Formula literal : node.getLiteralConclusions()) {
+            if (!Util.isNegativeLiteral(literal)) {
+                assert (Util.isAtom(literal));
+                continue;
+            }
             Formula positiveLiteral = Util.makeLiteralPositive(literal);
             assert (positiveLiteral instanceof DomainEq);
             equalities.add((DomainEq) positiveLiteral);
@@ -459,27 +460,96 @@ public class TransitivityCongruenceChain {
      * @return a (colorable) VeritProofNode for this chain.
      */
     private VeritProofNode toColorableProofBaseCase() {
+        assert (this.proof != null);
         Set<Integer> partitions = this.getPartitionsFromSymbols();
         partitions.remove(-1);
-        assert (partitions.size() <= 1);
-        assert (this.proof != null);
 
-        Set<Formula> usedLiterals = this.usedLiterals();
-        List<Formula> conclusions = new ArrayList<Formula>(
-                usedLiterals.size() + 1);
-        conclusions.addAll(Util.invertAllLiterals(usedLiterals));
+        if (partitions.size() <= 1) {
 
-        // Create implied Literal
-        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
-        terms.add(this.getStart().getTerm());
-        terms.add(this.getEndTerm());
-        DomainEq impliedLiteral = DomainEq.create(terms, true);
-        conclusions.add(impliedLiteral);
+            Set<Formula> usedLiterals = this.usedLiterals();
+            List<Formula> conclusions = new ArrayList<Formula>(
+                    usedLiterals.size() + 1);
+            conclusions.addAll(Util.invertAllLiterals(usedLiterals));
 
-        VeritProofNode result = proof.addProofNode("col_"
-                + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.TRANS_CONGR, conclusions, null, null);
-        return result;
+            // Create implied Literal
+            List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+            terms.add(this.getStart().getTerm());
+            terms.add(this.getEndTerm());
+            DomainEq impliedLiteral = DomainEq.create(terms, true);
+            conclusions.add(impliedLiteral);
+
+            VeritProofNode result = proof.addProofNode("col_"
+                    + TransitivityCongruenceChain.proofNodeCounter++,
+                    VeriTToken.TRANS_CONGR, conclusions, null, null);
+            return result;
+        } else {
+            // Special case: Local function, with congruence justification over
+            // another partition
+
+            assert (this.length() == 2); // Not sure if this always holds. Let's
+                                         // see if other cases turn up.
+            assert (this.getStart().getCongruenceJustification() != null);
+            assert (this.getStart().getTerm() instanceof UninterpretedFunctionInstance);
+            assert (!Util.isGlobal(this.getStart().getTerm()));
+
+            // Construct proof nodes for each chain in the congruence
+            // justification. Remember the implied literals (for later
+            // resolution).
+            int size = this.getStart().getCongruenceJustification().size();
+            List<VeritProofNode> proofsForCongruence = new ArrayList<VeritProofNode>(
+                    size);
+            List<Formula> impliedLiterals = new ArrayList<Formula>(size);
+            for (TransitivityCongruenceChain chain : this.getStart()
+                    .getCongruenceJustification()) {
+                Set<Integer> chainPartitions = chain.getPartitionsFromSymbols();
+                chainPartitions.remove(-1);
+                assert (chainPartitions.size() <= 1);
+
+                VeritProofNode currentNode = chain.toColorableProofBaseCase();
+                proofsForCongruence.add(currentNode);
+                Formula impliedLiteral = Util.getImpliedLiteral(currentNode
+                        .getLiteralConclusions());
+                assert (Util.isGlobal(impliedLiteral));
+                impliedLiterals.add(impliedLiteral);
+            }
+
+            // Create the the implied literal of the congruence
+            List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+            terms.add(this.getStart().getTerm());
+            terms.add(this.getEndTerm());
+            DomainEq congruenceImpliedLiteral = DomainEq.create(terms, true);
+
+            List<Formula> congruenceConclusions = new ArrayList<Formula>(
+                    impliedLiterals.size() + 1);
+            for (Formula literal : impliedLiterals) {
+                NotFormula negatedLiteral = NotFormula.create(literal);
+                congruenceConclusions.add(negatedLiteral);
+            }
+            congruenceConclusions.add(congruenceImpliedLiteral);
+            VeritProofNode congruenceNode = proof.addProofNode(
+                    proof.freshNodeName("congr.", ""), VeriTToken.EQ_CONGRUENT,
+                    congruenceConclusions, null, null);
+
+            VeritProofNode currentNode = congruenceNode;
+            for (VeritProofNode currentProofForCongruence : proofsForCongruence) {
+                List<VeritProofNode> subProofs = new ArrayList<VeritProofNode>(
+                        2);
+                subProofs.add(currentProofForCongruence);
+                subProofs.add(currentNode);
+                String nodeName = proof.freshNodeName("res.", "");
+                Formula resolvingLiteral = Util.findResolvingLiteral(subProofs);
+                List<Formula> conclusions = new ArrayList<Formula>(subProofs
+                        .get(0).getLiteralConclusions().size()
+                        + subProofs.get(1).getLiteralConclusions().size());
+                conclusions.addAll(subProofs.get(0).getLiteralConclusions());
+                conclusions.addAll(subProofs.get(1).getLiteralConclusions());
+                conclusions.remove(resolvingLiteral);
+                conclusions.remove(Util.invertLiteral(resolvingLiteral));
+                currentNode = proof.addProofNode(nodeName,
+                        VeriTToken.RESOLUTION, conclusions, subProofs, null);
+            }
+            return currentNode;
+        }
     }
 
     /**
@@ -580,9 +650,18 @@ public class TransitivityCongruenceChain {
             if (current.getCongruenceJustification() != null) {
                 assert (current.getEqualityJustification() == null);
                 Set<Integer> partitions = new HashSet<Integer>();
-                partitions.addAll(current.getTerm().getPartitionsFromSymbols());
-                partitions.addAll(current.getNext().getTerm()
-                        .getPartitionsFromSymbols());
+                // Reminder: Partitions of terms should not be added.
+                // This causes a problem when the congruence is about a local
+                // function.
+                // Since there are no bad literals at this point, there are also
+                // no bad terms. I.e., a local function is only applied to
+                // correct local terms, or to global terms.
+                // Thus, checking the partitions of the chain underlying
+                // congruence chain should suffice.
+                //
+                // partitions.addAll(current.getTerm().getPartitionsFromSymbols());
+                // partitions.addAll(current.getNext().getTerm()
+                // .getPartitionsFromSymbols());
                 for (TransitivityCongruenceChain chain : current
                         .getCongruenceJustification())
                     partitions.addAll(chain.getPartitionsFromSymbols());
@@ -679,7 +758,8 @@ public class TransitivityCongruenceChain {
             partitions = firstSegment.getPartitionsFromSymbols();
             partitions.remove(-1);
             assert (partitions.size() <= 1);
-            assert (partitions.isEmpty() || partitions.contains(leftPartition));
+            assert (partitions.isEmpty() || partitions.contains(leftPartition) || Util
+                    .isGlobal(firstSegment.getStart().getTerm()));
             if ((partitions.isEmpty() || partitions.contains(leftPartition))
                     && segments.size() > 1) {
                 firstIntermediateParameters.add(firstSegment.getEndTerm());
@@ -778,7 +858,8 @@ public class TransitivityCongruenceChain {
             partitions = currentSegment.getPartitionsFromSymbols();
             partitions.remove(-1);
             assert (partitions.size() <= 1);
-            assert (partitions.isEmpty() || partitions.contains(rightPartition));
+            assert (partitions.isEmpty() || partitions.contains(rightPartition) || Util
+                    .isGlobal(currentSegment.getEndTerm()));
             lastIntermediateParameters.add(currentSegment.getEndTerm());
             lastJustification.add(currentSegment);
             segments.remove(0);

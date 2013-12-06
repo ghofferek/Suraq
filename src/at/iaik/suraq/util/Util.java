@@ -1266,6 +1266,17 @@ public final class Util {
     }
 
     /**
+     * @param formula
+     * @return <code>true</code> iff the given formula contains only global
+     *         symbols.
+     */
+    public static boolean isGlobal(Formula formula) {
+        Set<Integer> partitions = formula.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        return partitions.isEmpty();
+    }
+
+    /**
      * @param usedLiterals
      * @return
      */
@@ -1308,4 +1319,82 @@ public final class Util {
         else
             return NotFormula.create(newEq);
     }
+
+    /**
+     * Counts how many negative literals are contained in the given collection.
+     * Positive literals and non-literals are not counted.
+     * 
+     * @param literals
+     * @return the number of negative literals in the given Collection.
+     */
+    public static int countNegativeLiterals(
+            Collection<? extends Formula> literals) {
+        int count = 0;
+        for (Formula literal : literals) {
+            if (Util.isNegativeLiteral(literal))
+                count++;
+        }
+        return count;
+    }
+
+    /**
+     * Counts how many positive literals are contained in the given collection.
+     * Negative literals and non-literals are not counted.
+     * 
+     * @param literals
+     * @return the number of positive literals in the given Collection.
+     */
+    public static int countPositiveLiterals(
+            Collection<? extends Formula> literals) {
+        int count = 0;
+        for (Formula literal : literals) {
+            if (Util.isAtom(literal))
+                count++;
+        }
+        return count;
+    }
+
+    /**
+     * Returns the first positive literal found in the given collection, or
+     * <code>null</code> if no such literal exists.
+     * 
+     * @param literals
+     * @return the first positive literal found in the given collection, or
+     *         <code>null</code> if no such literal exists.
+     */
+    public static Formula findPositiveLiteral(
+            Collection<? extends Formula> literals) {
+        for (Formula literal : literals) {
+            if (Util.isAtom(literal))
+                return literal;
+        }
+        return null;
+    }
+
+    /**
+     * Returns the implied literal of this collection. Unlike
+     * <code>findPositiveLiteral</code>, this checks whether there is only one
+     * positive (implied) literal. This also checks that all other formulas
+     * actually are literals.
+     * 
+     * @param literals
+     * @return the (unique) implied literal of this collection or
+     *         <code>null</code> if no such (unique) literal exists
+     */
+    public static Formula getImpliedLiteral(
+            Collection<? extends Formula> literals) {
+        Formula result = null;
+        for (Formula literal : literals) {
+            if (!Util.isLiteral(literal))
+                return null;
+            if (Util.isAtom(literal)) {
+                if (result != null)
+                    return null;
+                else
+                    result = literal;
+            }
+        }
+        return result;
+    }
+
 }

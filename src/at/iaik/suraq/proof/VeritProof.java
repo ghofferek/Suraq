@@ -19,9 +19,12 @@ import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
+import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.util.CongruenceClosure;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.MutableInteger;
 import at.iaik.suraq.util.Timer;
@@ -555,21 +558,39 @@ public class VeritProof implements Serializable {
                 + " need splitting.");
         int count = 0;
         for (VeritProofNode leafToClean : leafsToClean) {
+            assert (CongruenceClosure.checkVeritProofNode(leafToClean));
+            assert (Util.countPositiveLiterals(leafToClean
+                    .getLiteralConclusions()) == 1);
+            assert (Util.countPositiveLiterals(leafToClean
+                    .getLiteralConclusions())
+                    + Util.countNegativeLiterals(leafToClean
+                            .getLiteralConclusions()) == leafToClean
+                    .getLiteralConclusions().size());
+
+            Formula positiveLiteral = Util.findPositiveLiteral(leafToClean
+                    .getLiteralConclusions());
+            assert (positiveLiteral != null);
+            assert (positiveLiteral instanceof DomainEq || positiveLiteral instanceof UninterpretedPredicateInstance);
+
             VeritProofNode replacement = null;
-            if (leafToClean.getType().equals(VeriTToken.EQ_CONGRUENT)
-                    || leafToClean.getType().equals(VeriTToken.EQ_TRANSITIVE)) {
+            // if (leafToClean.getType().equals(VeriTToken.EQ_CONGRUENT)
+            // || leafToClean.getType().equals(VeriTToken.EQ_TRANSITIVE)) {
+            if (positiveLiteral instanceof DomainEq) {
                 Util.printToSystemOutWithWallClockTimePrefix("    Splitting leaf "
                         + leafToClean.getName());
                 TransitivityCongruenceChain chain = TransitivityCongruenceChain
                         .create(leafToClean);
                 replacement = chain.toColorableProof();
-            } else if (leafToClean.getType().equals(
-                    VeriTToken.EQ_CONGRUENT_PRED)) {
+                // } else if (leafToClean.getType().equals(
+                // VeriTToken.EQ_CONGRUENT_PRED)) {
+            } else if (positiveLiteral instanceof UninterpretedPredicateInstance) {
                 Util.printToSystemOutWithWallClockTimePrefix("    Splitting (predicate) leaf "
                         + leafToClean.getName());
                 replacement = leafToClean.splitPredicateLeaf();
             } else {
-                // Unexpected proof type!
+                Util.printToSystemOutWithWallClockTimePrefix("Unexpected implied literal:");
+                System.out.println(positiveLiteral.toString());
+                System.out.println("Containing leaf:");
                 System.out.println(leafToClean.toString());
                 assert (false);
             }
