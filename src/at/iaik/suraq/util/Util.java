@@ -926,6 +926,8 @@ public final class Util {
         Formula tmp = formula.transformToConsequentsForm();
         if (!Util.isLiteral(tmp))
             return false;
+        if (!(formula instanceof DomainEq))
+            return false;
         tmp = Util.getSingleLiteral(tmp);
         if (!(tmp instanceof EqualityFormula))
             return false;
@@ -943,6 +945,18 @@ public final class Util {
         assert (term1 != null);
         assert (term2 != null);
         return (term1.equals(term2));
+    }
+
+    /**
+     * 
+     * @param literal
+     * @return <code>true</code> iff the given literal is a negated reflexivity.
+     */
+    public static boolean isNegatedReflexivity(Formula literal) {
+        if (!Util.isNegativeLiteral(literal))
+            return false;
+        Formula positivLiteral = Util.makeLiteralPositive(literal);
+        return Util.isReflexivity(positivLiteral);
     }
 
     /**

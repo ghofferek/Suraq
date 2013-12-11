@@ -175,7 +175,7 @@ public class TransitivityCongruenceChain {
                                         .getParameters().get(count),
                                 ((UninterpretedFunctionInstance) term2)
                                         .getParameters().get(count), localPath,
-                                (VeritProof) null));
+                                node.getProof()));
                     }
                     if (localJustification != null) {
                         Justification completeLocalJustification = new Justification(
@@ -223,6 +223,23 @@ public class TransitivityCongruenceChain {
         } else {
             this.proof = null;
         }
+    }
+
+    /**
+     * 
+     * Constructs a new <code>TransitivityCongruenceChain</code>.
+     * 
+     * @param start
+     * @param target
+     * @param proof
+     */
+    private TransitivityCongruenceChain(DomainTerm start, DomainTerm target,
+            VeritProof proof) {
+        assert (start != null);
+        assert (target != null);
+        this.start = new TransitivityCongruenceChainElement(start);
+        this.target = target;
+        this.proof = proof;
     }
 
     /**
@@ -465,20 +482,18 @@ public class TransitivityCongruenceChain {
         Set<Integer> partitions = this.getPartitionsFromSymbols();
         partitions.remove(-1);
 
-        if (partitions.size() <= 1) {
+        // Create implied Literal
+        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        terms.add(this.getStart().getTerm());
+        terms.add(this.getEndTerm());
+        DomainEq impliedLiteral = DomainEq.create(terms, true);
 
+        if (partitions.size() <= 1) {
             Set<Formula> usedLiterals = this.usedLiterals();
             List<Formula> conclusions = new ArrayList<Formula>(
                     usedLiterals.size() + 1);
             conclusions.addAll(Util.invertAllLiterals(usedLiterals));
-
-            // Create implied Literal
-            List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
-            terms.add(this.getStart().getTerm());
-            terms.add(this.getEndTerm());
-            DomainEq impliedLiteral = DomainEq.create(terms, true);
             conclusions.add(impliedLiteral);
-
             VeritProofNode result = proof.addProofNode("col_"
                     + TransitivityCongruenceChain.proofNodeCounter++,
                     VeriTToken.TRANS_CONGR, conclusions, null, null);
@@ -495,10 +510,9 @@ public class TransitivityCongruenceChain {
             assert (current != null);
 
             while (current != null) {
-                assert (current.hasNext());
 
                 // Collect literals for colorable conclusion
-                // For congruences over other partions, collect colorable
+                // For congruences over other partitions, collect colorable
                 // subproofs.
                 if (current.isCongruenceOfLocalFunctionOverOtherPartition()) {
                     assert (current.getCongruenceJustification() != null);
@@ -538,7 +552,12 @@ public class TransitivityCongruenceChain {
             }
 
             // Construct colorable leaf with all literals except the "details"
-            // of the congruences accross other partitions
+            // of the congruences across other partitions
+
+            // First, we need to add the implied literal
+            conclusions.add(impliedLiteral);
+
+            // Now we actually construct the leaf
             VeritProofNode currentNode = proof.addProofNode(
                     proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
                     conclusions, null, null);
@@ -838,7 +857,7 @@ public class TransitivityCongruenceChain {
 
         // Create the patch to splice in
         TransitivityCongruenceChain patch = new TransitivityCongruenceChain(
-                element.getTerm(), element.getNext().getTerm(), null);
+                element.getTerm(), element.getNext().getTerm(), this.proof);
 
         // Create intermediate elements from list of lists and attach them to
         // the patch
@@ -864,7 +883,7 @@ public class TransitivityCongruenceChain {
                 firstIntermediateParameters.add(firstSegment.getStart()
                         .getTerm());
                 firstJustification.add(new TransitivityCongruenceChain(
-                        firstSegment.start.getTerm(), null));
+                        firstSegment.start.getTerm(), this.proof));
             }
         }
         UninterpretedFunctionInstance nextTerm = null;

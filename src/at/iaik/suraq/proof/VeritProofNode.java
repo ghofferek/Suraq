@@ -116,8 +116,18 @@ public class VeritProofNode implements Serializable {
                 : CongruenceClosure.checkTheoryLemma(conclusions);
         List<Formula> reducedConclusions = new ArrayList<Formula>();
         for (Formula literal : conclusions) {
-            if (!reducedConclusions.contains(literal))
-                reducedConclusions.add(literal);
+            if (!reducedConclusions.contains(literal)) {
+                if (Util.isLiteral(literal)) {
+                    if (Util.isUnitClause(literal))
+                        literal = Util.getSingleLiteral(literal);
+                    if (!Util.isNegatedReflexivity(literal)) {
+                        reducedConclusions.add(literal);
+                    }
+                } else {
+                    assert (type.equals(VeriTToken.INPUT));
+                    reducedConclusions.add(literal);
+                }
+            }
         }
         assert ((new HashSet<Formula>(reducedConclusions)).size() == reducedConclusions
                 .size());
@@ -591,7 +601,8 @@ public class VeritProofNode implements Serializable {
         assert (this.parents.size() > 0 || this == this.proof.getRoot());
 
         if (strongerSubProof.literalConclusions.size() == 0) {
-            this.proof.setNewRoot(strongerSubProof);
+            boolean rootSet = this.proof.setNewRoot(strongerSubProof);
+            assert (rootSet);
             return;
         }
 
@@ -651,8 +662,6 @@ public class VeritProofNode implements Serializable {
         assert (conclusions.size() < this.literalConclusions.size());
         assert (this.literalConclusions.containsAll(conclusions));
 
-        // Do NOT do a cache lookup. Looking up stronger nodes likely results in
-        // cycles!
         VeritProofNode strongerNode = new VeritProofNode("str_" + this.name,
                 this.type, conclusions, clauses, null, this.proof);
         assert (strongerNode != null);
