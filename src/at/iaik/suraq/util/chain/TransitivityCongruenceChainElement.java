@@ -350,4 +350,51 @@ public class TransitivityCongruenceChainElement {
         } else
             return null;
     }
+
+    /**
+     * @return
+     */
+    public boolean isCongruenceOfLocalFunctionOverOtherPartition() {
+        if (this.congruenceJustification == null)
+            return false;
+
+        if (this.equalityJustification != null)
+            return false;
+
+        if (this.term == null)
+            return false;
+
+        if (!(this.term instanceof UninterpretedFunctionInstance))
+            return false;
+
+        UninterpretedFunctionInstance term1 = (UninterpretedFunctionInstance) this.term;
+
+        if (this.next == null)
+            return false;
+
+        if (next.term == null)
+            return false;
+
+        if (!(next.term instanceof UninterpretedFunctionInstance))
+            return false;
+
+        UninterpretedFunctionInstance term2 = (UninterpretedFunctionInstance) next.term;
+
+        if (!term1.getFunction().equals(term2.getFunction()))
+            return false;
+
+        if (Util.isGlobal(term1))
+            return false;
+
+        if (Util.isGlobal(term2))
+            return false;
+
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        partitions.remove(-1);
+
+        if (partitions.size() <= 1)
+            return false;
+
+        return true;
+    }
 }

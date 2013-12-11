@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import at.iaik.suraq.proof.VeriTToken;
 import at.iaik.suraq.proof.VeritProof;
@@ -483,73 +484,167 @@ public class TransitivityCongruenceChain {
                     VeriTToken.TRANS_CONGR, conclusions, null, null);
             return result;
         } else {
-            // Special case: Local function, with congruence justification over
-            // another partition
+            // Special case: at least one chain link has a congruence
+            // justification for a local function over another partition
+            assert (this.length() >= 2);
 
-            assert (this.length() == 2); // Not sure if this always holds. Let's
-                                         // see if other cases turn up.
-            assert (this.getStart().getCongruenceJustification() != null);
-            assert (this.getStart().getTerm() instanceof UninterpretedFunctionInstance);
-            assert (!Util.isGlobal(this.getStart().getTerm()));
+            List<VeritProofNode> congruences = new ArrayList<VeritProofNode>();
+            List<Formula> conclusions = new ArrayList<Formula>();
+            TransitivityCongruenceChainElement current = this.start;
+            partitions = new TreeSet<Integer>();
+            assert (current != null);
 
-            // Construct proof nodes for each chain in the congruence
-            // justification. Remember the implied literals (for later
-            // resolution).
-            int size = this.getStart().getCongruenceJustification().size();
-            List<VeritProofNode> proofsForCongruence = new ArrayList<VeritProofNode>(
-                    size);
-            List<Formula> impliedLiterals = new ArrayList<Formula>(size);
-            for (TransitivityCongruenceChain chain : this.getStart()
-                    .getCongruenceJustification()) {
-                Set<Integer> chainPartitions = chain.getPartitionsFromSymbols();
-                chainPartitions.remove(-1);
-                assert (chainPartitions.size() <= 1);
+            while (current != null) {
+                assert (current.hasNext());
 
-                VeritProofNode currentNode = chain.toColorableProofBaseCase();
-                proofsForCongruence.add(currentNode);
-                Formula impliedLiteral = Util.getImpliedLiteral(currentNode
-                        .getLiteralConclusions());
-                assert (Util.isGlobal(impliedLiteral));
-                impliedLiterals.add(impliedLiteral);
+                // Collect literals for colorable conclusion
+                // For congruences over other partions, collect colorable
+                // subproofs.
+                if (current.isCongruenceOfLocalFunctionOverOtherPartition()) {
+                    assert (current.getCongruenceJustification() != null);
+                    assert (current.getTerm() != null);
+                    assert (current.getTerm() instanceof UninterpretedFunctionInstance);
+                    assert (current.getNext().getTerm() != null);
+                    assert (current.getNext().getTerm() instanceof UninterpretedFunctionInstance);
+                    VeritProofNode congruence = TransitivityCongruenceChain
+                            .congruenceForLocalFunctionToColorableProof(current
+                                    .getCongruenceJustification(),
+                                    (UninterpretedFunctionInstance) current
+                                            .getTerm(),
+                                    (UninterpretedFunctionInstance) current
+                                            .getNext().getTerm(), this.proof);
+                    congruences.add(congruence);
+                    assert (Util.findPositiveLiteral(congruence
+                            .getLiteralConclusions()) != null);
+
+                    Formula literal = Util.invertLiteral(Util
+                            .findPositiveLiteral(congruence
+                                    .getLiteralConclusions()));
+                    partitions.addAll(literal.getPartitionsFromSymbols());
+                    partitions.remove(-1);
+                    assert (partitions.size() <= 1);
+                    conclusions.add(literal);
+                } else {
+                    List<Formula> literals = Util.invertAllLiterals(current
+                            .usedLiterals());
+                    for (Formula literal : literals) {
+                        partitions.addAll(literal.getPartitionsFromSymbols());
+                        partitions.remove(-1);
+                        assert (partitions.size() <= 1);
+                        conclusions.add(literal);
+                    }
+                }
+                current = current.getNext();
             }
 
-            // Create the the implied literal of the congruence
-            List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
-            terms.add(this.getStart().getTerm());
-            terms.add(this.getEndTerm());
-            DomainEq congruenceImpliedLiteral = DomainEq.create(terms, true);
+            // Construct colorable leaf with all literals except the "details"
+            // of the congruences accross other partitions
+            VeritProofNode currentNode = proof.addProofNode(
+                    proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
+                    conclusions, null, null);
 
-            List<Formula> congruenceConclusions = new ArrayList<Formula>(
-                    impliedLiterals.size() + 1);
-            for (Formula literal : impliedLiterals) {
-                NotFormula negatedLiteral = NotFormula.create(literal);
-                congruenceConclusions.add(negatedLiteral);
-            }
-            congruenceConclusions.add(congruenceImpliedLiteral);
-            VeritProofNode congruenceNode = proof.addProofNode(
-                    proof.freshNodeName("congr.", ""), VeriTToken.EQ_CONGRUENT,
-                    congruenceConclusions, null, null);
-
-            VeritProofNode currentNode = congruenceNode;
-            for (VeritProofNode currentProofForCongruence : proofsForCongruence) {
+            // Add resolution steps to get the final conclusion
+            for (VeritProofNode currentCongruence : congruences) {
                 List<VeritProofNode> subProofs = new ArrayList<VeritProofNode>(
                         2);
-                subProofs.add(currentProofForCongruence);
                 subProofs.add(currentNode);
-                String nodeName = proof.freshNodeName("res.", "");
+                subProofs.add(currentCongruence);
                 Formula resolvingLiteral = Util.findResolvingLiteral(subProofs);
-                List<Formula> conclusions = new ArrayList<Formula>(subProofs
-                        .get(0).getLiteralConclusions().size()
-                        + subProofs.get(1).getLiteralConclusions().size());
-                conclusions.addAll(subProofs.get(0).getLiteralConclusions());
-                conclusions.addAll(subProofs.get(1).getLiteralConclusions());
-                conclusions.remove(resolvingLiteral);
-                conclusions.remove(Util.invertLiteral(resolvingLiteral));
-                currentNode = proof.addProofNode(nodeName,
-                        VeriTToken.RESOLUTION, conclusions, subProofs, null);
+                List<Formula> currentConclusions = new ArrayList<Formula>();
+                currentConclusions.addAll(subProofs.get(0)
+                        .getLiteralConclusions());
+                currentConclusions.addAll(subProofs.get(1)
+                        .getLiteralConclusions());
+                currentConclusions.remove(resolvingLiteral);
+                currentConclusions.remove(Util.invertLiteral(resolvingLiteral));
+                currentNode = proof.addProofNode(
+                        proof.freshNodeName("res.", ""), VeriTToken.RESOLUTION,
+                        currentConclusions, subProofs, null);
             }
+
             return currentNode;
         }
+    }
+
+    /**
+     * Creates a colorable proof for a congruence between the given terms, using
+     * the given justification.
+     * 
+     * @param congruenceJustification
+     * @param term1
+     *            instance of a non-global function
+     * @param term2
+     *            instance of a non-global function
+     * @param proof
+     *            the proof to which nodes will be added
+     * @return the proof node that asserts the congruence, based on colorable
+     *         leaves.
+     */
+    private static VeritProofNode congruenceForLocalFunctionToColorableProof(
+            List<TransitivityCongruenceChain> congruenceJustification,
+            UninterpretedFunctionInstance term1,
+            UninterpretedFunctionInstance term2, VeritProof proof) {
+
+        assert (congruenceJustification != null);
+        assert (!Util.isGlobal(term1));
+        assert (!Util.isGlobal(term2));
+        assert (term1.getFunction().equals(term2.getFunction()));
+
+        // Construct proof nodes for each chain in the congruence
+        // justification. Remember the implied literals (for later
+        // resolution).
+        int size = congruenceJustification.size();
+        List<VeritProofNode> proofsForCongruence = new ArrayList<VeritProofNode>(
+                size);
+        List<Formula> impliedLiterals = new ArrayList<Formula>(size);
+        for (TransitivityCongruenceChain chain : congruenceJustification) {
+            Set<Integer> chainPartitions = chain.getPartitionsFromSymbols();
+            chainPartitions.remove(-1);
+            assert (chainPartitions.size() <= 1);
+
+            VeritProofNode currentNode = chain.toColorableProofBaseCase();
+            proofsForCongruence.add(currentNode);
+            Formula impliedLiteral = Util.getImpliedLiteral(currentNode
+                    .getLiteralConclusions());
+            assert (Util.isGlobal(impliedLiteral));
+            impliedLiterals.add(impliedLiteral);
+        }
+
+        // Create the the implied literal of the congruence
+        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        terms.add(term1);
+        terms.add(term2);
+        DomainEq congruenceImpliedLiteral = DomainEq.create(terms, true);
+
+        List<Formula> congruenceConclusions = new ArrayList<Formula>(
+                impliedLiterals.size() + 1);
+        for (Formula literal : impliedLiterals) {
+            NotFormula negatedLiteral = NotFormula.create(literal);
+            congruenceConclusions.add(negatedLiteral);
+        }
+        congruenceConclusions.add(congruenceImpliedLiteral);
+        VeritProofNode congruenceNode = proof.addProofNode(
+                proof.freshNodeName("congr.", ""), VeriTToken.EQ_CONGRUENT,
+                congruenceConclusions, null, null);
+
+        VeritProofNode currentNode = congruenceNode;
+        for (VeritProofNode currentProofForCongruence : proofsForCongruence) {
+            List<VeritProofNode> subProofs = new ArrayList<VeritProofNode>(2);
+            subProofs.add(currentProofForCongruence);
+            subProofs.add(currentNode);
+            String nodeName = proof.freshNodeName("res.", "");
+            Formula resolvingLiteral = Util.findResolvingLiteral(subProofs);
+            List<Formula> conclusions = new ArrayList<Formula>(subProofs.get(0)
+                    .getLiteralConclusions().size()
+                    + subProofs.get(1).getLiteralConclusions().size());
+            conclusions.addAll(subProofs.get(0).getLiteralConclusions());
+            conclusions.addAll(subProofs.get(1).getLiteralConclusions());
+            conclusions.remove(resolvingLiteral);
+            conclusions.remove(Util.invertLiteral(resolvingLiteral));
+            currentNode = proof.addProofNode(nodeName, VeriTToken.RESOLUTION,
+                    conclusions, subProofs, null);
+        }
+        return currentNode;
     }
 
     /**
