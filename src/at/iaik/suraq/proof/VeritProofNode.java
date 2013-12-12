@@ -1608,6 +1608,16 @@ public class VeritProofNode implements Serializable {
 
         TransitivityCongruenceChain chain1 = TransitivityCongruenceChain
                 .create(equality, otherLiterals, this);
+        if (chain1.isColorable()) {
+            List<Formula> conclusions = new ArrayList<Formula>();
+            conclusions.addAll(Util.invertAllLiterals(chain1.usedLiterals()));
+            conclusions.add(NotFormula.create(inversePredicateLiteral));
+            conclusions.add(impliedLiteral);
+            VeritProofNode result = proof.addProofNode(
+                    proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
+                    conclusions, null, null);
+            return result;
+        }
         TransitivityCongruenceChain chain2 = chain1.splitAtGlobalTerm();
 
         DomainTerm globalTerm = chain2.getStart().getTerm();

@@ -1025,7 +1025,7 @@ public class TransitivityCongruenceChain {
      * 
      * @return a set of formulas used as links in this chain.
      */
-    protected Set<Formula> usedLiterals() {
+    public Set<Formula> usedLiterals() {
         Set<Formula> result = new HashSet<Formula>();
         TransitivityCongruenceChainElement current = start;
         while (current.hasNext()) {
@@ -1115,6 +1115,16 @@ public class TransitivityCongruenceChain {
             current = current.getNext();
         }
         return result;
+    }
+
+    /**
+     * 
+     * @return <code>true</code> iff at most one partition appears in this chain
+     */
+    public boolean isColorable() {
+        Set<Integer> partitions = getPartitionsFromSymbols();
+        partitions.remove(-1);
+        return partitions.size() <= 1;
     }
 
     /**
