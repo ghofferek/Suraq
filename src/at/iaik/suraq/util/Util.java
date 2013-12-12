@@ -1411,4 +1411,35 @@ public final class Util {
         return result;
     }
 
+    /**
+     * Searches the given collection of <code>literals</code> for a predicate
+     * instance of the same predicate as <code>predicateInstance</code> but in
+     * inverse (i.e., negative) polarity. The first matching predicate instance
+     * found is returned. There is no check done whether there would be more.
+     * Note that the returned formula will not be the negative literal, but just
+     * the predicate inside the <code>NotFormula</code>.
+     * 
+     * @param predicateInstance
+     * @param literals
+     * @return the inverse predicate instance, or <code>null</code> if not found
+     */
+    public static UninterpretedPredicateInstance findInversePredicateLiteral(
+            UninterpretedPredicateInstance predicateInstance,
+            Collection<? extends Formula> literals) {
+        assert (predicateInstance != null);
+        assert (literals != null);
+        UninterpretedFunction predicate = predicateInstance.getFunction();
+        for (Formula literal : literals) {
+            if (Util.isNegativeLiteral(literal)) {
+                Formula positiveLiteral = Util.makeLiteralPositive(literal);
+                if (positiveLiteral instanceof UninterpretedPredicateInstance) {
+                    if (((UninterpretedPredicateInstance) positiveLiteral)
+                            .getFunction().equals(predicate)) {
+                        return (UninterpretedPredicateInstance) positiveLiteral;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 }

@@ -624,7 +624,11 @@ public class VeritProofNode implements Serializable {
                     .containsAll(strongerSubProof.literalConclusions));
             assert (this != this.proof.getRoot());
             // This resolution step is unnecessary. Make all parents stronger.
-            for (VeritProofNode parent : this.parents) {
+            Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
+                    this.parents);
+            for (VeritProofNode parent : parentsCopy) {
+                if (!this.parents.contains(parent))
+                    continue;
                 parent.makeStronger(this, strongerSubProof);
             }
             return;
@@ -666,7 +670,11 @@ public class VeritProofNode implements Serializable {
                 this.type, conclusions, clauses, null, this.proof);
         assert (strongerNode != null);
 
-        for (VeritProofNode parent : this.parents) {
+        Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
+                this.parents);
+        for (VeritProofNode parent : parentsCopy) {
+            if (!this.parents.contains(parent))
+                continue;
             parent.makeStronger(this, strongerNode);
         }
     }
@@ -1540,22 +1548,33 @@ public class VeritProofNode implements Serializable {
      */
     public VeritProofNode splitPredicateLeaf() {
 
-        assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED));
-        assert (this.checkCongruencePred());
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED) || this.type
+                .equals(VeriTToken.TRANS_CONGR));
+        assert (this.checkCongruencePred() || this.checkTransCongr());
 
         // Here, the last literal can also be negative.
-        assert (Util
-                .isAtom(literalConclusions.get(literalConclusions.size() - 1)) ^ Util
-                .isAtom(literalConclusions.get(literalConclusions.size() - 2)));
-        int posIndex = Util.isAtom(literalConclusions.get(literalConclusions
-                .size() - 1)) ? literalConclusions.size() - 1
-                : literalConclusions.size() - 2;
-        int negIndex = posIndex == literalConclusions.size() - 1 ? posIndex - 1
-                : posIndex + 1;
-        UninterpretedPredicateInstance impliedLiteral = (UninterpretedPredicateInstance) literalConclusions
-                .get(posIndex);
-        UninterpretedPredicateInstance inversePredicateLiteral = (UninterpretedPredicateInstance) Util
-                .makeLiteralPositive(literalConclusions.get(negIndex));
+        // assert (Util
+        // .isAtom(literalConclusions.get(literalConclusions.size() - 1)) ^ Util
+        // .isAtom(literalConclusions.get(literalConclusions.size() - 2)));
+        // int posIndex = Util.isAtom(literalConclusions.get(literalConclusions
+        // .size() - 1)) ? literalConclusions.size() - 1
+        // : literalConclusions.size() - 2;
+        // int negIndex = posIndex == literalConclusions.size() - 1 ? posIndex -
+        // 1
+        // : posIndex + 1;
+        // UninterpretedPredicateInstance impliedLiteral =
+        // (UninterpretedPredicateInstance) literalConclusions
+        // .get(posIndex);
+        // UninterpretedPredicateInstance inversePredicateLiteral =
+        // (UninterpretedPredicateInstance) Util
+        // .makeLiteralPositive(literalConclusions.get(negIndex));
+
+        Formula positiveLiteral = Util.findPositiveLiteral(literalConclusions);
+        assert (positiveLiteral instanceof UninterpretedPredicateInstance);
+        UninterpretedPredicateInstance impliedLiteral = (UninterpretedPredicateInstance) positiveLiteral;
+        UninterpretedPredicateInstance inversePredicateLiteral = Util
+                .findInversePredicateLiteral(impliedLiteral, literalConclusions);
+        assert (inversePredicateLiteral != null);
 
         // FIXME this method presently only support unary predicates!
         if (impliedLiteral.getParameters().size() != 1
@@ -1576,12 +1595,15 @@ public class VeritProofNode implements Serializable {
 
         List<DomainEq> otherLiterals = new ArrayList<DomainEq>(
                 literalConclusions.size() - 2);
-        for (int count = 0; count < literalConclusions.size() - 2; count++) {
-            assert (Util.isLiteral(literalConclusions.get(count)));
-            assert (Util.isNegativeLiteral(literalConclusions.get(count)));
-            assert (Util.makeLiteralPositive(literalConclusions.get(count)) instanceof DomainEq);
-            otherLiterals.add((DomainEq) Util
-                    .makeLiteralPositive(literalConclusions.get(count)));
+        for (Formula literal : literalConclusions) {
+            if (literal.equals(impliedLiteral)
+                    || Util.makeLiteralPositive(literal).equals(
+                            inversePredicateLiteral))
+                continue;
+            assert (Util.isLiteral(literal));
+            assert (Util.isNegativeLiteral(literal));
+            assert (Util.makeLiteralPositive(literal) instanceof DomainEq);
+            otherLiterals.add((DomainEq) Util.makeLiteralPositive(literal));
         }
 
         TransitivityCongruenceChain chain1 = TransitivityCongruenceChain
