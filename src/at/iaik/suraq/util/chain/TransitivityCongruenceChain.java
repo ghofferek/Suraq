@@ -514,14 +514,15 @@ public class TransitivityCongruenceChain {
                 // Collect literals for colorable conclusion
                 // For congruences over other partitions, collect colorable
                 // subproofs.
-                if (current.isCongruenceOfLocalFunctionOverOtherPartition()) {
+                if (current.isCongruenceOfLocalFunctionOverOtherPartition()
+                        || current.isCongruenceOverOtherPartition(partitions)) {
                     assert (current.getCongruenceJustification() != null);
                     assert (current.getTerm() != null);
                     assert (current.getTerm() instanceof UninterpretedFunctionInstance);
                     assert (current.getNext().getTerm() != null);
                     assert (current.getNext().getTerm() instanceof UninterpretedFunctionInstance);
                     VeritProofNode congruence = TransitivityCongruenceChain
-                            .congruenceForLocalFunctionToColorableProof(current
+                            .congruenceJustificationToColorableProof(current
                                     .getCongruenceJustification(),
                                     (UninterpretedFunctionInstance) current
                                             .getTerm(),
@@ -599,14 +600,12 @@ public class TransitivityCongruenceChain {
      * @return the proof node that asserts the congruence, based on colorable
      *         leaves.
      */
-    private static VeritProofNode congruenceForLocalFunctionToColorableProof(
+    private static VeritProofNode congruenceJustificationToColorableProof(
             List<TransitivityCongruenceChain> congruenceJustification,
             UninterpretedFunctionInstance term1,
             UninterpretedFunctionInstance term2, VeritProof proof) {
 
         assert (congruenceJustification != null);
-        assert (!Util.isGlobal(term1));
-        assert (!Util.isGlobal(term2));
         assert (term1.getFunction().equals(term2.getFunction()));
 
         // Construct proof nodes for each chain in the congruence
@@ -839,13 +838,15 @@ public class TransitivityCongruenceChain {
         // Determine start and target partitions
         Set<Integer> partitions = element.getTerm().getPartitionsFromSymbols();
         partitions.remove(-1);
-        assert (partitions.size() == 1);
-        int leftPartition = partitions.iterator().next();
+        assert (partitions.size() <= 1);
+        int leftPartition = partitions.size() > 0 ? partitions.iterator()
+                .next() : -1;
         partitions.clear();
         partitions = element.getNext().getTerm().getPartitionsFromSymbols();
         partitions.remove(-1);
-        assert (partitions.size() == 1);
-        int rightPartition = partitions.iterator().next();
+        assert (partitions.size() <= 1);
+        int rightPartition = partitions.size() > 0 ? partitions.iterator()
+                .next() : -1;
 
         // Determine the function in question
         assert (element.getTerm() instanceof UninterpretedFunctionInstance);

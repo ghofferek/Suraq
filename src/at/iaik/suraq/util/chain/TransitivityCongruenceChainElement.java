@@ -397,4 +397,54 @@ public class TransitivityCongruenceChainElement {
 
         return true;
     }
+
+    /**
+     * @param partitions
+     * @return
+     */
+    public boolean isCongruenceOverOtherPartition(Set<Integer> partitions) {
+        assert (partitions != null);
+        assert (!partitions.contains(-1));
+        assert (partitions.size() <= 1);
+
+        if (this.congruenceJustification == null)
+            return false;
+
+        if (this.equalityJustification != null)
+            return false;
+
+        if (this.term == null)
+            return false;
+
+        if (!(this.term instanceof UninterpretedFunctionInstance))
+            return false;
+
+        UninterpretedFunctionInstance term1 = (UninterpretedFunctionInstance) this.term;
+
+        if (this.next == null)
+            return false;
+
+        if (next.term == null)
+            return false;
+
+        if (!(next.term instanceof UninterpretedFunctionInstance))
+            return false;
+
+        UninterpretedFunctionInstance term2 = (UninterpretedFunctionInstance) next.term;
+
+        if (!term1.getFunction().equals(term2.getFunction()))
+            return false;
+
+        Set<Integer> partitionsOfThis = this.getPartitionsFromSymbols();
+        partitionsOfThis.remove(-1);
+
+        if (partitionsOfThis.size() != 1)
+            return false;
+
+        partitionsOfThis.addAll(partitions);
+        if (partitionsOfThis.size() == 1)
+            return false;
+
+        return true;
+    }
 }
