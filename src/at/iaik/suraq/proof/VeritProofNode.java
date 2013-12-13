@@ -238,7 +238,7 @@ public class VeritProofNode implements Serializable {
         assert (tmpLiteralConclusions != null);
         assert (tmpSubProofs != null);
 
-        if (isTheoryLemma) {
+        if (isTheoryLemma && removeSubproofsOfTheoryLemmas) {
             this.subProofs = new ArrayList<VeritProofNode>(0);
             this.type = VeriTToken.TRANS_CONGR;
         } else {
