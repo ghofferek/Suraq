@@ -1119,10 +1119,13 @@ public class TransitivityCongruenceChain {
 
     /**
      * 
-     * @return <code>true</code> iff at most one partition appears in this chain
+     * @return <code>true</code> iff at most one partition appears in the used
+     *         literals of this chain
      */
     public boolean isColorable() {
-        Set<Integer> partitions = getPartitionsFromSymbols();
+        Set<Integer> partitions = new TreeSet<Integer>();
+        for (Formula literal : this.usedLiterals())
+            partitions.addAll(literal.getPartitionsFromSymbols());
         partitions.remove(-1);
         return partitions.size() <= 1;
     }

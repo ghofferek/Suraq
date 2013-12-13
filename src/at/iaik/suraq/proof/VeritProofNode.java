@@ -637,7 +637,7 @@ public class VeritProofNode implements Serializable {
             return;
         }
 
-        List<VeritProofNode> clauses = new ArrayList<VeritProofNode>();
+        List<VeritProofNode> clauses = new ArrayList<VeritProofNode>(2);
         List<Formula> conclusions = new ArrayList<Formula>();
         for (VeritProofNode clause : this.subProofs) {
             if (clause.equals(weakerSubProof)) {
