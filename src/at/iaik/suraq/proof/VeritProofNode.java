@@ -106,10 +106,12 @@ public class VeritProofNode implements Serializable {
      * @param clauses
      * @param iargs
      * @param proof
+     * @param removeSubproofsOfTheoryLemmas
      */
     protected VeritProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
-            Integer iargs, VeritProof proof) {
+            Integer iargs, VeritProof proof,
+            boolean removeSubproofsOfTheoryLemmas) {
 
         assert (name != null);
         final boolean isTheoryLemma = type.equals(VeriTToken.INPUT) ? false
@@ -137,7 +139,7 @@ public class VeritProofNode implements Serializable {
 
         if (type.equals(VeriTToken.RESOLUTION)
                 && (clauses == null ? false : clauses.size() > 2)
-                && !isTheoryLemma) {
+                && (!isTheoryLemma || !removeSubproofsOfTheoryLemmas)) {
             // Clauses are left-associative
             List<VeritProofNode> remainingNodes = new LinkedList<VeritProofNode>(
                     clauses);
@@ -152,7 +154,8 @@ public class VeritProofNode implements Serializable {
 
                 VeritProofNode intermediateNode = new VeritProofNode(name + "i"
                         + (++count), VeriTToken.RESOLUTION, currentConclusions,
-                        currentNodes, null, proof);
+                        currentNodes, null, proof,
+                        removeSubproofsOfTheoryLemmas);
                 remainingNodes.remove(1);
                 remainingNodes.remove(0);
                 remainingNodes.add(0, intermediateNode);
@@ -667,7 +670,7 @@ public class VeritProofNode implements Serializable {
         assert (this.literalConclusions.containsAll(conclusions));
 
         VeritProofNode strongerNode = new VeritProofNode("str_" + this.name,
-                this.type, conclusions, clauses, null, this.proof);
+                this.type, conclusions, clauses, null, this.proof, false);
         assert (strongerNode != null);
 
         Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
@@ -1615,7 +1618,7 @@ public class VeritProofNode implements Serializable {
             conclusions.add(impliedLiteral);
             VeritProofNode result = proof.addProofNode(
                     proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
-                    conclusions, null, null);
+                    conclusions, null, null, false);
             return result;
         }
         TransitivityCongruenceChain chain2 = chain1.splitAtGlobalTerm();
@@ -1647,7 +1650,7 @@ public class VeritProofNode implements Serializable {
         literals1.add(globalInstancePositive);
         VeritProofNode predicateNode1 = new VeritProofNode(
                 "pred1_" + this.name, VeriTToken.EQ_CONGRUENT_PRED, literals1,
-                null, null, this.proof);
+                null, null, this.proof, false);
         VeritProofNode chain1Node = chain1.toColorableProof();
         List<VeritProofNode> leftSubProofs = new ArrayList<VeritProofNode>(2);
         leftSubProofs.add(chain1Node);
@@ -1659,7 +1662,7 @@ public class VeritProofNode implements Serializable {
         literalsLeft.add(globalInstancePositive);
         VeritProofNode left = new VeritProofNode("predLeft_" + this.name,
                 VeriTToken.RESOLUTION, literalsLeft, leftSubProofs, null,
-                this.proof);
+                this.proof, false);
 
         List<Formula> literals2 = new ArrayList<Formula>();
         List<DomainTerm> terms2 = new ArrayList<DomainTerm>(2);
@@ -1672,7 +1675,7 @@ public class VeritProofNode implements Serializable {
         literals2.add(impliedLiteral);
         VeritProofNode predicateNode2 = new VeritProofNode(
                 "pred2_" + this.name, VeriTToken.EQ_CONGRUENT_PRED, literals2,
-                null, null, this.proof);
+                null, null, this.proof, false);
         VeritProofNode chain2Node = chain2.toColorableProof();
         List<VeritProofNode> rightSubProofs = new ArrayList<VeritProofNode>(2);
         rightSubProofs.add(chain2Node);
@@ -1684,7 +1687,7 @@ public class VeritProofNode implements Serializable {
         literalsRight.add(impliedLiteral);
         VeritProofNode right = new VeritProofNode("predRight_" + this.name,
                 VeriTToken.RESOLUTION, literalsRight, rightSubProofs, null,
-                this.proof);
+                this.proof, false);
 
         List<Formula> resultLiterals = new ArrayList<Formula>();
         resultLiterals.addAll(left.getLiteralConclusions());
@@ -1696,7 +1699,7 @@ public class VeritProofNode implements Serializable {
         resultSubProofs.add(right);
         VeritProofNode result = new VeritProofNode("predResult_" + this.name,
                 VeriTToken.RESOLUTION, resultLiterals, resultSubProofs, null,
-                this.proof);
+                this.proof, false);
 
         return result;
     }
@@ -1781,7 +1784,7 @@ public class VeritProofNode implements Serializable {
         assert (!newConclusions.contains(inverseBadLiteral));
 
         result = this.proof.addProofNode(newName, this.type, newConclusions,
-                newSubProofs, null);
+                newSubProofs, null, false);
         dagOperationCache.put(this, result);
         return result;
     }

@@ -97,11 +97,15 @@ public class VeritProof implements Serializable {
      * @param iargs
      *            a number as an Integer (e.g. 1)
      * 
+     * @param removeSubproofsOfTheoryLemmas
+     *            specifies whether or not subproofs of theory lemmas should be
+     *            discarded
+     * 
      * @return the requested proof node.
      */
     public VeritProofNode addProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
-            Integer iargs) {
+            Integer iargs, boolean removeSubproofsOfTheoryLemmas) {
 
         assert (conclusions != null);
 
@@ -144,7 +148,8 @@ public class VeritProof implements Serializable {
             iargs = null;
         }
 
-        node = new VeritProofNode(name, type, conclusions, clauses, iargs, this);
+        node = new VeritProofNode(name, type, conclusions, clauses, iargs,
+                this, removeSubproofsOfTheoryLemmas);
         assert (node != null);
 
         assert (node != null);
@@ -837,7 +842,7 @@ public class VeritProof implements Serializable {
             if (newNode == null) {
                 newNode = new VeritProofNode(this.freshNodeName("res.", ""),
                         VeriTToken.RESOLUTION, newConclusion, newClauses, null,
-                        this);
+                        this, false);
             }
             currentNode = newNode;
         }

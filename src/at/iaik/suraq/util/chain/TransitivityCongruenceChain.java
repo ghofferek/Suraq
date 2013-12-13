@@ -443,7 +443,7 @@ public class TransitivityCongruenceChain {
         conclusions.add(impliedLiteral);
         VeritProofNode firstShortcutLast = this.proof.addProofNode("fsl_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.TRANS_CONGR, conclusions, null, null);
+                VeriTToken.TRANS_CONGR, conclusions, null, null, false);
 
         // Create the final result
         List<VeritProofNode> resultSubProofs = new ArrayList<VeritProofNode>(2);
@@ -463,11 +463,10 @@ public class TransitivityCongruenceChain {
         while (resultConclusions.contains(Util.invertLiteral(shortcutLiteral)))
             resultConclusions.remove(Util.invertLiteral(shortcutLiteral));
 
-        VeritProofNode result = this.proof
-                .addProofNode("split_"
-                        + TransitivityCongruenceChain.proofNodeCounter++,
-                        VeriTToken.RESOLUTION, resultConclusions,
-                        resultSubProofs, null);
+        VeritProofNode result = this.proof.addProofNode("split_"
+                + TransitivityCongruenceChain.proofNodeCounter++,
+                VeriTToken.RESOLUTION, resultConclusions, resultSubProofs,
+                null, false);
 
         return result;
     }
@@ -496,7 +495,7 @@ public class TransitivityCongruenceChain {
             conclusions.add(impliedLiteral);
             VeritProofNode result = proof.addProofNode("col_"
                     + TransitivityCongruenceChain.proofNodeCounter++,
-                    VeriTToken.TRANS_CONGR, conclusions, null, null);
+                    VeriTToken.TRANS_CONGR, conclusions, null, null, false);
             return result;
         } else {
             // Special case: at least one chain link has a congruence
@@ -561,7 +560,7 @@ public class TransitivityCongruenceChain {
             // Now we actually construct the leaf
             VeritProofNode currentNode = proof.addProofNode(
                     proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
-                    conclusions, null, null);
+                    conclusions, null, null, false);
 
             // Add resolution steps to get the final conclusion
             for (VeritProofNode currentCongruence : congruences) {
@@ -579,7 +578,7 @@ public class TransitivityCongruenceChain {
                 currentConclusions.remove(Util.invertLiteral(resolvingLiteral));
                 currentNode = proof.addProofNode(
                         proof.freshNodeName("res.", ""), VeriTToken.RESOLUTION,
-                        currentConclusions, subProofs, null);
+                        currentConclusions, subProofs, null, false);
             }
 
             return currentNode;
@@ -643,7 +642,7 @@ public class TransitivityCongruenceChain {
         congruenceConclusions.add(congruenceImpliedLiteral);
         VeritProofNode congruenceNode = proof.addProofNode(
                 proof.freshNodeName("congr.", ""), VeriTToken.EQ_CONGRUENT,
-                congruenceConclusions, null, null);
+                congruenceConclusions, null, null, false);
 
         VeritProofNode currentNode = congruenceNode;
         for (VeritProofNode currentProofForCongruence : proofsForCongruence) {
@@ -660,7 +659,7 @@ public class TransitivityCongruenceChain {
             conclusions.remove(resolvingLiteral);
             conclusions.remove(Util.invertLiteral(resolvingLiteral));
             currentNode = proof.addProofNode(nodeName, VeriTToken.RESOLUTION,
-                    conclusions, subProofs, null);
+                    conclusions, subProofs, null, false);
         }
         return currentNode;
     }
@@ -723,7 +722,7 @@ public class TransitivityCongruenceChain {
 
         VeritProofNode node1 = proof.addProofNode("tcc_left_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.TRANS_CONGR, conclusions, null, null);
+                VeriTToken.TRANS_CONGR, conclusions, null, null, false);
         assert (node1.isColorable());
 
         if (newStart == this.getEnd()) {
@@ -748,7 +747,7 @@ public class TransitivityCongruenceChain {
 
         VeritProofNode resNode = proof.addProofNode("tcc_res_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.RESOLUTION, finalConclusions, clauses, null);
+                VeriTToken.RESOLUTION, finalConclusions, clauses, null, false);
 
         return resNode;
     }
