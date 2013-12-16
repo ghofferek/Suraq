@@ -493,9 +493,9 @@ public class TransitivityCongruenceChain {
                     usedLiterals.size() + 1);
             conclusions.addAll(Util.invertAllLiterals(usedLiterals));
             conclusions.add(impliedLiteral);
-            VeritProofNode result = proof.addProofNode("col_"
-                    + TransitivityCongruenceChain.proofNodeCounter++,
-                    VeriTToken.TRANS_CONGR, conclusions, null, null, false);
+            VeritProofNode result = proof.addProofNode(
+                    proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
+                    conclusions, null, null, false);
             return result;
         } else {
             // Special case: at least one chain link has a congruence

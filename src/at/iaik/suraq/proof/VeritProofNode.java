@@ -80,6 +80,12 @@ public class VeritProofNode implements Serializable {
     private final Set<VeritProofNode> parents;
 
     /**
+     * <code>true</code> iff at least one descendant of this node is an input
+     * node. I.e., this node is not purely derived from theory lemmas.
+     */
+    private final boolean inputDerived;
+
+    /**
      * The proof this node belongs to.
      */
     private final VeritProof proof;
@@ -114,7 +120,17 @@ public class VeritProofNode implements Serializable {
             boolean removeSubproofsOfTheoryLemmas) {
 
         assert (name != null);
-        final boolean isTheoryLemma = type.equals(VeriTToken.INPUT) ? false
+        boolean tmpInputDerived = type.equals(VeriTToken.INPUT);
+        if (!tmpInputDerived && clauses != null) {
+            for (VeritProofNode child : clauses) {
+                if (child.inputDerived) {
+                    tmpInputDerived = true;
+                    break;
+                }
+            }
+        }
+        this.inputDerived = tmpInputDerived;
+        final boolean isTheoryLemma = this.inputDerived ? false
                 : CongruenceClosure.checkTheoryLemma(conclusions);
         List<Formula> reducedConclusions = new ArrayList<Formula>();
         for (Formula literal : conclusions) {
