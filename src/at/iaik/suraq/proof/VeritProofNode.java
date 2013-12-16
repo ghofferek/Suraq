@@ -138,9 +138,12 @@ public class VeritProofNode implements Serializable {
                 if (Util.isLiteral(literal)) {
                     if (Util.isUnitClause(literal))
                         literal = Util.getSingleLiteral(literal);
-                    if (!Util.isNegatedReflexivity(literal)) {
-                        reducedConclusions.add(literal);
-                    }
+                    // Negated reflexivities might sometimes be needed for
+                    // resolution
+                    //
+                    // if (!Util.isNegatedReflexivity(literal)) {
+                    reducedConclusions.add(literal);
+                    // }
                 } else {
                     assert (type.equals(VeriTToken.INPUT));
                     reducedConclusions.add(literal);
