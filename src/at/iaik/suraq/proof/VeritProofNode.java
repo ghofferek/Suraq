@@ -244,8 +244,6 @@ public class VeritProofNode implements Serializable {
         } else {
             this.subProofs = tmpSubProofs;
             this.type = type;
-            for (VeritProofNode child : this.subProofs)
-                child.addParent(this);
         }
         this.name = name;
         this.parents = new HashSet<VeritProofNode>(2);
@@ -254,12 +252,14 @@ public class VeritProofNode implements Serializable {
         this.literalConclusions = new ImmutableArrayList<Formula>(
                 tmpLiteralConclusions);
 
+        // Compute hashCode before passing the this-pointer to the outside world
+        this.hashCode = literalConclusions.hashCode() + 32 * name.hashCode()
+                + 64 * type.hashCode();
         assert (this.checkProofNode());
         assert (proof != null);
         proof.addProofNode(this);
-
-        this.hashCode = literalConclusions.hashCode() + 32 * name.hashCode()
-                + 64 * type.hashCode();
+        for (VeritProofNode child : this.subProofs)
+            child.addParent(this);
     }
 
     /**

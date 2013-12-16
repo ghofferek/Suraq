@@ -602,8 +602,13 @@ public class VeritProof implements Serializable {
             assert (replacement != null);
             assert (leafToClean.getLiteralConclusions().containsAll(replacement
                     .getLiteralConclusions()));
-            for (VeritProofNode parent : leafToClean.getParents())
+            Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
+                    leafToClean.getParents());
+            for (VeritProofNode parent : parentsCopy) {
+                if (!leafToClean.getParents().contains(parent))
+                    continue;
                 parent.makeStronger(leafToClean, replacement);
+            }
             Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count);
         }
         Util.printToSystemOutWithWallClockTimePrefix("  All done.");
