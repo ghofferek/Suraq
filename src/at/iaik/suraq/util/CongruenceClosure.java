@@ -28,6 +28,16 @@ import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 public class CongruenceClosure {
 
     /**
+     * Counts calls to checkTheoryLemma
+     */
+    private static long checkTheoryLemmaCounter = 0;
+
+    /**
+     * Stores timing for checkTheoryLemma calls
+     */
+    private static final Timer checkTheoryLemmaTimer = new Timer();
+
+    /**
      * The list of equivalence classes
      */
     private final Set<Set<DomainTerm>> equivClasses = new CopyOnWriteArraySet<Set<DomainTerm>>();
@@ -48,6 +58,13 @@ public class CongruenceClosure {
         DomainTerm term1 = (DomainTerm) formula.getTerms().get(0);
         DomainTerm term2 = (DomainTerm) formula.getTerms().get(1);
 
+        if (term1 instanceof UninterpretedFunctionInstance) {
+            this.addTerm(term1);
+        }
+        if (term2 instanceof UninterpretedFunctionInstance) {
+            this.addTerm(term2);
+        }
+
         for (Set<DomainTerm> equivClass : equivClasses) {
             if (equivClass.contains(term1)) {
                 equivClass.add(term2);
@@ -65,23 +82,6 @@ public class CongruenceClosure {
         newClass.add(term1);
         newClass.add(term2);
         equivClasses.add(newClass);
-
-        if (term1 instanceof UninterpretedFunctionInstance) {
-            for (DomainTerm term : ((UninterpretedFunctionInstance) term1)
-                    .getSubTerms()) {
-                Set<DomainTerm> singleton = new CopyOnWriteArraySet<DomainTerm>();
-                singleton.add(term);
-                equivClasses.add(singleton);
-            }
-        }
-        if (term2 instanceof UninterpretedFunctionInstance) {
-            for (DomainTerm term : ((UninterpretedFunctionInstance) term2)
-                    .getSubTerms()) {
-                Set<DomainTerm> singleton = new CopyOnWriteArraySet<DomainTerm>();
-                singleton.add(term);
-                equivClasses.add(singleton);
-            }
-        }
 
         merge();
         return;
@@ -257,12 +257,15 @@ public class CongruenceClosure {
      */
     public static boolean checkTheoryLemma(
             Collection<? extends Formula> literals) {
+        CongruenceClosure.checkTheoryLemmaTimer.start();
+        CongruenceClosure.checkTheoryLemmaCounter++;
         assert (literals != null);
         CongruenceClosure cc = new CongruenceClosure();
         Formula impliedLiteral = null;
         for (Formula literal : literals) {
             if (literal instanceof PropositionalVariable) {
                 // e.g. Tseitin variable, or something from the input
+                CongruenceClosure.checkTheoryLemmaTimer.stop();
                 return false;
             }
             if (Util.isNegativeLiteral(literal)) {
@@ -274,6 +277,7 @@ public class CongruenceClosure {
                 if (impliedLiteral != null) {
                     // More than one implied literal means this is not a theory
                     // lemma
+                    CongruenceClosure.checkTheoryLemmaTimer.stop();
                     return false;
                 }
 
@@ -283,6 +287,7 @@ public class CongruenceClosure {
         }
         if (impliedLiteral == null) {
             // No implied literal means this is not a theory lemma
+            CongruenceClosure.checkTheoryLemmaTimer.stop();
             return false;
         }
         assert (Util.isLiteral(impliedLiteral));
@@ -295,7 +300,9 @@ public class CongruenceClosure {
             cc.addTerm((DomainTerm) ((DomainEq) impliedLiteral).getTerms().get(
                     1));
             cc.merge();
-            return cc.checkImplied((DomainEq) impliedLiteral);
+            final boolean result = cc.checkImplied((DomainEq) impliedLiteral);
+            CongruenceClosure.checkTheoryLemmaTimer.stop();
+            return result;
         } else {
             assert (impliedLiteral instanceof UninterpretedPredicateInstance);
             UninterpretedPredicateInstance positiveInstance = (UninterpretedPredicateInstance) impliedLiteral;
@@ -312,6 +319,7 @@ public class CongruenceClosure {
                     continue;
                 if (negativeInstance != null) {
                     // Only one matching instance should exist in a theory lemma
+                    CongruenceClosure.checkTheoryLemmaTimer.stop();
                     return false;
                 }
                 negativeInstance = predicateInstance;
@@ -319,6 +327,7 @@ public class CongruenceClosure {
             if (negativeInstance == null) {
                 // No matching instance found
                 // Not a theory lemma
+                CongruenceClosure.checkTheoryLemmaTimer.stop();
                 return false;
             }
             assert (positiveInstance.getFunction().equals(negativeInstance
@@ -336,9 +345,12 @@ public class CongruenceClosure {
                 domainTerms.add(term1);
                 domainTerms.add(term2);
                 DomainEq equalityToCheck = DomainEq.create(domainTerms, true);
-                if (!cc.checkImplied(equalityToCheck))
+                if (!cc.checkImplied(equalityToCheck)) {
+                    CongruenceClosure.checkTheoryLemmaTimer.stop();
                     return false;
+                }
             }
+            CongruenceClosure.checkTheoryLemmaTimer.stop();
             return true;
         }
     }
@@ -417,6 +429,23 @@ public class CongruenceClosure {
         assert (Util.isLiteral(impliedLiteral));
         assert (!Util.isNegativeLiteral(impliedLiteral));
         return cc.checkImplied(impliedLiteral);
+    }
+
+    /**
+     * 
+     * @return the counter of calls to <code>checkTheoryLemma</code>.
+     */
+    public static long getCheckTheoryLemmaCounter() {
+        return CongruenceClosure.checkTheoryLemmaCounter;
+    }
+
+    /**
+     * 
+     * @return the value of the timer of the calls to
+     *         <code>checkTheoryLemma</code>.
+     */
+    public static String getCheckTheoryLemmaTimer() {
+        return CongruenceClosure.checkTheoryLemmaTimer.toString();
     }
 
 }

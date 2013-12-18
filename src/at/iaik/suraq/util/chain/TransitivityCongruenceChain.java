@@ -463,6 +463,7 @@ public class TransitivityCongruenceChain {
         while (resultConclusions.contains(Util.invertLiteral(shortcutLiteral)))
             resultConclusions.remove(Util.invertLiteral(shortcutLiteral));
 
+        Util.removeReflexiveLiterals(resultConclusions);
         VeritProofNode result = this.proof.addProofNode("split_"
                 + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.RESOLUTION, resultConclusions, resultSubProofs,
@@ -493,6 +494,7 @@ public class TransitivityCongruenceChain {
                     usedLiterals.size() + 1);
             conclusions.addAll(Util.invertAllLiterals(usedLiterals));
             conclusions.add(impliedLiteral);
+            Util.removeReflexiveLiterals(conclusions);
             VeritProofNode result = proof.addProofNode(
                     proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
                     conclusions, null, null, false);
@@ -558,6 +560,7 @@ public class TransitivityCongruenceChain {
             conclusions.add(impliedLiteral);
 
             // Now we actually construct the leaf
+            Util.removeReflexiveLiterals(conclusions);
             VeritProofNode currentNode = proof.addProofNode(
                     proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
                     conclusions, null, null, false);
@@ -576,6 +579,7 @@ public class TransitivityCongruenceChain {
                         .getLiteralConclusions());
                 currentConclusions.remove(resolvingLiteral);
                 currentConclusions.remove(Util.invertLiteral(resolvingLiteral));
+                Util.removeReflexiveLiterals(currentConclusions);
                 currentNode = proof.addProofNode(
                         proof.freshNodeName("res.", ""), VeriTToken.RESOLUTION,
                         currentConclusions, subProofs, null, false);

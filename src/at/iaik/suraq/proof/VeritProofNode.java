@@ -29,6 +29,7 @@ import at.iaik.suraq.util.CongruenceClosure;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.MutableInteger;
+import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
 import at.iaik.suraq.util.graph.Graph;
@@ -44,6 +45,36 @@ import at.iaik.suraq.util.graph.Graph;
 public class VeritProofNode implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Records time spent in the checkProofNode method
+     */
+    private static final Timer checkTimer = new Timer();
+
+    /**
+     * Records time spent in the checkTransCongr method
+     */
+    private static final Timer checkTransCongrTimer = new Timer();
+
+    /**
+     * Records time spent in the checkResolution method
+     */
+    private static final Timer checkResolutionTimer = new Timer();
+
+    /**
+     * Counts calls to the checkProofNode method
+     */
+    private static long checkCounter = 0;
+
+    /**
+     * Counts calls to the checkTransCongr method
+     */
+    private static long checkTransCongrCounter = 0;
+
+    /**
+     * Counts calls to the checkResolution method
+     */
+    private static long checkResolutionCounter = 0;
 
     private final int hashCode;
 
@@ -103,6 +134,42 @@ public class VeritProofNode implements Serializable {
     private String suppressedMessage = null;
 
     /**
+     * Prints information about check counters and timers to stdout.
+     */
+    public static void printCheckCountersAndTimers() {
+        System.out
+                .println("--------------------------------------------------------------------------------");
+        Util.printToSystemOutWithWallClockTimePrefix("Check timers and counters:");
+        System.out
+                .println("Check counter: "
+                        + Util.largeNumberFormatter
+                                .format(VeritProofNode.checkCounter));
+        System.out.println("Check timer: "
+                + VeritProofNode.checkTimer.toString());
+
+        System.out.println("CheckTransCongr counter: "
+                + Util.largeNumberFormatter
+                        .format(VeritProofNode.checkTransCongrCounter));
+        System.out.println("CheckTransCongr timer: "
+                + VeritProofNode.checkTransCongrTimer.toString());
+
+        System.out.println("CheckResolution counter: "
+                + Util.largeNumberFormatter
+                        .format(VeritProofNode.checkResolutionCounter));
+        System.out.println("CheckResolution timer: "
+                + VeritProofNode.checkResolutionTimer.toString());
+
+        System.out.println("CheckTheoryLemma  counter: "
+                + Util.largeNumberFormatter.format(CongruenceClosure
+                        .getCheckTheoryLemmaCounter()));
+        System.out.println("CheckTheoryLemma timer: "
+                + CongruenceClosure.getCheckTheoryLemmaTimer());
+
+        System.out
+                .println("--------------------------------------------------------------------------------");
+    }
+
+    /**
      * Do not call this constructor by yourself. Use VeritProof to create this
      * class.
      * 
@@ -130,8 +197,28 @@ public class VeritProofNode implements Serializable {
             }
         }
         this.inputDerived = tmpInputDerived;
-        final boolean isTheoryLemma = this.inputDerived ? false
-                : CongruenceClosure.checkTheoryLemma(conclusions);
+        final boolean isTheoryLemma = this.inputDerived ? false : true; // CongruenceClosure.checkTheoryLemma(conclusions);
+        if (!isTheoryLemma) {
+            assert (this.inputDerived);
+            if (clauses != null) {
+                for (VeritProofNode child : clauses) {
+                    if (!child.inputDerived) {
+                        // Perform the delayed check of this node
+                        final boolean checkResult = child.checkProofNode();
+                        assert (checkResult);
+                        if (!checkResult)
+                            throw new RuntimeException(
+                                    "A node that should have been a theory lemma failed the check.\n"
+                                            + child.toString());
+                        if (child.containsBadLiteral())
+                            throw new RuntimeException(
+                                    "Node unexpectedly contains bad literal.\n"
+                                            + child.toString());
+                    }
+                }
+            } else
+                assert (type.equals(VeriTToken.INPUT));
+        }
         List<Formula> reducedConclusions = new ArrayList<Formula>();
         for (Formula literal : conclusions) {
             if (!reducedConclusions.contains(literal)) {
@@ -274,7 +361,11 @@ public class VeritProofNode implements Serializable {
         // Compute hashCode before passing the this-pointer to the outside world
         this.hashCode = literalConclusions.hashCode() + 32 * name.hashCode()
                 + 64 * type.hashCode();
-        assert (this.checkProofNode());
+
+        // If this is a lemma that will potentially be removed, delay the check
+        // until later
+        if (!isTheoryLemma || !removeSubproofsOfTheoryLemmas)
+            assert (this.checkProofNode());
         assert (proof != null);
         proof.addProofNode(this);
         for (VeritProofNode child : this.subProofs)
@@ -752,62 +843,86 @@ public class VeritProofNode implements Serializable {
      *         <code>false</code> otherwise.
      */
     public boolean checkProofNode() {
+        VeritProofNode.checkTimer.start();
+        VeritProofNode.checkCounter++;
 
         // Type specific tests
 
         if (this.type.equals(VeriTToken.INPUT)) {
-            if (subProofs.size() != 0)
+            if (subProofs.size() != 0) {
+                VeritProofNode.checkTimer.stop();
                 return failOnMessage("INPUT node with children");
+            }
+            VeritProofNode.checkTimer.stop();
             return true;
         }
 
         if (this.type.equals(VeriTToken.AND)) {
             // This type will be removed after parsing.
             // --> no detailed checks
+            VeritProofNode.checkTimer.stop();
             return true;
         }
 
         if (this.type.equals(VeriTToken.OR)) {
             // This type will be removed after parsing.
             // --> no detailed checks
+            VeritProofNode.checkTimer.stop();
             return true;
         }
 
         // Remaining types should have only literals in their conclusions
 
         for (Formula literal : literalConclusions) {
-            if (!Util.isLiteral(literal))
+            if (!Util.isLiteral(literal)) {
+                VeritProofNode.checkTimer.stop();
                 return failOnMessage("Non-literal in conclusion: "
                         + literal.toString());
+            }
         }
 
         if (this.type.equals(VeriTToken.EQ_REFLEXIVE)) {
-            if (subProofs.size() != 0)
+            if (subProofs.size() != 0) {
+                VeritProofNode.checkTimer.stop();
                 return failOnMessage("Reflexivity node with children!");
-            if (literalConclusions.size() != 1)
+            }
+            if (literalConclusions.size() != 1) {
+                VeritProofNode.checkTimer.stop();
                 return failOnMessage("Reflexivity node with more than one literal in conclusions!");
+            }
             assert (literalConclusions.size() == 1);
             Formula literal = literalConclusions.get(0);
-            if (!Util.isReflexivity(literal))
+            if (!Util.isReflexivity(literal)) {
+                VeritProofNode.checkTimer.stop();
                 return failOnMessage("Not a correct reflexivity!");
-            else
+            } else {
+                VeritProofNode.checkTimer.stop();
                 return true;
+            }
         }
 
         if (this.type.equals(VeriTToken.EQ_CONGRUENT)) {
-            return checkCongruence();
+            final boolean result = checkCongruence();
+            VeritProofNode.checkTimer.stop();
+            return result;
         }
 
         if (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED)) {
-            return checkCongruencePred();
+            final boolean result = checkCongruencePred();
+            VeritProofNode.checkTimer.stop();
+            return result;
         }
 
         if (this.type.equals(VeriTToken.EQ_TRANSITIVE)) {
-            return checkTransitive();
+            final boolean result = checkTransitive();
+            VeritProofNode.checkTimer.stop();
+            return result;
         }
 
         if (this.type.equals(VeriTToken.RESOLUTION)) {
-            return checkResolution();
+            final boolean result = checkResolution();
+            VeritProofNode.checkTimer.stop();
+            return result;
         }
 
         if (this.type.equals(VeriTToken.TRANS_CONGR)) {
@@ -820,12 +935,15 @@ public class VeritProofNode implements Serializable {
             // System.out.println(suppressedMessage);
             // suppressedMessage = null;
             // }
-            return checkTransCongr();
+            final boolean result = checkTransCongr();
+            VeritProofNode.checkTimer.stop();
+            return result;
         }
 
         // unknown node type
         failOnMessage("Unknown node type!");
         assert (false);
+        VeritProofNode.checkTimer.stop();
         return false;
     }
 
@@ -864,14 +982,18 @@ public class VeritProofNode implements Serializable {
      * @return <code>true</code> iff this is a valid resolution step
      */
     private boolean checkResolution() {
+        VeritProofNode.checkResolutionTimer.start();
+        VeritProofNode.checkResolutionCounter++;
 
         assert (this.type.equals(VeriTToken.RESOLUTION));
 
         // Taking the assumption that only resolution with two children occurs.
 
-        if (subProofs.size() != 2)
+        if (subProofs.size() != 2) {
+            VeritProofNode.checkResolutionTimer.stop();
             return failOnMessage("Resolution with number of subproofs !=2. Number: "
                     + subProofs.size());
+        }
 
         // Special case if one of the two children is a "LEM instance" (a \/ ~a)
         if (subProofs.get(0).isLEM()) {
@@ -880,14 +1002,21 @@ public class VeritProofNode implements Serializable {
                             .get(0));
             if (!subProofs.get(1).literalConclusions.contains(literal)
                     && !subProofs.get(1).literalConclusions.contains(Util
-                            .invertLiteral(literal)))
+                            .invertLiteral(literal))) {
+                VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("LEM literal not found in other subproof!");
+            }
             if (!literalConclusions
-                    .containsAll(subProofs.get(1).literalConclusions))
+                    .containsAll(subProofs.get(1).literalConclusions)) {
+                VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Missing a literal after LEM resolution.");
+            }
             if (!subProofs.get(1).literalConclusions
-                    .containsAll(literalConclusions))
+                    .containsAll(literalConclusions)) {
+                VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Too much literals after LEM resolution.");
+            }
+            VeritProofNode.checkResolutionTimer.stop();
             return true;
         }
 
@@ -897,14 +1026,21 @@ public class VeritProofNode implements Serializable {
                             .get(0));
             if (!subProofs.get(0).literalConclusions.contains(literal)
                     && !subProofs.get(0).literalConclusions.contains(Util
-                            .invertLiteral(literal)))
+                            .invertLiteral(literal))) {
+                VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("LEM literal not found in other subproof!");
+            }
             if (!literalConclusions
-                    .containsAll(subProofs.get(0).literalConclusions))
+                    .containsAll(subProofs.get(0).literalConclusions)) {
+                VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Missing a literal after LEM resolution.");
+            }
             if (subProofs.get(0).literalConclusions
-                    .containsAll(literalConclusions))
+                    .containsAll(literalConclusions)) {
+                VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Too much literals after LEM resolution.");
+            }
+            VeritProofNode.checkResolutionTimer.stop();
             return true;
         }
 
@@ -913,46 +1049,58 @@ public class VeritProofNode implements Serializable {
             if (!literalConclusions.contains(literal)
                     && !literalConclusions.contains(Util
                             .reverseTermsInLiteral(literal))) {
-                if (resolvingLiteralFound)
+                if (resolvingLiteralFound) {
+                    VeritProofNode.checkResolutionTimer.stop();
                     return failOnMessage("Found more than one resolving literal!");
+                }
                 Formula invertedLiteral = Util.invertLiteral(literal);
                 if (!subProofs.get(1).literalConclusions
-                        .contains(invertedLiteral))
+                        .contains(invertedLiteral)) {
+                    VeritProofNode.checkResolutionTimer.stop();
                     return failOnMessage("Resolving literal "
                             + literal.toString().replaceAll("\\s{2,}", " ")
                                     .replace("\n", "")
                             + " from first subproof not found in inverse polarity in other subproof!");
-                else
+                } else
                     resolvingLiteralFound = true;
             }
         }
-        if (!resolvingLiteralFound)
+        if (!resolvingLiteralFound) {
+            VeritProofNode.checkResolutionTimer.stop();
             return failOnMessage("No resolving literal found!");
+        }
         resolvingLiteralFound = false;
         for (Formula literal : subProofs.get(1).literalConclusions) {
             if (!literalConclusions.contains(literal)
                     && !literalConclusions.contains(Util
                             .reverseTermsInLiteral(literal))) {
-                if (resolvingLiteralFound)
+                if (resolvingLiteralFound) {
+                    VeritProofNode.checkResolutionTimer.stop();
                     return failOnMessage("Found more than one resolving literal!");
+                }
                 Formula invertedLiteral = Util.invertLiteral(literal);
                 if (!subProofs.get(0).literalConclusions
-                        .contains(invertedLiteral))
+                        .contains(invertedLiteral)) {
+                    VeritProofNode.checkResolutionTimer.stop();
                     return failOnMessage("Resolving literal "
                             + literal.toString().replaceAll("\\s{2,}", " ")
                                     .replace("\n", "")
                             + " from second subproof not found in inverse polarity in other subproof!");
-                else
+                } else
                     resolvingLiteralFound = true;
             }
         }
-        if (!resolvingLiteralFound)
+        if (!resolvingLiteralFound) {
+            VeritProofNode.checkResolutionTimer.stop();
             return failOnMessage("No resolving literal found!");
+        }
         for (Formula literal : literalConclusions) {
             if (!subProofs.get(0).literalConclusions.contains(literal)
-                    && !subProofs.get(1).literalConclusions.contains(literal))
+                    && !subProofs.get(1).literalConclusions.contains(literal)) {
+                VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Literal not originating from one of the subproofs found! Literal: "
                         + literal.toString());
+            }
         }
 
         Set<Formula> literal1 = new HashSet<Formula>(subProofs.get(0)
@@ -963,16 +1111,23 @@ public class VeritProofNode implements Serializable {
                 .getLiteralConclusionsAsSet());
         literal2.removeAll(literalConclusions);
 
-        if (literal1.size() != 1 || literal2.size() != 1)
+        if (literal1.size() != 1 || literal2.size() != 1) {
+            VeritProofNode.checkResolutionTimer.stop();
             return failOnMessage("Conclusion misses at least one literal from subproofs!");
+        }
 
         if (!Util.makeLiteralPositive(literal1.iterator().next()).equals(
-                Util.makeLiteralPositive(literal2.iterator().next())))
+                Util.makeLiteralPositive(literal2.iterator().next()))) {
+            VeritProofNode.checkResolutionTimer.stop();
             return failOnMessage("Mismatch in resolving literal!");
+        }
         if (!(Util.isNegativeLiteral(literal1.iterator().next()) ^ Util
-                .isNegativeLiteral(literal2.iterator().next())))
+                .isNegativeLiteral(literal2.iterator().next()))) {
+            VeritProofNode.checkResolutionTimer.stop();
             return failOnMessage("Mismatch in resolving literal polarity!");
+        }
 
+        VeritProofNode.checkResolutionTimer.stop();
         return true;
     }
 
@@ -1333,11 +1488,18 @@ public class VeritProofNode implements Serializable {
      * @return
      */
     private boolean checkTransCongr() {
+        VeritProofNode.checkTransCongrTimer.start();
+        VeritProofNode.checkTransCongrCounter++;
         assert (this.type.equals(VeriTToken.TRANS_CONGR));
-        if (!this.subProofs.isEmpty())
+        if (!this.subProofs.isEmpty()) {
+            VeritProofNode.checkTransCongrTimer.stop();
             return failOnMessage("TRANS_CONGR with non-empty subproofs.");
-        if (!CongruenceClosure.checkVeritProofNode(this))
+        }
+        if (!CongruenceClosure.checkVeritProofNode(this)) {
+            VeritProofNode.checkTransCongrTimer.stop();
             return failOnMessage("Congruence closure failed.");
+        }
+        VeritProofNode.checkTransCongrTimer.stop();
         return true;
     }
 
