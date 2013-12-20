@@ -5,7 +5,9 @@ package at.iaik.suraq.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -15,7 +17,6 @@ import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
-import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 
@@ -134,6 +135,14 @@ public class CongruenceClosure {
     }
 
     /**
+     * 
+     * @return the number of equivalence classes
+     */
+    public int getNumEquivClasses() {
+        return this.equivClasses.size();
+    }
+
+    /**
      * Performs merging. Probably not very efficient.
      */
     private void merge() {
@@ -160,7 +169,8 @@ public class CongruenceClosure {
                         continue;
                     if (equivClass2.contains(term)) {
                         equivClass1.addAll(equivClass2);
-                        equivClasses.remove(equivClass2);
+                        boolean removed = equivClasses.remove(equivClass2);
+                        assert (removed);
                         return true;
                     }
                 }
@@ -168,80 +178,154 @@ public class CongruenceClosure {
         }
 
         // Merging based on congruence
-        for (Set<DomainTerm> equivClass1 : equivClasses) {
-            for (Term term1 : equivClass1) {
-                List<DomainTerm> terms1 = null;
-                List<DomainTerm> terms2 = null;
-                Set<DomainTerm> equivClass2 = null;
-                if (term1 instanceof UninterpretedFunctionInstance) {
-                    terms1 = ((UninterpretedFunctionInstance) term1)
-                            .getParameters();
-                    for (Set<DomainTerm> equivClassTmp : equivClasses) {
-                        if (equivClass1 == equivClassTmp)
-                            continue;
-                        for (Term term2 : equivClassTmp) {
-                            if (term2 instanceof UninterpretedFunctionInstance) {
-                                if (((UninterpretedFunctionInstance) term2)
-                                        .getFunction()
-                                        .equals(((UninterpretedFunctionInstance) term1)
-                                                .getFunction())) {
-                                    terms2 = ((UninterpretedFunctionInstance) term2)
-                                            .getParameters();
-                                    equivClass2 = equivClassTmp;
-                                    break;
-                                }
-                            }
-                        }
-                        if (terms2 != null)
-                            break;
-                    }
-                } else if (term1 instanceof UninterpretedPredicateInstance) {
-                    terms1 = ((UninterpretedPredicateInstance) term1)
-                            .getParameters();
-                    for (Set<DomainTerm> equivClassTmp : equivClasses) {
-                        if (equivClass1 == equivClassTmp)
-                            continue;
-                        for (Term term2 : equivClassTmp) {
-                            if (term2 instanceof UninterpretedPredicateInstance) {
-                                if (((UninterpretedFunctionInstance) term2)
-                                        .getFunction()
-                                        .equals(((UninterpretedPredicateInstance) term1)
-                                                .getFunction())) {
-                                    terms2 = ((UninterpretedPredicateInstance) term2)
-                                            .getParameters();
-                                    equivClass2 = equivClassTmp;
-                                    break;
-                                }
-                            }
-                        }
-                        if (terms2 != null)
-                            break;
-                    }
-                } else {
+
+        Map<UninterpretedFunctionInstance, Set<DomainTerm>> functionInstancesEquivClasses = getAllUninterpretedFunctionInstances();
+
+        for (UninterpretedFunctionInstance instance1 : functionInstancesEquivClasses
+                .keySet()) {
+            for (UninterpretedFunctionInstance instance2 : functionInstancesEquivClasses
+                    .keySet()) {
+                if (instance1 == instance2)
                     continue;
+                if (functionInstancesEquivClasses.get(instance1) == functionInstancesEquivClasses
+                        .get(instance2))
+                    continue;
+                if (!instance1.getFunction().equals(instance2.getFunction()))
+                    continue;
+
+                assert (instance1.getParameters().size() == instance2
+                        .getParameters().size());
+
+                int numOk = 0;
+                for (int count = 0; count < instance1.getParameters().size(); count++) {
+                    DomainTerm param1 = instance1.getParameters().get(count);
+                    DomainTerm param2 = instance2.getParameters().get(count);
+                    if (findClassContainingBoth(param1, param2) != null)
+                        numOk++;
                 }
-                if (terms1 != null && terms2 != null) {
-                    assert (equivClass2 != null);
-                    assert (terms1.size() == terms2.size());
-                    int numOk = 0;
-                    for (int count = 0; count < terms1.size(); count++) {
-                        for (Set<DomainTerm> equivClassTmp : equivClasses) {
-                            if (equivClassTmp.contains(terms1.get(count))
-                                    && equivClassTmp
-                                            .contains(terms2.get(count))) {
-                                numOk++;
-                            }
-                        }
-                    }
-                    if (numOk == terms1.size()) {
-                        equivClass1.addAll(equivClass2);
-                        equivClasses.remove(equivClass2);
-                        return true;
-                    }
+                if (numOk == instance1.getParameters().size()) {
+                    Set<DomainTerm> class1 = functionInstancesEquivClasses
+                            .get(instance1);
+                    Set<DomainTerm> class2 = functionInstancesEquivClasses
+                            .get(instance2);
+                    class1.addAll(class2);
+                    boolean removed = this.equivClasses.remove(class2);
+                    assert (removed);
+                    return true;
                 }
             }
         }
+
         return false;
+
+        // for (Set<DomainTerm> equivClass1 : equivClasses) {
+        // for (Term term1 : equivClass1) {
+        // List<DomainTerm> terms1 = null;
+        // List<DomainTerm> terms2 = null;
+        // Set<DomainTerm> equivClass2 = null;
+        // if (term1 instanceof UninterpretedFunctionInstance) {
+        // terms1 = ((UninterpretedFunctionInstance) term1)
+        // .getParameters();
+        // for (Set<DomainTerm> equivClassTmp : equivClasses) {
+        // if (equivClass1 == equivClassTmp)
+        // continue;
+        // for (Term term2 : equivClassTmp) {
+        // if (term2 instanceof UninterpretedFunctionInstance) {
+        // if (((UninterpretedFunctionInstance) term2)
+        // .getFunction()
+        // .equals(((UninterpretedFunctionInstance) term1)
+        // .getFunction())) {
+        // terms2 = ((UninterpretedFunctionInstance) term2)
+        // .getParameters();
+        // equivClass2 = equivClassTmp;
+        // break;
+        // }
+        // }
+        // }
+        // if (terms2 != null)
+        // break;
+        // }
+        // } else if (term1 instanceof UninterpretedPredicateInstance) {
+        // terms1 = ((UninterpretedPredicateInstance) term1)
+        // .getParameters();
+        // for (Set<DomainTerm> equivClassTmp : equivClasses) {
+        // if (equivClass1 == equivClassTmp)
+        // continue;
+        // for (Term term2 : equivClassTmp) {
+        // if (term2 instanceof UninterpretedPredicateInstance) {
+        // if (((UninterpretedFunctionInstance) term2)
+        // .getFunction()
+        // .equals(((UninterpretedPredicateInstance) term1)
+        // .getFunction())) {
+        // terms2 = ((UninterpretedPredicateInstance) term2)
+        // .getParameters();
+        // equivClass2 = equivClassTmp;
+        // break;
+        // }
+        // }
+        // }
+        // if (terms2 != null)
+        // break;
+        // }
+        // } else {
+        // continue;
+        // }
+        // if (terms1 != null && terms2 != null) {
+        // assert (equivClass2 != null);
+        // assert (terms1.size() == terms2.size());
+        // int numOk = 0;
+        // for (int count = 0; count < terms1.size(); count++) {
+        // for (Set<DomainTerm> equivClassTmp : equivClasses) {
+        // if (equivClassTmp.contains(terms1.get(count))
+        // && equivClassTmp
+        // .contains(terms2.get(count))) {
+        // numOk++;
+        // }
+        // }
+        // }
+        // if (numOk == terms1.size()) {
+        // equivClass1.addAll(equivClass2);
+        // equivClasses.remove(equivClass2);
+        // return true;
+        // }
+        // }
+        // }
+        // }
+        // return false;
+    }
+
+    /**
+     * 
+     * @param term1
+     * @param term2
+     * @return the equivalence class that holds both <code>term1</code> and
+     *         <code>term2</code>, or <code>null</code> if no such class exists
+     */
+    private Set<DomainTerm> findClassContainingBoth(DomainTerm term1,
+            DomainTerm term2) {
+        for (Set<DomainTerm> equivClass : this.equivClasses) {
+            if (equivClass.contains(term1) && equivClass.contains(term2))
+                return equivClass;
+        }
+        return null;
+    }
+
+    /**
+     * Returns a map with all uninterpreted function instances as keys, mapping
+     * to the equivalence classes they are currently in.
+     * 
+     * @return a map from uninterpreted function instances to containing
+     *         equivalence classes.
+     */
+    private Map<UninterpretedFunctionInstance, Set<DomainTerm>> getAllUninterpretedFunctionInstances() {
+        Map<UninterpretedFunctionInstance, Set<DomainTerm>> result = new HashMap<UninterpretedFunctionInstance, Set<DomainTerm>>();
+        for (Set<DomainTerm> equivClass : this.equivClasses) {
+            for (DomainTerm term : equivClass) {
+                if (term instanceof UninterpretedFunctionInstance)
+                    result.put((UninterpretedFunctionInstance) term, equivClass);
+            }
+        }
+        return result;
     }
 
     /**
