@@ -30,6 +30,7 @@ import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.parser.TseitinParser;
 import at.iaik.suraq.parser.VeriTParser;
 import at.iaik.suraq.proof.VeritProof;
+import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -1376,23 +1377,41 @@ public class Suraq implements Runnable {
                     + inputTransformationTimer + ".\n");
             Util.printMemoryInformation();
 
-            Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
-            Timer proofcalculationTimer = new Timer();
-            proofcalculationTimer.start();
+            String providedProofFile = options.getUseThisProofFile();
+            BufferedReader proofReader;
+            if (providedProofFile == null) {
+                Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
+                Timer proofcalculationTimer = new Timer();
+                proofcalculationTimer.start();
 
-            VeriTSolver veriT = new VeriTSolver();
-            veriT.solve(solverInputStr);
-            Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
-            VeriTParser veriTParser;
-            try {
-                veriTParser = new VeriTParser(veriT.getStream(), mainFormula,
-                        tseitinEncoding.keySet(),
-                        noDependenceVarsCopies.values(),
-                        noDependenceFunctionsCopies);
-            } catch (FileNotFoundException exc) {
-                throw new RuntimeException(exc);
+                VeriTSolver veriT = new VeriTSolver();
+                veriT.solve(solverInputStr);
+                Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
+                try {
+                    proofReader = veriT.getStream();
+                } catch (FileNotFoundException exc) {
+                    throw new RuntimeException(exc);
+                }
+            } else {
+                try {
+                    proofReader = new BufferedReader(new FileReader(
+                            providedProofFile));
+                    Util.printToSystemOutWithWallClockTimePrefix("[INFO] Using the following proof file, instead of calling the solver: "
+                            + providedProofFile);
+                } catch (FileNotFoundException exc) {
+                    System.out.println("Proof file not found: "
+                            + providedProofFile);
+                    throw new RuntimeException(exc);
+                }
             }
+            VeriTParser veriTParser;
+            veriTParser = new VeriTParser(proofReader, mainFormula,
+                    tseitinEncoding.keySet(), noDependenceVarsCopies.values(),
+                    noDependenceFunctionsCopies);
             Util.printMemoryInformation();
+            // FIXME Temporarily deactivate checks for faster debugging
+            VeritProof.setCheckProofEnabled(false);
+            VeritProofNode.setCheckProofNodesEnabled(false);
             Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
             Timer parseTimer = new Timer();
             parseTimer.start();
@@ -1410,19 +1429,23 @@ public class Suraq implements Runnable {
             assert (veritProof.checkProof());
             assert (veritProof.hasNoBadLiterals());
 
-            // Now write to cache
-            Util.printToSystemOutWithWallClockTimePrefix("Now writing to cache.");
-            Timer cacheWriteTimer = new Timer();
-            cacheWriteTimer.start();
-            cache = new SaveCache(propositionalVars, domainVars, arrayVars,
-                    uninterpretedFunctions, controlVariables, mainFormula,
-                    assertPartitionFormulas, tseitinEncoding,
-                    saveCacheSerial.getPath(), veritProof,
-                    noDependenceVarsCopies, noDependenceFunctionsCopies,
-                    constraints, logicParser);
-            cacheWriteTimer.stop();
-            Util.printToSystemOutWithWallClockTimePrefix("Done writing to cache. Took "
-                    + cacheWriteTimer);
+            if (options.useNewVeritCache()) {
+                // Now write to cache
+                Util.printToSystemOutWithWallClockTimePrefix("Now writing to cache.");
+                Timer cacheWriteTimer = new Timer();
+                cacheWriteTimer.start();
+                cache = new SaveCache(propositionalVars, domainVars, arrayVars,
+                        uninterpretedFunctions, controlVariables, mainFormula,
+                        assertPartitionFormulas, tseitinEncoding,
+                        saveCacheSerial.getPath(), veritProof,
+                        noDependenceVarsCopies, noDependenceFunctionsCopies,
+                        constraints, logicParser);
+                cacheWriteTimer.stop();
+                Util.printToSystemOutWithWallClockTimePrefix("Done writing to cache. Took "
+                        + cacheWriteTimer);
+            } else {
+                Util.printToSystemOutWithWallClockTimePrefix("Skipped writing to cache, because --newVeritCache was not specified.");
+            }
 
         } else {
             // Read from cache
@@ -1438,6 +1461,8 @@ public class Suraq implements Runnable {
         }
 
         assert (veritProof != null);
+        VeritProof.setCheckProofEnabled(true);
+        VeritProofNode.setCheckProofNodesEnabled(true);
         Util.printMemoryInformation();
         iteTrees = proofTransformationAndInterpolation(veritProof,
                 controlVariables);

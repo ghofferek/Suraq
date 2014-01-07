@@ -148,6 +148,8 @@ public final class SuraqOptions {
      */
     private final String outputValue;
 
+    private final String useThisProofFileValue;
+
     /**
      * The value of the solver option.
      */
@@ -247,6 +249,9 @@ public final class SuraqOptions {
         Option exitAfterDumpOption = cmdLineParser
                 .addBooleanOption("exitAfterDump");
 
+        Option useThisProofFileOption = cmdLineParser
+                .addStringOption("useThisProofFile");
+
         try {
             cmdLineParser.parse(args);
         } catch (OptionException exc) {
@@ -286,6 +291,9 @@ public final class SuraqOptions {
 
         exitAfterDumpValue = (Boolean) cmdLineParser
                 .getOptionValue(exitAfterDumpOption);
+
+        useThisProofFileValue = (String) cmdLineParser
+                .getOptionValue(useThisProofFileOption);
 
         int end = getInput().lastIndexOf(".");
 
@@ -507,5 +515,14 @@ public final class SuraqOptions {
     public boolean getExitAfterDump() {
         return exitAfterDumpValue == null ? SuraqOptions.exitAfterDumpDefault
                 : exitAfterDumpValue;
+    }
+
+    /**
+     * 
+     * @return The name of the file to read the proof from (instead of calling a
+     *         solver), or <code>null</code> if the solver should be called.
+     */
+    public String getUseThisProofFile() {
+        return useThisProofFileValue;
     }
 }

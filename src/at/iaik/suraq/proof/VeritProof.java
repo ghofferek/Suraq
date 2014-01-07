@@ -78,7 +78,7 @@ public class VeritProof implements Serializable {
      * This field can be used to quickly turn off checks of proofs (but not
      * necessarily proof nodes, if they are called independently).
      */
-    public static boolean checkProofEnabled = true;
+    private static boolean checkProofEnabled = true;
 
     /**
      * Returns a (new) <code>VeritProofNode</code>. It is automatically attached
@@ -1162,6 +1162,18 @@ public class VeritProof implements Serializable {
     private void readObjectNoData() throws ObjectStreamException {
         throw new RuntimeException(
                 "readObjectNoData() was called in VeritProof.");
+    }
+
+    /**
+     * @param <code>checkProofEnabled</code> the new value for
+     *        <code>checkProofEnabled</code>
+     */
+    public static void setCheckProofEnabled(boolean checkProofEnabled) {
+        if (checkProofEnabled)
+            Util.printToSystemOutWithWallClockTimePrefix("Activating proof checks.");
+        else
+            Util.printToSystemOutWithWallClockTimePrefix("Deactivating proof checks.");
+        VeritProof.checkProofEnabled = checkProofEnabled;
     }
 
 }

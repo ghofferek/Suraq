@@ -47,6 +47,11 @@ public class VeritProofNode implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * This field can be used to quickly turn off checks of proof nodes.
+     */
+    private static boolean checkProofNodesEnabled = true;
+
+    /**
      * Records time spent in the checkProofNode method
      */
     private static final Timer checkTimer = new Timer();
@@ -843,6 +848,9 @@ public class VeritProofNode implements Serializable {
      *         <code>false</code> otherwise.
      */
     public boolean checkProofNode() {
+        if (!VeritProofNode.checkProofNodesEnabled)
+            return true;
+
         VeritProofNode.checkTimer.start();
         VeritProofNode.checkCounter++;
 
@@ -2007,6 +2015,18 @@ public class VeritProofNode implements Serializable {
                 .equals(other.parents)))
             return false;
         return true;
+    }
+
+    /**
+     * @param <code>checkProofEnabled</code> the new value for
+     *        <code>checkProofEnabled</code>
+     */
+    public static void setCheckProofNodesEnabled(boolean checkProofNodesEnabled) {
+        if (checkProofNodesEnabled)
+            Util.printToSystemOutWithWallClockTimePrefix("Activating proof nodes checks.");
+        else
+            Util.printToSystemOutWithWallClockTimePrefix("Deactivating proof nodes checks.");
+        VeritProofNode.checkProofNodesEnabled = checkProofNodesEnabled;
     }
 
 }
