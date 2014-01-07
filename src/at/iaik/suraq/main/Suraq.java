@@ -2759,4 +2759,27 @@ public class Suraq implements Runnable {
             System.exit(0);
         }
     }
+
+    /**
+     * This method is for use in debugging; <strong>DO NOT USE IN
+     * PRODUCTION!</strong> It will just do all input transformations (to create
+     * internal data structure about the formula), and then parse the veriT
+     * proof given by <code>proofReader</code>. It will return the parsed
+     * <code>VeritProof</code>.
+     * 
+     * @param proofReader
+     *            to read the proof from
+     * @return parsed proof
+     */
+    public VeritProof justDoInputTransformationAndThenParseThisProofFile(
+            BufferedReader proofReader) {
+        inputTransformations(new File(SuraqOptions.getInstance().getInput()));
+
+        VeriTParser parser = new VeriTParser(proofReader, mainFormula,
+                tseitinEncoding.keySet(), noDependenceVarsCopies.values(),
+                noDependenceFunctionsCopies);
+
+        parser.parse();
+        return parser.getProof();
+    }
 }

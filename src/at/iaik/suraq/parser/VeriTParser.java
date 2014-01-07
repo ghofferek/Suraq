@@ -189,6 +189,12 @@ public class VeriTParser extends Parser {
             while (line != null) {
                 currentLine++; // count the lines
 
+                line = line.trim();
+                if (line.length() == 0) {
+                    line = reader.readLine();
+                    continue;
+                }
+
                 if (currentLine % 10000 == 0) {
                     Util.printToSystemOutWithWallClockTimePrefix("  Now starting to parse line "
                             + Util.largeNumberFormatter.format(currentLine));
