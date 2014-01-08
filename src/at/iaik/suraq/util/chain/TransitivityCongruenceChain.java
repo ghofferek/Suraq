@@ -326,6 +326,7 @@ public class TransitivityCongruenceChain {
             assert (false);
         }
         assert (this.isComplete());
+        assert (this.getEnd().getJustficiation() == null);
     }
 
     /**
@@ -805,6 +806,9 @@ public class TransitivityCongruenceChain {
         for (TransitivityCongruenceChain chain : element
                 .getCongruenceJustification()) {
             chain.splitUncolorableCongruenceLinks();
+            if (!chain.allCongruenceLinksColorable())
+                chain.splitUncolorableCongruenceLinks();
+            assert (chain.allCongruenceLinksColorable());
             TransitivityCongruenceChain chainSegment = chain;
             List<TransitivityCongruenceChain> segments = new ArrayList<TransitivityCongruenceChain>();
             while (true) {
@@ -826,17 +830,26 @@ public class TransitivityCongruenceChain {
                         break;
                     current = current.getNext();
                 }
-                if (!current.hasNext()) { // whole chain is one segment.
+                if (!current.hasNext()) { // whole (remaining) chain is one
+                                          // segment.
                     break;
                 } else {
                     newStart = current;
-                    assert (newStart.getTermPartition() == -1);
                     assert (newStart != chainSegment.start);
                     chainSegment = chainSegment.split(newStart);
                 }
             }
             listOfSegments.add(segments);
         }
+
+        for (List<TransitivityCongruenceChain> segments : listOfSegments) {
+            assert (segments.size() > 0);
+        }
+
+        // Check if all segments in listOfSegments are of size 1.
+        // In that case, no splicing is necessary.
+        if (Util.allElementsSizeOne(listOfSegments))
+            return;
 
         // Determine start and target partitions
         Set<Integer> partitions = element.getTerm().getPartitionsFromSymbols();
@@ -990,7 +1003,9 @@ public class TransitivityCongruenceChain {
                     "Unexpected exception while creating UninterpretedFunctionInstance. This should not happen.",
                     exc);
         }
-        patch.getEnd().tryAttach(nextTerm, lastJustification);
+        boolean lastAttach = patch.getEnd().tryAttach(nextTerm,
+                lastJustification);
+        assert (lastAttach);
 
         // Now splice in the patch
         this.splice(element, patch);
@@ -1114,7 +1129,7 @@ public class TransitivityCongruenceChain {
     public Set<Integer> getPartitionsFromSymbols() {
         Set<Integer> result = new HashSet<Integer>();
         TransitivityCongruenceChainElement current = this.start;
-        while (current.hasNext()) {
+        while (current != null) {
             result.addAll(current.getPartitionsFromSymbols());
             current = current.getNext();
         }
@@ -1132,6 +1147,38 @@ public class TransitivityCongruenceChain {
             partitions.addAll(literal.getPartitionsFromSymbols());
         partitions.remove(-1);
         return partitions.size() <= 1;
+    }
+
+    /**
+     * This method (recursively) checks whether all congruence links in the
+     * chain are colorable. For a congruence link to be colorable, all
+     * equalities for the parameters as well as the implied literal (equality
+     * between function instances) have to be colorable with one color.
+     * Internally, the equalities for the parameters may use different colors,
+     * but they must be "summarizable" by literals of one color.
+     * 
+     * @return <code>true</code> iff all congruence links in this chain (and
+     *         subchains) are colorable.
+     */
+    public boolean allCongruenceLinksColorable() {
+        TransitivityCongruenceChainElement current = this.start;
+        while (current.hasNext()) {
+            if (current.getEqualityJustification() != null) {
+                assert (current.getCongruenceJustification() == null);
+                current = current.getNext();
+                continue;
+            }
+            assert (current.getCongruenceJustification() != null);
+            if (!current.hasColorableCongruenceJustification())
+                return false;
+            for (TransitivityCongruenceChain subchain : current
+                    .getCongruenceJustification()) {
+                if (!subchain.allCongruenceLinksColorable())
+                    return false;
+            }
+            current = current.getNext();
+        }
+        return true;
     }
 
     /**

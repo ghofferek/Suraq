@@ -47,6 +47,11 @@ public class TransitivityCongruenceChainTest {
         VeritProofNode colorableNode = chain.toColorableProof();
 
         Assert.assertTrue("Node not colorable", colorableNode.isColorable());
+
+        for (VeritProofNode leaf : proof.getLeaves()) {
+            Assert.assertTrue("Leaf not colorable", leaf.isColorable());
+        }
+
         Assert.assertTrue("Node not correct", colorableNode.checkProofNode());
     }
 }

@@ -273,6 +273,8 @@ public class TransitivityCongruenceChainElement {
      */
     protected void makeNextNull() {
         this.next = null;
+        this.congruenceJustification = null;
+        this.equalityJustification = null;
     }
 
     /**
@@ -446,5 +448,30 @@ public class TransitivityCongruenceChainElement {
             return false;
 
         return true;
+    }
+
+    /**
+     * For a congruence link to be colorable, all equalities for the parameters
+     * as well as the implied literal (equality between function instances) have
+     * to be colorable with one color. Internally, the equalities for the
+     * parameters may use different colors, but they must be "summarizable" by
+     * literals of one color. This method does <strong>not</strong> do a
+     * recursive check!
+     * 
+     * @return <code>true</code> iff this element has a colorable congruence
+     *         justification.
+     */
+    public boolean hasColorableCongruenceJustification() {
+        assert (this.congruenceJustification != null);
+        assert (this.equalityJustification == null);
+
+        Set<Integer> partitions = this.term.getPartitionsFromSymbols();
+        partitions.addAll(this.next.term.getPartitionsFromSymbols());
+        for (TransitivityCongruenceChain chain : this.congruenceJustification) {
+            partitions.add(chain.getStartPartition());
+            partitions.add(chain.getEndPartition());
+        }
+        partitions.remove(-1);
+        return partitions.size() <= 1;
     }
 }

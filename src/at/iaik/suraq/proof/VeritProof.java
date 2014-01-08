@@ -545,7 +545,7 @@ public class VeritProof implements Serializable {
         // assert (this.hasNoBadLiterals());
         // assert (this.checkProof());
 
-        Set<VeritProofNode> leafs = this.getLeafs();
+        Set<VeritProofNode> leafs = this.getLeaves();
         Util.printToSystemOutWithWallClockTimePrefix("Found " + leafs.size()
                 + " leafs.");
         Set<VeritProofNode> leafsToClean = new HashSet<VeritProofNode>();
@@ -664,7 +664,7 @@ public class VeritProof implements Serializable {
     /**
      * @return all leafs of this proof.
      */
-    public Set<VeritProofNode> getLeafs() {
+    public Set<VeritProofNode> getLeaves() {
         Set<VeritProofNode> result = new HashSet<VeritProofNode>();
         for (VeritProofNode node : proofNodes.values()) {
             if (node.isLeaf())
