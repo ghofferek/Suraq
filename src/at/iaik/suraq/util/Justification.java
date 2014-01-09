@@ -17,7 +17,7 @@ import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class Justification {
+public class Justification implements Copyable<Justification> {
 
     /**
      * The equality justification, or <code>null</code>
@@ -119,5 +119,31 @@ public class Justification {
             }
             return new Justification(reverseChains);
         }
+    }
+
+    /**
+     * Returns a clone of this object. Equality justifications are copied
+     * shallowly (as they are immutable anyway), congruence justifications are
+     * copied deeply.
+     * 
+     * @see java.lang.Object#clone()
+     */
+    @Override
+    public Justification clone() {
+        if (equality != null) {
+            assert (chains == null);
+            return new Justification(equality);
+        }
+        if (chains != null) {
+            assert (equality == null);
+            List<TransitivityCongruenceChain> clonedChains = new ArrayList<TransitivityCongruenceChain>(
+                    chains.size());
+            for (TransitivityCongruenceChain chain : chains) {
+                clonedChains.add(chain.clone());
+            }
+            return new Justification(clonedChains);
+        }
+        assert (false);
+        return null;
     }
 }

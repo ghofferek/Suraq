@@ -19,15 +19,17 @@ import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.util.CongruenceClosure;
+import at.iaik.suraq.util.Copyable;
 import at.iaik.suraq.util.Justification;
 import at.iaik.suraq.util.Util;
-import at.iaik.suraq.util.graph.Graph;
+import at.iaik.suraq.util.graph.CloningGraph;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class TransitivityCongruenceChain {
+public class TransitivityCongruenceChain implements
+        Copyable<TransitivityCongruenceChain> {
 
     /**
      * Counter to give unique names to proof nodes created in this class.
@@ -104,7 +106,7 @@ public class TransitivityCongruenceChain {
         assert (CongruenceClosure.checkLiteralImplication(implyingLiterals,
                 impliedLiteral));
 
-        Graph<DomainTerm, Justification> graph = new Graph<DomainTerm, Justification>(
+        CloningGraph<DomainTerm, Justification> graph = new CloningGraph<DomainTerm, Justification>(
                 true);
         for (DomainEq literal : implyingLiterals) {
             assert (literal.isEqual());
@@ -620,7 +622,7 @@ public class TransitivityCongruenceChain {
                 size);
         List<Formula> impliedLiterals = new ArrayList<Formula>(size);
         for (TransitivityCongruenceChain chain : congruenceJustification) {
-            Set<Integer> chainPartitions = chain.getPartitionsFromSymbols();
+            Set<Integer> chainPartitions = chain.getPartitionsFromTermsOnly();
             chainPartitions.remove(-1);
             assert (chainPartitions.size() <= 1);
 
@@ -806,8 +808,6 @@ public class TransitivityCongruenceChain {
         for (TransitivityCongruenceChain chain : element
                 .getCongruenceJustification()) {
             chain.splitUncolorableCongruenceLinks();
-            if (!chain.allCongruenceLinksColorable())
-                chain.splitUncolorableCongruenceLinks();
             assert (chain.allCongruenceLinksColorable());
             TransitivityCongruenceChain chainSegment = chain;
             List<TransitivityCongruenceChain> segments = new ArrayList<TransitivityCongruenceChain>();
@@ -886,7 +886,7 @@ public class TransitivityCongruenceChain {
             assert (!segments.isEmpty());
             TransitivityCongruenceChain firstSegment = segments.get(0);
             partitions.clear();
-            partitions = firstSegment.getPartitionsFromSymbols();
+            partitions = firstSegment.getPartitionsFromTermsOnly();
             partitions.remove(-1);
             assert (partitions.size() <= 1);
             assert (partitions.isEmpty() || partitions.contains(leftPartition) || Util
@@ -986,7 +986,7 @@ public class TransitivityCongruenceChain {
             assert (segments.size() == 1);
             TransitivityCongruenceChain currentSegment = segments.get(0);
             partitions.clear();
-            partitions = currentSegment.getPartitionsFromSymbols();
+            partitions = currentSegment.getPartitionsFromTermsOnly();
             partitions.remove(-1);
             assert (partitions.size() <= 1);
             assert (partitions.isEmpty() || partitions.contains(rightPartition) || Util
@@ -1131,6 +1131,22 @@ public class TransitivityCongruenceChain {
         TransitivityCongruenceChainElement current = this.start;
         while (current != null) {
             result.addAll(current.getPartitionsFromSymbols());
+            current = current.getNext();
+        }
+        return result;
+    }
+
+    /**
+     * 
+     * @return the set of partitions formed by all terms in this chain, without
+     *         considering symbols only occurring in sub-chains (congruence
+     *         justifications)
+     */
+    public Set<Integer> getPartitionsFromTermsOnly() {
+        Set<Integer> result = new HashSet<Integer>();
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            result.add(current.getTermPartition());
             current = current.getNext();
         }
         return result;
@@ -1307,4 +1323,21 @@ public class TransitivityCongruenceChain {
         return null;
     }
 
+    /**
+     * Returns a deep copy of this chain.
+     * 
+     * @see java.lang.Object#clone()
+     */
+    @Override
+    public TransitivityCongruenceChain clone() {
+        List<Justification> clonedJustifications = new ArrayList<Justification>(
+                this.length() - 1);
+        TransitivityCongruenceChainElement current = this.start;
+        while (current.hasNext()) {
+            clonedJustifications.add(current.getJustficiation().clone());
+            current = current.getNext();
+        }
+        return new TransitivityCongruenceChain(this.start.getTerm(),
+                this.getEndTerm(), clonedJustifications, this.proof);
+    }
 }

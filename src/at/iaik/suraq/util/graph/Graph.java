@@ -82,7 +82,7 @@ public class Graph<N, A> {
         if (path.size() == 0)
             return null;
 
-        List<A> result = new ArrayList<A>();
+        List<A> result = new ArrayList<A>(path.size());
         for (AnnotatedEdge<N, A> edge : path)
             result.add(edge.getAnnotation());
         return result;
