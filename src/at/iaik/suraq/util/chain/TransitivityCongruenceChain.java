@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import at.iaik.suraq.proof.VeriTToken;
+import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -305,39 +306,42 @@ public class TransitivityCongruenceChain implements
         assert (this.getEnd().getJustficiation() == null);
     }
 
-    /**
-     * 
-     * @return a map of implied literals of congruence links to proof nodes for
-     *         them.
-     */
-    private Map<Formula, VeritProofNode> getProofsForCongruenceLinks() {
-        assert (this.start != null);
-        assert (this.proofNode != null);
-        assert (this.allCongruenceLinksColorable()); // FIXME Expensive check?
-
-        Map<Formula, VeritProofNode> result = new HashMap<Formula, VeritProofNode>(
-                this.numCongruenceLinks() * 2);
-
-        TransitivityCongruenceChainElement current = this.start;
-        while (current != null) {
-            if (current.getCongruenceJustification() != null) {
-                assert (current.getEqualityJustification() == null);
-                assert (current.getNext() != null);
-                assert (current.getTerm() instanceof UninterpretedFunctionInstance);
-                assert (current.getNext().getTerm() instanceof UninterpretedFunctionInstance);
-                Formula literal = current.getLiteral();
-                VeritProofNode node = TransitivityCongruenceChain
-                        .congruenceJustificationToColorableProof(current
-                                .getCongruenceJustification(),
-                                (UninterpretedFunctionInstance) current
-                                        .getTerm(),
-                                (UninterpretedFunctionInstance) current
-                                        .getNext().getTerm(), proofNode);
-                result.put(literal, node);
-            }
-        }
-        return result;
-    }
+    // /**
+    // *
+    // * @return a map of implied literals of congruence links to proof nodes
+    // for
+    // * them.
+    // */
+    // private Map<Formula, VeritProofNode> getProofsForCongruenceLinks() {
+    // assert (this.start != null);
+    // assert (this.proofNode != null);
+    // assert (this.allCongruenceLinksColorable()); // FIXME Expensive check?
+    //
+    // Map<Formula, VeritProofNode> result = new HashMap<Formula,
+    // VeritProofNode>(
+    // this.numCongruenceLinks() * 2);
+    //
+    // TransitivityCongruenceChainElement current = this.start;
+    // while (current != null) {
+    // if (current.getCongruenceJustification() != null) {
+    // assert (current.getEqualityJustification() == null);
+    // assert (current.getNext() != null);
+    // assert (current.getTerm() instanceof UninterpretedFunctionInstance);
+    // assert (current.getNext().getTerm() instanceof
+    // UninterpretedFunctionInstance);
+    // Formula literal = current.getLiteral();
+    // VeritProofNode node = TransitivityCongruenceChain
+    // .congruenceJustificationToColorableProof(current
+    // .getCongruenceJustification(),
+    // (UninterpretedFunctionInstance) current
+    // .getTerm(),
+    // (UninterpretedFunctionInstance) current
+    // .getNext().getTerm(), proofNode);
+    // result.put(literal, node);
+    // }
+    // }
+    // return result;
+    // }
 
     /**
      * If the same term is visited more than once in this chain (not considering
@@ -373,11 +377,256 @@ public class TransitivityCongruenceChain implements
     }
 
     /**
+     * 
+     * @return a proof node implying the first local chunk, or <code>null</code>
+     *         if the chain starts with a global term
+     */
+    private VeritProofNode getProofForFirstLocalChunk() {
+        TransitivityCongruenceChainElement endOfFirstLocalChunk = findEndOfFirstLocalChunk();
+        if (endOfFirstLocalChunk == null)
+            return null;
+        VeritProofNode result = getProofForChunk(this.start,
+                endOfFirstLocalChunk);
+        return result;
+    }
+
+    /**
+     * 
+     * @return the element that is at the end of the firstLocalChunk.
+     */
+    private TransitivityCongruenceChainElement findEndOfFirstLocalChunk() {
+        int startPartition = this.getStartPartition();
+        if (startPartition == -1)
+            return null;
+
+        assert (startPartition != -1);
+
+        TransitivityCongruenceChainElement current = this.start;
+        while (current.hasNext()) {
+            int nextTermPartition = current.getNext().getTermPartition();
+            if (nextTermPartition != startPartition && nextTermPartition != -1) {
+                break;
+            }
+            current = current.getNext();
+        }
+        assert (current != this.start);
+        return current;
+    }
+
+    /**
+     * 
+     * @return a proof implying the last local chunk, or <code>null</code> if
+     *         the chain ends with a global term, or is just one segment and
+     *         thus already handled by firstLocalChunk.
+     */
+    private VeritProofNode getProofForLastLocalChunk() {
+        TransitivityCongruenceChainElement startOfLastLocalChunk = findStartOfLastLocalChunk();
+        if (startOfLastLocalChunk == null)
+            return null;
+        VeritProofNode result = getProofForChunk(startOfLastLocalChunk,
+                this.getEnd());
+        return result;
+    }
+
+    /**
+     * 
+     * @return the start of the lastLocalChunk
+     */
+    private TransitivityCongruenceChainElement findStartOfLastLocalChunk() {
+        int endPartition = this.getEndPartition();
+        if (endPartition == -1)
+            return null;
+
+        assert (endPartition != -1);
+
+        TransitivityCongruenceChainElement end = this.getEnd();
+        TransitivityCongruenceChainElement current = end;
+
+        while (current != null) {
+            TransitivityCongruenceChainElement predecessor = this
+                    .getPredecessor(current);
+            if (predecessor == null) {
+                current = predecessor;
+                break;
+            }
+            int previousTermPartition = predecessor.getTermPartition();
+            if (previousTermPartition != endPartition
+                    && previousTermPartition != -1) {
+                break;
+            }
+            current = predecessor;
+        }
+
+        return current;
+    }
+
+    /**
+     * 
+     * @return a proof implying the global chunk
+     */
+    private VeritProofNode getProofForGlobalChunk() {
+
+        TransitivityCongruenceChainElement startOfGlobalChunk = findEndOfFirstLocalChunk();
+        if (startOfGlobalChunk == null) {
+            if (this.getStartPartition() == -1)
+                startOfGlobalChunk = this.start;
+            else {
+                // Whole chain already covered by firstLocalChunk
+                return null;
+            }
+        }
+
+        TransitivityCongruenceChainElement endOfGlobalChunk = findStartOfLastLocalChunk();
+        TransitivityCongruenceChainElement end = this.getEnd();
+        int endPartition = end.getTermPartition();
+
+        if (endOfGlobalChunk == null) {
+            if (endPartition == -1)
+                endOfGlobalChunk = end;
+            else {
+                // Whole chain already covered by firstLocalChunk
+                return null;
+            }
+        }
+
+        // FIXME The whole global chunk can span more than one partition!!
+        // It only guarantees that there is global starts, ends, and
+        // intermediates!
+        // Code below needs to be changed!!!
+        assert (false); // to remember!
+
+        assert (startOfGlobalChunk != endOfGlobalChunk);
+        VeritProofNode result = getProofForChunk(startOfGlobalChunk,
+                endOfGlobalChunk);
+        return result;
+    }
+
+    /**
+     * 
+     * @param start
+     * @param end
+     * @return a proof for the chunk from start to end
+     */
+    private VeritProofNode getProofForChunk(
+            TransitivityCongruenceChainElement start,
+            TransitivityCongruenceChainElement end) {
+
+        assert (start != null);
+        assert (end != null);
+
+        int startIndex = this.indexOf(start);
+        int endIndex = this.indexOf(end);
+
+        assert (startIndex >= 0);
+        assert (endIndex >= 0);
+        assert (startIndex < endIndex);
+        assert (start != end);
+        assert (endIndex - startIndex >= 2);
+
+        List<Formula> conclusions = new ArrayList<Formula>(endIndex
+                - startIndex);
+
+        Map<Formula, VeritProofNode> proofsForCongruences = new HashMap<Formula, VeritProofNode>();
+
+        TransitivityCongruenceChainElement current = start;
+        while (current != end) {
+            assert (current != null);
+
+            Formula literal = current.getLiteral();
+            conclusions.add(NotFormula.create(literal));
+
+            if (current.getEqualityJustification() == null) {
+                assert (current.getCongruenceJustification() != null);
+                assert (current.getNext() != null);
+                assert (current.getTerm() instanceof UninterpretedFunctionInstance);
+                assert (current.getNext().getTerm() instanceof UninterpretedFunctionInstance);
+                VeritProofNode node = TransitivityCongruenceChain
+                        .congruenceJustificationToColorableProof(current
+                                .getCongruenceJustification(),
+                                (UninterpretedFunctionInstance) current
+                                        .getTerm(),
+                                (UninterpretedFunctionInstance) current
+                                        .getNext().getTerm(), proofNode);
+                proofsForCongruences.put(literal, node);
+            }
+            current = current.getNext();
+        }
+
+        VeritProof proof = this.proofNode.getProof();
+        VeritProofNode currentNode = proof.addProofNode(
+                proof.freshNodeName("col_tran", ""), VeriTToken.EQ_TRANSITIVE,
+                conclusions, null, null, false);
+
+        for (Formula literal : proofsForCongruences.keySet()) {
+            currentNode = currentNode.resolveWith(
+                    proofsForCongruences.get(literal), false);
+        }
+
+        return currentNode;
+    }
+
+    /**
+     * 
+     * @return a transitivity leaf using the first local chunk, the shortcut and
+     *         the last local chunk.
+     */
+    private VeritProofNode getProofForFirstShortcutLast() {
+
+        TransitivityCongruenceChainElement endOfFirstLocalChunk = findEndOfFirstLocalChunk();
+        TransitivityCongruenceChainElement startOfLastLocalChunk = findStartOfLastLocalChunk();
+        int startPartition = this.getStartPartition();
+        int endPartition = this.getEndPartition();
+
+        List<Formula> conclusions = new ArrayList<Formula>(this.length());
+        if (startPartition == -1) {
+            assert (endOfFirstLocalChunk == null);
+            assert (startOfLastLocalChunk != null);
+            assert (startOfLastLocalChunk.getTermPartition() == -1);
+            // We start with the shortcut
+
+            // TODO: Finish
+
+        }
+
+    }
+
+    /**
+     * 
+     * @param firstLocalChunk
+     * @param globalChunk
+     * @param lastLocalChunk
+     * @param firstShortcutLast
+     * @return a node resolving the given nodes to the final result
+     */
+    private VeritProofNode combineFirstGlobalLastChunks(
+            VeritProofNode firstLocalChunk, VeritProofNode globalChunk,
+            VeritProofNode lastLocalChunk, VeritProofNode firstShortcutLast) {
+
+        if (firstShortcutLast == null)
+            return globalChunk;
+
+        assert (firstLocalChunk != null || lastLocalChunk != null);
+        assert (globalChunk != null);
+
+        VeritProofNode result = null;
+        if (firstLocalChunk != null) {
+            result = firstShortcutLast.resolveWith(firstLocalChunk, false);
+        }
+        if (lastLocalChunk != null) {
+            result = (result == null ? firstShortcutLast : result).resolveWith(
+                    lastLocalChunk, false);
+        }
+        assert (result != null);
+        result = result.resolveWith(globalChunk, false);
+        return result;
+    }
+
+    /**
      * Reimplementation of
      * {@link TransitivityCongruenceChain#toColorableProof()}.
      * 
-     * @return a proof node that proofs the targetLiterals, and is split in
-     *         colorable subproofs.
+     * @return a proof node that proofs what is implied by the chain, and is
+     *         split in colorable subproofs.
      */
     public VeritProofNode toColorableProofNew() {
         assert (this.start != null);
@@ -391,11 +640,14 @@ public class TransitivityCongruenceChain implements
         int endPartition = this.getEndPartition();
         assert (startPartition == endPartition || startPartition == -1 || endPartition == -1);
 
-        Map<Formula, VeritProofNode> proofsForCongruenceLinks = getProofsForCongruenceLinks();
+        VeritProofNode firstLocalChunk = getProofForFirstLocalChunk();
+        VeritProofNode globalChunk = getProofForGlobalChunk();
+        VeritProofNode lastLocalChunk = getProofForLastLocalChunk();
+        VeritProofNode firstShortcutLast = getProofForFirstShortcutLast();
+        VeritProofNode result = combineFirstGlobalLastChunks(firstLocalChunk,
+                globalChunk, lastLocalChunk, firstShortcutLast);
 
-        // TODO firstLocalChunk, globalChunk, lastLocalChunk
-
-        return null; // FIXME
+        return result;
     }
 
     /**
@@ -1433,6 +1685,41 @@ public class TransitivityCongruenceChain implements
             current = current.getNext();
         }
         return count;
+    }
+
+    /**
+     * Gives the index of the given element in the chain, or -1 if it is not
+     * contained. Checks for reference equality (<code>==</code>) and does not
+     * use <code>equals</code>.
+     * 
+     * @param element
+     * @return the index of the given element or -1 if it is not contained in
+     *         the chain.
+     */
+    public int indexOf(TransitivityCongruenceChainElement element) {
+        assert (start != null);
+        if (element == null)
+            return -1;
+
+        int count = 0;
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            if (current == element)
+                return count;
+            count++;
+            current = current.getNext();
+        }
+        return -1;
+    }
+
+    /**
+     * 
+     * @param element
+     * @return <code>true</code> iff <code>element</code> is contained in the
+     *         chain (reference equality).
+     */
+    public boolean contains(TransitivityCongruenceChainElement element) {
+        return indexOf(element) >= 0;
     }
 
 }

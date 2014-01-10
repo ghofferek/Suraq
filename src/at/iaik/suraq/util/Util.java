@@ -1469,4 +1469,40 @@ public final class Util {
             return false;
         return true;
     }
+
+    /**
+     * 
+     * @param conclusions1
+     *            Literals of first subproof
+     * @param conclusions2
+     *            Literals of second subproof
+     * @return conclusions for the resolution of <code>literals1</code> and
+     *         <code>literals2</code>.
+     */
+    public static List<Formula> findConclusionsOfResolution(
+            Collection<? extends Formula> conclusions1,
+            Collection<? extends Formula> conclusions2) {
+
+        List<Formula> result = new ArrayList<Formula>(conclusions1.size()
+                + conclusions2.size());
+
+        for (Formula literal : conclusions1) {
+            if (!result.contains(literal)) {
+                if (!conclusions2.contains(Util.invertLiteral(literal))) {
+                    result.add(literal);
+                }
+            }
+        }
+
+        for (Formula literal : conclusions2) {
+            if (!result.contains(literal)) {
+                if (!conclusions1.contains(Util.invertLiteral(literal))) {
+                    result.add(literal);
+                }
+            }
+        }
+
+        return result;
+
+    }
 }

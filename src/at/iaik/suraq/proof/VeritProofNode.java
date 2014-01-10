@@ -234,7 +234,14 @@ public class VeritProofNode implements Serializable {
                     // resolution
                     //
                     // if (!Util.isNegatedReflexivity(literal)) {
-                    reducedConclusions.add(literal);
+                    if (literal instanceof EqualityFormula) {
+                        if (!reducedConclusions.contains(Util
+                                .reverseEquality((EqualityFormula) literal))) {
+                            reducedConclusions.add(literal);
+                        }
+                    } else {
+                        reducedConclusions.add(literal);
+                    }
                     // }
                 } else {
                     assert (type.equals(VeriTToken.INPUT));
@@ -2065,6 +2072,26 @@ public class VeritProofNode implements Serializable {
         else
             Util.printToSystemOutWithWallClockTimePrefix("Deactivating proof nodes checks.");
         VeritProofNode.checkProofNodesEnabled = checkProofNodesEnabled;
+    }
+
+    /**
+     * @param other
+     * @param removeSubproofsOfTheoryLemmas
+     * @return the resolution of <code>this</code> with <code>other</code>.
+     */
+    public VeritProofNode resolveWith(VeritProofNode other,
+            boolean removeSubproofsOfTheoryLemmas) {
+        assert (this != other);
+        assert (this.proof == other.proof);
+        List<VeritProofNode> subproofs = new ArrayList<VeritProofNode>(2);
+        subproofs.add(this);
+        subproofs.add(other);
+        List<Formula> conlusions = Util.findConclusionsOfResolution(
+                this.literalConclusions, other.literalConclusions);
+        VeritProofNode result = this.proof.addProofNode(
+                this.proof.freshNodeName("res", ""), VeriTToken.RESOLUTION,
+                conlusions, subproofs, null, removeSubproofsOfTheoryLemmas);
+        return result;
     }
 
 }
