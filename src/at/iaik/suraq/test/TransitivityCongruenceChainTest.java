@@ -27,6 +27,7 @@ public class TransitivityCongruenceChainTest {
      * 
      * @throws FileNotFoundException
      */
+    @SuppressWarnings("deprecation")
     @Test
     public void testNodec132457() throws FileNotFoundException {
 

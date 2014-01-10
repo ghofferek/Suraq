@@ -102,6 +102,7 @@ public class VeriTProofAnalyzer {
      *            should not filter.
      * @return
      */
+    @SuppressWarnings("deprecation")
     private boolean removeBadLiteralsTransitive(Token type) {
 
         // in the first step, we only look for eq_transitive and eq_congruent,
@@ -238,6 +239,7 @@ public class VeriTProofAnalyzer {
      *            badLiteral in positive Form
      * @param ends
      */
+    @SuppressWarnings("deprecation")
     private void replaceBadLiteralToParents(VeritProofNode node,
             List<Formula> conditions, Formula badLiteral,
             List<VeritProofNode> ends) {
@@ -625,8 +627,8 @@ public class VeriTProofAnalyzer {
                                     + //
                                     "' of type '" + node.getType()
                                     + "'. Conclusion (in OR-Format):\n");
-                            fstream_more
-                                    .write(node.getConclusionsAsOrFormula().toString());
+                            fstream_more.write(node.getConclusionsAsOrFormula()
+                                    .toString());
 
                             if (node.getSubProofs() == null) {
                                 errors_no_childs++;

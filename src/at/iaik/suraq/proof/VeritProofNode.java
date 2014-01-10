@@ -854,6 +854,14 @@ public class VeritProofNode implements Serializable {
         VeritProofNode.checkTimer.start();
         VeritProofNode.checkCounter++;
 
+        if (this.containsReversedLiterals()) {
+            return failOnMessage("Contains reversed literals.");
+        }
+
+        if (this.containsDuplicateLiteral()) {
+            return failOnMessage("Contains duplicate literal.");
+        }
+
         // Type specific tests
 
         if (this.type.equals(VeriTToken.INPUT)) {
@@ -952,6 +960,36 @@ public class VeritProofNode implements Serializable {
         failOnMessage("Unknown node type!");
         assert (false);
         VeritProofNode.checkTimer.stop();
+        return false;
+    }
+
+    /**
+     * @return <code>true</code> if the conclusions contain a literal and its
+     *         symmetric counterpart (regardless of phase).
+     */
+    private boolean containsReversedLiterals() {
+        for (Formula literal1 : this.literalConclusions) {
+            for (Formula literal2 : this.literalConclusions) {
+                if (literal1 == literal2) {
+                    continue;
+                }
+                if (Util.areReversedLiterals(literal1, literal2))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsDuplicateLiteral() {
+        for (int count1 = 0; count1 < literalConclusions.size(); count1++) {
+            Formula literal1 = literalConclusions.get(count1);
+            for (int count2 = count1 + 1; count2 < literalConclusions.size(); count2++) {
+                Formula literal2 = literalConclusions.get(count2);
+                if (literal1.equals(literal2)) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 

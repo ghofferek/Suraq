@@ -4,13 +4,14 @@
 package at.iaik.suraq.util.chain;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 import at.iaik.suraq.proof.VeriTToken;
-import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -47,9 +48,10 @@ public class TransitivityCongruenceChain implements
     private DomainTerm target;
 
     /**
-     * The proof to which this will later be exported, or <code>null</code>.
+     * The proof node from which literals of this chain originally came. This is
+     * necessary to avoid introducing symmetric literals.
      */
-    private final VeritProof proof;
+    private final VeritProofNode proofNode;
 
     /**
      * Creates a chain for the given (axiomatic) proof node.
@@ -177,7 +179,7 @@ public class TransitivityCongruenceChain implements
                                         .getParameters().get(count),
                                 ((UninterpretedFunctionInstance) term2)
                                         .getParameters().get(count), localPath,
-                                node.getProof()));
+                                node));
                     }
                     if (localJustification != null) {
                         Justification completeLocalJustification = new Justification(
@@ -215,33 +217,14 @@ public class TransitivityCongruenceChain implements
      *            <code>null</code>.
      */
     private TransitivityCongruenceChain(DomainTerm start, DomainTerm target,
-            VeritProofNode node) {
+            VeritProofNode proofNode) {
         assert (start != null);
         assert (target != null);
-        this.start = new TransitivityCongruenceChainElement(start);
+        assert (proofNode != null);
+        this.start = new TransitivityCongruenceChainElement(start, proofNode);
         this.target = target;
-        if (node != null) {
-            this.proof = node.getProof();
-        } else {
-            this.proof = null;
-        }
-    }
+        this.proofNode = proofNode;
 
-    /**
-     * 
-     * Constructs a new <code>TransitivityCongruenceChain</code>.
-     * 
-     * @param start
-     * @param target
-     * @param proof
-     */
-    private TransitivityCongruenceChain(DomainTerm start, DomainTerm target,
-            VeritProof proof) {
-        assert (start != null);
-        assert (target != null);
-        this.start = new TransitivityCongruenceChainElement(start);
-        this.target = target;
-        this.proof = proof;
     }
 
     /**
@@ -252,13 +235,16 @@ public class TransitivityCongruenceChain implements
      * 
      * @param start
      * @param target
-     * @param proof
+     * @param proofNode
      */
     private TransitivityCongruenceChain(
             TransitivityCongruenceChainElement start, DomainTerm target,
-            VeritProof proof) {
+            VeritProofNode proofNode) {
+        assert (start != null);
+        assert (target != null);
+        assert (proofNode != null);
         this.start = start;
-        this.proof = proof;
+        this.proofNode = proofNode;
         this.target = target;
     }
 
@@ -271,26 +257,13 @@ public class TransitivityCongruenceChain implements
      * @param proof
      */
     private TransitivityCongruenceChain(DomainTerm reflexiveTerm,
-            VeritProof proof) {
-        this.start = new TransitivityCongruenceChainElement(reflexiveTerm);
+            VeritProofNode proofNode) {
+        this.start = new TransitivityCongruenceChainElement(reflexiveTerm,
+                proofNode);
         this.target = reflexiveTerm;
-        this.proof = proof;
+        this.proofNode = proofNode;
         this.start.attachReflexivity();
         assert (this.isComplete());
-    }
-
-    /**
-     * Constructs a new <code>TransitivityCongruenceChain</code> from a list of
-     * justifications.
-     * 
-     * @param start
-     * @param end
-     * @param path
-     * @param node
-     */
-    private TransitivityCongruenceChain(DomainTerm start, DomainTerm end,
-            List<Justification> path, VeritProofNode node) {
-        this(start, end, path, node == null ? null : node.getProof());
     }
 
     /**
@@ -303,25 +276,26 @@ public class TransitivityCongruenceChain implements
      * @param proof
      */
     private TransitivityCongruenceChain(DomainTerm start, DomainTerm end,
-            List<Justification> path, VeritProof proof) {
+            List<Justification> path, VeritProofNode proofNode) {
         assert (path != null);
         assert (start != null);
         assert (end != null);
-        this.start = new TransitivityCongruenceChainElement(start);
+        assert (proofNode != null);
+        this.start = new TransitivityCongruenceChainElement(start, proofNode);
         this.target = end;
-        this.proof = proof;
+        this.proofNode = proofNode;
 
         for (Justification justification : path) {
             assert (justification != null);
             if (justification.isEqualityJustification()) {
                 boolean attached = this.getEnd().tryAttach(
-                        justification.getEqualityJustification());
+                        justification.getEqualityJustification(), proofNode);
                 assert (attached);
                 continue;
             }
             if (justification.isCongruenceJustification()) {
                 boolean attached = this.getEnd().tryAttach(
-                        justification.getCongruenceJustification());
+                        justification.getCongruenceJustification(), proofNode);
                 assert (attached);
                 continue;
             }
@@ -333,11 +307,105 @@ public class TransitivityCongruenceChain implements
 
     /**
      * 
+     * @return a map of implied literals of congruence links to proof nodes for
+     *         them.
+     */
+    private Map<Formula, VeritProofNode> getProofsForCongruenceLinks() {
+        assert (this.start != null);
+        assert (this.proofNode != null);
+        assert (this.allCongruenceLinksColorable()); // FIXME Expensive check?
+
+        Map<Formula, VeritProofNode> result = new HashMap<Formula, VeritProofNode>(
+                this.numCongruenceLinks() * 2);
+
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            if (current.getCongruenceJustification() != null) {
+                assert (current.getEqualityJustification() == null);
+                assert (current.getNext() != null);
+                assert (current.getTerm() instanceof UninterpretedFunctionInstance);
+                assert (current.getNext().getTerm() instanceof UninterpretedFunctionInstance);
+                Formula literal = current.getLiteral();
+                VeritProofNode node = TransitivityCongruenceChain
+                        .congruenceJustificationToColorableProof(current
+                                .getCongruenceJustification(),
+                                (UninterpretedFunctionInstance) current
+                                        .getTerm(),
+                                (UninterpretedFunctionInstance) current
+                                        .getNext().getTerm(), proofNode);
+                result.put(literal, node);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * If the same term is visited more than once in this chain (not considering
+     * subchains) the detour in between is removed.
+     */
+    private void makeShortcuts() {
+        Map<DomainTerm, TransitivityCongruenceChainElement> termsVisited = new HashMap<DomainTerm, TransitivityCongruenceChainElement>(
+                this.length() * 2);
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            assert (current.getTerm() != null);
+            if (current.getCongruenceJustification() != null) {
+                assert (current.getEqualityJustification() == null);
+                for (TransitivityCongruenceChain subchain : current
+                        .getCongruenceJustification())
+                    subchain.makeShortcuts();
+            }
+
+            if (termsVisited.containsKey(current.getTerm())) {
+                TransitivityCongruenceChainElement firstOccurrence = termsVisited
+                        .get(current.getTerm());
+                if (firstOccurrence.getNext() != current) {
+                    // This is not a reflexivity
+                    firstOccurrence.makeShortcut(current);
+                    current = this.start;
+                    termsVisited.clear();
+                }
+            }
+
+            termsVisited.put(current.getTerm(), current);
+            current = current.getNext();
+        }
+    }
+
+    /**
+     * Reimplementation of
+     * {@link TransitivityCongruenceChain#toColorableProof()}.
+     * 
      * @return a proof node that proofs the targetLiterals, and is split in
      *         colorable subproofs.
      */
+    public VeritProofNode toColorableProofNew() {
+        assert (this.start != null);
+        assert (this.proofNode != null);
+
+        this.splitUncolorableCongruenceLinks();
+
+        this.makeShortcuts();
+
+        int startPartition = this.getStartPartition();
+        int endPartition = this.getEndPartition();
+        assert (startPartition == endPartition || startPartition == -1 || endPartition == -1);
+
+        Map<Formula, VeritProofNode> proofsForCongruenceLinks = getProofsForCongruenceLinks();
+
+        // TODO firstLocalChunk, globalChunk, lastLocalChunk
+
+        return null; // FIXME
+    }
+
+    /**
+     * 
+     * @return a proof node that proofs the targetLiterals, and is split in
+     *         colorable subproofs.
+     */
+    @Deprecated
     public VeritProofNode toColorableProof() {
-        assert (proof != null);
+        assert (this.proofNode != null);
 
         this.splitUncolorableCongruenceLinks();
 
@@ -364,7 +432,7 @@ public class TransitivityCongruenceChain implements
             }
             path.remove(path.size() - 1);
             firstLocalChunk = new TransitivityCongruenceChain(
-                    this.start.getTerm(), currentTerm, path, this.proof);
+                    this.start.getTerm(), currentTerm, path, this.proofNode);
             currentElement = this.getPredecessor(currentElement);
             assert (currentElement.getTermPartition() == -1);
         }
@@ -391,7 +459,7 @@ public class TransitivityCongruenceChain implements
             assert (currentElement.getTermPartition() == -1);
             lastLocalChunk = new TransitivityCongruenceChain(
                     currentElement.getTerm(), this.getEndTerm(), path,
-                    this.proof);
+                    this.proofNode);
             globalEnd = currentElement;
         }
         if (globalEnd == null)
@@ -410,7 +478,8 @@ public class TransitivityCongruenceChain implements
         }
         assert (currentElement == globalEnd);
         chainWithGlobalEnds = new TransitivityCongruenceChain(
-                globalStart.getTerm(), globalEnd.getTerm(), path, this.proof);
+                globalStart.getTerm(), globalEnd.getTerm(), path,
+                this.proofNode);
 
         VeritProofNode proofForMidSection = chainWithGlobalEnds
                 .chainWithGlobalEndsToColorableProof();
@@ -444,9 +513,11 @@ public class TransitivityCongruenceChain implements
                         .getEndTerm() : shortcutLiteral.getTerms().get(1)));
         DomainEq impliedLiteral = DomainEq.create(impliedLiteralTerms, true);
         conclusions.add(impliedLiteral);
-        VeritProofNode firstShortcutLast = this.proof.addProofNode("fsl_"
-                + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.TRANS_CONGR, conclusions, null, null, false);
+        VeritProofNode firstShortcutLast = this.proofNode
+                .getProof()
+                .addProofNode(
+                        "fsl_" + TransitivityCongruenceChain.proofNodeCounter++,
+                        VeriTToken.TRANS_CONGR, conclusions, null, null, false);
 
         // Create the final result
         List<VeritProofNode> resultSubProofs = new ArrayList<VeritProofNode>(2);
@@ -467,8 +538,8 @@ public class TransitivityCongruenceChain implements
             resultConclusions.remove(Util.invertLiteral(shortcutLiteral));
 
         Util.removeReflexiveLiterals(resultConclusions);
-        VeritProofNode result = this.proof.addProofNode("split_"
-                + TransitivityCongruenceChain.proofNodeCounter++,
+        VeritProofNode result = this.proofNode.getProof().addProofNode(
+                "split_" + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.RESOLUTION, resultConclusions, resultSubProofs,
                 null, false);
 
@@ -480,8 +551,9 @@ public class TransitivityCongruenceChain implements
      * 
      * @return a (colorable) VeritProofNode for this chain.
      */
+    @Deprecated
     private VeritProofNode toColorableProofBaseCase() {
-        assert (this.proof != null);
+        assert (this.proofNode != null);
         Set<Integer> partitions = this.getPartitionsFromSymbols();
         partitions.remove(-1);
 
@@ -498,9 +570,9 @@ public class TransitivityCongruenceChain implements
             conclusions.addAll(Util.invertAllLiterals(usedLiterals));
             conclusions.add(impliedLiteral);
             Util.removeReflexiveLiterals(conclusions);
-            VeritProofNode result = proof.addProofNode(
-                    proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
-                    conclusions, null, null, false);
+            VeritProofNode result = proofNode.getProof().addProofNode(
+                    proofNode.getProof().freshNodeName("col_", ""),
+                    VeriTToken.TRANS_CONGR, conclusions, null, null, false);
             return result;
         } else {
             // Special case: at least one chain link has a congruence
@@ -531,7 +603,8 @@ public class TransitivityCongruenceChain implements
                                     (UninterpretedFunctionInstance) current
                                             .getTerm(),
                                     (UninterpretedFunctionInstance) current
-                                            .getNext().getTerm(), this.proof);
+                                            .getNext().getTerm(),
+                                    this.proofNode);
                     congruences.add(congruence);
                     assert (Util.findPositiveLiteral(congruence
                             .getLiteralConclusions()) != null);
@@ -564,9 +637,9 @@ public class TransitivityCongruenceChain implements
 
             // Now we actually construct the leaf
             Util.removeReflexiveLiterals(conclusions);
-            VeritProofNode currentNode = proof.addProofNode(
-                    proof.freshNodeName("col_", ""), VeriTToken.TRANS_CONGR,
-                    conclusions, null, null, false);
+            VeritProofNode currentNode = proofNode.getProof().addProofNode(
+                    proofNode.getProof().freshNodeName("col_", ""),
+                    VeriTToken.TRANS_CONGR, conclusions, null, null, false);
 
             // Add resolution steps to get the final conclusion
             for (VeritProofNode currentCongruence : congruences) {
@@ -583,9 +656,10 @@ public class TransitivityCongruenceChain implements
                 currentConclusions.remove(resolvingLiteral);
                 currentConclusions.remove(Util.invertLiteral(resolvingLiteral));
                 Util.removeReflexiveLiterals(currentConclusions);
-                currentNode = proof.addProofNode(
-                        proof.freshNodeName("res.", ""), VeriTToken.RESOLUTION,
-                        currentConclusions, subProofs, null, false);
+                currentNode = proofNode.getProof().addProofNode(
+                        proofNode.getProof().freshNodeName("res.", ""),
+                        VeriTToken.RESOLUTION, currentConclusions, subProofs,
+                        null, false);
             }
 
             return currentNode;
@@ -609,7 +683,7 @@ public class TransitivityCongruenceChain implements
     private static VeritProofNode congruenceJustificationToColorableProof(
             List<TransitivityCongruenceChain> congruenceJustification,
             UninterpretedFunctionInstance term1,
-            UninterpretedFunctionInstance term2, VeritProof proof) {
+            UninterpretedFunctionInstance term2, VeritProofNode proofNode) {
 
         assert (congruenceJustification != null);
         assert (term1.getFunction().equals(term2.getFunction()));
@@ -626,7 +700,7 @@ public class TransitivityCongruenceChain implements
             chainPartitions.remove(-1);
             assert (chainPartitions.size() <= 1);
 
-            VeritProofNode currentNode = chain.toColorableProofBaseCase();
+            VeritProofNode currentNode = chain.toColorableProofNew();
             proofsForCongruence.add(currentNode);
             Formula impliedLiteral = Util.getImpliedLiteral(currentNode
                     .getLiteralConclusions());
@@ -647,16 +721,17 @@ public class TransitivityCongruenceChain implements
             congruenceConclusions.add(negatedLiteral);
         }
         congruenceConclusions.add(congruenceImpliedLiteral);
-        VeritProofNode congruenceNode = proof.addProofNode(
-                proof.freshNodeName("congr.", ""), VeriTToken.EQ_CONGRUENT,
-                congruenceConclusions, null, null, false);
+        VeritProofNode congruenceNode = proofNode.getProof().addProofNode(
+                proofNode.getProof().freshNodeName("congr.", ""),
+                VeriTToken.EQ_CONGRUENT, congruenceConclusions, null, null,
+                false);
 
         VeritProofNode currentNode = congruenceNode;
         for (VeritProofNode currentProofForCongruence : proofsForCongruence) {
             List<VeritProofNode> subProofs = new ArrayList<VeritProofNode>(2);
             subProofs.add(currentProofForCongruence);
             subProofs.add(currentNode);
-            String nodeName = proof.freshNodeName("res.", "");
+            String nodeName = proofNode.getProof().freshNodeName("res.", "");
             Formula resolvingLiteral = Util.findResolvingLiteral(subProofs);
             List<Formula> conclusions = new ArrayList<Formula>(subProofs.get(0)
                     .getLiteralConclusions().size()
@@ -665,8 +740,8 @@ public class TransitivityCongruenceChain implements
             conclusions.addAll(subProofs.get(1).getLiteralConclusions());
             conclusions.remove(resolvingLiteral);
             conclusions.remove(Util.invertLiteral(resolvingLiteral));
-            currentNode = proof.addProofNode(nodeName, VeriTToken.RESOLUTION,
-                    conclusions, subProofs, null, false);
+            currentNode = proofNode.getProof().addProofNode(nodeName,
+                    VeriTToken.RESOLUTION, conclusions, subProofs, null, false);
         }
         return currentNode;
     }
@@ -727,8 +802,8 @@ public class TransitivityCongruenceChain implements
         // Remove negative reflexive literals (they are false anyway)
         Util.removeReflexiveLiterals(conclusions);
 
-        VeritProofNode node1 = proof.addProofNode("tcc_left_"
-                + TransitivityCongruenceChain.proofNodeCounter++,
+        VeritProofNode node1 = proofNode.getProof().addProofNode(
+                "tcc_left_" + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.TRANS_CONGR, conclusions, null, null, false);
         assert (node1.isColorable());
 
@@ -738,7 +813,7 @@ public class TransitivityCongruenceChain implements
         }
 
         TransitivityCongruenceChain secondPart = new TransitivityCongruenceChain(
-                newStart, target, proof);
+                newStart, target, proofNode);
         assert (secondPart.getStartPartition() == -1);
         assert (secondPart.getEndPartition() == -1);
         VeritProofNode node2 = secondPart.chainWithGlobalEndsToColorableProof();
@@ -752,8 +827,8 @@ public class TransitivityCongruenceChain implements
         finalConclusions.remove(resolvingLiteral);
         finalConclusions.remove(Util.invertLiteral(resolvingLiteral));
 
-        VeritProofNode resNode = proof.addProofNode("tcc_res_"
-                + TransitivityCongruenceChain.proofNodeCounter++,
+        VeritProofNode resNode = proofNode.getProof().addProofNode(
+                "tcc_res_" + TransitivityCongruenceChain.proofNodeCounter++,
                 VeriTToken.RESOLUTION, finalConclusions, clauses, null, false);
 
         return resNode;
@@ -874,7 +949,7 @@ public class TransitivityCongruenceChain implements
 
         // Create the patch to splice in
         TransitivityCongruenceChain patch = new TransitivityCongruenceChain(
-                element.getTerm(), element.getNext().getTerm(), this.proof);
+                element.getTerm(), element.getNext().getTerm(), this.proofNode);
 
         // Create intermediate elements from list of lists and attach them to
         // the patch
@@ -900,7 +975,7 @@ public class TransitivityCongruenceChain implements
                 firstIntermediateParameters.add(firstSegment.getStart()
                         .getTerm());
                 firstJustification.add(new TransitivityCongruenceChain(
-                        firstSegment.start.getTerm(), this.proof));
+                        firstSegment.start.getTerm(), this.proofNode));
             }
         }
         UninterpretedFunctionInstance nextTerm = null;
@@ -913,7 +988,7 @@ public class TransitivityCongruenceChain implements
                     exc);
         }
         boolean firstAttach = patch.getEnd().tryAttach(nextTerm,
-                firstJustification);
+                firstJustification, proofNode);
         assert (firstAttach);
 
         // Loop: From one global intermediate to another global intermediate
@@ -926,7 +1001,7 @@ public class TransitivityCongruenceChain implements
                 TransitivityCongruenceChain currentSegment = segments.get(0);
                 if (segments.size() == 1) {
                     currentJustification.add(new TransitivityCongruenceChain(
-                            currentSegment.start.getTerm(), this.proof));
+                            currentSegment.start.getTerm(), this.proofNode));
                     currentIntermediateParameters.add(currentSegment.start
                             .getTerm());
                 } else {
@@ -952,7 +1027,7 @@ public class TransitivityCongruenceChain implements
                                 currentJustification
                                         .add(new TransitivityCongruenceChain(
                                                 currentSegment.start.getTerm(),
-                                                this.proof));
+                                                this.proofNode));
                                 currentIntermediateParameters
                                         .add(currentSegment.start.getTerm());
                             }
@@ -974,7 +1049,7 @@ public class TransitivityCongruenceChain implements
                         exc);
             }
             boolean currentAttach = patch.getEnd().tryAttach(nextTerm,
-                    currentJustification);
+                    currentJustification, proofNode);
             assert (currentAttach);
         }
 
@@ -1004,7 +1079,7 @@ public class TransitivityCongruenceChain implements
                     exc);
         }
         boolean lastAttach = patch.getEnd().tryAttach(nextTerm,
-                lastJustification);
+                lastJustification, proofNode);
         assert (lastAttach);
 
         // Now splice in the patch
@@ -1033,7 +1108,8 @@ public class TransitivityCongruenceChain implements
         // }
 
         TransitivityCongruenceChain result = new TransitivityCongruenceChain(
-                new TransitivityCongruenceChainElement(element), target, proof);
+                new TransitivityCongruenceChainElement(element), target,
+                proofNode);
 
         this.target = element.getTerm();
         element.makeNextNull();
@@ -1117,7 +1193,7 @@ public class TransitivityCongruenceChain implements
         assert (this.isComplete());
 
         TransitivityCongruenceChain result = new TransitivityCongruenceChain(
-                copy, oldTarget, this.proof);
+                copy, oldTarget, this.proofNode);
         assert (result.isComplete());
         return result;
     }
@@ -1300,7 +1376,7 @@ public class TransitivityCongruenceChain implements
         }
         TransitivityCongruenceChain result = new TransitivityCongruenceChain(
                 this.getEndTerm(), this.start.getTerm(), reverseJustifications,
-                this.proof);
+                this.proofNode);
         return result;
     }
 
@@ -1338,6 +1414,25 @@ public class TransitivityCongruenceChain implements
             current = current.getNext();
         }
         return new TransitivityCongruenceChain(this.start.getTerm(),
-                this.getEndTerm(), clonedJustifications, this.proof);
+                this.getEndTerm(), clonedJustifications, this.proofNode);
     }
+
+    /**
+     * 
+     * @return the number of congruence links in this chain (not considering
+     *         subchains).
+     */
+    public int numCongruenceLinks() {
+        TransitivityCongruenceChainElement current = this.start;
+        int count = 0;
+        while (current != null) {
+            if (current.getCongruenceJustification() != null) {
+                assert (current.getEqualityJustification() == null);
+                count++;
+            }
+            current = current.getNext();
+        }
+        return count;
+    }
+
 }

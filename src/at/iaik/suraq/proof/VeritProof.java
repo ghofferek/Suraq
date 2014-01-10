@@ -220,6 +220,7 @@ public class VeritProof implements Serializable {
      * 
      * @param proofNode
      */
+    @SuppressWarnings("deprecation")
     @Deprecated
     public void removeProofSet(VeritProofNode proofNode) {
         if (proofNode.getParents() != null)

@@ -1442,4 +1442,31 @@ public final class Util {
         }
         return null;
     }
+
+    /**
+     * @param literal1
+     * @param literal2
+     * @return
+     */
+    public static boolean areReversedLiterals(Formula literal1, Formula literal2) {
+        assert (literal1 != null);
+        assert (literal2 != null);
+        assert (Util.isLiteral(literal1));
+        assert (Util.isLiteral(literal2));
+        Formula positiveLiteral1 = Util.makeLiteralPositive(literal1);
+        Formula positiveLiteral2 = Util.makeLiteralPositive(literal2);
+        if (!(positiveLiteral1 instanceof EqualityFormula))
+            return false;
+        if (!(positiveLiteral2 instanceof EqualityFormula))
+            return false;
+        EqualityFormula equality1 = (EqualityFormula) positiveLiteral1;
+        EqualityFormula equality2 = (EqualityFormula) positiveLiteral2;
+        assert (equality1.getTerms().size() == 2);
+        assert (equality2.getTerms().size() == 2);
+        if (!equality1.getTerms().get(0).equals(equality2.getTerms().get(1)))
+            return false;
+        if (!equality1.getTerms().get(1).equals(equality2.getTerms().get(0)))
+            return false;
+        return true;
+    }
 }

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
+import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -49,14 +50,22 @@ public class TransitivityCongruenceChainElement {
     private List<TransitivityCongruenceChain> congruenceJustification = null;
 
     /**
+     * Used to avoid creating symmetric literals.
+     */
+    private final VeritProofNode proofNode;
+
+    /**
      * 
      * Constructs a new <code>TransitivityCongruenceChainElement</code>.
      * 
      * @param term
      */
-    protected TransitivityCongruenceChainElement(DomainTerm term) {
+    protected TransitivityCongruenceChainElement(DomainTerm term,
+            VeritProofNode proofNode) {
         assert (term != null);
+        assert (proofNode != null);
         this.term = term;
+        this.proofNode = proofNode;
     }
 
     /**
@@ -70,6 +79,7 @@ public class TransitivityCongruenceChainElement {
         this.next = element.next;
         this.equalityJustification = element.equalityJustification;
         this.congruenceJustification = element.congruenceJustification;
+        this.proofNode = element.proofNode;
     }
 
     /**
@@ -79,7 +89,7 @@ public class TransitivityCongruenceChainElement {
      * @param equality
      * @return <code>true</code> if the given equality could be attached.
      */
-    protected boolean tryAttach(DomainEq equality) {
+    protected boolean tryAttach(DomainEq equality, VeritProofNode proofNode) {
         if (next != null)
             return false;
         assert (equality != null);
@@ -91,7 +101,7 @@ public class TransitivityCongruenceChainElement {
         if (this.term.equals(equality.getTerms().get(0))) {
             assert (next == null);
             this.next = new TransitivityCongruenceChainElement(
-                    (DomainTerm) equality.getTerms().get(1));
+                    (DomainTerm) equality.getTerms().get(1), proofNode);
             assert (next != null);
             this.equalityJustification = equality;
             assert (congruenceJustification == null);
@@ -101,7 +111,7 @@ public class TransitivityCongruenceChainElement {
         if (this.term.equals(equality.getTerms().get(1))) {
             assert (next == null);
             this.next = new TransitivityCongruenceChainElement(
-                    (DomainTerm) equality.getTerms().get(0));
+                    (DomainTerm) equality.getTerms().get(0), proofNode);
             assert (next != null);
             this.equalityJustification = equality;
             assert (congruenceJustification == null);
@@ -117,7 +127,8 @@ public class TransitivityCongruenceChainElement {
     }
 
     protected boolean tryAttach(UninterpretedFunctionInstance nextTerm,
-            List<TransitivityCongruenceChain> justification) {
+            List<TransitivityCongruenceChain> justification,
+            VeritProofNode proofNode) {
         if (next != null)
             return false;
         assert (next == null);
@@ -137,7 +148,7 @@ public class TransitivityCongruenceChainElement {
             return false;
         this.congruenceJustification = new ArrayList<TransitivityCongruenceChain>(
                 justification);
-        this.next = new TransitivityCongruenceChainElement(nextTerm);
+        this.next = new TransitivityCongruenceChainElement(nextTerm, proofNode);
         assert (next != null);
         assert (congruenceJustification != null);
         assert (equalityJustification == null);
@@ -149,9 +160,11 @@ public class TransitivityCongruenceChainElement {
      * automatically.
      * 
      * @param justification
-     * @return <code>true</code> if attachment was successfull
+     * @return <code>true</code> if attachment was successful
      */
-    protected boolean tryAttach(List<TransitivityCongruenceChain> justification) {
+    protected boolean tryAttach(
+            List<TransitivityCongruenceChain> justification,
+            VeritProofNode proofNode) {
         if (!(this.term instanceof UninterpretedFunctionInstance))
             return false;
         UninterpretedFunction function = ((UninterpretedFunctionInstance) this.term)
@@ -164,7 +177,7 @@ public class TransitivityCongruenceChainElement {
         try {
             UninterpretedFunctionInstance nextTerm = UninterpretedFunctionInstance
                     .create(function, parameters);
-            return tryAttach(nextTerm, justification);
+            return tryAttach(nextTerm, justification, proofNode);
         } catch (WrongNumberOfParametersException exc) {
             return false;
         } catch (WrongFunctionTypeException exc) {
@@ -284,7 +297,8 @@ public class TransitivityCongruenceChainElement {
         assert (this.next == null);
         assert (this.equalityJustification == null);
         assert (this.congruenceJustification == null);
-        this.next = new TransitivityCongruenceChainElement(this.term);
+        this.next = new TransitivityCongruenceChainElement(this.term,
+                this.proofNode);
         this.equalityJustification = Util.createReflexivity(this.term);
     }
 
@@ -309,6 +323,20 @@ public class TransitivityCongruenceChainElement {
         patch.congruenceJustification = this.congruenceJustification;
         assert ((patch.congruenceJustification == null ^ patch.equalityJustification == null) || (patch.next == null
                 && patch.congruenceJustification == null && patch.equalityJustification == null));
+    }
+
+    /**
+     * Called on the first occurrence, shortcuts the way to the successor of the
+     * given second occurrence.
+     * 
+     * @param secondOccurrence
+     */
+    protected void makeShortcut(
+            TransitivityCongruenceChainElement secondOccurrence) {
+        assert (this.term.equals(secondOccurrence.term));
+        this.next = secondOccurrence.next;
+        this.congruenceJustification = secondOccurrence.congruenceJustification;
+        this.equalityJustification = secondOccurrence.equalityJustification;
     }
 
     /**
@@ -473,5 +501,38 @@ public class TransitivityCongruenceChainElement {
         }
         partitions.remove(-1);
         return partitions.size() <= 1;
+    }
+
+    /**
+     * Returns the literal that represents the link between this element and the
+     * next. (Thus, <code>next</code> may not be <code>null</code>!) If this
+     * literal already occurred in the original proof node, it is guaranteed
+     * that it is not returned in reverse. If it is not in the original node,
+     * the order of the terms will be as in the chain: first the term of
+     * <code>this</code>, then the term of <code>this.next</code>.
+     * 
+     * @return the literal linking this element to the next, in positive phase.
+     */
+    public DomainEq getLiteral() {
+        assert (this.next != null);
+        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        terms.add(this.term);
+        DomainEq literal = DomainEq.create(terms, true);
+        DomainEq reversedLiteral = (DomainEq) Util.reverseEquality(literal);
+
+        if (proofNode.getLiteralConclusions().contains(literal)) {
+            assert (!proofNode.getLiteralConclusions()
+                    .contains(reversedLiteral));
+            return literal;
+        }
+
+        if (proofNode.getLiteralConclusions().contains(reversedLiteral)) {
+            assert (!proofNode.getLiteralConclusions().contains(literal));
+            return reversedLiteral;
+        }
+
+        // This is a new literal, not occurring in the proof node.
+        // return it in the order of the chain, by default.
+        return literal;
     }
 }
