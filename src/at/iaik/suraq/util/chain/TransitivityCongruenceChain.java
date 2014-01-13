@@ -578,16 +578,53 @@ public class TransitivityCongruenceChain implements
         int endPartition = this.getEndPartition();
 
         List<Formula> conclusions = new ArrayList<Formula>(this.length());
-        if (startPartition == -1) {
+        if (startPartition != -1) {
+            assert (endOfFirstLocalChunk != null);
+            assert (endOfFirstLocalChunk != this.start);
+            DomainEq firstChunkLiteral = this.getLiteral(start,
+                    endOfFirstLocalChunk);
+            conclusions.add(NotFormula.create(firstChunkLiteral));
+
+            if (endPartition != -1) {
+                assert (startOfLastLocalChunk != null);
+                assert (startOfLastLocalChunk != this.getEnd());
+                assert (startOfLastLocalChunk.getTermPartition() == -1);
+                DomainEq shortcutLiteral = this.getLiteral(
+                        endOfFirstLocalChunk, startOfLastLocalChunk);
+                conclusions.add(NotFormula.create(shortcutLiteral));
+
+                DomainEq lastChunkLiteral = this.getLiteral(
+                        startOfLastLocalChunk, this.getEnd());
+                conclusions.add(NotFormula.create(lastChunkLiteral));
+            } else { // End of chain is global
+                assert (startOfLastLocalChunk == null);
+                DomainEq shortcutLiteral = getLiteral(endOfFirstLocalChunk,
+                        this.getEnd());
+                conclusions.add(NotFormula.create(shortcutLiteral));
+            }
+
+        } else { // Start of chain is global
+            assert (endPartition != -1); // End cannot be global as well
             assert (endOfFirstLocalChunk == null);
             assert (startOfLastLocalChunk != null);
             assert (startOfLastLocalChunk.getTermPartition() == -1);
-            // We start with the shortcut
+            DomainEq shortcutLiteral = this.getLiteral(this.start,
+                    startOfLastLocalChunk);
+            conclusions.add(NotFormula.create(shortcutLiteral));
 
-            // TODO: Finish
-
+            DomainEq lastChunkLiteral = this.getLiteral(startOfLastLocalChunk,
+                    this.getEnd());
+            conclusions.add(NotFormula.create(lastChunkLiteral));
         }
 
+        DomainEq impliedLiteral = this.getLiteral(this.start, this.getEnd());
+        conclusions.add(impliedLiteral);
+
+        VeritProof proof = this.proofNode.getProof();
+        VeritProofNode result = proof.addProofNode(
+                proof.freshNodeName("fsl_", ""), VeriTToken.EQ_TRANSITIVE,
+                conclusions, null, null, false);
+        return result;
     }
 
     /**
@@ -619,6 +656,40 @@ public class TransitivityCongruenceChain implements
         assert (result != null);
         result = result.resolveWith(globalChunk, false);
         return result;
+    }
+
+    /**
+     * 
+     * @param element1
+     * @param element2
+     * @return an equality literal between the terms of <code>element1</code>
+     *         and <code>element2</code>. In case it occurs in the original
+     *         proof node, the order of this appearance is respected. Literal
+     *         will always be in positive phase.
+     */
+    private DomainEq getLiteral(TransitivityCongruenceChainElement element1,
+            TransitivityCongruenceChainElement element2) {
+        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        terms.add(element1.getTerm());
+        terms.add(element2.getTerm());
+        DomainEq literal = DomainEq.create(terms, true);
+        DomainEq reversedLiteral = (DomainEq) Util.reverseEquality(literal);
+
+        if (proofNode.getLiteralConclusions().contains(literal)) {
+            assert (!proofNode.getLiteralConclusions()
+                    .contains(reversedLiteral));
+            return literal;
+        }
+
+        if (proofNode.getLiteralConclusions().contains(reversedLiteral)) {
+            assert (!proofNode.getLiteralConclusions().contains(literal));
+            return reversedLiteral;
+        }
+
+        // This is a new literal, not occurring in the proof node.
+        // return it in the order of the chain, by default.
+        return literal;
+
     }
 
     /**
