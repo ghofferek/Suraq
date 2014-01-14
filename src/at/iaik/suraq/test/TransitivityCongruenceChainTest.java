@@ -27,7 +27,6 @@ public class TransitivityCongruenceChainTest {
      * 
      * @throws FileNotFoundException
      */
-    @SuppressWarnings("deprecation")
     @Test
     public void testNodec132457() throws FileNotFoundException {
 
@@ -45,7 +44,7 @@ public class TransitivityCongruenceChainTest {
 
         TransitivityCongruenceChain chain = TransitivityCongruenceChain
                 .create(node);
-        VeritProofNode colorableNode = chain.toColorableProof();
+        VeritProofNode colorableNode = chain.toColorableProofNew();
 
         Assert.assertTrue("Node not colorable", colorableNode.isColorable());
 

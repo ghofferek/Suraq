@@ -14,6 +14,7 @@ import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.util.Justification;
@@ -517,17 +518,25 @@ public class TransitivityCongruenceChainElement {
         assert (this.next != null);
         List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
         terms.add(this.term);
+        terms.add(this.next.term);
         DomainEq literal = DomainEq.create(terms, true);
         DomainEq reversedLiteral = (DomainEq) Util.reverseEquality(literal);
+        NotFormula invertedLiteral = NotFormula.create(literal);
+        NotFormula invertedReversedLiteral = NotFormula.create(reversedLiteral);
 
-        if (proofNode.getLiteralConclusions().contains(literal)) {
-            assert (!proofNode.getLiteralConclusions()
-                    .contains(reversedLiteral));
+        List<Formula> conclusions = proofNode.getLiteralConclusions();
+
+        if (conclusions.contains(literal)
+                || conclusions.contains(invertedLiteral)) {
+            assert (!conclusions.contains(reversedLiteral) && !conclusions
+                    .contains(invertedReversedLiteral));
             return literal;
         }
 
-        if (proofNode.getLiteralConclusions().contains(reversedLiteral)) {
-            assert (!proofNode.getLiteralConclusions().contains(literal));
+        if (conclusions.contains(reversedLiteral)
+                || conclusions.contains(invertedReversedLiteral)) {
+            assert (!conclusions.contains(literal) && !conclusions
+                    .contains(invertedLiteral));
             return reversedLiteral;
         }
 
