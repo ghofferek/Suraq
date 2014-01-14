@@ -1885,7 +1885,7 @@ public class VeritProofNode implements Serializable {
         VeritProofNode predicateNode1 = new VeritProofNode(
                 "pred1_" + this.name, VeriTToken.EQ_CONGRUENT_PRED, literals1,
                 null, null, this.proof, false);
-        VeritProofNode chain1Node = chain1.toColorableProof();
+        VeritProofNode chain1Node = chain1.toColorableProofNew();
         List<VeritProofNode> leftSubProofs = new ArrayList<VeritProofNode>(2);
         leftSubProofs.add(chain1Node);
         leftSubProofs.add(predicateNode1);
@@ -1910,7 +1910,7 @@ public class VeritProofNode implements Serializable {
         VeritProofNode predicateNode2 = new VeritProofNode(
                 "pred2_" + this.name, VeriTToken.EQ_CONGRUENT_PRED, literals2,
                 null, null, this.proof, false);
-        VeritProofNode chain2Node = chain2.toColorableProof();
+        VeritProofNode chain2Node = chain2.toColorableProofNew();
         List<VeritProofNode> rightSubProofs = new ArrayList<VeritProofNode>(2);
         rightSubProofs.add(chain2Node);
         rightSubProofs.add(predicateNode2);

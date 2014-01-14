@@ -586,7 +586,7 @@ public class VeritProof implements Serializable {
                         + leafToClean.getName());
                 TransitivityCongruenceChain chain = TransitivityCongruenceChain
                         .create(leafToClean);
-                replacement = chain.toColorableProof();
+                replacement = chain.toColorableProofNew();
                 // } else if (leafToClean.getType().equals(
                 // VeriTToken.EQ_CONGRUENT_PRED)) {
             } else if (positiveLiteral instanceof UninterpretedPredicateInstance) {

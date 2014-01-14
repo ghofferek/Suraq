@@ -462,6 +462,30 @@ public class TransitivityCongruenceChain implements
 
     /**
      * 
+     * @param element
+     * @return the first element with a global term following the given
+     *         <code>element</code>, or <code>null</code> if no such element
+     *         exists in this chain.
+     */
+    private TransitivityCongruenceChainElement findNextGlobalElement(
+            TransitivityCongruenceChainElement element) {
+        assert (element != null);
+        assert (element.hasNext());
+        assert (element.getTermPartition() == -1);
+
+        TransitivityCongruenceChainElement current = element.getNext();
+        assert (current != null);
+
+        while (current != null) {
+            if (current.getTermPartition() == -1)
+                return current;
+            current = current.getNext();
+        }
+        return null;
+    }
+
+    /**
+     * 
      * @return a proof implying the global chunk
      */
     private VeritProofNode getProofForGlobalChunk() {
@@ -489,15 +513,47 @@ public class TransitivityCongruenceChain implements
             }
         }
 
-        // FIXME The whole global chunk can span more than one partition!!
-        // It only guarantees that there is global starts, ends, and
-        // intermediates!
-        // Code below needs to be changed!!!
-        assert (false); // to remember!
-
         assert (startOfGlobalChunk != endOfGlobalChunk);
-        VeritProofNode result = getProofForChunk(startOfGlobalChunk,
-                endOfGlobalChunk);
+
+        Map<Formula, VeritProofNode> proofsForLocalSubchains = new HashMap<Formula, VeritProofNode>();
+        List<Formula> globalLiterals = new ArrayList<Formula>();
+
+        TransitivityCongruenceChainElement current = startOfGlobalChunk;
+
+        while (current != endOfGlobalChunk) {
+            assert (current.getTermPartition() == -1);
+            TransitivityCongruenceChainElement next = this
+                    .findNextGlobalElement(current);
+            assert (next != null);
+            assert (next.getTermPartition() == -1);
+
+            Formula impliedLiteral = this.getLiteral(current, next);
+            VeritProofNode currentProof = this.getProofForChunk(current, next);
+            proofsForLocalSubchains.put(impliedLiteral, currentProof);
+            globalLiterals.add(impliedLiteral);
+
+            current = next;
+        }
+        assert (globalLiterals.size() == proofsForLocalSubchains.size());
+
+        Formula literalImpliedByGlobalChunk = this.getLiteral(
+                startOfGlobalChunk, endOfGlobalChunk);
+        List<Formula> globalConclusions = Util
+                .invertAllLiterals(globalLiterals);
+        globalConclusions.add(literalImpliedByGlobalChunk);
+
+        VeritProof proof = this.proofNode.getProof();
+
+        VeritProofNode result = proof.addProofNode(
+                proof.freshNodeName("glob", ""), VeriTToken.EQ_TRANSITIVE,
+                globalConclusions, null, null, false);
+
+        for (Formula literal : globalLiterals) {
+            VeritProofNode other = proofsForLocalSubchains.get(literal);
+            assert (other != null);
+            result = result.resolveWith(other, false);
+        }
+
         return result;
     }
 
@@ -540,13 +596,10 @@ public class TransitivityCongruenceChain implements
                 assert (current.getNext() != null);
                 assert (current.getTerm() instanceof UninterpretedFunctionInstance);
                 assert (current.getNext().getTerm() instanceof UninterpretedFunctionInstance);
-                VeritProofNode node = TransitivityCongruenceChain
-                        .congruenceJustificationToColorableProof(current
-                                .getCongruenceJustification(),
-                                (UninterpretedFunctionInstance) current
-                                        .getTerm(),
-                                (UninterpretedFunctionInstance) current
-                                        .getNext().getTerm(), proofNode);
+                VeritProofNode node = this
+                        .congruenceJustificationToColorableProofNew(
+                                current.getCongruenceJustification(), current,
+                                current.getNext());
                 proofsForCongruences.put(literal, node);
             }
             current = current.getNext();
@@ -987,6 +1040,71 @@ public class TransitivityCongruenceChain implements
 
             return currentNode;
         }
+    }
+
+    /**
+     * Creates a colorable proof for a congruence between the given terms, using
+     * the given justification.
+     * 
+     * @param congruenceJustification
+     * @param element1
+     * 
+     * @param element2
+     * 
+     * @return the proof node that asserts the congruence, based on colorable
+     *         leaves.
+     */
+    private VeritProofNode congruenceJustificationToColorableProofNew(
+            List<TransitivityCongruenceChain> congruenceJustification,
+            TransitivityCongruenceChainElement element1,
+            TransitivityCongruenceChainElement element2) {
+
+        assert (congruenceJustification != null);
+        assert (element1.getTerm() instanceof UninterpretedFunctionInstance);
+        assert (element2.getTerm() instanceof UninterpretedFunctionInstance);
+        assert (((UninterpretedFunctionInstance) element1.getTerm())
+                .getFunction().equals(((UninterpretedFunctionInstance) element2
+                .getTerm()).getFunction()));
+
+        int size = congruenceJustification.size();
+
+        Map<Formula, VeritProofNode> proofsForCongruence = new HashMap<Formula, VeritProofNode>();
+        List<Formula> literalsImpliedBySubchains = new ArrayList<Formula>(size);
+
+        for (TransitivityCongruenceChain chain : congruenceJustification) {
+            Set<Integer> chainPartitions = chain.getPartitionsFromTermsOnly();
+            chainPartitions.remove(-1);
+            assert (chainPartitions.size() <= 1);
+
+            Formula impliedLiteral = chain.getLiteral(chain.start,
+                    chain.getEnd());
+            assert (Util.isGlobal(impliedLiteral));
+
+            VeritProofNode currentNode = chain.toColorableProofNew();
+            proofsForCongruence.put(impliedLiteral, currentNode);
+
+            literalsImpliedBySubchains.add(impliedLiteral);
+        }
+        assert (literalsImpliedBySubchains.size() == proofsForCongruence.size());
+
+        Formula impliedLiteral = this.getLiteral(element1, element2);
+
+        List<Formula> conclusions = Util
+                .invertAllLiterals(literalsImpliedBySubchains);
+        conclusions.add(impliedLiteral);
+
+        VeritProof proof = this.proofNode.getProof();
+
+        VeritProofNode result = proof.addProofNode(
+                proof.freshNodeName("congrJustProof", ""),
+                VeriTToken.EQ_CONGRUENT, conclusions, null, null, false);
+
+        for (Formula literal : literalsImpliedBySubchains) {
+            VeritProofNode other = proofsForCongruence.get(literal);
+            result = result.resolveWith(other, false);
+        }
+
+        return result;
     }
 
     /**
