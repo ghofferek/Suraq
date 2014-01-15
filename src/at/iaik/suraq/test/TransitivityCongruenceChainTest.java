@@ -8,12 +8,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 import at.iaik.suraq.main.Suraq;
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
+import at.iaik.suraq.util.Util;
 import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
 
 /**
@@ -23,24 +26,26 @@ import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
 public class TransitivityCongruenceChainTest {
 
     /**
-     * Tests splitting of node c132457 from dlx_2_controller_proof.
-     * 
-     * @throws FileNotFoundException
+     * Performs necessary resets to run multiple tests.
      */
-    @Test
-    public void testNodec132457() throws FileNotFoundException {
+    @After
+    public void tearDown() {
+        SuraqOptions.kill();
+        Util.resetTseitinCounter();
+    }
 
-        String[] args = { "-i",
-                "./rsc/dlx/dlx_no_domainITE_2_controllers.smt2", "--tseitin",
-                "1", "--solver", "verit" };
+    private void testNode(String pathToInputFile, String pathToProofFile,
+            String nodeName) throws FileNotFoundException {
+        String[] args = { "-i", pathToInputFile, "--tseitin", "1", "--solver",
+                "verit" };
         Suraq suraq = new Suraq(args);
 
         BufferedReader proofReader = new BufferedReader(new FileReader(
-                new File("./rsc/dbg/c132457.smt2")));
+                new File(pathToProofFile)));
 
         VeritProof proof = suraq
                 .justDoInputTransformationAndThenParseThisProofFile(proofReader);
-        VeritProofNode node = proof.getProofNode(".c132457");
+        VeritProofNode node = proof.getProofNode(nodeName);
 
         TransitivityCongruenceChain chain = TransitivityCongruenceChain
                 .create(node);
@@ -56,5 +61,28 @@ public class TransitivityCongruenceChainTest {
         }
 
         Assert.assertTrue("Node not correct", colorableNode.checkProofNode());
+
+    }
+
+    /**
+     * Tests splitting of node c132457 from dlx_2_controller_proof.
+     * 
+     * @throws FileNotFoundException
+     */
+    @Test
+    public void testNodec132457() throws FileNotFoundException {
+        testNode("./rsc/dlx/dlx_no_domainITE_2_controllers.smt2",
+                "./rsc/dbg/c132457.smt2", ".c132457");
+    }
+
+    /**
+     * Tests splitting of node c1456 from simple_processor_proof.
+     * 
+     * @throws FileNotFoundException
+     */
+    @Test
+    public void testNodec1456() throws FileNotFoundException {
+        testNode("./rsc/test/simple_processor.smt2", "./rsc/dbg/c1456.smt2",
+                ".c1456");
     }
 }

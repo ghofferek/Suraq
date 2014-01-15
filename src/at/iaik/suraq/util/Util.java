@@ -88,6 +88,15 @@ public final class Util {
     }
 
     /**
+     * This resets the counter that is used to make Tseitin-variables unique.
+     * Only call if you know what you are doing (like executing multiple test
+     * cases with different <code>Suraq</code> objects).
+     */
+    public static void resetTseitinCounter() {
+        Util.tseitinVarCounter = 0;
+    }
+
+    /**
      * Chooses a fresh variable name with respect to the given formula. The name
      * is also distinct from present macro names and uninterpreted function
      * names.

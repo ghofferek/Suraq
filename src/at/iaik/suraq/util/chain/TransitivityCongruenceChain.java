@@ -452,7 +452,7 @@ public class TransitivityCongruenceChain implements
             int previousTermPartition = predecessor.getTermPartition();
             if (previousTermPartition != endPartition
                     && previousTermPartition != -1) {
-                break;
+                return current;
             }
             current = predecessor;
         }
@@ -530,6 +530,8 @@ public class TransitivityCongruenceChain implements
 
         if (startOfGlobalChunk == endOfGlobalChunk)
             return null;
+        assert (this.indexOf(startOfGlobalChunk) < this
+                .indexOf(endOfGlobalChunk));
 
         Map<Formula, VeritProofNode> proofsForLocalSubchains = new HashMap<Formula, VeritProofNode>();
         List<Formula> globalLiterals = new ArrayList<Formula>();
@@ -593,6 +595,12 @@ public class TransitivityCongruenceChain implements
         assert (endIndex >= 0);
         assert (startIndex < endIndex);
         assert (start != end);
+
+        if (startIndex + 1 == endIndex) {
+            assert (start.getNext() == end);
+            return chunkWithLengthTwoToColorableProof(start);
+        }
+
         assert (endIndex - startIndex >= 2);
 
         List<Formula> conclusions = new ArrayList<Formula>(endIndex
@@ -760,6 +768,8 @@ public class TransitivityCongruenceChain implements
     private DomainEq getLiteral(TransitivityCongruenceChainElement element1,
             TransitivityCongruenceChainElement element2) {
         List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        assert (element1 != null);
+        assert (element2 != null);
         terms.add(element1.getTerm());
         terms.add(element2.getTerm());
         DomainEq literal = DomainEq.create(terms, true);
@@ -790,21 +800,23 @@ public class TransitivityCongruenceChain implements
     }
 
     /**
-     * Call only on chains with length 2!
      * 
      * @return a proof node for this chain
      */
-    private VeritProofNode chainWithLengthTwoToColorableProof() {
-        assert (this.length() == 2);
-        assert (this.getStartPartition() == this.getEndPartition()
-                || this.getStartPartition() == -1 || this.getEndPartition() == -1);
+    private VeritProofNode chunkWithLengthTwoToColorableProof(
+            TransitivityCongruenceChainElement element1) {
+        TransitivityCongruenceChainElement element2 = element1.getNext();
+        assert (element2 != null);
+        assert (element1.getTermPartition() == element2.getTermPartition()
+                || element1.getTermPartition() == -1 || element2
+                    .getTermPartition() == -1);
 
         VeritProof proof = this.proofNode.getProof();
-        Formula literal = this.getLiteral(this.start, this.start.getNext());
+        Formula literal = this.getLiteral(element1, element2);
         Formula invertedLiteral = NotFormula.create(literal);
 
-        if (this.start.getEqualityJustification() != null) {
-            assert (this.start.getCongruenceJustification() == null);
+        if (element1.getEqualityJustification() != null) {
+            assert (element1.getCongruenceJustification() == null);
 
             // return a LEM
             List<Formula> conclusions = new ArrayList<Formula>(2);
@@ -816,11 +828,11 @@ public class TransitivityCongruenceChain implements
 
             return result;
         } else {
-            assert (this.start.getCongruenceJustification() != null);
+            assert (element1.getCongruenceJustification() != null);
             VeritProofNode result = this
                     .congruenceJustificationToColorableProofNew(
-                            this.start.getCongruenceJustification(),
-                            this.start, this.start.getNext());
+                            element1.getCongruenceJustification(), element1,
+                            element2);
             return result;
         }
     }
@@ -852,7 +864,8 @@ public class TransitivityCongruenceChain implements
 
         // Special case: length 2
         if (this.start.getNext().getNext() == null) {
-            return chainWithLengthTwoToColorableProof();
+            assert (this.length() == 2);
+            return chunkWithLengthTwoToColorableProof(this.start);
         }
 
         this.splitUncolorableCongruenceLinks();
