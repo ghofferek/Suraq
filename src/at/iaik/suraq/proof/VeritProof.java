@@ -663,7 +663,14 @@ public class VeritProof implements Serializable {
     }
 
     /**
-     * @return all leafs of this proof.
+     * This method iterates over the <code>proofNode</code> HashMap. This is
+     * fast but comes at the price of returning some potentially unreachable
+     * leaves as well. Remove unreachable nodes before calling this method to
+     * avoid the problem.
+     * 
+     * An alternative is the method {@link VeritProofNode#getLeaves()}.
+     * 
+     * @return all leaves of this proof.
      */
     public Set<VeritProofNode> getLeaves() {
         Set<VeritProofNode> result = new HashSet<VeritProofNode>();

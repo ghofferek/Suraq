@@ -649,6 +649,9 @@ public class TransitivityCongruenceChain implements
             return null;
 
         TransitivityCongruenceChainElement startOfLastLocalChunk = findStartOfLastLocalChunk();
+        if (startOfLastLocalChunk == this.start)
+            return null;
+
         int startPartition = this.getStartPartition();
         int endPartition = this.getEndPartition();
 
@@ -719,7 +722,12 @@ public class TransitivityCongruenceChain implements
 
         if (firstShortcutLast == null) {
             if (firstLocalChunk == null)
-                return globalChunk;
+                if (globalChunk == null) {
+                    assert (lastLocalChunk != null);
+                    return lastLocalChunk;
+                } else {
+                    return globalChunk;
+                }
             else
                 return firstLocalChunk;
         }
@@ -782,6 +790,42 @@ public class TransitivityCongruenceChain implements
     }
 
     /**
+     * Call only on chains with length 2!
+     * 
+     * @return a proof node for this chain
+     */
+    private VeritProofNode chainWithLengthTwoToColorableProof() {
+        assert (this.length() == 2);
+        assert (this.getStartPartition() == this.getEndPartition()
+                || this.getStartPartition() == -1 || this.getEndPartition() == -1);
+
+        VeritProof proof = this.proofNode.getProof();
+        Formula literal = this.getLiteral(this.start, this.start.getNext());
+        Formula invertedLiteral = NotFormula.create(literal);
+
+        if (this.start.getEqualityJustification() != null) {
+            assert (this.start.getCongruenceJustification() == null);
+
+            // return a LEM
+            List<Formula> conclusions = new ArrayList<Formula>(2);
+            conclusions.add(invertedLiteral);
+            conclusions.add(literal);
+            VeritProofNode result = proof.addProofNode(
+                    proof.freshNodeName("LEM", ""), VeriTToken.EQ_TRANSITIVE,
+                    conclusions, null, null, false);
+
+            return result;
+        } else {
+            assert (this.start.getCongruenceJustification() != null);
+            VeritProofNode result = this
+                    .congruenceJustificationToColorableProofNew(
+                            this.start.getCongruenceJustification(),
+                            this.start, this.start.getNext());
+            return result;
+        }
+    }
+
+    /**
      * Reimplementation of
      * {@link TransitivityCongruenceChain#toColorableProof()}.
      * 
@@ -792,6 +836,7 @@ public class TransitivityCongruenceChain implements
         assert (this.start != null);
         assert (this.proofNode != null);
 
+        // Special case: length 1
         if (this.start.getNext() == null) {
             assert (this.length() == 1);
             assert (this.start.getTerm().equals(this.target));
@@ -803,6 +848,11 @@ public class TransitivityCongruenceChain implements
                     proof.freshNodeName("reflex", ""), VeriTToken.EQ_REFLEXIVE,
                     conclusios, null, null, false);
             return result;
+        }
+
+        // Special case: length 2
+        if (this.start.getNext().getNext() == null) {
+            return chainWithLengthTwoToColorableProof();
         }
 
         this.splitUncolorableCongruenceLinks();
@@ -820,6 +870,10 @@ public class TransitivityCongruenceChain implements
         VeritProofNode result = combineFirstGlobalLastChunks(firstLocalChunk,
                 globalChunk, lastLocalChunk, firstShortcutLast);
 
+        result = result.resolveNegatedReflexivities();
+
+        assert (Util.getImpliedLiteral(result.getLiteralConclusions())
+                .equals(this.getLiteral(this.start, this.getEnd())));
         return result;
     }
 

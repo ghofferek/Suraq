@@ -46,9 +46,12 @@ public class TransitivityCongruenceChainTest {
                 .create(node);
         VeritProofNode colorableNode = chain.toColorableProofNew();
 
-        Assert.assertTrue("Node not colorable", colorableNode.isColorable());
+        Assert.assertTrue(
+                "Unexpected literal in node.",
+                node.getLiteralConclusions().containsAll(
+                        colorableNode.getLiteralConclusions()));
 
-        for (VeritProofNode leaf : proof.getLeaves()) {
+        for (VeritProofNode leaf : colorableNode.getLeaves()) {
             Assert.assertTrue("Leaf not colorable", leaf.isColorable());
         }
 

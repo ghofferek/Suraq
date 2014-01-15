@@ -861,14 +861,6 @@ public class VeritProofNode implements Serializable {
         VeritProofNode.checkTimer.start();
         VeritProofNode.checkCounter++;
 
-        if (this.containsReversedLiterals()) {
-            return failOnMessage("Contains reversed literals.");
-        }
-
-        if (this.containsDuplicateLiteral()) {
-            return failOnMessage("Contains duplicate literal.");
-        }
-
         // Type specific tests
 
         if (this.type.equals(VeriTToken.INPUT)) {
@@ -902,6 +894,14 @@ public class VeritProofNode implements Serializable {
                 return failOnMessage("Non-literal in conclusion: "
                         + literal.toString());
             }
+        }
+
+        if (this.containsReversedLiterals()) {
+            return failOnMessage("Contains reversed literals.");
+        }
+
+        if (this.containsDuplicateLiteral()) {
+            return failOnMessage("Contains duplicate literal.");
         }
 
         if (this.type.equals(VeriTToken.EQ_REFLEXIVE)) {
@@ -976,6 +976,8 @@ public class VeritProofNode implements Serializable {
      */
     private boolean containsReversedLiterals() {
         for (Formula literal1 : this.literalConclusions) {
+            if (Util.isReflexivity(Util.makeLiteralPositive(literal1)))
+                continue;
             for (Formula literal2 : this.literalConclusions) {
                 if (literal1 == literal2) {
                     continue;
@@ -1088,7 +1090,7 @@ public class VeritProofNode implements Serializable {
                 VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Missing a literal after LEM resolution.");
             }
-            if (subProofs.get(0).literalConclusions
+            if (!subProofs.get(0).literalConclusions
                     .containsAll(literalConclusions)) {
                 VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Too much literals after LEM resolution.");
@@ -2094,4 +2096,85 @@ public class VeritProofNode implements Serializable {
         return result;
     }
 
+    /**
+     * Computes the set of leaves reachable from <code>this</code>. Computation
+     * is recursive and DAG-aware.
+     * 
+     * @return the set of leaves reachable from this node
+     */
+    public Set<VeritProofNode> getLeaves() {
+        Set<VeritProofNode> reachableNodes = this.getReachableNodes();
+        Set<VeritProofNode> result = new HashSet<VeritProofNode>();
+        for (VeritProofNode node : reachableNodes) {
+            if (node.isLeaf())
+                result.add(node);
+        }
+        return result;
+    }
+
+    /**
+     * Computes the set of nodes reachable from <code>this</code>. Computation
+     * is recursive and DAG-aware.
+     * 
+     * @return the set of nodes reachable from this node
+     */
+    public Set<VeritProofNode> getReachableNodes() {
+        Set<VeritProofNode> result = new HashSet<VeritProofNode>();
+        this.getReachableNodesInternal(result);
+        return result;
+    }
+
+    /**
+     * 
+     * @param result
+     *            reachable nodes will be added to this set.
+     */
+    private void getReachableNodesInternal(Set<VeritProofNode> result) {
+        assert (result != null);
+        result.add(this);
+        for (VeritProofNode child : this.subProofs) {
+            if (!result.contains(child))
+                child.getReachableNodesInternal(result);
+        }
+    }
+
+    /**
+     * Searches for negated reflexivities in this node, creates corresponding
+     * reflexivity leaves, and resolves them.
+     * 
+     * @return a node with all reflexivities resolved.
+     */
+    public VeritProofNode resolveNegatedReflexivities() {
+        List<Formula> reflexivities = new ArrayList<Formula>(
+                this.literalConclusions.size());
+        for (Formula literal : this.literalConclusions) {
+            if (!Util.isNegatedReflexivity(literal))
+                continue;
+            reflexivities.add(Util.makeLiteralPositive(literal));
+        }
+        VeritProofNode result = this;
+        for (Formula reflexivity : reflexivities) {
+            VeritProofNode reflexivityNode = this
+                    .createReflexivity(reflexivity);
+            result = result.resolveWith(reflexivityNode, false);
+        }
+        return result;
+    }
+
+    /**
+     * Creates a reflexivity proof for the given reflexivity. Adds it to the
+     * proof of <code>this</code> node.
+     * 
+     * @param reflexivity
+     * @return a reflexivity leaf
+     */
+    public VeritProofNode createReflexivity(Formula reflexivity) {
+        assert (Util.isReflexivity(reflexivity));
+        List<Formula> conclusions = new ArrayList<Formula>(1);
+        conclusions.add(reflexivity);
+        VeritProofNode result = this.proof.addProofNode(
+                this.proof.freshNodeName("reflex", ""),
+                VeriTToken.EQ_REFLEXIVE, conclusions, null, null, false);
+        return result;
+    }
 }
