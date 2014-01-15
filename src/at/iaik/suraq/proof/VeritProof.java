@@ -592,7 +592,7 @@ public class VeritProof implements Serializable {
             } else if (positiveLiteral instanceof UninterpretedPredicateInstance) {
                 Util.printToSystemOutWithWallClockTimePrefix("    Splitting (predicate) leaf "
                         + leafToClean.getName());
-                replacement = leafToClean.splitPredicateLeaf();
+                replacement = leafToClean.splitPredicateLeafNew();
             } else {
                 Util.printToSystemOutWithWallClockTimePrefix("Unexpected implied literal:");
                 System.out.println(positiveLiteral.toString());

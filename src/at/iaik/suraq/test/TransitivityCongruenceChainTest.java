@@ -36,6 +36,12 @@ public class TransitivityCongruenceChainTest {
 
     private void testNode(String pathToInputFile, String pathToProofFile,
             String nodeName) throws FileNotFoundException {
+        testNode(pathToInputFile, pathToProofFile, nodeName, false);
+    }
+
+    private void testNode(String pathToInputFile, String pathToProofFile,
+            String nodeName, boolean isPredicateNode)
+            throws FileNotFoundException {
         String[] args = { "-i", pathToInputFile, "--tseitin", "1", "--solver",
                 "verit" };
         Suraq suraq = new Suraq(args);
@@ -47,9 +53,15 @@ public class TransitivityCongruenceChainTest {
                 .justDoInputTransformationAndThenParseThisProofFile(proofReader);
         VeritProofNode node = proof.getProofNode(nodeName);
 
-        TransitivityCongruenceChain chain = TransitivityCongruenceChain
-                .create(node);
-        VeritProofNode colorableNode = chain.toColorableProofNew();
+        VeritProofNode colorableNode = null;
+        if (isPredicateNode) {
+            colorableNode = node.splitPredicateLeafNew();
+        } else {
+            TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                    .create(node);
+            colorableNode = chain.toColorableProofNew();
+        }
+        Assert.assertNotNull(colorableNode);
 
         Assert.assertTrue(
                 "Unexpected literal in node.",
@@ -85,4 +97,16 @@ public class TransitivityCongruenceChainTest {
         testNode("./rsc/test/simple_processor.smt2", "./rsc/dbg/c1456.smt2",
                 ".c1456");
     }
+
+    /**
+     * Tests splitting of predicate node c1353 from simple_processor_proof.
+     * 
+     * @throws FileNotFoundException
+     */
+    @Test
+    public void testNodec1353() throws FileNotFoundException {
+        testNode("./rsc/test/simple_processor.smt2", "./rsc/dbg/c1353.smt2",
+                ".c1353", true);
+    }
+
 }

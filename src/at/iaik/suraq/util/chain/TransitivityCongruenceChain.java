@@ -862,15 +862,14 @@ public class TransitivityCongruenceChain implements
             return result;
         }
 
+        this.splitUncolorableCongruenceLinks();
+        this.makeShortcuts();
+
         // Special case: length 2
         if (this.start.getNext().getNext() == null) {
             assert (this.length() == 2);
             return chunkWithLengthTwoToColorableProof(this.start);
         }
-
-        this.splitUncolorableCongruenceLinks();
-
-        this.makeShortcuts();
 
         int startPartition = this.getStartPartition();
         int endPartition = this.getEndPartition();
@@ -2026,6 +2025,16 @@ public class TransitivityCongruenceChain implements
      */
     public boolean contains(TransitivityCongruenceChainElement element) {
         return indexOf(element) >= 0;
+    }
+
+    /**
+     * {@link TransitivityCongruenceChain#getLiteral(TransitivityCongruenceChainElement, TransitivityCongruenceChainElement)}
+     * 
+     * @return the literal implied by this chain, in the order in which it
+     *         appears in the underlying proof node.
+     */
+    public Formula getLiteral() {
+        return getLiteral(this.start, this.getEnd());
     }
 
 }

@@ -6,6 +6,7 @@ package at.iaik.suraq.proof;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -1780,11 +1781,150 @@ public class VeritProofNode implements Serializable {
     }
 
     /**
+     * Reimplementation of {@link VeritProofNode#splitPredicateLeaf()} with a
+     * more modular structure, for n-ary predicates, and using some new
+     * knowledge on VeriT proofs. (I.e., uncolorable literals do not occur after
+     * removing subproofs of theory lemmas.)
+     * 
+     * @return a replacement of this leaf, based on only colorable leaves.
+     */
+    public VeritProofNode splitPredicateLeafNew() {
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED) || this.type
+                .equals(VeriTToken.TRANS_CONGR));
+        assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED) ? this
+                .checkCongruencePred() : this.checkTransCongr());
+
+        // Compute
+        Formula positiveLiteral = Util.getImpliedLiteral(literalConclusions);
+        assert (positiveLiteral instanceof UninterpretedPredicateInstance);
+        UninterpretedPredicateInstance impliedLiteral = (UninterpretedPredicateInstance) positiveLiteral;
+        UninterpretedPredicateInstance inversePredicateLiteral = Util
+                .findInversePredicateLiteral(impliedLiteral, literalConclusions);
+        assert (inversePredicateLiteral != null);
+        assert (impliedLiteral.getParameters().size() == inversePredicateLiteral
+                .getParameters().size());
+        Set<Integer> partitions = impliedLiteral.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() <= 1);
+
+        // Compute other literals
+        List<DomainEq> otherLiterals = new ArrayList<DomainEq>(
+                literalConclusions.size() - 2);
+        for (Formula literal : literalConclusions) {
+            if (literal.equals(impliedLiteral)
+                    || Util.makeLiteralPositive(literal).equals(
+                            inversePredicateLiteral))
+                continue;
+            assert (Util.isLiteral(literal));
+            assert (Util.isNegativeLiteral(literal));
+            assert (Util.makeLiteralPositive(literal) instanceof DomainEq);
+            otherLiterals.add((DomainEq) Util.makeLiteralPositive(literal));
+        }
+
+        List<Formula> leftParameterEqualities = new ArrayList<Formula>(
+                impliedLiteral.getParameters().size());
+        List<Formula> rightParameterEqualities = new ArrayList<Formula>(
+                impliedLiteral.getParameters().size());
+        Map<Formula, VeritProofNode> proofsForParameterEqualities = new HashMap<Formula, VeritProofNode>();
+        List<DomainTerm> globalParameters = new ArrayList<DomainTerm>(
+                impliedLiteral.getParameters().size());
+
+        // Compute proofs for each parameter equality
+        for (int count = 0; count < impliedLiteral.getParameters().size(); count++) {
+            List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+            terms.add(inversePredicateLiteral.getParameters().get(count));
+            terms.add(impliedLiteral.getParameters().get(count));
+            DomainEq parameterEquality = DomainEq.create(terms, true);
+            TransitivityCongruenceChain leftChain = TransitivityCongruenceChain
+                    .create(parameterEquality, otherLiterals, this);
+            assert (leftChain.isComplete());
+            TransitivityCongruenceChain rightChain = leftChain
+                    .splitAtGlobalTerm();
+            assert (leftChain.isComplete());
+            assert (rightChain.isComplete());
+            assert (leftChain.getEndTerm().equals(rightChain.getStart()
+                    .getTerm()));
+            globalParameters.add(rightChain.getStart().getTerm());
+
+            VeritProofNode leftParameterEqualityProof = leftChain
+                    .toColorableProofNew();
+            VeritProofNode rightParameterEqualityProof = rightChain
+                    .toColorableProofNew();
+            assert (leftParameterEqualityProof.isColorable());
+            assert (rightParameterEqualityProof.isColorable());
+            leftParameterEqualities.add(leftChain.getLiteral());
+            rightParameterEqualities.add(rightChain.getLiteral());
+            proofsForParameterEqualities.put(leftChain.getLiteral(),
+                    leftParameterEqualityProof);
+            proofsForParameterEqualities.put(rightChain.getLiteral(),
+                    rightParameterEqualityProof);
+        }
+
+        // Create global predicate instance
+        UninterpretedPredicateInstance globalPredicateInstance = null;
+        try {
+            globalPredicateInstance = UninterpretedPredicateInstance.create(
+                    impliedLiteral.getFunction(), globalParameters);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected Exception while creating global predicate instance.",
+                    exc);
+        }
+        assert (globalPredicateInstance != null);
+
+        // Construct left predicate congruence
+        List<Formula> leftConclusions = Util
+                .invertAllLiterals(leftParameterEqualities);
+        leftConclusions.add(inversePredicateLiteral);
+        leftConclusions.add(globalPredicateInstance);
+        VeritProofNode leftProof = this.proof.addProofNode(
+                this.proof.freshNodeName("leftPredCongr", ""),
+                VeriTToken.EQ_CONGRUENT_PRED, leftConclusions, null, null,
+                false);
+        assert (leftProof.isColorable());
+
+        // Construct right predicate congruence
+        List<Formula> rightConclusions = Util
+                .invertAllLiterals(rightParameterEqualities);
+        rightConclusions.add(NotFormula.create(globalPredicateInstance));
+        rightConclusions.add(impliedLiteral);
+
+        VeritProofNode rightProof = this.proof.addProofNode(
+                this.proof.freshNodeName("rightPredCongr", ""),
+                VeriTToken.EQ_CONGRUENT_PRED, rightConclusions, null, null,
+                false);
+        assert (rightProof.isColorable());
+
+        VeritProofNode result = leftProof.resolveWith(rightProof, false);
+
+        assert (result.isColorable());
+
+        // Resolve the parameter equalities
+        for (Formula parameterEquality : leftParameterEqualities) {
+            VeritProofNode other = proofsForParameterEqualities
+                    .get(parameterEquality);
+            assert (other != null);
+            result = result.resolveWith(other, false);
+        }
+
+        for (Formula parameterEquality : leftParameterEqualities) {
+            VeritProofNode other = proofsForParameterEqualities
+                    .get(parameterEquality);
+            assert (other != null);
+            result = result.resolveWith(other, false);
+        }
+
+        assert (this.literalConclusions.containsAll(result.literalConclusions));
+        return result;
+    }
+
+    /**
      * Splits a predicate congruence that belongs to more than one partition.
      * This method (presently) only support unary predicates!
      * 
      * @return a replacement for this leaf.
      */
+    @Deprecated
     public VeritProofNode splitPredicateLeaf() {
 
         assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED) || this.type
