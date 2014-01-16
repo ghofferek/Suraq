@@ -1570,7 +1570,7 @@ public class TransitivityCongruenceChain implements
                             .getTerm());
                 } else {
                     partitions.clear();
-                    partitions = currentSegment.getPartitionsFromSymbols();
+                    partitions = currentSegment.getPartitionsFromTermsOnly();
                     partitions.remove(-1);
                     assert (partitions.size() <= 1);
                     if (!partitions.isEmpty()) {
