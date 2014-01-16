@@ -166,21 +166,29 @@ public class TransitivityCongruenceChain implements
                     List<TransitivityCongruenceChain> localJustification = new ArrayList<TransitivityCongruenceChain>();
                     for (int count = 0; count < ((UninterpretedFunctionInstance) term1)
                             .getParameters().size(); count++) {
-                        List<Justification> localPath = graph.findPath(
-                                ((UninterpretedFunctionInstance) term1)
-                                        .getParameters().get(count),
-                                ((UninterpretedFunctionInstance) term2)
-                                        .getParameters().get(count));
-                        if (localPath == null) {
-                            localJustification = null;
-                            break;
+                        DomainTerm parameter1 = ((UninterpretedFunctionInstance) term1)
+                                .getParameters().get(count);
+                        DomainTerm parameter2 = ((UninterpretedFunctionInstance) term2)
+                                .getParameters().get(count);
+                        if (parameter1.equals(parameter2)) {
+                            localJustification
+                                    .add(new TransitivityCongruenceChain(
+                                            parameter1, node));
+                        } else {
+                            List<Justification> localPath = graph.findPath(
+                                    parameter1, parameter2);
+                            if (localPath == null) {
+                                localJustification = null;
+                                break;
+                            }
+                            localJustification
+                                    .add(new TransitivityCongruenceChain(
+                                            ((UninterpretedFunctionInstance) term1)
+                                                    .getParameters().get(count),
+                                            ((UninterpretedFunctionInstance) term2)
+                                                    .getParameters().get(count),
+                                            localPath, node));
                         }
-                        localJustification.add(new TransitivityCongruenceChain(
-                                ((UninterpretedFunctionInstance) term1)
-                                        .getParameters().get(count),
-                                ((UninterpretedFunctionInstance) term2)
-                                        .getParameters().get(count), localPath,
-                                node));
                     }
                     if (localJustification != null) {
                         Justification completeLocalJustification = new Justification(

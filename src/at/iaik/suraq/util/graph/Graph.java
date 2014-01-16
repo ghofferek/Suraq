@@ -133,4 +133,42 @@ public class Graph<N, A> {
         return result;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(nodes.size() * 20
+                + edges.size() * 50);
+
+        builder.append(this.directed ? "Directed " : "Undirected ");
+        builder.append("Graph:\n(");
+        builder.append(nodes.size());
+        builder.append(" nodes, ");
+        builder.append(edges.size());
+        builder.append(" edges)\n\n");
+
+        builder.append(nodes.size());
+        builder.append(" Nodes\n");
+        for (N node : nodes) {
+            builder.append(node.toString().replaceAll("\\s{2,}", " ")
+                    .replace("\n", ""));
+            builder.append("\n");
+        }
+        builder.append("\n");
+
+        builder.append(edges.size());
+        builder.append(" Edges");
+        builder.append("\n");
+        for (AnnotatedEdge<N, A> edge : edges) {
+            builder.append(edge.getSrc().toString().replaceAll("\\s{2,}", " ")
+                    .replace("\n", ""));
+            builder.append("  --- ");
+            builder.append(edge.getAnnotation().toString());
+            builder.append(" ---> ");
+            builder.append(edge.getDst().toString().replaceAll("\\s{2,}", " ")
+                    .replace("\n", ""));
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
+
 }

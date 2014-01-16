@@ -146,4 +146,18 @@ public class Justification implements Copyable<Justification> {
         assert (false);
         return null;
     }
+
+    @Override
+    public String toString() {
+        if (chains != null) {
+            assert (equality == null);
+            return "(congr)";
+        }
+        if (equality != null) {
+            assert (chains == null);
+            return "(equal)";
+        }
+        assert (false);
+        return null;
+    }
 }
