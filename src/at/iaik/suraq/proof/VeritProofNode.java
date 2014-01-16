@@ -1875,7 +1875,7 @@ public class VeritProofNode implements Serializable {
         // Construct left predicate congruence
         List<Formula> leftConclusions = Util
                 .invertAllLiterals(leftParameterEqualities);
-        leftConclusions.add(inversePredicateLiteral);
+        leftConclusions.add(NotFormula.create(inversePredicateLiteral));
         leftConclusions.add(globalPredicateInstance);
         VeritProofNode leftProof = this.proof.addProofNode(
                 this.proof.freshNodeName("leftPredCongr", ""),
@@ -1897,8 +1897,6 @@ public class VeritProofNode implements Serializable {
 
         VeritProofNode result = leftProof.resolveWith(rightProof, false);
 
-        assert (result.isColorable());
-
         // Resolve the parameter equalities
         for (Formula parameterEquality : leftParameterEqualities) {
             VeritProofNode other = proofsForParameterEqualities
@@ -1907,7 +1905,7 @@ public class VeritProofNode implements Serializable {
             result = result.resolveWith(other, false);
         }
 
-        for (Formula parameterEquality : leftParameterEqualities) {
+        for (Formula parameterEquality : rightParameterEqualities) {
             VeritProofNode other = proofsForParameterEqualities
                     .get(parameterEquality);
             assert (other != null);
