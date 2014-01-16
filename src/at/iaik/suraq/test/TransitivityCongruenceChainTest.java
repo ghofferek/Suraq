@@ -16,6 +16,7 @@ import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
+import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
 
@@ -32,6 +33,7 @@ public class TransitivityCongruenceChainTest {
     public void tearDown() {
         SuraqOptions.kill();
         Util.resetTseitinCounter();
+        FormulaCache.clearAll();
     }
 
     private void testNode(String pathToInputFile, String pathToProofFile,
@@ -107,6 +109,17 @@ public class TransitivityCongruenceChainTest {
     public void testNodec1353() throws FileNotFoundException {
         testNode("./rsc/test/simple_processor.smt2", "./rsc/dbg/c1353.smt2",
                 ".c1353", true);
+    }
+
+    /**
+     * Tests splitting of predicate node c1148 from simple_processor_proof.
+     * 
+     * @throws FileNotFoundException
+     */
+    @Test
+    public void testNodec1148() throws FileNotFoundException {
+        testNode("./rsc/test/simple_processor.smt2", "./rsc/dbg/c1148.smt2",
+                ".c1148", true);
     }
 
 }

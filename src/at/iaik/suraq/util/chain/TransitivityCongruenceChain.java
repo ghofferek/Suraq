@@ -1719,6 +1719,7 @@ public class TransitivityCongruenceChain implements
      * @return the second half of the chain.
      */
     public TransitivityCongruenceChain splitAtGlobalTerm() {
+        assert (!this.isColorable());
 
         TransitivityCongruenceChainElement currentElement = this.start;
         while (currentElement != null) {

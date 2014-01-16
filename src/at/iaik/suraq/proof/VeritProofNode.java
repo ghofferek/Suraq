@@ -1838,6 +1838,16 @@ public class VeritProofNode implements Serializable {
             TransitivityCongruenceChain leftChain = TransitivityCongruenceChain
                     .create(parameterEquality, otherLiterals, this);
             assert (leftChain.isComplete());
+            if (leftChain.isColorable()) {
+                // Special case that the uncolorable literals are actually not
+                // needed for proving parameter equality
+                VeritProofNode result = this
+                        .createColorablePredicateCongruenceProof(leftChain,
+                                inversePredicateLiteral, impliedLiteral);
+                assert (this.literalConclusions
+                        .containsAll(result.literalConclusions));
+                return result;
+            }
             TransitivityCongruenceChain rightChain = leftChain
                     .splitAtGlobalTerm();
             assert (leftChain.isComplete());
@@ -1913,6 +1923,40 @@ public class VeritProofNode implements Serializable {
         }
 
         assert (this.literalConclusions.containsAll(result.literalConclusions));
+        return result;
+    }
+
+    /**
+     * Used when the resulting chain in predicate leaf splitting turns out to be
+     * colorable.
+     * 
+     * @param chain
+     *            a colorable chain
+     * @param inversePredicateLiteral
+     * @param impliedLiteral
+     * @return a colorbale proof for the congruence
+     */
+    private VeritProofNode createColorablePredicateCongruenceProof(
+            TransitivityCongruenceChain chain,
+            UninterpretedPredicateInstance inversePredicateLiteral,
+            UninterpretedPredicateInstance impliedLiteral) {
+        assert (chain.isColorable());
+
+        Formula parameterEquality = chain.getLiteral();
+        List<Formula> conclusions = new ArrayList<Formula>(3);
+        conclusions.add(NotFormula.create(parameterEquality));
+        conclusions.add(NotFormula.create(inversePredicateLiteral));
+        conclusions.add(impliedLiteral);
+        VeritProofNode congruenceNode = this.proof.addProofNode(
+                this.proof.freshNodeName("predCongr", ""),
+                VeriTToken.EQ_CONGRUENT_PRED, conclusions, null, null, false);
+        assert (congruenceNode.isColorable());
+
+        VeritProofNode parameterEqualityNode = chain.toColorableProofNew();
+        assert (parameterEqualityNode.isColorable());
+
+        VeritProofNode result = parameterEqualityNode.resolveWith(
+                congruenceNode, false);
         return result;
     }
 
