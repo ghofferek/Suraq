@@ -1685,10 +1685,14 @@ public class VeritProofNode implements Serializable {
      */
     public Formula findResolvingLiteral() {
         assert (checkResolution());
-        Set<Formula> literal1 = new HashSet<Formula>(subProofs.get(0)
-                .getLiteralConclusionsAsSet());
-        literal1.removeAll(literalConclusions);
-        return Util.makeLiteralPositive(literal1.iterator().next());
+        // OLD CODE
+        // Set<Formula> literal1 = new HashSet<Formula>(subProofs.get(0)
+        // .getLiteralConclusionsAsSet());
+        // literal1.removeAll(literalConclusions);
+        // return Util.makeLiteralPositive(literal1.iterator().next());
+        Formula result = Util.findResolvingLiteral(this.subProofs);
+        assert (result != null);
+        return result;
     }
 
     /**
