@@ -1051,14 +1051,44 @@ public class VeritProofNode implements Serializable {
                     + subProofs.size());
         }
 
+        // Special case if one of the two children is a unit clause
+        if (subProofs.get(0).literalConclusions.size() == 1) {
+            Formula unitLiteral = subProofs.get(0).literalConclusions.get(0);
+            Formula inverseUnitLiteral = Util.invertLiteral(unitLiteral);
+            if (!subProofs.get(1).literalConclusions
+                    .contains(inverseUnitLiteral))
+                return failOnMessage("Unit literal not found in opposite polarity in other subproof.");
+            List<Formula> expectedConclusions = new ArrayList<Formula>(
+                    subProofs.get(1).literalConclusions);
+            expectedConclusions.remove(inverseUnitLiteral);
+            if (!literalConclusions.containsAll(expectedConclusions))
+                return failOnMessage("Missing a literal in conclusion.");
+            if (!expectedConclusions.containsAll(literalConclusions))
+                return failOnMessage("Too much literals in conclusion.");
+            return true;
+        }
+        if (subProofs.get(1).literalConclusions.size() == 1) {
+            Formula unitLiteral = subProofs.get(1).literalConclusions.get(0);
+            Formula inverseUnitLiteral = Util.invertLiteral(unitLiteral);
+            if (!subProofs.get(0).literalConclusions
+                    .contains(inverseUnitLiteral))
+                return failOnMessage("Unit literal not found in opposite polarity in other subproof.");
+            List<Formula> expectedConclusions = new ArrayList<Formula>(
+                    subProofs.get(0).literalConclusions);
+            expectedConclusions.remove(inverseUnitLiteral);
+            if (!literalConclusions.containsAll(expectedConclusions))
+                return failOnMessage("Missing a literal in conclusion.");
+            if (!expectedConclusions.containsAll(literalConclusions))
+                return failOnMessage("Too much literals in conclusion.");
+            return true;
+        }
+
         // Special case if one of the two children is a "LEM instance" (a \/ ~a)
-        if (subProofs.get(0).isLEM()) {
-            Formula literal = Util
-                    .makeLiteralPositive(subProofs.get(0).literalConclusions
-                            .get(0));
-            if (!subProofs.get(1).literalConclusions.contains(literal)
+        Formula lemLiteral0 = subProofs.get(0).isLEM();
+        if (lemLiteral0 != null) {
+            if (!subProofs.get(1).literalConclusions.contains(lemLiteral0)
                     && !subProofs.get(1).literalConclusions.contains(Util
-                            .invertLiteral(literal))) {
+                            .invertLiteral(lemLiteral0))) {
                 VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("LEM literal not found in other subproof!");
             }
@@ -1067,8 +1097,17 @@ public class VeritProofNode implements Serializable {
                 VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Missing a literal after LEM resolution.");
             }
+
+            List<Formula> nonLemLiterals = new ArrayList<Formula>(
+                    subProofs.get(0).literalConclusions);
+            nonLemLiterals.remove(lemLiteral0);
+            nonLemLiterals.remove(Util.invertLiteral(lemLiteral0));
+            List<Formula> expectedInOtherSubProof = new ArrayList<Formula>(
+                    literalConclusions);
+            expectedInOtherSubProof.removeAll(nonLemLiterals);
+
             if (!subProofs.get(1).literalConclusions
-                    .containsAll(literalConclusions)) {
+                    .containsAll(expectedInOtherSubProof)) {
                 VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Too much literals after LEM resolution.");
             }
@@ -1076,13 +1115,11 @@ public class VeritProofNode implements Serializable {
             return true;
         }
 
-        if (subProofs.get(1).isLEM()) {
-            Formula literal = Util
-                    .makeLiteralPositive(subProofs.get(1).literalConclusions
-                            .get(0));
-            if (!subProofs.get(0).literalConclusions.contains(literal)
+        Formula lemLiteral1 = subProofs.get(1).isLEM();
+        if (lemLiteral1 != null) {
+            if (!subProofs.get(0).literalConclusions.contains(lemLiteral1)
                     && !subProofs.get(0).literalConclusions.contains(Util
-                            .invertLiteral(literal))) {
+                            .invertLiteral(lemLiteral1))) {
                 VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("LEM literal not found in other subproof!");
             }
@@ -1091,8 +1128,17 @@ public class VeritProofNode implements Serializable {
                 VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Missing a literal after LEM resolution.");
             }
+
+            List<Formula> nonLemLiterals = new ArrayList<Formula>(
+                    subProofs.get(1).literalConclusions);
+            nonLemLiterals.remove(lemLiteral1);
+            nonLemLiterals.remove(Util.invertLiteral(lemLiteral1));
+            List<Formula> expectedInOtherSubProof = new ArrayList<Formula>(
+                    literalConclusions);
+            expectedInOtherSubProof.removeAll(nonLemLiterals);
+
             if (!subProofs.get(0).literalConclusions
-                    .containsAll(literalConclusions)) {
+                    .containsAll(expectedInOtherSubProof)) {
                 VeritProofNode.checkResolutionTimer.stop();
                 return failOnMessage("Too much literals after LEM resolution.");
             }
@@ -1188,20 +1234,48 @@ public class VeritProofNode implements Serializable {
     }
 
     /**
-     * @return <code>true</code> iff this is an instance of the law of excluded
-     *         middle (LEM).
+     * @return the (positive) LEM literal iff this is an instance of the law of
+     *         excluded middle (LEM), plus potentially some reflexivities.
+     *         Otherwise <code>null</code>.
      */
-    private boolean isLEM() {
-        if (literalConclusions.size() != 2)
-            return false;
-        assert (literalConclusions.size() == 2);
-        Formula lit1 = literalConclusions.get(0);
-        Formula lit2 = literalConclusions.get(1);
-        if (Util.makeLiteralPositive(lit1).equals(
-                Util.makeLiteralPositive(lit2))
-                && (Util.getSignValue(lit1) ^ Util.getSignValue(lit2)))
-            return true;
-        return false;
+    private Formula isLEM() {
+        Formula lemLiteral1 = null;
+        Formula lemLiteral2 = null;
+
+        if (literalConclusions.size() > 2) {
+            int numReflexivities = 0;
+            for (Formula literal : literalConclusions) {
+                assert (Util.isLiteral(literal));
+                if (Util.isReflexivity(Util.makeLiteralPositive(literal)))
+                    numReflexivities++;
+                else {
+                    if (lemLiteral1 == null)
+                        lemLiteral1 = literal;
+                    else {
+                        if (lemLiteral2 == null)
+                            lemLiteral2 = literal;
+                        else
+                            return null;
+                    }
+                }
+            }
+            if (lemLiteral1 == null || lemLiteral2 == null)
+                return null;
+            assert (literalConclusions.size() == 2 + numReflexivities);
+        } else {
+            lemLiteral1 = literalConclusions.get(0);
+            lemLiteral2 = literalConclusions.get(1);
+        }
+
+        assert (lemLiteral1 != null);
+        assert (lemLiteral2 != null);
+
+        if (Util.makeLiteralPositive(lemLiteral1).equals(
+                Util.makeLiteralPositive(lemLiteral2))
+                && (Util.getSignValue(lemLiteral1) ^ Util
+                        .getSignValue(lemLiteral2)))
+            return Util.makeLiteralPositive(lemLiteral1);
+        return null;
     }
 
     /**
@@ -1214,7 +1288,7 @@ public class VeritProofNode implements Serializable {
         assert (this.type.equals(VeriTToken.EQ_TRANSITIVE) || this.type
                 .equals(VeriTToken.TRANS_CONGR));
         if (literalConclusions.size() == 2) {
-            if (!isLEM())
+            if (this.isLEM() == null)
                 return failOnMessage("Transitivity with size two that is not a LEM.");
             else
                 return true;
