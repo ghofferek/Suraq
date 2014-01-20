@@ -1530,16 +1530,25 @@ public class TransitivityCongruenceChain implements
             assert (partitions.size() <= 1);
             assert (partitions.isEmpty() || partitions.contains(leftPartition) || Util
                     .isGlobal(firstSegment.getStart().getTerm()));
-            if ((partitions.isEmpty() || partitions.contains(leftPartition))
-                    && segments.size() > 1) {
-                firstIntermediateParameters.add(firstSegment.getEndTerm());
-                firstJustification.add(firstSegment);
-                segments.remove(0);
-            } else {
-                firstIntermediateParameters.add(firstSegment.getStart()
-                        .getTerm());
-                firstJustification.add(new TransitivityCongruenceChain(
-                        firstSegment.start.getTerm(), this.proofNode));
+            // if ((partitions.isEmpty() || partitions.contains(leftPartition))
+            // && segments.size() > 1) {
+            // firstIntermediateParameters.add(firstSegment.getEndTerm());
+            // firstJustification.add(firstSegment);
+            // segments.remove(0);
+            // } else {
+            // firstIntermediateParameters.add(firstSegment.getStart()
+            // .getTerm());
+            // firstJustification.add(new TransitivityCongruenceChain(
+            // firstSegment.start.getTerm(), this.proofNode));
+            // }
+            firstIntermediateParameters.add(firstSegment.getEndTerm());
+            firstJustification.add(firstSegment);
+            segments.remove(0);
+            if (segments.isEmpty()) {
+                assert (Util.isGlobal(firstSegment.getEndTerm()));
+                segments.add(new TransitivityCongruenceChain(firstSegment
+                        .getEndTerm(), this.proofNode));
+                assert (segments.size() == 1);
             }
         }
         UninterpretedFunctionInstance nextTerm = null;
