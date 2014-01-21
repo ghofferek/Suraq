@@ -1515,12 +1515,6 @@ public class VeritProofNode implements Serializable {
         assert (terms2 != null);
         assert (terms1.size() == terms2.size());
 
-        if (terms1.size() > literalConclusions.size() - 1) // There can be more
-                                                           // literals, due to
-                                                           // replacement during
-                                                           // cleaning.
-            return failOnMessage("Not enough literals for congruence!");
-
         // Taking the assumption that equalities in the axiom instantiation
         // occur in the same order as they occur as parameters to the
         // uninterpreted function

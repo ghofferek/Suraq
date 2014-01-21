@@ -1203,7 +1203,7 @@ public class TransitivityCongruenceChain implements
         int size = congruenceJustification.size();
 
         Map<Formula, VeritProofNode> proofsForCongruence = new HashMap<Formula, VeritProofNode>();
-        List<Formula> literalsImpliedBySubchains = new ArrayList<Formula>(size);
+        Set<Formula> literalsImpliedBySubchains = new HashSet<Formula>(size * 2);
 
         for (TransitivityCongruenceChain chain : congruenceJustification) {
             Set<Integer> chainPartitions = chain.getPartitionsFromTermsOnly();
@@ -1212,6 +1212,11 @@ public class TransitivityCongruenceChain implements
 
             Formula impliedLiteral = chain.getLiteral(chain.start,
                     chain.getEnd());
+            if (literalsImpliedBySubchains.contains(impliedLiteral)) {
+                assert (proofsForCongruence.get(impliedLiteral) != null);
+                // We already have a proof for this literal
+                continue;
+            }
 
             VeritProofNode currentNode = chain.toColorableProofNew();
             proofsForCongruence.put(impliedLiteral, currentNode);
