@@ -1916,7 +1916,7 @@ public class VeritProofNode implements Serializable {
             TransitivityCongruenceChain leftChain = TransitivityCongruenceChain
                     .create(parameterEquality, otherLiterals, this);
             assert (leftChain.isComplete());
-            if (leftChain.isColorable()) {
+            if (leftChain.allTermsSameColor()) {
                 // Special case that the uncolorable literals are actually not
                 // needed for proving parameter equality
                 VeritProofNode result = this
@@ -2018,7 +2018,7 @@ public class VeritProofNode implements Serializable {
             TransitivityCongruenceChain chain,
             UninterpretedPredicateInstance inversePredicateLiteral,
             UninterpretedPredicateInstance impliedLiteral) {
-        assert (chain.isColorable());
+        assert (chain.allTermsSameColor());
 
         Formula parameterEquality = chain.getLiteral();
         List<Formula> conclusions = new ArrayList<Formula>(3);
@@ -2031,8 +2031,6 @@ public class VeritProofNode implements Serializable {
         assert (congruenceNode.isColorable());
 
         VeritProofNode parameterEqualityNode = chain.toColorableProofNew();
-        assert (parameterEqualityNode.isColorable());
-
         VeritProofNode result = parameterEqualityNode.resolveWith(
                 congruenceNode, false);
         return result;

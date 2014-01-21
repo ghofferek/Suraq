@@ -79,6 +79,17 @@ public class TransitivityCongruenceChainTest {
     }
 
     /**
+     * Tests splitting of node c63078 from dlx_2_controller_proof.
+     * 
+     * @throws FileNotFoundException
+     */
+    @Test
+    public void testNodec63078() throws FileNotFoundException {
+        testNode("./rsc/dlx/dlx_no_domainITE_2_controllers.smt2",
+                "./rsc/dbg/c63078.smt2", ".c63078", true);
+    }
+
+    /**
      * Tests splitting of node c217742 from dlx_2_controller_proof.
      * 
      * @throws FileNotFoundException

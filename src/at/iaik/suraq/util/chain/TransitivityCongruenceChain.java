@@ -1824,6 +1824,28 @@ public class TransitivityCongruenceChain implements
     }
 
     /**
+     * 
+     * @return <code>true</code> iff all the terms in this chain (not
+     *         considering sub-chains) can be colored with the same color.
+     */
+    public boolean allTermsSameColor() {
+        TransitivityCongruenceChainElement current = this.start;
+        Set<Integer> partitions = new HashSet<Integer>(4);
+        while (current != null) {
+            partitions.add(current.getTermPartition());
+            if (partitions.size() > 2)
+                return false;
+            current = current.getNext();
+        }
+        partitions.remove(-1);
+        if (partitions.size() > 1)
+            return false;
+        else
+            return true;
+
+    }
+
+    /**
      * This method (recursively) checks whether all congruence links in the
      * chain are colorable. For a congruence link to be colorable, all
      * equalities for the parameters as well as the implied literal (equality
