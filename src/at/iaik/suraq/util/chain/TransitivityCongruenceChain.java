@@ -140,6 +140,17 @@ public class TransitivityCongruenceChain implements
         assert (impliedLiteral.getTerms().get(1) instanceof DomainTerm);
         graph.addNode((DomainTerm) impliedLiteral.getTerms().get(0));
         graph.addNode((DomainTerm) impliedLiteral.getTerms().get(1));
+        Set<DomainTerm> additionalTerms = new HashSet<DomainTerm>();
+        if (impliedLiteral.getTerms().get(0) instanceof UninterpretedFunctionInstance)
+            additionalTerms
+                    .addAll(((UninterpretedFunctionInstance) impliedLiteral
+                            .getTerms().get(0)).getSubTerms());
+        if (impliedLiteral.getTerms().get(1) instanceof UninterpretedFunctionInstance)
+            additionalTerms
+                    .addAll(((UninterpretedFunctionInstance) impliedLiteral
+                            .getTerms().get(1)).getSubTerms());
+        for (DomainTerm term : additionalTerms)
+            graph.addNode(term);
         boolean addedSomething = true;
 
         List<Justification> path = graph.findPath((DomainTerm) impliedLiteral
