@@ -387,6 +387,9 @@ public class TransitivityCongruenceChain implements
                     firstOccurrence.makeShortcut(current);
                     current = this.start;
                     termsVisited.clear();
+                } else {
+                    current = current.getNext();
+                    continue;
                 }
             }
 

@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -16,6 +17,7 @@ import at.iaik.suraq.main.Suraq;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
+import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
@@ -76,6 +78,69 @@ public class TransitivityCongruenceChainTest {
 
         Assert.assertTrue("Node not correct", colorableNode.checkProofNode());
 
+    }
+
+    private void testAllNodes(String pathToInputFile, String pathToProofFile)
+            throws FileNotFoundException {
+        String[] args = { "-i", pathToInputFile, "--tseitin", "1", "--solver",
+                "verit" };
+        Suraq suraq = new Suraq(args);
+
+        BufferedReader proofReader = new BufferedReader(new FileReader(
+                new File(pathToProofFile)));
+
+        VeritProof proof = suraq
+                .justDoInputTransformationAndThenParseThisProofFile(proofReader);
+
+        proof.removeUnreachableNodes();
+        Set<VeritProofNode> leaves = proof.getLeaves();
+
+        for (VeritProofNode node : leaves) {
+            if (node.isColorable())
+                continue;
+
+            Util.printToSystemOutWithWallClockTimePrefix("Splitting leaf "
+                    + node.getName());
+
+            VeritProofNode colorableNode = null;
+            if (Util.getImpliedLiteral(node.getLiteralConclusions()) instanceof UninterpretedPredicateInstance) {
+                colorableNode = node.splitPredicateLeafNew();
+            } else {
+                TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                        .create(node);
+                colorableNode = chain.toColorableProofNew();
+            }
+            Assert.assertNotNull(colorableNode);
+
+            Assert.assertTrue(
+                    "Unexpected literal in node.",
+                    node.getLiteralConclusions().containsAll(
+                            colorableNode.getLiteralConclusions()));
+
+            for (VeritProofNode leaf : colorableNode.getLeaves()) {
+                Assert.assertTrue("Leaf not colorable", leaf.isColorable());
+            }
+
+            Assert.assertTrue("Node not correct",
+                    colorableNode.checkProofNode());
+        }
+    }
+
+    @Test
+    public void testAllNodesFromSimpleProcessor() throws FileNotFoundException {
+        testAllNodes("./rsc/test/simple_processor.smt2",
+                "./rsc/dbg/simple_processor_proof.smt2");
+    }
+
+    /**
+     * Tests splitting of node c245868 from dlx_2_controller_proof.
+     * 
+     * @throws FileNotFoundException
+     */
+    @Test
+    public void testNodec245868() throws FileNotFoundException {
+        testNode("./rsc/dlx/dlx_no_domainITE_2_controllers.smt2",
+                "./rsc/dbg/c245868.smt2", ".c245868");
     }
 
     /**
