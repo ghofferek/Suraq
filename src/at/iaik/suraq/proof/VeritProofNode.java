@@ -708,11 +708,12 @@ public class VeritProofNode implements Serializable {
      *            instead
      * @param strongerSubProof
      *            the stronger counterpart
+     * @return the number of nodes updated
      */
-    protected void makeStronger(VeritProofNode weakerSubProof,
+    protected int makeStronger(VeritProofNode weakerSubProof,
             VeritProofNode strongerSubProof) {
         if (weakerSubProof == strongerSubProof)
-            return;
+            return 0;
         assert (weakerSubProof != strongerSubProof);
         assert (weakerSubProof != null);
         assert (strongerSubProof != null);
@@ -729,7 +730,8 @@ public class VeritProofNode implements Serializable {
         if (strongerSubProof.literalConclusions.size() == 0) {
             boolean rootSet = this.proof.setNewRoot(strongerSubProof);
             assert (rootSet);
-            return;
+            Util.printToSystemOutWithWallClockTimePrefix("Set a new root.");
+            return 0;
         }
 
         if (strongerSubProof.literalConclusions
@@ -739,7 +741,7 @@ public class VeritProofNode implements Serializable {
             boolean updated = this.updateProofNode(weakerSubProof,
                     strongerSubProof);
             assert (updated);
-            return;
+            return 1;
         }
 
         Formula resolvingLiteral = this.findResolvingLiteral();
@@ -750,14 +752,16 @@ public class VeritProofNode implements Serializable {
                     .containsAll(strongerSubProof.literalConclusions));
             assert (this != this.proof.getRoot());
             // This resolution step is unnecessary. Make all parents stronger.
+            Util.printToSystemOutWithWallClockTimePrefix("Removing an unnecessary resolution step");
             Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
                     this.parents);
+            int count = 0;
             for (VeritProofNode parent : parentsCopy) {
                 if (!this.parents.contains(parent))
                     continue;
-                parent.makeStronger(this, strongerSubProof);
+                count += parent.makeStronger(this, strongerSubProof);
             }
-            return;
+            return count;
         }
 
         List<VeritProofNode> clauses = new ArrayList<VeritProofNode>(2);
@@ -786,7 +790,7 @@ public class VeritProofNode implements Serializable {
             boolean updated = this.updateProofNode(weakerSubProof,
                     strongerSubProof);
             assert (updated);
-            return;
+            return 1;
         }
 
         assert (conclusions.size() < this.literalConclusions.size());
@@ -798,11 +802,13 @@ public class VeritProofNode implements Serializable {
 
         Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
                 this.parents);
+        int count = 1;
         for (VeritProofNode parent : parentsCopy) {
             if (!this.parents.contains(parent))
                 continue;
-            parent.makeStronger(this, strongerNode);
+            count += parent.makeStronger(this, strongerNode);
         }
+        return count;
     }
 
     /**

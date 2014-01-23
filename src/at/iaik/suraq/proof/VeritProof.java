@@ -562,7 +562,10 @@ public class VeritProof implements Serializable {
 
         Util.printToSystemOutWithWallClockTimePrefix("  " + leafsToClean.size()
                 + " need splitting.");
+        int totalLiteralsFewer = 0;
         int count = 0;
+        Map<VeritProofNode, VeritProofNode> replacements = new HashMap<VeritProofNode, VeritProofNode>(
+                leafsToClean.size() * 2);
         for (VeritProofNode leafToClean : leafsToClean) {
             assert (CongruenceClosure.checkVeritProofNode(leafToClean));
             assert (Util.countPositiveLiterals(leafToClean
@@ -603,14 +606,46 @@ public class VeritProof implements Serializable {
             assert (replacement != null);
             assert (leafToClean.getLiteralConclusions().containsAll(replacement
                     .getLiteralConclusions()));
+            int difference = leafToClean.getLiteralConclusions().size()
+                    - replacement.getLiteralConclusions().size();
+            assert (difference >= 0);
+            if (difference > 0) {
+                totalLiteralsFewer += difference;
+                Util.printToSystemOutWithWallClockTimePrefix("    Replacement has "
+                        + difference + " literals fewer than original leaf.");
+            } else
+                Util.printToSystemOutWithWallClockTimePrefix("    Replacement has the same number of literals.");
+            Util.printToSystemOutWithWallClockTimePrefix("    "
+                    + totalLiteralsFewer + " literals saved so far.");
+            replacements.put(leafToClean, replacement);
+            Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count);
+        }
+        Util.printToSystemOutWithWallClockTimePrefix("  All done.");
+        Util.printToSystemOutWithWallClockTimePrefix(totalLiteralsFewer
+                + "literals saved in total.");
+        Util.printToSystemOutWithWallClockTimePrefix("Now replacing leaves with colorable subproofs.");
+
+        count = 0;
+        for (VeritProofNode leafToClean : replacements.keySet()) {
+            VeritProofNode replacement = replacements.get(leafToClean);
+            assert (replacement != null);
+            Util.printToSystemOutWithWallClockTimePrefix("  Replacing leaf "
+                    + leafToClean.getName() + " with subproof of size "
+                    + replacement.getReachableNodes().size());
+            assert (leafToClean.getLiteralConclusions().containsAll(replacement
+                    .getLiteralConclusions()));
+
             Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
                     leafToClean.getParents());
+            int numNodesUpdated = 0;
             for (VeritProofNode parent : parentsCopy) {
                 if (!leafToClean.getParents().contains(parent))
                     continue;
-                parent.makeStronger(leafToClean, replacement);
+                numNodesUpdated += parent
+                        .makeStronger(leafToClean, replacement);
             }
-            Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count);
+            Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count
+                    + " (Approx. " + numNodesUpdated + " nodes updated)");
         }
         Util.printToSystemOutWithWallClockTimePrefix("  All done.");
         this.removeUnreachableNodes();
