@@ -3,6 +3,9 @@
  */
 package at.iaik.suraq.proof;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
@@ -14,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.resProof.Lit;
 import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
@@ -25,6 +29,7 @@ import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.CongruenceClosure;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.MutableInteger;
 import at.iaik.suraq.util.Timer;
@@ -629,8 +634,9 @@ public class VeritProof implements Serializable {
         }
         Util.printToSystemOutWithWallClockTimePrefix("  All done.");
         Util.printToSystemOutWithWallClockTimePrefix(totalLiteralsFewer
-                + "literals saved in total.");
-        Util.printToSystemOutWithWallClockTimePrefix("Now replacing leaves with colorable subproofs.");
+                + " literals saved in total.");
+
+        Util.printToSystemOutWithWallClockTimePrefix("Now replacing uncolorable leaves with colorable subproofs.");
 
         count = 0;
         for (VeritProofNode leafToClean : replacements.keySet()) {
@@ -655,9 +661,48 @@ public class VeritProof implements Serializable {
                     + " (Approx. " + numNodesUpdated + " nodes updated)");
         }
         Util.printToSystemOutWithWallClockTimePrefix("  All done.");
+        Util.printToSystemOutWithWallClockTimePrefix("Now removing unreachable nodes.");
+        Util.printToSystemOutWithWallClockTimePrefix("Size before: "
+                + this.size());
         this.removeUnreachableNodes();
+        Util.printToSystemOutWithWallClockTimePrefix("Size after: "
+                + this.size());
         assert (this.isColorable());
         assert (this.checkProof());
+
+        if (leafsToClean.size() > 0) {
+            String path = null;
+            SuraqOptions options = SuraqOptions.getInstance();
+            if (options.getUseThisProofFile() != null) {
+                path = options.getUseThisProofFile();
+                if (path.endsWith(".smt2")) {
+                    path = new String(path.subSequence(0, path.length() - 5)
+                            + "_split.smt2");
+                } else
+                    path = path + "_split.smt2";
+            } else {
+                path = options.getInput();
+                if (path.endsWith(".smt2")) {
+                    path = new String(path.subSequence(0, path.length() - 6)
+                            + "_proof_split.smt2");
+                } else
+                    path = path + "_proof_split.smt2";
+            }
+            File file = new File(path);
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+                Util.printToSystemOutWithWallClockTimePrefix("Now writing proof to file "
+                        + file.toString());
+                this.writeOut(writer);
+                writer.close();
+            } catch (IOException exc) {
+                Util.printToSystemOutWithWallClockTimePrefix("IOException while trying to write proof to file. Details follow.");
+                Util.printToSystemOutWithWallClockTimePrefix(exc.getMessage() == null ? "(no message)"
+                        : exc.getMessage());
+                exc.printStackTrace();
+            }
+        }
+
     }
 
     /**
@@ -1212,6 +1257,23 @@ public class VeritProof implements Serializable {
     private void readObjectNoData() throws ObjectStreamException {
         throw new RuntimeException(
                 "readObjectNoData() was called in VeritProof.");
+    }
+
+    /**
+     * Writes this proof to the given <code>writer</code>. Only works if
+     * <code>root!=null</code>
+     * 
+     * @param writer
+     * @throws IOException
+     */
+    public void writeOut(BufferedWriter writer) throws IOException {
+        if (this.root == null)
+            return;
+        Set<VeritProofNode> alreadyWritten = new HashSet<VeritProofNode>(
+                proofNodes.size());
+
+        HashTagContainer tagContainer = new HashTagContainer();
+        root.writeOut(writer, alreadyWritten, tagContainer);
     }
 
     /**

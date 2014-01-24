@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,9 +16,11 @@ import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableArrayList;
 
 /**
@@ -549,6 +553,42 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
                     noDependenceVars, constraints));
         }
         return this.create(newSubformulas);
+    }
+
+    /**
+     * @throws IOException
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      java.util.Map, java.util.Map)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+
+        if (handleThisWithTagContainer)
+            tagContainer.handle(this, writer);
+        else {
+
+            writer.append('(');
+            if (this instanceof AndFormula)
+                writer.append(SExpressionConstants.AND.toString());
+            else {
+                if (this instanceof OrFormula)
+                    writer.append(SExpressionConstants.OR.toString());
+                else {
+                    if (this instanceof XorFormula)
+                        writer.append(SExpressionConstants.XOR.toString());
+                    else {
+                        throw new RuntimeException("Unexpected formula type.");
+                    }
+                }
+            }
+            writer.append(' ');
+            for (Formula subformula : formulas) {
+                subformula.writeOut(writer, tagContainer, true);
+            }
+            writer.append(") ");
+        }
+
     }
 
 }

@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -15,6 +17,7 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -655,5 +658,24 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         Formula newRightSide = rightSide.removeArrayITE(topLevelFormula,
                 noDependenceVars, constraints);
         return ImpliesFormula.create(newLeftSide, newRightSide);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+        if (handleThisWithTagContainer) {
+            tagContainer.handle(this, writer);
+        } else {
+            writer.append('(').append(SExpressionConstants.IMPLIES.toString());
+            writer.append(' ');
+            leftSide.writeOut(writer, tagContainer, true);
+            writer.append(' ');
+            rightSide.writeOut(writer, tagContainer, true);
+            writer.append(')');
+        }
     }
 }

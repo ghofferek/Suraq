@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -15,6 +17,7 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 
 /**
  * Represents an if-then-else-style formula.
@@ -649,5 +652,26 @@ public class PropositionalIte extends BooleanCombinationFormula {
                 noDependenceVars, constraints);
         return PropositionalIte.create(newCondition, newThenBranch,
                 newElseBranch);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+        if (handleThisWithTagContainer) {
+            tagContainer.handle(this, writer);
+        } else {
+            writer.append('(').append(SExpressionConstants.ITE.toString());
+            writer.append(' ');
+            condition.writeOut(writer, tagContainer, true);
+            writer.append(' ');
+            thenBranch.writeOut(writer, tagContainer, true);
+            writer.append(' ');
+            elseBranch.writeOut(writer, tagContainer, true);
+            writer.append(')');
+        }
     }
 }

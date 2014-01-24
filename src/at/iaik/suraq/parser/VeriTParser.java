@@ -18,6 +18,7 @@ import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.proof.VeriTToken;
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
@@ -205,7 +206,7 @@ public class VeriTParser extends Parser {
                 }
 
                 // every line has to start with (set .
-                if (!line.startsWith("(set ."))
+                if (!line.startsWith("(set "))
                     throw new ParseError(currentLine, line);
 
                 // Extract the name of the ProofNode
@@ -283,7 +284,8 @@ public class VeriTParser extends Parser {
                 // Store the ProofNode to the Proof
                 assert (conclusions != null);
                 proof.addProofNode(name, type, conclusions, parsed_clauses2,
-                        parsed_iargs, true);
+                        parsed_iargs, !SuraqOptions.getInstance()
+                                .getDontRemoveLemmaSubproofs());
 
                 // read next line
                 line = reader.readLine();

@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -17,6 +19,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
@@ -1061,6 +1064,37 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             throw new RuntimeException(
                     "Unexpected exception while removing ArrayITEs.", exc);
         }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+        if (handleThisWithTagContainer) {
+            tagContainer.handle(this, writer);
+        } else {
+            writer.append('(').append(function.toString());
+            writer.append(' ');
+            for (DomainTerm parameter : parameters) {
+                parameter.writeOut(writer, tagContainer);
+                writer.append(' ');
+            }
+            writer.append(')');
+        }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer)
+            throws IOException {
+        writeOut(writer, tagContainer, true);
+
     }
 
 }

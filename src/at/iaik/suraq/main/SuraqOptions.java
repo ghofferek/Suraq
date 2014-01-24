@@ -90,6 +90,11 @@ public final class SuraqOptions {
     private static final boolean newVeritCacheDefault = false;
 
     /**
+     * Default value for removeLemmaSubproofs option.
+     */
+    private static final boolean dontRemoveLemmaSubproofsDefault = false;
+
+    /**
      * The cache file name.
      */
     private static String cacheFile = "savecache.db";
@@ -159,6 +164,11 @@ public final class SuraqOptions {
      * The value of the newVeritCache option.
      */
     private final Boolean newVeritCacheValue;
+
+    /**
+     * the value of removeLemmaSubproofs
+     */
+    private final Boolean dontRemoveLemmaSubproofs;
 
     /**
      * The value of the dumpSMTQueryFile option.
@@ -243,6 +253,9 @@ public final class SuraqOptions {
         Option newVeritCacheOption = cmdLineParser
                 .addBooleanOption("newVeritCache");
 
+        Option dontRemoveLemmaSubproofsOption = cmdLineParser
+                .addBooleanOption("dontRemoveLemmaSubproofs");
+
         Option dumpSMTQueryFileOption = cmdLineParser
                 .addStringOption("dumpSMTQueryFile");
 
@@ -285,6 +298,9 @@ public final class SuraqOptions {
 
         newVeritCacheValue = (Boolean) cmdLineParser
                 .getOptionValue(newVeritCacheOption);
+
+        dontRemoveLemmaSubproofs = (Boolean) cmdLineParser
+                .getOptionValue(dontRemoveLemmaSubproofsOption);
 
         dumpSMTQueryFileValue = (String) cmdLineParser
                 .getOptionValue(dumpSMTQueryFileOption);
@@ -505,6 +521,11 @@ public final class SuraqOptions {
     public boolean useNewVeritCache() {
         return newVeritCacheValue == null ? SuraqOptions.newVeritCacheDefault
                 : newVeritCacheValue;
+    }
+
+    public boolean getDontRemoveLemmaSubproofs() {
+        return dontRemoveLemmaSubproofs == null ? SuraqOptions.dontRemoveLemmaSubproofsDefault
+                : dontRemoveLemmaSubproofs;
     }
 
     public String getDumpSMTQueryFile() {

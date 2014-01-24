@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.HashTagContainer;
 
 /**
  * This abstract class represents terms. Terms can be domain terms, array terms,
@@ -344,4 +347,12 @@ public abstract class Term implements Serializable {
      */
     public abstract Term removeArrayITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, Collection<Formula> constraints);
+
+    /**
+     * @param writer
+     * @param tagContainer
+     * @param handleThisWithTagContainer
+     */
+    public abstract void writeOut(BufferedWriter writer,
+            HashTagContainer tagContainer) throws IOException;
 }

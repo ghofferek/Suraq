@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.proof;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +29,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.CongruenceClosure;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.MutableInteger;
@@ -2440,5 +2443,47 @@ public class VeritProofNode implements Serializable {
                 this.proof.freshNodeName("reflex", ""),
                 VeriTToken.EQ_REFLEXIVE, conclusions, null, null, false);
         return result;
+    }
+
+    /**
+     * @param writer
+     * @param alreadyWritten
+     * @param tagContainer
+     * @throws IOException
+     */
+    protected void writeOut(BufferedWriter writer,
+            Set<VeritProofNode> alreadyWritten, HashTagContainer tagContainer)
+            throws IOException {
+        assert (alreadyWritten != null);
+        assert (tagContainer != null);
+
+        if (alreadyWritten.contains(this))
+            return;
+
+        // First write children
+        for (VeritProofNode subproof : subProofs)
+            subproof.writeOut(writer, alreadyWritten, tagContainer);
+
+        // Now write out this node
+        writer.append("(set ").append(this.name).append(" (")
+                .append(this.type.toString()).append(' ');
+
+        if (subProofs.size() > 0) {
+            assert (this.type.equals(VeriTToken.RESOLUTION));
+            writer.append(":clauses (");
+            for (VeritProofNode subproof : subProofs) {
+                assert (alreadyWritten.contains(subproof));
+                writer.append(subproof.name).append(' ');
+            }
+            writer.append(')');
+        }
+
+        writer.append(" :conclusion (");
+
+        for (Formula literal : literalConclusions)
+            literal.writeOut(writer, tagContainer, true);
+
+        writer.append(")))\n");
+        alreadyWritten.add(this);
     }
 }

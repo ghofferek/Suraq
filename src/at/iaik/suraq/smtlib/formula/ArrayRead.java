@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,12 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -492,6 +496,16 @@ public class ArrayRead extends DomainTerm {
         DomainTerm newIndexTerm = indexTerm.removeArrayITE(topLevelFormula,
                 noDependenceVars, constraints);
         return ArrayRead.create(newArrayTerm, newIndexTerm);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer)
+            throws IOException {
+        throw new NotImplementedException();
     }
 
 }

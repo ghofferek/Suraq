@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -17,6 +19,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -673,5 +676,23 @@ public class DomainIte extends DomainTerm {
         DomainTerm newElseBranch = elseBranch.removeArrayITE(topLevelFormula,
                 noDependenceVars, constraints);
         return DomainIte.create(newCondition, newThenBranch, newElseBranch);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer)
+            throws IOException {
+
+        writer.append('(').append(SExpressionConstants.ITE.toString());
+        writer.append(' ');
+        condition.writeOut(writer, tagContainer, true);
+        writer.append(' ');
+        thenBranch.writeOut(writer, tagContainer);
+        writer.append(' ');
+        elseBranch.writeOut(writer, tagContainer);
+        writer.append(')');
     }
 }

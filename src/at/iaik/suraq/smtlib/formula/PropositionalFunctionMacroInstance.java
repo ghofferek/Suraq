@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,12 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableHashMap;
 
 /**
@@ -644,5 +648,15 @@ public class PropositionalFunctionMacroInstance implements Formula {
         throw new RuntimeException(
                 "removeArrayITE cannot be called on an PropositionalFunctionMacroInstance.\n"
                         + "PropositionalFunctionMacroInstance should be removed by now.");
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+        throw new NotImplementedException();
     }
 }

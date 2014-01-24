@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +18,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 
 /**
  * A class for formulas that consist just of one propositional variable.
@@ -463,5 +466,26 @@ public class PropositionalVariable extends PropositionalTerm implements
     public PropositionalVariable removeArrayITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, Collection<Formula> constraints) {
         return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+        writer.append(varName);
+        writer.append(' ');
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer)
+            throws IOException {
+        writeOut(writer, tagContainer, true);
     }
 }

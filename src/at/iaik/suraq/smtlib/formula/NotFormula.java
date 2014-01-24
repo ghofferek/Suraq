@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.Util;
 
 /**
@@ -609,5 +612,22 @@ public class NotFormula extends BooleanCombinationFormula {
             Set<Token> noDependenceVars, Collection<Formula> constraints) {
         return NotFormula.create(formula.removeArrayITE(topLevelFormula,
                 noDependenceVars, constraints));
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+        if (handleThisWithTagContainer) {
+            tagContainer.handle(this, writer);
+        } else {
+            writer.append('(').append(SExpressionConstants.NOT.toString());
+            writer.append(' ');
+            formula.writeOut(writer, tagContainer, true);
+            writer.append(')');
+        }
     }
 }

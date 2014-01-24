@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.HashTagContainer;
 
 /**
  * 
@@ -364,5 +367,20 @@ public interface Formula extends SMTLibObject, Serializable {
      */
     public Formula uninterpretedFunctionsBackToArrayReads(
             Set<ArrayVariable> arrayVars);
+
+    /**
+     * Writes this formula to the given <code>writer</code>, using veriT style
+     * hashTags, given via <code>tagContainer</code>. This is used to write
+     * veriT-style proofs.
+     * 
+     * 
+     * @param writer
+     * @param tagContainer
+     * @param handleThisWithTagContainer
+     *            whether or not to try to handle <code>this</code> formula via
+     *            the <code>tagContainer</code>
+     */
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException;
 
 }

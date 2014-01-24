@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,11 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableHashMap;
 
 /**
@@ -595,6 +599,17 @@ public class TermFunctionMacroInstance extends DomainTerm {
             Set<Token> noDependenceVars, Collection<Formula> constraints) {
         throw new RuntimeException(
                 "Macros should be flattened before removing ArrayITEs.");
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContaine)
+            throws IOException {
+        throw new NotImplementedException();
+
     }
 
 }

@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.exceptions.InvalidIndexGuardException;
 import at.iaik.suraq.exceptions.InvalidValueConstraintException;
 import at.iaik.suraq.exceptions.SuraqException;
@@ -19,6 +22,7 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
@@ -833,4 +837,15 @@ public class ArrayProperty implements Formula {
                     "Unable to remove arrayITEs from array property.", exc);
         }
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+        throw new NotImplementedException();
+    }
+
 }

@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +15,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
@@ -562,6 +565,28 @@ public class FormulaTerm extends PropositionalTerm {
             Set<Token> noDependenceVars, Collection<Formula> constraints) {
         return FormulaTerm.create(formula.removeArrayITE(topLevelFormula,
                 noDependenceVars, constraints));
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
+            boolean handleThisWithTagContainer) throws IOException {
+        formula.writeOut(writer, tagContainer, handleThisWithTagContainer);
+
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer)
+            throws IOException {
+        writeOut(writer, tagContainer, true);
+
     }
 
 }

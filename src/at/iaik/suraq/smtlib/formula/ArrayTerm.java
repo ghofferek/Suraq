@@ -3,15 +3,19 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.util.HashTagContainer;
 
 /**
  * 
@@ -73,4 +77,14 @@ public abstract class ArrayTerm extends Term implements Serializable {
     @Override
     public abstract ArrayTerm removeArrayITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, Collection<Formula> constraints);
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer)
+            throws IOException {
+        throw new NotImplementedException();
+    }
 }

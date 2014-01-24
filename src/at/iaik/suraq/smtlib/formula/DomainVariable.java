@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,6 +17,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.HashTagContainer;
 
 /**
  * A class representing domain variables.
@@ -366,6 +369,17 @@ public class DomainVariable extends DomainTerm implements Serializable {
     public DomainVariable removeArrayITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, Collection<Formula> constraints) {
         return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeOut(java.io.BufferedWriter,
+     *      at.iaik.suraq.util.HashTagContainer, boolean)
+     */
+    @Override
+    public void writeOut(BufferedWriter writer, HashTagContainer tagContainer)
+            throws IOException {
+        writer.append(varName);
+        writer.append(' ');
     }
 
 }
