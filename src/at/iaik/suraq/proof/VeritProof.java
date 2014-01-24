@@ -563,6 +563,7 @@ public class VeritProof implements Serializable {
         Util.printToSystemOutWithWallClockTimePrefix("  " + leafsToClean.size()
                 + " need splitting.");
         int totalLiteralsFewer = 0;
+        int strongerClauses = 0;
         int count = 0;
         Map<VeritProofNode, VeritProofNode> replacements = new HashMap<VeritProofNode, VeritProofNode>(
                 leafsToClean.size() * 2);
@@ -611,12 +612,18 @@ public class VeritProof implements Serializable {
             assert (difference >= 0);
             if (difference > 0) {
                 totalLiteralsFewer += difference;
+                strongerClauses++;
                 Util.printToSystemOutWithWallClockTimePrefix("    Replacement has "
-                        + difference + " literals fewer than original leaf.");
+                        + replacement.getLiteralConclusions().size()
+                        + " literals ("
+                        + difference
+                        + " literals fewer than original leaf.)");
             } else
-                Util.printToSystemOutWithWallClockTimePrefix("    Replacement has the same number of literals.");
+                Util.printToSystemOutWithWallClockTimePrefix("    Replacement has the same number of literals. ("
+                        + replacement.getLiteralConclusions().size() + ")");
             Util.printToSystemOutWithWallClockTimePrefix("    "
-                    + totalLiteralsFewer + " literals saved so far.");
+                    + totalLiteralsFewer + " literals saved so far in "
+                    + strongerClauses + " clauses.");
             replacements.put(leafToClean, replacement);
             Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count);
         }

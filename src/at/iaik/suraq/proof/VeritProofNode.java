@@ -1092,64 +1092,70 @@ public class VeritProofNode implements Serializable {
         // Special case if one of the two children is a "LEM instance" (a \/ ~a)
         Formula lemLiteral0 = subProofs.get(0).isLEM();
         if (lemLiteral0 != null) {
-            if (!subProofs.get(1).literalConclusions.contains(lemLiteral0)
-                    && !subProofs.get(1).literalConclusions.contains(Util
-                            .invertLiteral(lemLiteral0))) {
-                VeritProofNode.checkResolutionTimer.stop();
-                return failOnMessage("LEM literal not found in other subproof!");
-            }
-            if (!literalConclusions
-                    .containsAll(subProofs.get(1).literalConclusions)) {
-                VeritProofNode.checkResolutionTimer.stop();
-                return failOnMessage("Missing a literal after LEM resolution.");
-            }
+            Formula resolvingLiteral = Util.findResolvingLiteral(subProofs);
+            if (lemLiteral0.equals(resolvingLiteral)) {
+                if (!subProofs.get(1).literalConclusions.contains(lemLiteral0)
+                        && !subProofs.get(1).literalConclusions.contains(Util
+                                .invertLiteral(lemLiteral0))) {
+                    VeritProofNode.checkResolutionTimer.stop();
+                    return failOnMessage("LEM literal not found in other subproof!");
+                }
+                if (!literalConclusions
+                        .containsAll(subProofs.get(1).literalConclusions)) {
+                    VeritProofNode.checkResolutionTimer.stop();
+                    return failOnMessage("Missing a literal after LEM resolution.");
+                }
 
-            List<Formula> nonLemLiterals = new ArrayList<Formula>(
-                    subProofs.get(0).literalConclusions);
-            nonLemLiterals.remove(lemLiteral0);
-            nonLemLiterals.remove(Util.invertLiteral(lemLiteral0));
-            List<Formula> expectedInOtherSubProof = new ArrayList<Formula>(
-                    literalConclusions);
-            expectedInOtherSubProof.removeAll(nonLemLiterals);
+                List<Formula> nonLemLiterals = new ArrayList<Formula>(
+                        subProofs.get(0).literalConclusions);
+                nonLemLiterals.remove(lemLiteral0);
+                nonLemLiterals.remove(Util.invertLiteral(lemLiteral0));
+                List<Formula> expectedInOtherSubProof = new ArrayList<Formula>(
+                        literalConclusions);
+                expectedInOtherSubProof.removeAll(nonLemLiterals);
 
-            if (!subProofs.get(1).literalConclusions
-                    .containsAll(expectedInOtherSubProof)) {
+                if (!subProofs.get(1).literalConclusions
+                        .containsAll(expectedInOtherSubProof)) {
+                    VeritProofNode.checkResolutionTimer.stop();
+                    return failOnMessage("Too much literals after LEM resolution.");
+                }
                 VeritProofNode.checkResolutionTimer.stop();
-                return failOnMessage("Too much literals after LEM resolution.");
+                return true;
             }
-            VeritProofNode.checkResolutionTimer.stop();
-            return true;
         }
 
         Formula lemLiteral1 = subProofs.get(1).isLEM();
         if (lemLiteral1 != null) {
-            if (!subProofs.get(0).literalConclusions.contains(lemLiteral1)
-                    && !subProofs.get(0).literalConclusions.contains(Util
-                            .invertLiteral(lemLiteral1))) {
-                VeritProofNode.checkResolutionTimer.stop();
-                return failOnMessage("LEM literal not found in other subproof!");
-            }
-            if (!literalConclusions
-                    .containsAll(subProofs.get(0).literalConclusions)) {
-                VeritProofNode.checkResolutionTimer.stop();
-                return failOnMessage("Missing a literal after LEM resolution.");
-            }
+            Formula resolvingLiteral = Util.findResolvingLiteral(subProofs);
+            if (lemLiteral1.equals(resolvingLiteral)) {
+                if (!subProofs.get(0).literalConclusions.contains(lemLiteral1)
+                        && !subProofs.get(0).literalConclusions.contains(Util
+                                .invertLiteral(lemLiteral1))) {
+                    VeritProofNode.checkResolutionTimer.stop();
+                    return failOnMessage("LEM literal not found in other subproof!");
+                }
+                if (!literalConclusions
+                        .containsAll(subProofs.get(0).literalConclusions)) {
+                    VeritProofNode.checkResolutionTimer.stop();
+                    return failOnMessage("Missing a literal after LEM resolution.");
+                }
 
-            List<Formula> nonLemLiterals = new ArrayList<Formula>(
-                    subProofs.get(1).literalConclusions);
-            nonLemLiterals.remove(lemLiteral1);
-            nonLemLiterals.remove(Util.invertLiteral(lemLiteral1));
-            List<Formula> expectedInOtherSubProof = new ArrayList<Formula>(
-                    literalConclusions);
-            expectedInOtherSubProof.removeAll(nonLemLiterals);
+                List<Formula> nonLemLiterals = new ArrayList<Formula>(
+                        subProofs.get(1).literalConclusions);
+                nonLemLiterals.remove(lemLiteral1);
+                nonLemLiterals.remove(Util.invertLiteral(lemLiteral1));
+                List<Formula> expectedInOtherSubProof = new ArrayList<Formula>(
+                        literalConclusions);
+                expectedInOtherSubProof.removeAll(nonLemLiterals);
 
-            if (!subProofs.get(0).literalConclusions
-                    .containsAll(expectedInOtherSubProof)) {
+                if (!subProofs.get(0).literalConclusions
+                        .containsAll(expectedInOtherSubProof)) {
+                    VeritProofNode.checkResolutionTimer.stop();
+                    return failOnMessage("Too much literals after LEM resolution.");
+                }
                 VeritProofNode.checkResolutionTimer.stop();
-                return failOnMessage("Too much literals after LEM resolution.");
+                return true;
             }
-            VeritProofNode.checkResolutionTimer.stop();
-            return true;
         }
 
         boolean resolvingLiteralFound = false;
