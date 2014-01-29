@@ -1947,8 +1947,8 @@ public class VeritProofNode implements Serializable {
                     .toColorableProofNew();
             VeritProofNode rightParameterEqualityProof = rightChain
                     .toColorableProofNew();
-            assert (leftParameterEqualityProof.isColorable());
-            assert (rightParameterEqualityProof.isColorable());
+            assert (leftParameterEqualityProof.hasOnlyColorableLeaves());
+            assert (rightParameterEqualityProof.hasOnlyColorableLeaves());
             leftParameterEqualities.add(leftChain.getLiteral());
             rightParameterEqualities.add(rightChain.getLiteral());
             proofsForParameterEqualities.put(leftChain.getLiteral(),
@@ -2215,6 +2215,20 @@ public class VeritProofNode implements Serializable {
         Set<Integer> partitions = this.getPartitionsFromSymbols();
         partitions.remove(-1);
         return partitions.size() <= 1;
+    }
+
+    /**
+     * 
+     * @return <code>true</code> iff the leaves reachable from <code>this</code>
+     *         are all colorable.
+     */
+    public boolean hasOnlyColorableLeaves() {
+        Set<VeritProofNode> leaves = this.getLeaves();
+        for (VeritProofNode leaf : leaves) {
+            if (!leaf.isColorable())
+                return false;
+        }
+        return true;
     }
 
     /**
