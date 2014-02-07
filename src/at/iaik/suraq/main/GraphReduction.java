@@ -779,7 +779,7 @@ public class GraphReduction {
         // Annahmen durch vorhergehende Algorithmen:
         // jedes element im circle kommt max. 1x vor!!!
         // daher kann bei gemeinsamkeiten i und j erhoeht werden!!!
-        // auch sind nie zwei circles vollständig identisch
+        // auch sind nie zwei circles vollstaendig identisch
         // (while-endlosschleife)
         for (int forward = -1; forward < 2; forward += 2) // {-1,+1}
         {
