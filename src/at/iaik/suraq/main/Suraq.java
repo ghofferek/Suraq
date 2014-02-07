@@ -1409,9 +1409,10 @@ public class Suraq implements Runnable {
                     tseitinEncoding.keySet(), noDependenceVarsCopies.values(),
                     noDependenceFunctionsCopies);
             Util.printMemoryInformation();
-            // FIXME Temporarily deactivate checks for faster debugging
-            VeritProof.setCheckProofEnabled(false);
-            VeritProofNode.setCheckProofNodesEnabled(false);
+            if (!options.getCheckProofWhileParsing()) {
+                VeritProof.setCheckProofEnabled(false);
+                VeritProofNode.setCheckProofNodesEnabled(false);
+            }
             Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
             Timer parseTimer = new Timer();
             parseTimer.start();

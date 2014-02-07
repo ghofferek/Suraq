@@ -95,6 +95,11 @@ public final class SuraqOptions {
     private static final boolean dontRemoveLemmaSubproofsDefault = false;
 
     /**
+     * Default value for checkProofWhileParsing option.
+     */
+    private static final boolean checkProofWhileParsingDefault = false;
+
+    /**
      * The cache file name.
      */
     private static String cacheFile = "savecache.db";
@@ -169,6 +174,11 @@ public final class SuraqOptions {
      * the value of removeLemmaSubproofs
      */
     private final Boolean dontRemoveLemmaSubproofs;
+
+    /**
+     * the value of checkProofWhileParsing
+     */
+    private final Boolean checkProofWhileParsing;
 
     /**
      * The value of the dumpSMTQueryFile option.
@@ -262,6 +272,9 @@ public final class SuraqOptions {
         Option exitAfterDumpOption = cmdLineParser
                 .addBooleanOption("exitAfterDump");
 
+        Option checkProofWhileParsingOption = cmdLineParser
+                .addBooleanOption("checkProofWhileParsing");
+
         Option useThisProofFileOption = cmdLineParser
                 .addStringOption("useThisProofFile");
 
@@ -301,6 +314,9 @@ public final class SuraqOptions {
 
         dontRemoveLemmaSubproofs = (Boolean) cmdLineParser
                 .getOptionValue(dontRemoveLemmaSubproofsOption);
+
+        checkProofWhileParsing = (Boolean) cmdLineParser
+                .getOptionValue(checkProofWhileParsingOption);
 
         dumpSMTQueryFileValue = (String) cmdLineParser
                 .getOptionValue(dumpSMTQueryFileOption);
@@ -536,6 +552,11 @@ public final class SuraqOptions {
     public boolean getExitAfterDump() {
         return exitAfterDumpValue == null ? SuraqOptions.exitAfterDumpDefault
                 : exitAfterDumpValue;
+    }
+
+    public boolean getCheckProofWhileParsing() {
+        return checkProofWhileParsing == null ? SuraqOptions.checkProofWhileParsingDefault
+                : checkProofWhileParsing;
     }
 
     /**
