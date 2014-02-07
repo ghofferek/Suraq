@@ -778,14 +778,14 @@ public class GraphReduction {
 
         // Annahmen durch vorhergehende Algorithmen:
         // jedes element im circle kommt max. 1x vor!!!
-        // daher kann bei gemeinsamkeiten i und j erhöht werden!!!
+        // daher kann bei gemeinsamkeiten i und j erhoeht werden!!!
         // auch sind nie zwei circles vollständig identisch
         // (while-endlosschleife)
         for (int forward = -1; forward < 2; forward += 2) // {-1,+1}
         {
             for (int i = 0; i < csize1; i++) {
                 for (int j = i; j < csize2; j++) {
-                    // interessant sind nur teilfolgen größer gleich 3...
+                    // interessant sind nur teilfolgen groesser gleich 3...
                     if (circle1.get(i).equals(circle2.get(j)))
                         if (circle1.get((i + 1) % csize1)
                                 .equals(circle2.get((j + 1 * forward + csize2)

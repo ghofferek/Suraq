@@ -297,4 +297,22 @@ public class TransitivityCongruenceChainTest {
                 ".c1148", true);
     }
 
+    /**
+     * For profiling tests
+     * 
+     * @param args
+     */
+    public static void main(String[] args) {
+        TransitivityCongruenceChainTest tester = new TransitivityCongruenceChainTest();
+        try {
+            // tester.testNode("./rsc/dlx/dlx_no_domainITE_2_controllers.smt2",
+            // "./rsc/dbg/c219182.smt2", ".c219182");
+            tester.testNode("./rsc/test/simple_processor.smt2",
+                    "./rsc/dbg/c1456.smt2", ".c1456");
+        } catch (FileNotFoundException exc) {
+            // TODO Auto-generated catch block
+            exc.printStackTrace();
+        }
+    }
+
 }

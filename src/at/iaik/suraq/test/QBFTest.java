@@ -104,7 +104,7 @@ public class QBFTest {
 
         // Check if OK:
 
-        boolean valid = th.isFormulaValid(equiv, "Formeln äquivalent");
+        boolean valid = th.isFormulaValid(equiv, "Formeln aequivalent");
 
         if (valid) {
             System.out.println("  Z3 tells us UNSAT (valid). Good :-)");
