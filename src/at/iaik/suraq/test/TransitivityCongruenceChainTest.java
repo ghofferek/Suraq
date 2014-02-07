@@ -58,6 +58,7 @@ public class TransitivityCongruenceChainTest {
         VeritProofNode node = proof.getProofNode(nodeName);
 
         VeritProofNode colorableNode = null;
+        Util.printToSystemOutWithWallClockTimePrefix("Starting to split node...");
         if (isPredicateNode) {
             colorableNode = node.splitPredicateLeafNew();
         } else {
@@ -66,6 +67,7 @@ public class TransitivityCongruenceChainTest {
             colorableNode = chain.toColorableProofNew();
         }
         Assert.assertNotNull(colorableNode);
+        Util.printToSystemOutWithWallClockTimePrefix("Done.");
 
         Assert.assertTrue(
                 "Unexpected literal in node.",
@@ -305,12 +307,9 @@ public class TransitivityCongruenceChainTest {
     public static void main(String[] args) {
         TransitivityCongruenceChainTest tester = new TransitivityCongruenceChainTest();
         try {
-            // tester.testNode("./rsc/dlx/dlx_no_domainITE_2_controllers.smt2",
-            // "./rsc/dbg/c219182.smt2", ".c219182");
-            tester.testNode("./rsc/test/simple_processor.smt2",
-                    "./rsc/dbg/c1456.smt2", ".c1456");
+            tester.testNode("./rsc/dlx/dlx_no_domainITE_2_controllers.smt2",
+                    "./rsc/dbg/" + args[0] + ".smt2", "." + args[0]);
         } catch (FileNotFoundException exc) {
-            // TODO Auto-generated catch block
             exc.printStackTrace();
         }
     }
