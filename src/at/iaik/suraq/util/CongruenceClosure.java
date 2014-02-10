@@ -6,10 +6,11 @@ package at.iaik.suraq.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.smtlib.formula.DomainEq;
@@ -41,7 +42,7 @@ public class CongruenceClosure {
     /**
      * The list of equivalence classes
      */
-    private final Set<Set<DomainTerm>> equivClasses = new CopyOnWriteArraySet<Set<DomainTerm>>();
+    private final List<Set<DomainTerm>> equivClasses = new LinkedList<Set<DomainTerm>>();
 
     public CongruenceClosure() {
         // nothing to do here
@@ -79,7 +80,7 @@ public class CongruenceClosure {
             }
         }
 
-        Set<DomainTerm> newClass = new CopyOnWriteArraySet<DomainTerm>();
+        Set<DomainTerm> newClass = new HashSet<DomainTerm>();
         newClass.add(term1);
         newClass.add(term2);
         equivClasses.add(newClass);
@@ -104,7 +105,7 @@ public class CongruenceClosure {
             if (equivClass.contains(term))
                 return;
         }
-        Set<DomainTerm> singleton = new CopyOnWriteArraySet<DomainTerm>();
+        Set<DomainTerm> singleton = new HashSet<DomainTerm>();
         singleton.add(term);
         equivClasses.add(singleton);
     }
