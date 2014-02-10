@@ -778,7 +778,8 @@ public class VeritProof implements Serializable {
      * @param currentLeaf
      *            a good definition of a bad literal
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "deprecation" })
+    @Deprecated
     private void cleanProof(VeritProofNode currentLeaf) {
         assert (currentLeaf.isLeaf());
         assert (currentLeaf.isGoodDefinitionOfBadLiteral());
