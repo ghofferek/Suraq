@@ -565,7 +565,7 @@ public class VeritProof implements Serializable {
                     leavesForThisSplitter.add(nodeIterator.next());
             }
             UncolorableLeafSplitter splitter = new UncolorableLeafSplitter(id,
-                    leavesForThisSplitter);
+                    leavesForThisSplitter, Thread.currentThread());
             splitters[id] = splitter;
         }
 

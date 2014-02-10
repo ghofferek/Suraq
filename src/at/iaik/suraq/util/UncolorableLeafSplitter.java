@@ -53,17 +53,24 @@ public class UncolorableLeafSplitter implements Runnable {
     private boolean allOk = false;
 
     /**
+     * The parent thread
+     */
+    private final Thread parentThread;
+
+    /**
      * 
      * Constructs a new <code>UncolorableLeafSplitter</code>.
      * 
      * @param id
      * @param leavesToSplit
      */
-    public UncolorableLeafSplitter(int id, List<VeritProofNode> leavesToSplit) {
+    public UncolorableLeafSplitter(int id, List<VeritProofNode> leavesToSplit,
+            Thread parent) {
         this.id = id;
         this.leavesToSplit = new ArrayList<VeritProofNode>(leavesToSplit);
         this.replacements = new HashMap<VeritProofNode, VeritProofNode>(
                 leavesToSplit.size());
+        this.parentThread = parent;
     }
 
     /**
@@ -79,6 +86,7 @@ public class UncolorableLeafSplitter implements Runnable {
                     + id + ". Stacktrace follows.");
             exc.printStackTrace();
             allOk = false;
+            parentThread.interrupt();
         }
     }
 
