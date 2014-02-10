@@ -151,9 +151,10 @@ public class UncolorableLeafSplitter implements Runnable {
                         + "Splitter " + id + ": "
                         + "Replacement has the same number of literals. ("
                         + replacement.getLiteralConclusions().size() + ")");
-            Util.printToSystemOutWithWallClockTimePrefix("    "
-                    + totalLiteralsFewer + " literals saved so far in "
-                    + numStrongerClauses + " clauses.");
+            Util.printToSystemOutWithWallClockTimePrefix("    " + "Splitter "
+                    + id + ": " + totalLiteralsFewer
+                    + " literals saved so far in " + numStrongerClauses
+                    + " clauses.");
             replacements.put(leafToSplit, replacement);
             Util.printToSystemOutWithWallClockTimePrefix("    " + "Splitter "
                     + id + ": " + "Done " + ++count + ". ("
