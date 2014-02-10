@@ -87,7 +87,7 @@ public class FormulaCache<T> {
     /**
      * Clears all caches.
      */
-    public static void clearAll() {
+    public synchronized static void clearAll() {
         for (FormulaCache<?> instance : FormulaCache.instances) {
             instance.clear();
         }
@@ -96,7 +96,7 @@ public class FormulaCache<T> {
     /**
      * Clears the cache and resets the statistic.
      */
-    public void clear() {
+    public synchronized void clear() {
         cache.clear();
         cachedReads = 0;
     }
@@ -107,7 +107,7 @@ public class FormulaCache<T> {
      * @param object
      * @throws ClassCastException
      */
-    public void post(T object) throws ClassCastException {
+    public synchronized void post(T object) throws ClassCastException {
         if (!FormulaCache._isActive || !_isActiveLocal)
             return;
         cache.put(object, new WeakReference<T>(object));
@@ -123,7 +123,7 @@ public class FormulaCache<T> {
      * @return
      * @throws ClassCastException
      */
-    public T put(T object) throws ClassCastException {
+    public synchronized T put(T object) throws ClassCastException {
         if (!FormulaCache._isActive || !_isActiveLocal)
             return object;
 
@@ -156,7 +156,7 @@ public class FormulaCache<T> {
      * @return
      * @throws ClassCastException
      */
-    public T get(T reference) throws ClassCastException {
+    public synchronized T get(T reference) throws ClassCastException {
         if (!FormulaCache._isActive || !_isActiveLocal)
             return reference;
         if (cache.containsKey(reference)) {
@@ -168,23 +168,23 @@ public class FormulaCache<T> {
         return null;
     }
 
-    public long getCachedReads() {
+    public synchronized long getCachedReads() {
         return cachedReads;
     }
 
-    public long getCachedWrites() {
+    public synchronized long getCachedWrites() {
         return cachedWrites;
     }
 
-    public int getCachedElements() {
+    public synchronized int getCachedElements() {
         return cache.size();
     }
 
-    public String getName() {
+    public synchronized String getName() {
         return name;
     }
 
-    public void printStatisticLine() {
+    public synchronized void printStatisticLine() {
         long reads = getCachedReads();
         int elems = getCachedElements();
         long writes = getCachedWrites();
@@ -193,7 +193,7 @@ public class FormulaCache<T> {
                 + " elements of max. " + writes + ":" + className);
     }
 
-    public static void printStatistic() {
+    public synchronized static void printStatistic() {
         System.out.println("************************************************");
         for (FormulaCache<?> instance : FormulaCache.instances) {
             long reads = instance.getCachedReads();
