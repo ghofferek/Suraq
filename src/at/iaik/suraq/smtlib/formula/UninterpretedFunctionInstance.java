@@ -273,7 +273,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             return true;
         if (!(obj instanceof UninterpretedFunctionInstance))
             return false;
-        if (this.hashCode() != obj.hashCode())
+        if (this.hashCode != ((UninterpretedFunctionInstance) obj).hashCode)
             return false;
         UninterpretedFunctionInstance other = (UninterpretedFunctionInstance) obj;
         if (!other.function.equals(function))

@@ -261,10 +261,10 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
             return true;
         if (!(obj instanceof ImmutableArrayList))
             return false;
-        if (this.hashCode != obj.hashCode())
+        if (this.hashCode != ((ImmutableArrayList<?>) obj).hashCode)
             return false;
 
-        return internalList.equals(obj);
+        return internalList.equals(((ImmutableArrayList<?>) obj).internalList);
     }
 
     @Override
