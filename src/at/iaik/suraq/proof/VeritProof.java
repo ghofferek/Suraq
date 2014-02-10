@@ -585,7 +585,8 @@ public class VeritProof implements Serializable {
                 + " splitter threads.");
 
         // Last thread takes the "remainder" of the division
-        final int numNodesPerThread = leavesToClean.size() / numThreads;
+        final int numNodesPerThread = leavesToClean.size() / numThreads == 0 ? 1
+                : leavesToClean.size() / numThreads;
         UncolorableLeafSplitter[] splitters = new UncolorableLeafSplitter[numThreads];
         Iterator<VeritProofNode> nodeIterator = leavesToClean.iterator();
         for (int id = 0; id < numThreads; id++) {
