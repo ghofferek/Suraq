@@ -557,10 +557,11 @@ public class VeritProof implements Serializable {
         for (int id = 0; id < numThreads; id++) {
             List<VeritProofNode> leavesForThisSplitter = new ArrayList<VeritProofNode>(
                     numNodesPerThread);
-            for (int numNodes = 0; numNodes < numNodesPerThread; numNodes++) {
-                leavesForThisSplitter.add(nodeIterator.next());
-            }
-            if (id == numThreads - 1) {
+            if (id < numThreads) {
+                for (int numNodes = 0; numNodes < numNodesPerThread; numNodes++) {
+                    leavesForThisSplitter.add(nodeIterator.next());
+                }
+            } else {
                 while (nodeIterator.hasNext())
                     leavesForThisSplitter.add(nodeIterator.next());
             }
