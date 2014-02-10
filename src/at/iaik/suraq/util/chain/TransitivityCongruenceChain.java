@@ -584,9 +584,8 @@ public class TransitivityCongruenceChain implements
 
         VeritProof proof = this.proofNode.getProof();
 
-        VeritProofNode result = proof.addProofNode(
-                proof.freshNodeName("glob", ""), VeriTToken.EQ_TRANSITIVE,
-                globalConclusions, null, null, false);
+        VeritProofNode result = proof.addProofNodeWithFreshName("glob", "",
+                VeriTToken.EQ_TRANSITIVE, globalConclusions, null, null, false);
 
         for (Formula literal : globalLiterals) {
             VeritProofNode other = proofsForLocalSubchains.get(literal);
@@ -655,9 +654,9 @@ public class TransitivityCongruenceChain implements
         conclusions.add(impliedLiteral);
 
         VeritProof proof = this.proofNode.getProof();
-        VeritProofNode currentNode = proof.addProofNode(
-                proof.freshNodeName("col_tran", ""), VeriTToken.EQ_TRANSITIVE,
-                conclusions, null, null, false);
+        VeritProofNode currentNode = proof.addProofNodeWithFreshName(
+                "col_tran", "", VeriTToken.EQ_TRANSITIVE, conclusions, null,
+                null, false);
 
         for (Formula literal : proofsForCongruences.keySet()) {
             currentNode = currentNode.resolveWith(
@@ -732,9 +731,8 @@ public class TransitivityCongruenceChain implements
         conclusions.add(impliedLiteral);
 
         VeritProof proof = this.proofNode.getProof();
-        VeritProofNode result = proof.addProofNode(
-                proof.freshNodeName("fsl_", ""), VeriTToken.EQ_TRANSITIVE,
-                conclusions, null, null, false);
+        VeritProofNode result = proof.addProofNodeWithFreshName("fsl_", "",
+                VeriTToken.EQ_TRANSITIVE, conclusions, null, null, false);
         return result;
     }
 
@@ -844,9 +842,8 @@ public class TransitivityCongruenceChain implements
             List<Formula> conclusions = new ArrayList<Formula>(2);
             conclusions.add(invertedLiteral);
             conclusions.add(literal);
-            VeritProofNode result = proof.addProofNode(
-                    proof.freshNodeName("LEM", ""), VeriTToken.EQ_TRANSITIVE,
-                    conclusions, null, null, false);
+            VeritProofNode result = proof.addProofNodeWithFreshName("LEM", "",
+                    VeriTToken.EQ_TRANSITIVE, conclusions, null, null, false);
 
             return result;
         } else {
@@ -875,12 +872,13 @@ public class TransitivityCongruenceChain implements
             assert (this.length() == 1);
             assert (this.start.getTerm().equals(this.target));
             Formula reflexivity = Util.createReflexivity(this.target);
-            List<Formula> conclusios = new ArrayList<Formula>(1);
-            conclusios.add(reflexivity);
+            List<Formula> conclusions = new ArrayList<Formula>(1);
+            conclusions.add(reflexivity);
             VeritProof proof = this.proofNode.getProof();
-            VeritProofNode result = proof.addProofNode(
-                    proof.freshNodeName("reflex", ""), VeriTToken.EQ_REFLEXIVE,
-                    conclusios, null, null, false);
+            VeritProofNode result = proof
+                    .addProofNodeWithFreshName("reflex", "",
+                            VeriTToken.EQ_REFLEXIVE, conclusions, null, null,
+                            false);
             return result;
         }
 
@@ -1236,9 +1234,9 @@ public class TransitivityCongruenceChain implements
 
         VeritProof proof = this.proofNode.getProof();
 
-        VeritProofNode result = proof.addProofNode(
-                proof.freshNodeName("congrJustProof", ""),
-                VeriTToken.EQ_CONGRUENT, conclusions, null, null, false);
+        VeritProofNode result = proof.addProofNodeWithFreshName(
+                "congrJustProof", "", VeriTToken.EQ_CONGRUENT, conclusions,
+                null, null, false);
 
         for (Formula literal : literalsImpliedBySubchains) {
             VeritProofNode other = proofsForCongruence.get(literal);
@@ -1304,17 +1302,16 @@ public class TransitivityCongruenceChain implements
             congruenceConclusions.add(negatedLiteral);
         }
         congruenceConclusions.add(congruenceImpliedLiteral);
-        VeritProofNode congruenceNode = proofNode.getProof().addProofNode(
-                proofNode.getProof().freshNodeName("congr.", ""),
-                VeriTToken.EQ_CONGRUENT, congruenceConclusions, null, null,
-                false);
+        VeritProofNode congruenceNode = proofNode.getProof()
+                .addProofNodeWithFreshName("congr.", "",
+                        VeriTToken.EQ_CONGRUENT, congruenceConclusions, null,
+                        null, false);
 
         VeritProofNode currentNode = congruenceNode;
         for (VeritProofNode currentProofForCongruence : proofsForCongruence) {
             List<VeritProofNode> subProofs = new ArrayList<VeritProofNode>(2);
             subProofs.add(currentProofForCongruence);
             subProofs.add(currentNode);
-            String nodeName = proofNode.getProof().freshNodeName("res.", "");
             Formula resolvingLiteral = Util.findResolvingLiteral(subProofs);
             List<Formula> conclusions = new ArrayList<Formula>(subProofs.get(0)
                     .getLiteralConclusions().size()
@@ -1323,8 +1320,9 @@ public class TransitivityCongruenceChain implements
             conclusions.addAll(subProofs.get(1).getLiteralConclusions());
             conclusions.remove(resolvingLiteral);
             conclusions.remove(Util.invertLiteral(resolvingLiteral));
-            currentNode = proofNode.getProof().addProofNode(nodeName,
-                    VeriTToken.RESOLUTION, conclusions, subProofs, null, false);
+            currentNode = proofNode.getProof().addProofNodeWithFreshName(
+                    "res.", "", VeriTToken.RESOLUTION, conclusions, subProofs,
+                    null, false);
         }
         return currentNode;
     }
@@ -1385,9 +1383,9 @@ public class TransitivityCongruenceChain implements
         // Remove negative reflexive literals (they are false anyway)
         Util.removeReflexiveLiterals(conclusions);
 
-        VeritProofNode node1 = proofNode.getProof().addProofNode(
-                "tcc_left_" + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.TRANS_CONGR, conclusions, null, null, false);
+        VeritProofNode node1 = proofNode.getProof().addProofNodeWithFreshName(
+                "tcc_left_", "", VeriTToken.TRANS_CONGR, conclusions, null,
+                null, false);
         assert (node1.isColorable());
 
         if (newStart == this.getEnd()) {
@@ -1410,9 +1408,10 @@ public class TransitivityCongruenceChain implements
         finalConclusions.remove(resolvingLiteral);
         finalConclusions.remove(Util.invertLiteral(resolvingLiteral));
 
-        VeritProofNode resNode = proofNode.getProof().addProofNode(
-                "tcc_res_" + TransitivityCongruenceChain.proofNodeCounter++,
-                VeriTToken.RESOLUTION, finalConclusions, clauses, null, false);
+        VeritProofNode resNode = proofNode.getProof()
+                .addProofNodeWithFreshName("tcc_res_", "",
+                        VeriTToken.RESOLUTION, finalConclusions, clauses, null,
+                        false);
 
         return resNode;
     }

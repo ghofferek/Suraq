@@ -88,6 +88,41 @@ public class VeritProof implements Serializable {
      * to its clauses (as a Parent). Then the generated VeritProofNode is
      * returned.
      * 
+     * @param prefix
+     *            the prefix for the fresh node name
+     * @param suffix
+     *            the suffix for the fresh node name
+     * @param type
+     *            type of the Node (e.g. VeriTToken.EQ_TRANSITIVE,...)
+     * @param conclusions
+     *            a list of Formulas
+     * @param clauses
+     *            a list of VeritProofNodes that are the clauses(=children) of
+     *            the currently added
+     * @param iargs
+     *            a number as an Integer (e.g. 1)
+     * 
+     * @param removeSubproofsOfTheoryLemmas
+     *            specifies whether or not subproofs of theory lemmas should be
+     *            discarded
+     * 
+     * @return the requested proof node.
+     */
+    public synchronized VeritProofNode addProofNodeWithFreshName(String prefix,
+            String suffix, Token type, List<Formula> conclusions,
+            List<VeritProofNode> clauses, Integer iargs,
+            boolean removeSubproofsOfTheoryLemmas) {
+        VeritProofNode result = addProofNode(
+                this.freshNodeName(prefix, suffix), type, conclusions, clauses,
+                iargs, removeSubproofsOfTheoryLemmas);
+        return result;
+    }
+
+    /**
+     * Returns a (new) <code>VeritProofNode</code>. It is automatically attached
+     * to its clauses (as a Parent). Then the generated VeritProofNode is
+     * returned.
+     * 
      * @param name
      *            name of the Node (e.g. ".c22")
      * @param type

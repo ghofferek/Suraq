@@ -1975,10 +1975,9 @@ public class VeritProofNode implements Serializable {
                 .invertAllLiterals(leftParameterEqualities);
         leftConclusions.add(NotFormula.create(inversePredicateLiteral));
         leftConclusions.add(globalPredicateInstance);
-        VeritProofNode leftProof = this.proof.addProofNode(
-                this.proof.freshNodeName("leftPredCongr", ""),
-                VeriTToken.EQ_CONGRUENT_PRED, leftConclusions, null, null,
-                false);
+        VeritProofNode leftProof = this.proof.addProofNodeWithFreshName(
+                "leftPredCongr", "", VeriTToken.EQ_CONGRUENT_PRED,
+                leftConclusions, null, null, false);
         assert (leftProof.isColorable());
 
         // Construct right predicate congruence
@@ -1987,10 +1986,9 @@ public class VeritProofNode implements Serializable {
         rightConclusions.add(NotFormula.create(globalPredicateInstance));
         rightConclusions.add(impliedLiteral);
 
-        VeritProofNode rightProof = this.proof.addProofNode(
-                this.proof.freshNodeName("rightPredCongr", ""),
-                VeriTToken.EQ_CONGRUENT_PRED, rightConclusions, null, null,
-                false);
+        VeritProofNode rightProof = this.proof.addProofNodeWithFreshName(
+                "rightPredCongr", "", VeriTToken.EQ_CONGRUENT_PRED,
+                rightConclusions, null, null, false);
         assert (rightProof.isColorable());
 
         VeritProofNode result = leftProof.resolveWith(rightProof, false);
@@ -2035,9 +2033,9 @@ public class VeritProofNode implements Serializable {
         conclusions.add(NotFormula.create(parameterEquality));
         conclusions.add(NotFormula.create(inversePredicateLiteral));
         conclusions.add(impliedLiteral);
-        VeritProofNode congruenceNode = this.proof.addProofNode(
-                this.proof.freshNodeName("predCongr", ""),
-                VeriTToken.EQ_CONGRUENT_PRED, conclusions, null, null, false);
+        VeritProofNode congruenceNode = this.proof.addProofNodeWithFreshName(
+                "predCongr", "", VeriTToken.EQ_CONGRUENT_PRED, conclusions,
+                null, null, false);
         assert (congruenceNode.isColorable());
 
         VeritProofNode parameterEqualityNode = chain.toColorableProofNew();
@@ -2246,6 +2244,7 @@ public class VeritProofNode implements Serializable {
      * @return a new node in whose subtree <code>inverseBadLiteral</code> does
      *         not occur any more
      */
+    @Deprecated
     protected VeritProofNode replaceInverseBadLiteral(
             Formula inverseBadLiteral, List<Formula> definingLiterals,
             Map<VeritProofNode, VeritProofNode> dagOperationCache) {
@@ -2372,9 +2371,9 @@ public class VeritProofNode implements Serializable {
         subproofs.add(other);
         List<Formula> conlusions = Util.findConclusionsOfResolution(
                 this.literalConclusions, other.literalConclusions);
-        VeritProofNode result = this.proof.addProofNode(
-                this.proof.freshNodeName("res", ""), VeriTToken.RESOLUTION,
-                conlusions, subproofs, null, removeSubproofsOfTheoryLemmas);
+        VeritProofNode result = this.proof.addProofNodeWithFreshName("res", "",
+                VeriTToken.RESOLUTION, conlusions, subproofs, null,
+                removeSubproofsOfTheoryLemmas);
         return result;
     }
 
@@ -2454,9 +2453,8 @@ public class VeritProofNode implements Serializable {
         assert (Util.isReflexivity(reflexivity));
         List<Formula> conclusions = new ArrayList<Formula>(1);
         conclusions.add(reflexivity);
-        VeritProofNode result = this.proof.addProofNode(
-                this.proof.freshNodeName("reflex", ""),
-                VeriTToken.EQ_REFLEXIVE, conclusions, null, null, false);
+        VeritProofNode result = this.proof.addProofNodeWithFreshName("reflex",
+                "", VeriTToken.EQ_REFLEXIVE, conclusions, null, null, false);
         return result;
     }
 
