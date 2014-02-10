@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,18 +24,15 @@ import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
-import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
-import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
-import at.iaik.suraq.util.CongruenceClosure;
 import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.MutableInteger;
 import at.iaik.suraq.util.Timer;
+import at.iaik.suraq.util.UncolorableLeafSplitter;
 import at.iaik.suraq.util.Util;
-import at.iaik.suraq.util.chain.TransitivityCongruenceChain;
 
 /**
  * This Proof consists of several VeritProofNodes. You shall not try to modify
@@ -108,7 +106,7 @@ public class VeritProof implements Serializable {
      * 
      * @return the requested proof node.
      */
-    public VeritProofNode addProofNode(String name, Token type,
+    public synchronized VeritProofNode addProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs, boolean removeSubproofsOfTheoryLemmas) {
 
@@ -178,7 +176,7 @@ public class VeritProof implements Serializable {
      * 
      * @param node
      */
-    protected void addProofNode(VeritProofNode node) {
+    protected synchronized void addProofNode(VeritProofNode node) {
         assert (node.getProof() == this);
         addNodeToInternalDataStructures(node);
     }
@@ -188,7 +186,8 @@ public class VeritProof implements Serializable {
      * 
      * @param node
      */
-    private void addNodeToInternalDataStructures(VeritProofNode node) {
+    private synchronized void addNodeToInternalDataStructures(
+            VeritProofNode node) {
         if (proofNodes.get(node.getName()) != null) {
             throw new RuntimeException("Duplicate node name: " + node.getName());
         }
@@ -522,123 +521,91 @@ public class VeritProof implements Serializable {
         result.add(node);
     }
 
-    // /**
-    // *
-    // * @return a node in this proof that proves <code>false</code>, or
-    // * <code>null</code> if no such node exists
-    // */
-    // public VeritProofNode findNodeProvingFalse() {
-    // WeakReference<VeritProofNode> reference = nodeCache.get(ImmutableSet
-    // .create(new HashSet<Formula>()));
-    // return reference == null ? null : reference.get();
-    // }
-
     /**
      * Cleans the proof of bad literals and splits leafs into colorable parts.
      */
     public void cleanProof() {
-        // assert (this.checkProof());
-        // Util.printToSystemOutWithWallClockTimePrefix("Number of bad leafs to clean: "
-        // + this.goodDefinitionsOfBadLiterals.size());
-        // VeritProofNode currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
-        // while (currentLeaf != null) {
-        // Util.printToSystemOutWithWallClockTimePrefix("  Cleaning leaf "
-        // + currentLeaf.getName());
-        // cleanProof(currentLeaf);
-        // removeUnreachableNodes();
-        // currentLeaf = this.getOneGoodDefinitionOfBadLiteral();
-        // }
-        // assert (this.hasNoBadLiterals());
-        // assert (this.checkProof());
 
         Set<VeritProofNode> leafs = this.getLeaves();
         Util.printToSystemOutWithWallClockTimePrefix("Found " + leafs.size()
                 + " leafs.");
-        Set<VeritProofNode> leafsToClean = new HashSet<VeritProofNode>();
+        Set<VeritProofNode> leavesToClean = new HashSet<VeritProofNode>();
 
         for (VeritProofNode leaf : leafs) {
             Set<Integer> partitions = leaf.getPartitionsFromSymbols();
             partitions.remove(-1);
             if (partitions.size() > 1) {
                 assert (leaf.isAxiom());
-                leafsToClean.add(leaf);
+                leavesToClean.add(leaf);
             }
         }
 
-        Util.printToSystemOutWithWallClockTimePrefix("  " + leafsToClean.size()
-                + " need splitting.");
+        Util.printToSystemOutWithWallClockTimePrefix("  "
+                + leavesToClean.size() + " need splitting.");
+
+        final int numThreads = SuraqOptions.getInstance()
+                .getNumSplitterThreads();
+        assert (numThreads > 0);
+        Util.printToSystemOutWithWallClockTimePrefix("Creating " + numThreads
+                + " splitter threads.");
+
+        // Last thread takes the "remainder" of the division
+        final int numNodesPerThread = leavesToClean.size() / (numThreads - 1);
+        UncolorableLeafSplitter[] splitters = new UncolorableLeafSplitter[numThreads];
+        Iterator<VeritProofNode> nodeIterator = leavesToClean.iterator();
+        for (int id = 0; id < numThreads; id++) {
+            List<VeritProofNode> leavesForThisSplitter = new ArrayList<VeritProofNode>(
+                    numNodesPerThread);
+            for (int numNodes = 0; numNodes < numNodesPerThread; numNodes++) {
+                leavesForThisSplitter.add(nodeIterator.next());
+            }
+            if (id == numThreads - 1) {
+                while (nodeIterator.hasNext())
+                    leavesForThisSplitter.add(nodeIterator.next());
+            }
+            UncolorableLeafSplitter splitter = new UncolorableLeafSplitter(id,
+                    leavesForThisSplitter);
+            splitters[id] = splitter;
+        }
+
+        Thread[] threads = new Thread[numThreads];
+        for (int id = 0; id < numThreads; id++) {
+            Thread thread = new Thread(splitters[id], "Splitter_" + id);
+            thread.start();
+        }
+        // Now all threads are running
+        for (int id = 0; id < numThreads; id++) {
+            try {
+                threads[id].join();
+            } catch (InterruptedException exc) {
+                Util.printToSystemOutWithWallClockTimePrefix("InterruptedException while waiting for splitters.");
+                throw new RuntimeException(exc);
+            }
+        }
+        Util.printToSystemOutWithWallClockTimePrefix("All splitters done");
+        // Now all threads are done. Collect results.
         int totalLiteralsFewer = 0;
-        int strongerClauses = 0;
-        int count = 0;
-        Map<VeritProofNode, VeritProofNode> replacements = new HashMap<VeritProofNode, VeritProofNode>(
-                leafsToClean.size() * 2);
-        for (VeritProofNode leafToClean : leafsToClean) {
-            assert (CongruenceClosure.checkVeritProofNode(leafToClean));
-            assert (Util.countPositiveLiterals(leafToClean
-                    .getLiteralConclusions()) == 1);
-            assert (Util.countPositiveLiterals(leafToClean
-                    .getLiteralConclusions())
-                    + Util.countNegativeLiterals(leafToClean
-                            .getLiteralConclusions()) == leafToClean
-                    .getLiteralConclusions().size());
-
-            Formula positiveLiteral = Util.findPositiveLiteral(leafToClean
-                    .getLiteralConclusions());
-            assert (positiveLiteral != null);
-            assert (positiveLiteral instanceof DomainEq || positiveLiteral instanceof UninterpretedPredicateInstance);
-
-            VeritProofNode replacement = null;
-            // if (leafToClean.getType().equals(VeriTToken.EQ_CONGRUENT)
-            // || leafToClean.getType().equals(VeriTToken.EQ_TRANSITIVE)) {
-            if (positiveLiteral instanceof DomainEq) {
-                Util.printToSystemOutWithWallClockTimePrefix("    Splitting leaf "
-                        + leafToClean.getName());
-                TransitivityCongruenceChain chain = TransitivityCongruenceChain
-                        .create(leafToClean);
-                replacement = chain.toColorableProofNew();
-                // } else if (leafToClean.getType().equals(
-                // VeriTToken.EQ_CONGRUENT_PRED)) {
-            } else if (positiveLiteral instanceof UninterpretedPredicateInstance) {
-                Util.printToSystemOutWithWallClockTimePrefix("    Splitting (predicate) leaf "
-                        + leafToClean.getName());
-                replacement = leafToClean.splitPredicateLeafNew();
-            } else {
-                Util.printToSystemOutWithWallClockTimePrefix("Unexpected implied literal:");
-                System.out.println(positiveLiteral.toString());
-                System.out.println("Containing leaf:");
-                System.out.println(leafToClean.toString());
-                assert (false);
-            }
-            assert (replacement != null);
-            assert (leafToClean.getLiteralConclusions().containsAll(replacement
-                    .getLiteralConclusions()));
-            int difference = leafToClean.getLiteralConclusions().size()
-                    - replacement.getLiteralConclusions().size();
-            assert (difference >= 0);
-            if (difference > 0) {
-                totalLiteralsFewer += difference;
-                strongerClauses++;
-                Util.printToSystemOutWithWallClockTimePrefix("    Replacement has "
-                        + replacement.getLiteralConclusions().size()
-                        + " literals ("
-                        + difference
-                        + " literals fewer than original leaf.)");
-            } else
-                Util.printToSystemOutWithWallClockTimePrefix("    Replacement has the same number of literals. ("
-                        + replacement.getLiteralConclusions().size() + ")");
-            Util.printToSystemOutWithWallClockTimePrefix("    "
-                    + totalLiteralsFewer + " literals saved so far in "
-                    + strongerClauses + " clauses.");
-            replacements.put(leafToClean, replacement);
-            Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count);
+        int numStrongerClauses = 0;
+        Map<VeritProofNode, VeritProofNode> replacements = new HashMap<VeritProofNode, VeritProofNode>();
+        for (UncolorableLeafSplitter splitter : splitters) {
+            assert (splitter.isAllOk());
+            totalLiteralsFewer += splitter.getTotalLiteralsFewer();
+            numStrongerClauses += splitter.getNumStrongerClauses();
+            replacements.putAll(splitter.getReplacements());
         }
-        Util.printToSystemOutWithWallClockTimePrefix("  All done.");
-        Util.printToSystemOutWithWallClockTimePrefix(totalLiteralsFewer
-                + " literals saved in total.");
+        Util.printToSystemOutWithWallClockTimePrefix("Total literals saved: "
+                + totalLiteralsFewer);
+        Util.printToSystemOutWithWallClockTimePrefix("Number of clauses made stronger:"
+                + numStrongerClauses);
+        Util.printToSystemOutWithWallClockTimePrefix("Num replacements: "
+                + replacements.size());
+        assert (replacements.size() == leavesToClean.size());
+        assert (replacements.keySet().containsAll(leavesToClean));
 
+        // -------------------------------------------------------------
         Util.printToSystemOutWithWallClockTimePrefix("Now replacing uncolorable leaves with colorable subproofs.");
 
-        count = 0;
+        int count = 0;
         for (VeritProofNode leafToClean : replacements.keySet()) {
             VeritProofNode replacement = replacements.get(leafToClean);
             assert (replacement != null);
@@ -670,7 +637,7 @@ public class VeritProof implements Serializable {
         assert (this.isColorable());
         assert (this.checkProof());
 
-        if (leafsToClean.size() > 0) {
+        if (leavesToClean.size() > 0) {
             String path = null;
             SuraqOptions options = SuraqOptions.getInstance();
             if (options.getUseThisProofFile() != null) {
@@ -1137,7 +1104,7 @@ public class VeritProof implements Serializable {
      * @param suffix
      * @return a node name that does not yet exist in the proof.
      */
-    public String freshNodeName(String prefix, String suffix) {
+    public synchronized String freshNodeName(String prefix, String suffix) {
         assert (prefix != null);
         assert (suffix != null);
 

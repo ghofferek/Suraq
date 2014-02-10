@@ -1251,14 +1251,15 @@ public final class Util {
      * @param line
      *            the line to print
      */
-    public static void printToSystemOutWithWallClockTimePrefix(String line) {
+    public static synchronized void printToSystemOutWithWallClockTimePrefix(
+            String line) {
         DateFormat dateFormat = DateFormat.getDateTimeInstance(
                 DateFormat.MEDIUM, DateFormat.MEDIUM);
         String dateTimeString = dateFormat.format(new Date());
         System.out.println("[" + dateTimeString + "] " + line);
     }
 
-    public static void printMemoryInformation() {
+    public static synchronized void printMemoryInformation() {
         System.out
                 .println("--------------------------------------------------------------------------------");
         System.out.println("MEMORY INFORMATION:");

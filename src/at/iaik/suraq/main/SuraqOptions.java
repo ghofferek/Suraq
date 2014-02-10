@@ -100,6 +100,11 @@ public final class SuraqOptions {
     private static final boolean checkProofWhileParsingDefault = false;
 
     /**
+     * Default value for the number of splitter threads
+     */
+    private static final int numSplitterThreadsDefault = 1;
+
+    /**
      * The cache file name.
      */
     private static String cacheFile = "savecache.db";
@@ -179,6 +184,11 @@ public final class SuraqOptions {
      * the value of checkProofWhileParsing
      */
     private final Boolean checkProofWhileParsing;
+
+    /**
+     * The value of numSplitterThreads
+     */
+    private final Integer numSplitterThreadsValue;
 
     /**
      * The value of the dumpSMTQueryFile option.
@@ -278,6 +288,9 @@ public final class SuraqOptions {
         Option useThisProofFileOption = cmdLineParser
                 .addStringOption("useThisProofFile");
 
+        Option numSplitterThreadsOption = cmdLineParser
+                .addIntegerOption("numSplitterThreads");
+
         try {
             cmdLineParser.parse(args);
         } catch (OptionException exc) {
@@ -326,6 +339,9 @@ public final class SuraqOptions {
 
         useThisProofFileValue = (String) cmdLineParser
                 .getOptionValue(useThisProofFileOption);
+
+        numSplitterThreadsValue = (Integer) cmdLineParser
+                .getOptionValue(numSplitterThreadsOption);
 
         int end = getInput().lastIndexOf(".");
 
@@ -557,6 +573,11 @@ public final class SuraqOptions {
     public boolean getCheckProofWhileParsing() {
         return checkProofWhileParsing == null ? SuraqOptions.checkProofWhileParsingDefault
                 : checkProofWhileParsing;
+    }
+
+    public int getNumSplitterThreads() {
+        return numSplitterThreadsValue == null ? SuraqOptions.numSplitterThreadsDefault
+                : numSplitterThreadsValue;
     }
 
     /**
