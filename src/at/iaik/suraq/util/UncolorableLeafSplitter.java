@@ -168,10 +168,13 @@ public class UncolorableLeafSplitter implements Runnable {
                     + id + ": " + "Done " + ++count + ". ("
                     + leavesToSplit.size() + " remaining.)");
         }
-        Util.printToSystemOutWithWallClockTimePrefix("    " + "Splitter " + id
-                + ": " + "All done.");
-        Util.printToSystemOutWithWallClockTimePrefix("Splitter " + id + ": "
-                + totalLiteralsFewer + " literals saved in total.");
+        synchronized (Util.class) {
+            Util.printToSystemOutWithWallClockTimePrefix("    " + "Splitter "
+                    + id + ": " + "All done.");
+            Util.printToSystemOutWithWallClockTimePrefix("Splitter " + id
+                    + ": " + totalLiteralsFewer + " literals saved in "
+                    + numStrongerClauses + " clauses.");
+        }
     }
 
     /**
