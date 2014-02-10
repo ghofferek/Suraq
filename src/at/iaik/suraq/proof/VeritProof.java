@@ -572,6 +572,7 @@ public class VeritProof implements Serializable {
         Thread[] threads = new Thread[numThreads];
         for (int id = 0; id < numThreads; id++) {
             Thread thread = new Thread(splitters[id], "Splitter_" + id);
+            threads[id] = thread;
             thread.start();
         }
         // Now all threads are running
