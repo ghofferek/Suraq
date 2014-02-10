@@ -38,6 +38,8 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     private final Formula formula;
 
+    private final int hashCode;
+
     public static NotFormula create(Formula formula) {
         return FormulaCache.notFormula.put(new NotFormula(formula));
     }
@@ -54,6 +56,7 @@ public class NotFormula extends BooleanCombinationFormula {
             this.formula = ((FormulaTerm) formula).getFormula();
         else
             this.formula = formula;
+        hashCode = formula.hashCode();
     }
 
     /**
@@ -250,7 +253,7 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public int hashCode() {
-        return formula.hashCode();
+        return this.hashCode;
     }
 
     /**

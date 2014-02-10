@@ -43,6 +43,8 @@ public abstract class EqualityFormula implements Formula {
      */
     protected final boolean equal;
 
+    private final int hashCode;
+
     /**
      * 
      * Constructs a new <code>EqualityFormula</code>.
@@ -61,6 +63,7 @@ public abstract class EqualityFormula implements Formula {
         // for (Term term : terms)
         // termList.add(term);
         this.terms = new ImmutableArrayList<Term>(termList);
+        hashCode = terms.hashCode() * (equal ? 1 : -1);
     }
 
     /**
@@ -260,7 +263,7 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public int hashCode() {
-        return terms.hashCode() * (equal ? 1 : -1);
+        return this.hashCode;
     }
 
     /**

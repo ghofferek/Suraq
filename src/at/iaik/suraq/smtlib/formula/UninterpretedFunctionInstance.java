@@ -38,6 +38,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     private static final long serialVersionUID = -2770188384661175641L;
 
+    private final int hashCode;
+
     /**
      * The function of which this is an instance.
      */
@@ -105,6 +107,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
             partitions.remove(-1);
         assert (partitions.size() == 1);
         this.assertPartition = partitions.iterator().next();
+        this.hashCode = this.function.hashCode() * 31
+                + this.parameters.hashCode();
     }
 
     public static UninterpretedFunctionInstance create(
@@ -134,6 +138,8 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         List<DomainTerm> params = new ArrayList<DomainTerm>();
         params.add(term);
         this.parameters = new ImmutableArrayList<DomainTerm>(params);
+        this.hashCode = this.function.hashCode() * 31
+                + this.parameters.hashCode();
     }
 
     public static UninterpretedFunctionInstance create(
@@ -283,7 +289,7 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     @Override
     public int hashCode() {
-        return function.hashCode() * 31 + parameters.hashCode();
+        return hashCode;
     }
 
     /**

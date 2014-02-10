@@ -799,8 +799,9 @@ public class VeritProofNode implements Serializable {
         assert (conclusions.size() < this.literalConclusions.size());
         assert (this.literalConclusions.containsAll(conclusions));
 
-        VeritProofNode strongerNode = new VeritProofNode("str_" + this.name,
-                this.type, conclusions, clauses, null, this.proof, false);
+        VeritProofNode strongerNode = new VeritProofNode(
+                this.proof.freshNodeName("str_", this.name), this.type,
+                conclusions, clauses, null, this.proof, false);
         assert (strongerNode != null);
 
         Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(

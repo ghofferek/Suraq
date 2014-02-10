@@ -39,6 +39,8 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     protected final ImmutableArrayList<Formula> formulas;
 
+    private final int hashCode;
+
     /**
      * 
      * Constructs a new <code>AndOrXorFormula</code>. Initializes the list of
@@ -59,6 +61,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             tmp.add(PropositionalConstant.create(true));
 
         this.formulas = new ImmutableArrayList<Formula>(tmp);
+        this.hashCode = formulas.hashCode();
     }
 
     /**
@@ -242,7 +245,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
          * int hashCode = 0; for (Formula formula : formulas) hashCode ^=
          * formula.hashCode();
          */
-        return formulas.hashCode();
+        return this.hashCode;
         // NOTE, that the hashcode will be the same for an AND and an OR-Class
         // with the same attributes
     }

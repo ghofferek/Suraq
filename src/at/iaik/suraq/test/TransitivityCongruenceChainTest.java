@@ -58,7 +58,10 @@ public class TransitivityCongruenceChainTest {
         VeritProofNode node = proof.getProofNode(nodeName);
 
         VeritProofNode colorableNode = null;
-        Util.printToSystemOutWithWallClockTimePrefix("Starting to split node...");
+        Util.printToSystemOutWithWallClockTimePrefix("Starting to split node "
+                + node.getName());
+        Util.printToSystemOutWithWallClockTimePrefix("Num literals (original): "
+                + node.getLiteralConclusions().size());
         if (isPredicateNode) {
             colorableNode = node.splitPredicateLeafNew();
         } else {
@@ -68,6 +71,10 @@ public class TransitivityCongruenceChainTest {
         }
         Assert.assertNotNull(colorableNode);
         Util.printToSystemOutWithWallClockTimePrefix("Done.");
+        Util.printToSystemOutWithWallClockTimePrefix("Num literals (replacement): "
+                + colorableNode.getLiteralConclusions().size());
+        Util.printToSystemOutWithWallClockTimePrefix("Total subproof size: "
+                + colorableNode.getReachableNodes().size());
 
         Assert.assertTrue(
                 "Unexpected literal in node.",

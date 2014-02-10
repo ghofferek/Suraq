@@ -34,6 +34,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     private static final long serialVersionUID = 7300557099748461681L;
 
+    private final int hashCode;
+
     /**
      * The function of which this is an instance.
      */
@@ -98,6 +100,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             partitions.remove(-1);
         assert (partitions.size() == 1);
         this.assertPartition = partitions.iterator().next();
+        this.hashCode = this.function.hashCode() * 31
+                + this.parameters.hashCode();
     }
 
     public static UninterpretedPredicateInstance create(
@@ -144,7 +148,7 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     @Override
     public int hashCode() {
-        return function.hashCode() * 31 + parameters.hashCode();
+        return this.hashCode;
     }
 
     /**
