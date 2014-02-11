@@ -9,12 +9,28 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+
+import at.iaik.suraq.parser.VeriTParser;
+import at.iaik.suraq.proof.VeriTToken;
+import at.iaik.suraq.proof.VeritProof;
+import at.iaik.suraq.proof.VeritProofNode;
+import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtsolver.VeriTSolver;
+import at.iaik.suraq.util.ImmutableSet;
+import at.iaik.suraq.util.Util;
 
 public class ResProof {
 
@@ -43,11 +59,88 @@ public class ResProof {
     /* config fields */
     public boolean printWhileChecking = false;
 
+    private Map<String, ResNode> namesOfResNodes = new HashMap<String, ResNode>();
+
     public ResProof() {
         root = new ResNode(0, false);
     }
 
-    // part for axioms should be 0
+    /**
+     * Constructs a new <code>ResProof</code>.
+     * 
+     * @param proof
+     * @param replacements
+     * @param literalIds
+     *            map from (canonic) strings to literal IDs
+     * @param literalMap
+     *            map from literal IDs (Integers) to <code>Formula</code>
+     *            objects
+     * 
+     * @param leafPartitions
+     *            "output parameter" for partitions of leaf nodes
+     * @throws IOException
+     */
+    public static ResProof create(VeritProof proof,
+            Map<VeritProofNode, VeritProofNode> replacements,
+            Map<String, Integer> literalIds, Map<Integer, Formula> literalMap,
+            Map<ImmutableSet<Integer>, Integer> leafPartitions)
+            throws IOException {
+
+        assert (proof != null);
+        assert (replacements != null);
+        assert (literalIds != null);
+        assert (literalIds.isEmpty());
+
+        File tmpDimacsFile = File.createTempFile("", ".dimacs", new File("./"));
+        BufferedWriter writer = new BufferedWriter(
+                new FileWriter(tmpDimacsFile));
+
+        Map<Integer, Integer> partitions = new HashMap<Integer, Integer>();
+
+        // Use the getLeaves() method of the root, in order to avoid
+        // getting the leaves of the colorable subproofs as well!
+        Set<VeritProofNode> leaves = proof.getRoot().getLeaves();
+        for (VeritProofNode leaf : leaves) {
+            if (replacements.containsKey(leaf))
+                leaf = replacements.get(leaf);
+            assert (leaf != null);
+
+            Set<Integer> clause = new HashSet<Integer>(leaf
+                    .getLiteralConclusions().size());
+            for (Formula literal : leaf.getLiteralConclusions()) {
+                int literalId = Util.getLiteralId(literal, literalIds,
+                        partitions, literalMap);
+                if (Util.isNegativeLiteral(literal))
+                    literalId *= -1;
+                writer.write(Integer.toString(literalId));
+                writer.write(' ');
+                clause.add(literalId);
+            }
+            writer.write("0\n");
+            leafPartitions.put(ImmutableSet.create(clause),
+                    leaf.getLeafPartition());
+        }
+        writer.close();
+
+        VeriTSolver solver = new VeriTSolver();
+        solver.solveDimacs(tmpDimacsFile);
+        assert (solver.getState() == VeriTSolver.UNSAT);
+
+        ResProof resProof = new ResProof();
+        VeriTParser parser = new VeriTParser(solver.getStream(),
+                literalIds.size(), resProof, partitions, leafPartitions);
+        parser.parse();
+
+        return resProof;
+    }
+
+    /**
+     * part for axioms should be 0
+     * 
+     * @param cl
+     * @param part
+     * @return
+     */
     public ResNode addLeaf(Collection<Lit> cl, int part) {
         assert (!vitalInfoFresh);
         ResNode n = new ResNode(nodeCount, true, cl, null, null, 0, part);
@@ -55,10 +148,11 @@ public class ResProof {
         return n;
     }
 
-    // * if cl==null then the clause is computed by applying resolution
-    // on left and right.
-    // * If pivot == 0 then pivot variable is also discovered automatically.
-    // * Node: part for internal node is set to be -1.
+    /**
+     * if cl==null then the clause is computed by applying resolution on left
+     * and right. If pivot == 0 then pivot variable is also discovered
+     * automatically. Node: part for internal node is set to be -1.
+     */
     public ResNode addIntNode(Collection<Lit> cl, ResNode left, ResNode right,
             int pivot) {
         assert (!vitalInfoFresh);
@@ -515,6 +609,121 @@ public class ResProof {
     public void tranformResProofs() {
         localFirstProofs(false, false, false);
     }
+
     // End : Proof restructuring-----------------------------------------
+
+    /**
+     * @param name
+     * @param type
+     * @param conclusions
+     * @param parsed_clauses
+     * @param partitionsMap
+     *            a map from literal IDs to partitions (0 being global)
+     */
+    public void add(String name, Token type, List<Formula> conclusions,
+            String[] parsed_clauses, Map<Integer, Integer> partitionsMap,
+            Map<ImmutableSet<Integer>, Integer> leafPartitions) {
+        if (type.equals(VeriTToken.INPUT))
+            // We ignore INPUT-nodes and work with OR-nodes as leaves
+            return;
+
+        if (type.equals(VeriTToken.OR)) {
+            // This is a leaf
+
+            List<Lit> resClause = new ArrayList<Lit>();
+            Set<Integer> resClausePartitions = new HashSet<Integer>();
+
+            for (Formula literal : conclusions) {
+                // assign literal IDs
+                Formula posLiteral = Util.makeLiteralPositive(literal);
+                assert (Util.isLiteral(posLiteral));
+                assert (Util.isAtom(posLiteral));
+                if (posLiteral.equals(PropositionalConstant.create(false))) {
+                    resClausePartitions.add(0); // resProof package uses "0" for
+                                                // globals
+                    continue;
+                }
+                assert (posLiteral instanceof PropositionalVariable);
+                Integer resLiteralID = Integer
+                        .valueOf(((PropositionalVariable) posLiteral)
+                                .getVarName().substring(2));
+                int partition = partitionsMap.get(resLiteralID);
+                this.var_part.put(resLiteralID, partition);
+                resClause
+                        .add(new Lit(resLiteralID, Util.getSignValue(literal)));
+                resClausePartitions.add(partition < 0 ? 0 : partition);
+            }
+
+            // build leaf ResNodes
+
+            if (resClausePartitions.size() == 2)
+                resClausePartitions.remove(0); // resProof package uses "0"
+                                               // for globals
+            assert (resClausePartitions.size() == 1);
+            int leafPartition = resClausePartitions.iterator().next();
+            if (leafPartition == 0) {
+                Set<Integer> tmpClause = new TreeSet<Integer>();
+                for (Lit lit : resClause) {
+                    tmpClause.add(lit.l);
+                }
+                ImmutableSet<Integer> clause = ImmutableSet.create(tmpClause);
+                assert (leafPartitions.containsKey(clause));
+                assert (leafPartitions.get(clause) > 0);
+                leafPartition = leafPartitions.get(clause);
+            }
+            ResNode resLeafNode = this.addLeaf(resClause, leafPartition);
+            assert (resLeafNode != null);
+            namesOfResNodes.put(name, resLeafNode);
+            return;
+        }
+
+        // ------------------------------------------------------------------------------------------
+        if (type.equals(VeriTToken.RESOLUTION)) {
+            // This is an internal node
+
+            List<ResNode> remainingNodes = new LinkedList<ResNode>();
+            if (parsed_clauses.length > 2) {
+
+                for (String clause : parsed_clauses) {
+                    ResNode node = namesOfResNodes.get(clause);
+                    assert (node != null);
+                    remainingNodes.add(node);
+                }
+                while (true) {
+                    assert (remainingNodes.size() > 2);
+                    ResNode left = namesOfResNodes
+                            .get(remainingNodes.remove(0));
+                    ResNode right = namesOfResNodes.get(remainingNodes
+                            .remove(0));
+                    ResNode intermediateNode = this.addIntNode(null, left,
+                            right, 0);
+                    remainingNodes.add(0, intermediateNode);
+                    if (remainingNodes.size() == 2)
+                        break;
+                }
+            } else {
+                ResNode left = namesOfResNodes.get(parsed_clauses[0]);
+                ResNode right = namesOfResNodes.get(parsed_clauses[1]);
+                assert (left != null);
+                assert (right != null);
+                remainingNodes.add(left);
+                remainingNodes.add(right);
+            }
+            assert (remainingNodes.size() == 2);
+
+            // build literal of resolution
+
+            ResNode resIntNode = this.addIntNode(null, remainingNodes.get(0),
+                    remainingNodes.get(1), 0);
+            namesOfResNodes.put(name, resIntNode);
+            assert (resIntNode != null);
+            if (resIntNode.cl.isEmpty())
+                this.setRoot(resIntNode);
+            return;
+        }
+
+        // Unknown node type
+        assert (false);
+    }
 
 }

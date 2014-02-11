@@ -31,6 +31,7 @@ import at.iaik.suraq.parser.TseitinParser;
 import at.iaik.suraq.parser.VeriTParser;
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
+import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -528,18 +529,46 @@ public class Suraq implements Runnable {
 
         Timer timer = new Timer();
         // assert (proof.checkProof());
-        Util.printToSystemOutWithWallClockTimePrefix("  Cleaning veriT proof...");
+        Util.printToSystemOutWithWallClockTimePrefix("  Splitting uncolorable leaves in veriT proof...");
         timer.start();
-        proof.cleanProof();
+        Map<VeritProofNode, VeritProofNode> replacements = proof
+                .splitUncolorableLeaves();
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
         timer.reset();
-        assert (proof.hasNoBadLiterals());
+
+        Util.printToSystemOutWithWallClockTimePrefix("  Obtaining new propositional ResProof based on new leaves...");
+        timer.start();
+        Map<String, Integer> literalIds = new HashMap<String, Integer>();
+        Map<Integer, Formula> literalMap = new HashMap<Integer, Formula>();
+        Map<ImmutableSet<Integer>, Integer> leafPartitions = new HashMap<ImmutableSet<Integer>, Integer>();
+        ResProof resProof = null;
+        try {
+            resProof = ResProof.create(proof, replacements, literalIds,
+                    literalMap, leafPartitions);
+        } catch (IOException exc) {
+            System.out.println("IOException during creation of resProof");
+            throw new RuntimeException(exc);
+        }
+        assert (resProof != null);
+        timer.stop();
+        Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
+                + ")");
+        timer.reset();
 
         Util.printToSystemOutWithWallClockTimePrefix("  Reordering resolution proof...");
         timer.start();
-        TransformedZ3Proof recoveredProof = proof.reorderResolutionSteps();
+        // TransformedZ3Proof recoveredProof = proof.reorderResolutionSteps();
+        resProof.checkProof(false);
+        resProof.rmDoubleLits();
+        resProof.deLocalizeProof();
+        resProof.checkProof(false);
+        resProof.tranformResProofs();
+
+        Map<ResNode, TransformedZ3Proof> cache = new HashMap<ResNode, TransformedZ3Proof>();
+        TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
+                resProof.getRoot(), literalMap, cache);
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");

@@ -1515,4 +1515,39 @@ public final class Util {
         return result;
 
     }
+
+    /**
+     * 
+     * @param literal
+     * @param literalIds
+     * @param partitions
+     *            mapping of literal IDs to partitions (0 for global) will be
+     *            stored here.
+     * @param literalMap
+     *            map from literal IDs (Integers) to <code>Formula</code>
+     *            objects. (will be updated here)
+     * @return the id of the given literal in the given map, or a fresh id
+     *         (which is stored to the map)
+     */
+    public static int getLiteralId(Formula literal,
+            Map<String, Integer> literalIds, Map<Integer, Integer> partitions,
+            Map<Integer, Formula> literalMap) {
+        assert (Util.isLiteral(literal));
+        Formula atom = Util.makeLiteralPositive(literal);
+        String idString = Util.makeIdString(atom);
+        Integer id = literalIds.get(idString);
+        if (id == null) {
+            id = literalIds.size() + 1;
+            assert (!literalIds.containsKey(id));
+            literalIds.put(idString, id);
+            Set<Integer> literalPartitions = literal.getPartitionsFromSymbols();
+            literalPartitions.remove(-1);
+            assert (literalPartitions.size() <= 1);
+            int literalPartition = literalPartitions.isEmpty() ? 0
+                    : literalPartitions.iterator().next();
+            partitions.put(id, literalPartition);
+        }
+        literalMap.put(id, atom);
+        return id;
+    }
 }

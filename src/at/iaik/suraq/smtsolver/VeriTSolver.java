@@ -10,7 +10,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import at.iaik.suraq.main.QBFSolver;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.ProcessResult;
 import at.iaik.suraq.util.ProcessUtil;
@@ -63,7 +62,7 @@ public class VeriTSolver {
     /**
      * The Path of the executable veriT
      */
-    private String path = "./lib/veriT/veriT";
+    private static String path = "./lib/veriT/veriT";
 
     /**
      * The Path of the VeriT-Proof File, if it exists.
@@ -125,7 +124,7 @@ public class VeriTSolver {
             throw new RuntimeException(e);
         }
 
-        String executionPath = path //
+        String executionPath = VeriTSolver.path //
                 + " --proof-version=1" // 0|1
                 + " --proof=" + proofFile // temporary file
                 + " --proof-with-sharing" //
@@ -160,11 +159,11 @@ public class VeriTSolver {
                 System.out.print("-");
                 continue;
             } else if (line.equalsIgnoreCase("sat")) {
-                state = QBFSolver.SAT;
+                state = VeriTSolver.SAT;
                 System.out.println("\nVeriT/SAT");
                 continue;
             } else if (line.equalsIgnoreCase("unsat")) {
-                state = QBFSolver.UNSAT;
+                state = VeriTSolver.UNSAT;
                 System.out.println("\nVeriT/UNSAT");
                 continue;
             }
@@ -176,8 +175,8 @@ public class VeriTSolver {
             // }
         }
 
-        if (state == QBFSolver.NOT_RUN)
-            state = QBFSolver.UNKNOWN;
+        if (state == VeriTSolver.NOT_RUN)
+            state = VeriTSolver.UNKNOWN;
 
         if (pResult.getExitCode() != 0) {
             System.out.println("EXIT CODE: " + pResult.getExitCode());
@@ -191,6 +190,73 @@ public class VeriTSolver {
         if (proofFile.exists()) {
             lastFile = proofFile;
         }
+    }
+
+    /**
+     * Solves the given <code>dimacsFile</code>
+     * 
+     * @param dimacsFile
+     * @throws IOException
+     */
+    public void solveDimacs(File dimacsFile) throws IOException {
+
+        proofFile = File.createTempFile("veriT-proof-dimacs", ".smt2",
+                new File("./"));
+        String executionPath = VeriTSolver.path //
+                + " --proof-version=1" // 0|1
+                + " --proof=" + proofFile // temporary file
+                + " --proof-with-sharing" //
+                + " --proof-prune" //
+                + " --proof-merge" //
+                + " --input=dimacs" //
+                + " --output=smtlib2" //
+                + " --disable-print-success" //
+                + " --disable-banner" //
+                // + " --max-time=SECONDS" // max. execution time in seconds
+                // + " --disable-ackermann" // maybe?
+                + " " + dimacsFile;
+
+        System.out.println("starting veriT: " + executionPath);
+
+        // ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
+        // smt2);
+        ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
+                "");
+        System.out.println("i'm back from veriT...");
+
+        String output = pResult.getOutputStream();
+        String[] lines = output.split("\n");
+        // StringBuffer proofBuffer = new StringBuffer();
+
+        // parse the lines of the output:
+        for (String line : lines) {
+            if (line.equalsIgnoreCase("success")) {
+                // System.out.print(".");
+                continue;
+            } else if (line.equalsIgnoreCase("unsupported")) {
+                System.out.print("-");
+                continue;
+            } else if (line.equalsIgnoreCase("sat")) {
+                state = VeriTSolver.SAT;
+                System.out.println("\nVeriT/SAT");
+                continue;
+            } else if (line.equalsIgnoreCase("unsat")) {
+                state = VeriTSolver.UNSAT;
+                System.out.println("\nVeriT/UNSAT");
+                continue;
+            }
+        }
+
+        if (pResult.getExitCode() != 0) {
+            System.out.println("EXIT CODE: " + pResult.getExitCode());
+            System.out.println("ERROR:     " + pResult.getErrorStream());
+            System.out.println("OUTPUT:    " + output);
+        }
+
+        if (proofFile.exists()) {
+            lastFile = proofFile;
+        }
+
     }
 
     /**

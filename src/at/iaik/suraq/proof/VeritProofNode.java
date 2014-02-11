@@ -2499,4 +2499,13 @@ public class VeritProofNode implements Serializable {
         writer.append(")))\n");
         alreadyWritten.add(this);
     }
+
+    /**
+     * @return the partition of this leaf based on its proof's
+     *         <code>partitionsOfLeaves</code> map
+     */
+    public Integer getLeafPartition() {
+        assert (this.isLeaf());
+        return this.proof.getPartitionOfLeaf(this);
+    }
 }

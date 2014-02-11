@@ -4,8 +4,6 @@
 package at.iaik.suraq.proof;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
@@ -557,9 +555,11 @@ public class VeritProof implements Serializable {
     }
 
     /**
-     * Cleans the proof of bad literals and splits leafs into colorable parts.
+     * Splits leaves into colorable subproofs.
+     * 
+     * @return a <code>Map</code> from originals to replacements.
      */
-    public void cleanProof() {
+    public Map<VeritProofNode, VeritProofNode> splitUncolorableLeaves() {
 
         Set<VeritProofNode> leafs = this.getLeaves();
         Util.printToSystemOutWithWallClockTimePrefix("Found " + leafs.size()
@@ -640,74 +640,76 @@ public class VeritProof implements Serializable {
         assert (replacements.size() == leavesToClean.size());
         assert (replacements.keySet().containsAll(leavesToClean));
 
+        return replacements;
         // -------------------------------------------------------------
-        Util.printToSystemOutWithWallClockTimePrefix("Now replacing uncolorable leaves with colorable subproofs.");
-
-        int count = 0;
-        for (VeritProofNode leafToClean : replacements.keySet()) {
-            VeritProofNode replacement = replacements.get(leafToClean);
-            assert (replacement != null);
-            Util.printToSystemOutWithWallClockTimePrefix("  Replacing leaf "
-                    + leafToClean.getName() + " with subproof of size "
-                    + replacement.getReachableNodes().size());
-            assert (leafToClean.getLiteralConclusions().containsAll(replacement
-                    .getLiteralConclusions()));
-
-            Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
-                    leafToClean.getParents());
-            int numNodesUpdated = 0;
-            for (VeritProofNode parent : parentsCopy) {
-                if (!leafToClean.getParents().contains(parent))
-                    continue;
-                numNodesUpdated += parent
-                        .makeStronger(leafToClean, replacement);
-            }
-            Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count
-                    + " (Approx. " + numNodesUpdated + " nodes updated)");
-        }
-        Util.printToSystemOutWithWallClockTimePrefix("  All done.");
-        Util.printToSystemOutWithWallClockTimePrefix("Now removing unreachable nodes.");
-        Util.printToSystemOutWithWallClockTimePrefix("Size before: "
-                + this.size());
-        this.removeUnreachableNodes();
-        Util.printToSystemOutWithWallClockTimePrefix("Size after: "
-                + this.size());
-        assert (this.isColorable());
-        assert (this.checkProof());
-
-        if (leavesToClean.size() > 0) {
-            String path = null;
-            SuraqOptions options = SuraqOptions.getInstance();
-            if (options.getUseThisProofFile() != null) {
-                path = options.getUseThisProofFile();
-                if (path.endsWith(".smt2")) {
-                    path = new String(path.subSequence(0, path.length() - 5)
-                            + "_split.smt2");
-                } else
-                    path = path + "_split.smt2";
-            } else {
-                path = options.getInput();
-                if (path.endsWith(".smt2")) {
-                    path = new String(path.subSequence(0, path.length() - 6)
-                            + "_proof_split.smt2");
-                } else
-                    path = path + "_proof_split.smt2";
-            }
-            File file = new File(path);
-            try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-                Util.printToSystemOutWithWallClockTimePrefix("Now writing proof to file "
-                        + file.toString());
-                this.writeOut(writer);
-                writer.close();
-            } catch (IOException exc) {
-                Util.printToSystemOutWithWallClockTimePrefix("IOException while trying to write proof to file. Details follow.");
-                Util.printToSystemOutWithWallClockTimePrefix(exc.getMessage() == null ? "(no message)"
-                        : exc.getMessage());
-                exc.printStackTrace();
-            }
-        }
-
+        // Util.printToSystemOutWithWallClockTimePrefix("Now replacing uncolorable leaves with colorable subproofs.");
+        //
+        // int count = 0;
+        // for (VeritProofNode leafToClean : replacements.keySet()) {
+        // VeritProofNode replacement = replacements.get(leafToClean);
+        // assert (replacement != null);
+        // Util.printToSystemOutWithWallClockTimePrefix("  Replacing leaf "
+        // + leafToClean.getName() + " with subproof of size "
+        // + replacement.getReachableNodes().size());
+        // assert (leafToClean.getLiteralConclusions().containsAll(replacement
+        // .getLiteralConclusions()));
+        //
+        // Set<VeritProofNode> parentsCopy = new HashSet<VeritProofNode>(
+        // leafToClean.getParents());
+        // int numNodesUpdated = 0;
+        // for (VeritProofNode parent : parentsCopy) {
+        // if (!leafToClean.getParents().contains(parent))
+        // continue;
+        // numNodesUpdated += parent
+        // .makeStronger(leafToClean, replacement);
+        // }
+        // Util.printToSystemOutWithWallClockTimePrefix("    Done " + ++count
+        // + " (Approx. " + numNodesUpdated + " nodes updated)");
+        // }
+        // Util.printToSystemOutWithWallClockTimePrefix("  All done.");
+        // Util.printToSystemOutWithWallClockTimePrefix("Now removing unreachable nodes.");
+        // Util.printToSystemOutWithWallClockTimePrefix("Size before: "
+        // + this.size());
+        // this.removeUnreachableNodes();
+        // Util.printToSystemOutWithWallClockTimePrefix("Size after: "
+        // + this.size());
+        // assert (this.isColorable());
+        // assert (this.checkProof());
+        //
+        // if (leavesToClean.size() > 0) {
+        // String path = null;
+        // SuraqOptions options = SuraqOptions.getInstance();
+        // if (options.getUseThisProofFile() != null) {
+        // path = options.getUseThisProofFile();
+        // if (path.endsWith(".smt2")) {
+        // path = new String(path.subSequence(0, path.length() - 5)
+        // + "_split.smt2");
+        // } else
+        // path = path + "_split.smt2";
+        // } else {
+        // path = options.getInput();
+        // if (path.endsWith(".smt2")) {
+        // path = new String(path.subSequence(0, path.length() - 6)
+        // + "_proof_split.smt2");
+        // } else
+        // path = path + "_proof_split.smt2";
+        // }
+        // File file = new File(path);
+        // try {
+        // BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+        // Util.printToSystemOutWithWallClockTimePrefix("Now writing proof to file "
+        // + file.toString());
+        // this.writeOut(writer);
+        // writer.close();
+        // } catch (IOException exc) {
+        // Util.printToSystemOutWithWallClockTimePrefix("IOException while trying to write proof to file. Details follow.");
+        // Util.printToSystemOutWithWallClockTimePrefix(exc.getMessage() == null
+        // ? "(no message)"
+        // : exc.getMessage());
+        // exc.printStackTrace();
+        // }
+        // }
+        //
     }
 
     /**
@@ -1292,6 +1294,17 @@ public class VeritProof implements Serializable {
         else
             Util.printToSystemOutWithWallClockTimePrefix("Deactivating proof checks.");
         VeritProof.checkProofEnabled = checkProofEnabled;
+    }
+
+    /**
+     * @param node
+     * @return
+     */
+    public Integer getPartitionOfLeaf(VeritProofNode node) {
+        assert (node.isLeaf());
+        Integer result = partitionsOfLeafs.get(node);
+        assert (result != null);
+        return result;
     }
 
 }

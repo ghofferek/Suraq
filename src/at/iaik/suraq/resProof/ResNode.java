@@ -18,7 +18,7 @@ public class ResNode {
 
     public ResNode left = null;
     public ResNode right = null;
-    public HashSet<ResNode> children = new HashSet<ResNode>();
+    public HashSet<ResNode> children = new HashSet<ResNode>(4);
 
     public ResNode(int pId, boolean pIsLeaf) {
         id = pId;

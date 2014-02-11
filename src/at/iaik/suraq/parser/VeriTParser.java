@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,7 @@ import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.proof.VeriTToken;
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
+import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
@@ -36,6 +38,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
 
 public class VeriTParser extends Parser {
@@ -99,6 +102,22 @@ public class VeriTParser extends Parser {
     private int currentLine = 0;
 
     /**
+     * The ResProof. If not null, we parse into this ResProof instead of into a
+     * veriT proof.
+     */
+    private ResProof resProof = null;
+
+    /**
+     * Map from literal IDs to partitions
+     */
+    private Map<Integer, Integer> partitions = null;
+
+    /**
+     * Map from clauses of leaves to partitions
+     */
+    private Map<ImmutableSet<Integer>, Integer> leafPartitions = null;
+
+    /**
      * The VeriTParser needs all those Parameters to know which variable had
      * which type. The current version will not work if two UF have the same
      * name but an other count of parameters. In that case, please rename the
@@ -157,6 +176,30 @@ public class VeriTParser extends Parser {
                 uninterpretedFunctionNames.add(uf.getName().toString());
             }
         }
+    }
+
+    /**
+     * Constructs a new <code>VeriTParser</code>.
+     * 
+     * @param stream
+     * @param inverseLiteralIds
+     * @param resProof
+     */
+    public VeriTParser(BufferedReader stream, int maxId, ResProof resProof,
+            Map<Integer, Integer> partitions,
+            Map<ImmutableSet<Integer>, Integer> leafPartitions) {
+        this.uninterpretedFunctionNames = new HashSet<String>();
+        this.uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        this.domainVariables = new HashSet<DomainVariable>();
+        this.reader = stream;
+        this.propositionalVariables = new HashSet<PropositionalVariable>(
+                2 * maxId);
+        for (int count = 1; count <= maxId; count++)
+            this.propositionalVariables.add(PropositionalVariable.create("v_"
+                    + Integer.toString(count)));
+        this.partitions = new HashMap<Integer, Integer>(partitions);
+        this.leafPartitions = new HashMap<ImmutableSet<Integer>, Integer>(
+                leafPartitions);
     }
 
     private void cleanUp() {
@@ -249,13 +292,16 @@ public class VeriTParser extends Parser {
                     // REGEX: \s=A whitespace character: [ \t\n\x0B\f\r]
                     parsed_clauses = clauses.split("\\s");
                     // find the given clauses in already existing ProofNodes and
-                    parsed_clauses2 = new ArrayList<VeritProofNode>();
-                    for (String parsed_clause : parsed_clauses) {
-                        VeritProofNode proofNode = proof
-                                .getProofNode(parsed_clause);
-                        assert (proofNode != null);
-                        parsed_clauses2.add(proofNode);
+                    if (resProof == null) {
+                        parsed_clauses2 = new ArrayList<VeritProofNode>();
+                        for (String parsed_clause : parsed_clauses) {
+                            VeritProofNode proofNode = proof
+                                    .getProofNode(parsed_clause);
+                            assert (proofNode != null);
+                            parsed_clauses2.add(proofNode);
+                        }
                     }
+
                 }
 
                 // if :iargs exists, parse them
@@ -283,9 +329,17 @@ public class VeriTParser extends Parser {
 
                 // Store the ProofNode to the Proof
                 assert (conclusions != null);
-                proof.addProofNode(name, type, conclusions, parsed_clauses2,
-                        parsed_iargs, !SuraqOptions.getInstance()
-                                .getDontRemoveLemmaSubproofs());
+                if (resProof == null) {
+                    proof.addProofNode(name, type, conclusions,
+                            parsed_clauses2, parsed_iargs, !SuraqOptions
+                                    .getInstance()
+                                    .getDontRemoveLemmaSubproofs());
+                } else {
+                    assert (partitions != null);
+                    assert (leafPartitions != null);
+                    resProof.add(name, type, conclusions, parsed_clauses,
+                            partitions, leafPartitions);
+                }
 
                 // read next line
                 line = reader.readLine();
