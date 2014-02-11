@@ -188,6 +188,7 @@ public class VeriTParser extends Parser {
     public VeriTParser(BufferedReader stream, int maxId, ResProof resProof,
             Map<Integer, Integer> partitions,
             Map<ImmutableSet<Integer>, Integer> leafPartitions) {
+        this.resProof = resProof;
         this.uninterpretedFunctionNames = new HashSet<String>();
         this.uninterpretedFunctions = new HashSet<UninterpretedFunction>();
         this.domainVariables = new HashSet<DomainVariable>();

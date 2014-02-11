@@ -26,6 +26,7 @@ import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtsolver.VeriTSolver;
@@ -91,7 +92,8 @@ public class ResProof {
         assert (literalIds != null);
         assert (literalIds.isEmpty());
 
-        File tmpDimacsFile = File.createTempFile("", ".dimacs", new File("./"));
+        File tmpDimacsFile = File.createTempFile("tmp", ".dimacs", new File(
+                "./"));
         BufferedWriter writer = new BufferedWriter(
                 new FileWriter(tmpDimacsFile));
 
@@ -100,11 +102,16 @@ public class ResProof {
         // Use the getLeaves() method of the root, in order to avoid
         // getting the leaves of the colorable subproofs as well!
         Set<VeritProofNode> leaves = proof.getRoot().getLeaves();
-        for (VeritProofNode leaf : leaves) {
-            if (replacements.containsKey(leaf))
-                leaf = replacements.get(leaf);
-            assert (leaf != null);
+        Set<VeritProofNode> allLeaves = new HashSet<VeritProofNode>(leaves);
+        for (VeritProofNode node : replacements.keySet()) {
+            allLeaves.remove(node);
+            VeritProofNode replacement = replacements.get(node);
+            assert (replacement != null);
+            Set<VeritProofNode> replacementLeaves = replacement.getLeaves();
+            allLeaves.addAll(replacementLeaves);
+        }
 
+        for (VeritProofNode leaf : allLeaves) {
             Set<Integer> clause = new HashSet<Integer>(leaf
                     .getLiteralConclusions().size());
             for (Formula literal : leaf.getLiteralConclusions()) {
@@ -117,8 +124,18 @@ public class ResProof {
                 clause.add(literalId);
             }
             writer.write("0\n");
-            leafPartitions.put(ImmutableSet.create(clause),
-                    leaf.getLeafPartition());
+            int leafPartition;
+            if (!leaves.contains(leaf) || leaf.isAxiom()) {
+                // This is a leaf in the subproof of a replacement node
+                Set<Integer> tmpPartitions = leaf.getPartitionsFromSymbols();
+                tmpPartitions.remove(-1);
+                assert (tmpPartitions.size() <= 1);
+                leafPartition = tmpPartitions.isEmpty() ? 0 : tmpPartitions
+                        .iterator().next();
+            } else {
+                leafPartition = leaf.getLeafPartition();
+            }
+            leafPartitions.put(ImmutableSet.create(clause), leafPartition);
         }
         writer.close();
 
@@ -623,11 +640,15 @@ public class ResProof {
     public void add(String name, Token type, List<Formula> conclusions,
             String[] parsed_clauses, Map<Integer, Integer> partitionsMap,
             Map<ImmutableSet<Integer>, Integer> leafPartitions) {
-        if (type.equals(VeriTToken.INPUT))
-            // We ignore INPUT-nodes and work with OR-nodes as leaves
-            return;
+        if (type.equals(VeriTToken.INPUT)) {
+            // We ignore INPUT-nodes with OR-formulas as conclusions
+            if (conclusions.size() == 1) {
+                if (conclusions.get(0) instanceof OrFormula)
+                    return;
+            }
+        }
 
-        if (type.equals(VeriTToken.OR)) {
+        if (type.equals(VeriTToken.OR) || type.equals(VeriTToken.INPUT)) {
             // This is a leaf
 
             List<Lit> resClause = new ArrayList<Lit>();
@@ -664,11 +685,11 @@ public class ResProof {
             if (leafPartition == 0) {
                 Set<Integer> tmpClause = new TreeSet<Integer>();
                 for (Lit lit : resClause) {
-                    tmpClause.add(lit.l);
+                    tmpClause.add(lit.signed_var());
                 }
                 ImmutableSet<Integer> clause = ImmutableSet.create(tmpClause);
                 assert (leafPartitions.containsKey(clause));
-                assert (leafPartitions.get(clause) > 0);
+                assert (leafPartitions.get(clause) >= 0);
                 leafPartition = leafPartitions.get(clause);
             }
             ResNode resLeafNode = this.addLeaf(resClause, leafPartition);
@@ -691,10 +712,8 @@ public class ResProof {
                 }
                 while (true) {
                     assert (remainingNodes.size() > 2);
-                    ResNode left = namesOfResNodes
-                            .get(remainingNodes.remove(0));
-                    ResNode right = namesOfResNodes.get(remainingNodes
-                            .remove(0));
+                    ResNode left = remainingNodes.remove(0);
+                    ResNode right = remainingNodes.remove(0);
                     ResNode intermediateNode = this.addIntNode(null, left,
                             right, 0);
                     remainingNodes.add(0, intermediateNode);

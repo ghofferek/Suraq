@@ -7,7 +7,7 @@ public class Lit {
     int l;
 
     public Lit(int pl) {
-        l=pl;
+        l = pl;
     }
 
     public Lit(int i, boolean b) {
@@ -23,7 +23,7 @@ public class Lit {
     }
 
     // public int negate() {
-    //     return (l ^ 0x1);
+    // return (l ^ 0x1);
     // }
 
     public Lit negLit() {
@@ -50,6 +50,13 @@ public class Lit {
             return "~" + (l >> 1);
         else
             return Integer.toString(l >> 1);
+    }
+
+    /**
+     * @return
+     */
+    public int signed_var() {
+        return (l >> 1) * ((l & 0x1) == 1 ? 1 : -1);
     }
 
 }
