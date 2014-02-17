@@ -243,7 +243,8 @@ public class VeriTParser extends Parser {
                 if (currentLine % 10000 == 0) {
                     Util.printToSystemOutWithWallClockTimePrefix("  Now starting to parse line "
                             + Util.largeNumberFormatter.format(currentLine));
-                    VeritProofNode.printCheckCountersAndTimers();
+                    if (SuraqOptions.getInstance().getCheckProofWhileParsing())
+                        VeritProofNode.printCheckCountersAndTimers();
                 }
                 if (currentLine % 100000 == 0) {
                     Util.printMemoryInformation();

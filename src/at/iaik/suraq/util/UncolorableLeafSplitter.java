@@ -57,6 +57,8 @@ public class UncolorableLeafSplitter implements Runnable {
      */
     private final Thread parentThread;
 
+    private int doneCount = 0;
+
     /**
      * 
      * Constructs a new <code>UncolorableLeafSplitter</code>.
@@ -93,12 +95,13 @@ public class UncolorableLeafSplitter implements Runnable {
     /**
      * Performs the actual work
      */
-    private synchronized void split() {
+    private void split() {
 
-        int count = 0;
         while (!leavesToSplit.isEmpty()) {
-            VeritProofNode leafToSplit = leavesToSplit.remove(leavesToSplit
-                    .size() - 1);
+            VeritProofNode leafToSplit = null;
+            synchronized (this) {
+                leafToSplit = leavesToSplit.remove(leavesToSplit.size() - 1);
+            }
 
             assert (CongruenceClosure.checkVeritProofNode(leafToSplit));
             assert (Util.countPositiveLiterals(leafToSplit
@@ -146,27 +149,30 @@ public class UncolorableLeafSplitter implements Runnable {
             int difference = leafToSplit.getLiteralConclusions().size()
                     - replacement.getLiteralConclusions().size();
             assert (difference >= 0);
-            if (difference > 0) {
-                totalLiteralsFewer += difference;
-                numStrongerClauses++;
+            synchronized (Util.class) {
+                if (difference > 0) {
+                    totalLiteralsFewer += difference;
+                    numStrongerClauses++;
+                    Util.printToSystemOutWithWallClockTimePrefix("    "
+                            + "Splitter " + id + ": " + "Replacement has "
+                            + replacement.getLiteralConclusions().size()
+                            + " literals (" + difference
+                            + " literals fewer than original leaf.)");
+                } else
+                    Util.printToSystemOutWithWallClockTimePrefix("    "
+                            + "Splitter " + id + ": "
+                            + "Replacement has the same number of literals. ("
+                            + replacement.getLiteralConclusions().size() + ")");
                 Util.printToSystemOutWithWallClockTimePrefix("    "
-                        + "Splitter " + id + ": " + "Replacement has "
-                        + replacement.getLiteralConclusions().size()
-                        + " literals (" + difference
-                        + " literals fewer than original leaf.)");
-            } else
+                        + "Splitter " + id + ": " + totalLiteralsFewer
+                        + " literals saved so far in " + numStrongerClauses
+                        + " clauses.");
+                replacements.put(leafToSplit, replacement);
+
                 Util.printToSystemOutWithWallClockTimePrefix("    "
-                        + "Splitter " + id + ": "
-                        + "Replacement has the same number of literals. ("
-                        + replacement.getLiteralConclusions().size() + ")");
-            Util.printToSystemOutWithWallClockTimePrefix("    " + "Splitter "
-                    + id + ": " + totalLiteralsFewer
-                    + " literals saved so far in " + numStrongerClauses
-                    + " clauses.");
-            replacements.put(leafToSplit, replacement);
-            Util.printToSystemOutWithWallClockTimePrefix("    " + "Splitter "
-                    + id + ": " + "Done " + ++count + ". ("
-                    + leavesToSplit.size() + " remaining.)");
+                        + "Splitter " + id + ": " + "Done " + ++doneCount
+                        + ". (" + leavesToSplit.size() + " remaining.)");
+            }
         }
         synchronized (Util.class) {
             Util.printToSystemOutWithWallClockTimePrefix("    " + "Splitter "
@@ -209,6 +215,22 @@ public class UncolorableLeafSplitter implements Runnable {
         Map<VeritProofNode, VeritProofNode> result = new HashMap<VeritProofNode, VeritProofNode>(
                 replacements);
         return result;
+    }
+
+    /**
+     * 
+     * @return number of splits already done
+     */
+    public synchronized int getDone() {
+        return doneCount;
+    }
+
+    /**
+     * 
+     * @return number of splits remaining
+     */
+    public synchronized int getRemaining() {
+        return leavesToSplit.size();
     }
 
 }

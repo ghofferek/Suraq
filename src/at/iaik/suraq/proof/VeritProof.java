@@ -28,6 +28,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.MutableInteger;
+import at.iaik.suraq.util.SplitterBookkeeper;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.UncolorableLeafSplitter;
 import at.iaik.suraq.util.Util;
@@ -82,6 +83,11 @@ public class VeritProof implements Serializable {
     private static boolean checkProofEnabled = true;
 
     /**
+     * Used to make node names fresh.
+     */
+    private long freshNodeNumber = 1;
+
+    /**
      * Returns a (new) <code>VeritProofNode</code>. It is automatically attached
      * to its clauses (as a Parent). Then the generated VeritProofNode is
      * returned.
@@ -98,7 +104,7 @@ public class VeritProof implements Serializable {
      *            a list of VeritProofNodes that are the clauses(=children) of
      *            the currently added
      * @param iargs
-     *            a number as an Integer (e.g. 1)
+     *            a freshNodeNumber as an Integer (e.g. 1)
      * 
      * @param removeSubproofsOfTheoryLemmas
      *            specifies whether or not subproofs of theory lemmas should be
@@ -131,7 +137,7 @@ public class VeritProof implements Serializable {
      *            a list of VeritProofNodes that are the clauses(=children) of
      *            the currently added
      * @param iargs
-     *            a number as an Integer (e.g. 1)
+     *            a freshNodeNumber as an Integer (e.g. 1)
      * 
      * @param removeSubproofsOfTheoryLemmas
      *            specifies whether or not subproofs of theory lemmas should be
@@ -150,7 +156,8 @@ public class VeritProof implements Serializable {
 
         VeritProofNode node = null;
 
-        int partition = -38317; // Magic number, easy to find when it turns up
+        int partition = -38317; // Magic freshNodeNumber, easy to find when it
+                                // turns up
                                 // somewhere accidentally
         if (type.equals(VeriTToken.INPUT)) {
             // This is a "real" input node.
@@ -235,11 +242,11 @@ public class VeritProof implements Serializable {
     }
 
     /**
-     * get the number of literal Conclusions in all VeriTProofNodes attached to
-     * this VeritProof
+     * get the freshNodeNumber of literal Conclusions in all VeriTProofNodes
+     * attached to this VeritProof
      * 
-     * @return the number of literal Conclusions in all VeriTProofNodes attached
-     *         to this VeritProof
+     * @return the freshNodeNumber of literal Conclusions in all VeriTProofNodes
+     *         attached to this VeritProof
      */
     public int getLiteralConclusionsCount() {
         int size = 0;
@@ -612,6 +619,9 @@ public class VeritProof implements Serializable {
             thread.start();
         }
         // Now all threads are running
+        SplitterBookkeeper bookkeeper = new SplitterBookkeeper(splitters);
+        Thread bookkeeperThread = new Thread(bookkeeper);
+        bookkeeperThread.start();
         for (int id = 0; id < numThreads; id++) {
             try {
                 threads[id].join();
@@ -620,6 +630,7 @@ public class VeritProof implements Serializable {
                 throw new RuntimeException(exc);
             }
         }
+        bookkeeper.kill();
         Util.printToSystemOutWithWallClockTimePrefix("All splitters done");
         // Now all threads are done. Collect results.
         int totalLiteralsFewer = 0;
@@ -1116,8 +1127,8 @@ public class VeritProof implements Serializable {
 
     /**
      * The clause counter counts how many clauses have been added to this proof.
-     * Thus, using this number in the name of a new node guarantees that it is
-     * unique.
+     * Thus, using this freshNodeNumber in the name of a new node guarantees
+     * that it is unique.
      * 
      * @return the clause counter
      */
@@ -1126,10 +1137,11 @@ public class VeritProof implements Serializable {
     }
 
     /**
-     * Returns the size of this proof. More precisely, returns the number of
-     * nodes currently stored in the internal map <code>proofNodes</code>.
+     * Returns the size of this proof. More precisely, returns the
+     * freshNodeNumber of nodes currently stored in the internal map
+     * <code>proofNodes</code>.
      * 
-     * @return the number of nodes in this proof.
+     * @return the freshNodeNumber of nodes in this proof.
      */
     public int size() {
         return proofNodes.size();
@@ -1137,9 +1149,9 @@ public class VeritProof implements Serializable {
 
     /**
      * Returns a node name that does not yet exist in the proof. The name will
-     * be of the form <code>prefix + number + suffix</code>, where number is
-     * either the empty string or the smallest (positive) number such that the
-     * name is fresh.
+     * be of the form <code>prefix + freshNodeNumber + suffix</code>, where
+     * freshNodeNumber is either the empty string or the smallest (positive)
+     * freshNodeNumber such that the name is fresh.
      * 
      * @param prefix
      * @param suffix
@@ -1153,12 +1165,11 @@ public class VeritProof implements Serializable {
         if (!proofNodes.containsKey(name))
             return name;
 
-        int number = 1;
-        while (number > 0) {
-            name = prefix + number + suffix;
+        while (freshNodeNumber > 0) {
+            name = prefix + freshNodeNumber + suffix;
             if (!proofNodes.containsKey(name))
                 return name;
-            number++;
+            freshNodeNumber++;
         }
         // No fresh name found
         assert (false);
