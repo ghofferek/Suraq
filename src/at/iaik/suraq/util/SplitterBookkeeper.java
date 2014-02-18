@@ -135,7 +135,8 @@ public class SplitterBookkeeper implements Runnable {
                 if (cpuTime) {
                     Util.printToSystemOutWithWallClockTimePrefix("    "
                             + "OVERALL: Total CPU time (ns): "
-                            + Util.largeNumberFormatter.format(totalCpuTime));
+                            + Util.veryLargeNumberFormatter
+                                    .format(totalCpuTime));
                     Util.printToSystemOutWithWallClockTimePrefix("    "
                             + "OVERALL: Parallelization ratio: "
                             + parallelizationRatio);

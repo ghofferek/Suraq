@@ -66,6 +66,9 @@ public final class Util {
     public static final DecimalFormat largeNumberFormatter = new DecimalFormat(
             "###,###,###,###");
 
+    public static final DecimalFormat veryLargeNumberFormatter = new DecimalFormat(
+            "###,###,###,###,###,###");
+
     /**
      * Counts the number of Tseitin vars that have been introduced so far. This
      * makes sure they all get a unique name.
