@@ -107,7 +107,7 @@ public final class SuraqOptions {
     /**
      * Default value for the sleep time of the splitter bookkeeper
      */
-    private static final int splitterBookkeeperSleepTimeDefault = 1;
+    private static final int splitterBookkeeperSleepTimeDefault = 120;
 
     /**
      * The cache file name.
