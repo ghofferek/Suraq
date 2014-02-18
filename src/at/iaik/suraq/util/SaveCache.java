@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -49,8 +50,8 @@ public class SaveCache implements Serializable {
     private final Formula mainFormula;
     private final Map<Integer, Formula> assertPartitionFormulas;
     private final Map<PropositionalVariable, Formula> tseitinEncoding;
-    private final Map<Set<?>, ImmutableSet<?>> immutableSetInstances;
-    private final Map<Object, Object> immutableSetUniqueElements;
+    private final Map<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> immutableSetInstances;
+    private final Map<Object, WeakReference<Object>> immutableSetUniqueElements;
 
     private final Map<Token, List<Term>> noDependenceVarsCopies;
     private final Map<Token, List<UninterpretedFunction>> noDependenceFunctionsCopies;
@@ -64,14 +65,19 @@ public class SaveCache implements Serializable {
 
     private final LogicParser logicParser;
 
-    public SaveCache(Set<PropositionalVariable> propsitionalVars,
-            Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
+    public SaveCache(
+            Set<PropositionalVariable> propsitionalVars,
+            Set<DomainVariable> domainVars,
+            Set<ArrayVariable> arrayVars,
             Set<UninterpretedFunction> uninterpretedFunctions,
-            List<PropositionalVariable> controlVars, Formula mainFormula,
+            List<PropositionalVariable> controlVars,
+            Formula mainFormula,
             Map<Integer, Formula> assertPartitionFormulas,
-            Map<PropositionalVariable, Formula> tseitinEncoding, Z3Proof proof,
-            Map<Set<?>, ImmutableSet<?>> immutableSetInstances,
-            Map<Object, Object> immutableSetUniqueElements, String filename) {
+            Map<PropositionalVariable, Formula> tseitinEncoding,
+            Z3Proof proof,
+            Map<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> immutableSetInstances,
+            Map<Object, WeakReference<Object>> immutableSetUniqueElements,
+            String filename) {
 
         this.propsitionalVars = propsitionalVars;
         this.domainVars = domainVars;
@@ -83,9 +89,9 @@ public class SaveCache implements Serializable {
         this.mainFormula = mainFormula;
         this.assertPartitionFormulas = assertPartitionFormulas;
         this.tseitinEncoding = tseitinEncoding;
-        this.immutableSetInstances = new HashMap<Set<?>, ImmutableSet<?>>();
+        this.immutableSetInstances = new HashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>>();
         this.immutableSetInstances.putAll(immutableSetInstances);
-        this.immutableSetUniqueElements = new HashMap<Object, Object>();
+        this.immutableSetUniqueElements = new HashMap<Object, WeakReference<Object>>();
         this.immutableSetUniqueElements.putAll(immutableSetUniqueElements);
         veriTProofFile = null;
         noDependenceVarsCopies = null;
@@ -117,9 +123,9 @@ public class SaveCache implements Serializable {
         this.mainFormula = mainFormula;
         this.assertPartitionFormulas = assertPartitionFormulas;
         this.tseitinEncoding = tseitinEncoding;
-        this.immutableSetInstances = new HashMap<Set<?>, ImmutableSet<?>>();
+        this.immutableSetInstances = new HashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>>();
         this.immutableSetInstances.putAll(immutableSetInstances);
-        this.immutableSetUniqueElements = new HashMap<Object, Object>();
+        this.immutableSetUniqueElements = new HashMap<Object, WeakReference<Object>>();
         this.immutableSetUniqueElements.putAll(immutableSetUniqueElements);
         proof = null;
         this.veriTProofFile = veriTProofFile;
@@ -171,9 +177,9 @@ public class SaveCache implements Serializable {
         this.mainFormula = mainFormula;
         this.assertPartitionFormulas = assertPartitionFormulas;
         this.tseitinEncoding = tseitinEncoding;
-        this.immutableSetInstances = new HashMap<Set<?>, ImmutableSet<?>>();
+        this.immutableSetInstances = new HashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>>();
         this.immutableSetInstances.putAll(immutableSetInstances);
-        this.immutableSetUniqueElements = new HashMap<Object, Object>();
+        this.immutableSetUniqueElements = new HashMap<Object, WeakReference<Object>>();
         this.immutableSetUniqueElements.putAll(immutableSetUniqueElements);
         proof = null;
         this.veritProof = veriTProof;
@@ -301,8 +307,8 @@ public class SaveCache implements Serializable {
     /**
      * @return the <code>immutableSetInstances</code>
      */
-    public Map<Set<?>, ImmutableSet<?>> getImmutableSetInstances() {
-        WeakHashMap<Set<?>, ImmutableSet<?>> tmp = new WeakHashMap<Set<?>, ImmutableSet<?>>();
+    public WeakHashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> getImmutableSetInstances() {
+        WeakHashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> tmp = new WeakHashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>>();
         tmp.putAll(immutableSetInstances);
         return tmp;
     }
@@ -310,8 +316,8 @@ public class SaveCache implements Serializable {
     /**
      * @return the <code>immutableSetUniqueElements</code>
      */
-    public Map<Object, Object> getImmutableSetUniqueElements() {
-        WeakHashMap<Object, Object> tmp = new WeakHashMap<Object, Object>();
+    public WeakHashMap<Object, WeakReference<Object>> getImmutableSetUniqueElements() {
+        WeakHashMap<Object, WeakReference<Object>> tmp = new WeakHashMap<Object, WeakReference<Object>>();
         tmp.putAll(immutableSetUniqueElements);
         return tmp;
     }

@@ -1222,11 +1222,11 @@ public class VeritProofNode implements Serializable {
         }
 
         Set<Formula> literal1 = new HashSet<Formula>(subProofs.get(0)
-                .getLiteralConclusionsAsSet());
+                .getLiteralConclusions());
         literal1.removeAll(literalConclusions);
 
         Set<Formula> literal2 = new HashSet<Formula>(subProofs.get(1)
-                .getLiteralConclusionsAsSet());
+                .getLiteralConclusions());
         literal2.removeAll(literalConclusions);
 
         if (literal1.size() != 1 || literal2.size() != 1) {
@@ -1790,13 +1790,13 @@ public class VeritProofNode implements Serializable {
     public VeritProofNode getChildWithLiteralInOppositePolarity(Formula literal) {
         assert (this.resolvesOn(literal));
         assert (subProofs.size() == 2);
-        if (subProofs.get(0).getLiteralConclusionsAsSet().contains(literal)) {
-            assert (subProofs.get(1).getLiteralConclusionsAsSet().contains(Util
+        if (subProofs.get(0).getLiteralConclusions().contains(literal)) {
+            assert (subProofs.get(1).getLiteralConclusions().contains(Util
                     .invertLiteral(literal)));
             return subProofs.get(1);
         }
-        if (subProofs.get(1).getLiteralConclusionsAsSet().contains(literal)) {
-            assert (subProofs.get(0).getLiteralConclusionsAsSet().contains(Util
+        if (subProofs.get(1).getLiteralConclusions().contains(literal)) {
+            assert (subProofs.get(0).getLiteralConclusions().contains(Util
                     .invertLiteral(literal)));
             return subProofs.get(0);
         }

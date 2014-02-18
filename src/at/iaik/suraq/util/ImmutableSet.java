@@ -4,10 +4,10 @@
 package at.iaik.suraq.util;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -26,9 +26,9 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
 
     private int hashCode;
 
-    private static Map<Set<?>, ImmutableSet<?>> instances = new WeakHashMap<Set<?>, ImmutableSet<?>>();
+    private static WeakHashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> instances = new WeakHashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>>();
 
-    private static Map<Object, Object> uniqueElements = new WeakHashMap<Object, Object>();
+    private static WeakHashMap<Object, WeakReference<Object>> uniqueElements = new WeakHashMap<Object, WeakReference<Object>>();
 
     /**
      * Constructs a new <code>ImmutableSet</code>.
@@ -46,48 +46,56 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
             } else {
                 assert (element != null);
                 @SuppressWarnings("unchecked")
-                E uniqueElement = (E) ImmutableSet.uniqueElements.get(element);
-                if (uniqueElement != null)
+                WeakReference<E> uniqueElementReference = (WeakReference<E>) ImmutableSet.uniqueElements
+                        .get(element);
+                E uniqueElement = uniqueElementReference == null ? null
+                        : uniqueElementReference.get();
+                if (uniqueElement != null) {
                     internalSet.add(uniqueElement);
-                else {
-                    ImmutableSet.uniqueElements.put(element, element);
+                } else {
+                    ImmutableSet.uniqueElements.put(element,
+                            new WeakReference<Object>(element));
                     internalSet.add(element);
                 }
             }
         }
 
-        Set<E> key = new HashSet<E>();
-        key.addAll(set);
-        ImmutableSet.instances.put(key, this);
-
+        // Set hashCode before passing this pointer
         this.hashCode = internalSet.hashCode();
+        ImmutableSet.instances.put(this, new WeakReference<ImmutableSet<?>>(
+                this));
     }
 
-    public static <T> ImmutableSet<T> create(Collection<? extends T> set) {
+    public static synchronized <T> ImmutableSet<T> create(
+            Collection<? extends T> set) {
 
         if (set == null)
             throw new NullPointerException(
                     "Cannot create ImmutableSet from null.");
 
-        ImmutableSet<?> existingSet = ImmutableSet.instances.get(set);
-        if (existingSet != null) {
+        WeakReference<ImmutableSet<?>> existingSetReference = ImmutableSet.instances
+                .get(set);
+        if (existingSetReference != null) {
+            ImmutableSet<?> existingSet = existingSetReference.get();
+            if (existingSet != null) {
+                if (set.isEmpty()) {
+                    assert (existingSet.isEmpty());
+                    ImmutableSet<?> tmp = existingSet;
+                    assert (tmp.isEmpty());
+                    @SuppressWarnings("unchecked")
+                    ImmutableSet<T> castResult = (ImmutableSet<T>) tmp;
+                    return castResult;
+                }
 
-            if (set.isEmpty()) {
-                assert (existingSet.isEmpty());
-                ImmutableSet<?> tmp = existingSet;
-                assert (tmp.isEmpty());
+                assert (!set.isEmpty());
+                assert (!existingSet.isEmpty());
+                assert (set.size() == existingSet.size());
+                assert (existingSet.iterator().next().getClass().isInstance(set
+                        .iterator().next()));
                 @SuppressWarnings("unchecked")
-                ImmutableSet<T> castResult = (ImmutableSet<T>) tmp;
+                ImmutableSet<T> castResult = (ImmutableSet<T>) existingSet;
                 return castResult;
             }
-
-            assert (!set.isEmpty());
-            assert (!existingSet.isEmpty());
-            assert (existingSet.iterator().next().getClass().isInstance(set
-                    .iterator().next()));
-            @SuppressWarnings("unchecked")
-            ImmutableSet<T> castResult = (ImmutableSet<T>) existingSet;
-            return castResult;
         }
 
         ImmutableSet<T> newSet = new ImmutableSet<T>(set);
@@ -323,7 +331,7 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
     /**
      * @return the <code>instances</code>
      */
-    public static Map<Set<?>, ImmutableSet<?>> getInstances() {
+    public synchronized static WeakHashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> getInstances() {
         return ImmutableSet.instances;
     }
 
@@ -333,14 +341,15 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * 
      * @param <code>instances</code> the new value for <code>instances</code>
      */
-    public static void setInstances(Map<Set<?>, ImmutableSet<?>> instances) {
+    public synchronized static void setInstances(
+            WeakHashMap<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> instances) {
         ImmutableSet.instances = instances;
     }
 
     /**
      * @return the <code>uniqueElements</code>
      */
-    public static Map<Object, Object> getUniqueElements() {
+    public synchronized static WeakHashMap<Object, WeakReference<Object>> getUniqueElements() {
         return ImmutableSet.uniqueElements;
     }
 
@@ -351,7 +360,8 @@ public class ImmutableSet<E> implements Set<E>, Serializable {
      * @param <code>uniqueElements</code> the new value for
      *        <code>uniqueElements</code>
      */
-    public static void setUniqueElements(Map<Object, Object> uniqueElements) {
+    public synchronized static void setUniqueElements(
+            WeakHashMap<Object, WeakReference<Object>> uniqueElements) {
         ImmutableSet.uniqueElements = uniqueElements;
     }
 
