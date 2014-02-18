@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import at.iaik.suraq.main.SuraqOptions;
+
 /**
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
@@ -23,9 +25,13 @@ public class SplitterBookkeeper implements Runnable {
 
     private final Timer wallclockTimer;
 
+    private final int sleepTime = SuraqOptions.getInstance()
+            .getSplitterBookkeeperSleepTime();
+
     /**
      * 
-     * Constructs a new <code>SplitterBookkeeper</code>.
+     * Constructs a new <code>SplitterBookkeeper</code>. <code>splitters</code>
+     * and <code>threadIds</code> must be in the same order!!
      * 
      * @param splitters
      * @param threadIds
@@ -33,6 +39,7 @@ public class SplitterBookkeeper implements Runnable {
     public SplitterBookkeeper(
             Collection<? extends UncolorableLeafSplitter> splitters,
             Collection<Long> threadIds, Timer timer) {
+        assert (splitters.size() == threadIds.size());
         this.splitters = new ArrayList<UncolorableLeafSplitter>(splitters);
         this.threadIds = new ArrayList<Long>(threadIds);
         this.wallclockTimer = timer;
@@ -40,13 +47,15 @@ public class SplitterBookkeeper implements Runnable {
 
     /**
      * 
-     * Constructs a new <code>SplitterBookkeeper</code>.
+     * Constructs a new <code>SplitterBookkeeper</code>. <code>splitters</code>
+     * and <code>threadIds</code> must be in the same order!!
      * 
      * @param splitters
      * @param threadIds
      */
     public SplitterBookkeeper(UncolorableLeafSplitter[] splitters,
             Collection<Long> threadIds, Timer timer) {
+        assert (splitters.length == threadIds.size());
         this.threadIds = new ArrayList<Long>(threadIds);
         this.splitters = new ArrayList<UncolorableLeafSplitter>(
                 splitters.length);
@@ -69,8 +78,7 @@ public class SplitterBookkeeper implements Runnable {
     public void run() {
         do {
             try {
-                // Thread.sleep(2 * 60 * 1000);
-                Thread.sleep(1000);
+                Thread.sleep(sleepTime * 1000);
             } catch (InterruptedException exc) {
                 System.out.println("Bookkeeper got interrupted!");
             }
@@ -92,17 +100,27 @@ public class SplitterBookkeeper implements Runnable {
             long totalCpuTime = 0;
             double parallelizationRatio = 0;
             if (cpuTime) {
-                for (long threadId : threadIds)
-                    totalCpuTime += tmxb.getThreadCpuTime(threadId);
+                for (int count = 0; count < threadIds.size(); count++) {
+                    long threadId = threadIds.get(count);
+                    long increment = tmxb.getThreadCpuTime(threadId);
+                    increment = increment >= 0 ? increment : splitters.get(
+                            count).getTotalCpuTime();
+                    assert (increment >= 0);
+                    totalCpuTime += increment;
+                }
                 parallelizationRatio = totalCpuTime
                         / (wallclockTimer.getTotalTimeMillis() * 1000d * 1000d);
             }
 
             long totalWaitTime = 0;
             if (waitTime) {
-                for (long threadId : threadIds) {
-                    totalWaitTime += tmxb.getThreadInfo(threadId) == null ? 0
-                            : tmxb.getThreadInfo(threadId).getBlockedTime();
+                for (int count = 0; count < threadIds.size(); count++) {
+                    long threadId = threadIds.get(count);
+                    long increment = tmxb.getThreadInfo(threadId) == null ? splitters
+                            .get(count).getTotalWaitTime() : tmxb
+                            .getThreadInfo(threadId).getBlockedTime();
+                    assert (increment >= 0);
+                    totalWaitTime += increment;
                 }
             }
 

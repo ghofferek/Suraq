@@ -59,13 +59,6 @@ public class VeritProof implements Serializable {
     private VeritProofNode root = null;
 
     /**
-     * This stores all <em>leaf</em> nodes where several good literals define a
-     * bad literal. E.g. a!=b v b!=c v a=c, for a=c being a bad literal and a=b,
-     * b=c being good literals.
-     */
-    private final HashSet<VeritProofNode> goodDefinitionsOfBadLiterals = new HashSet<VeritProofNode>();
-
-    /**
      * Counts how many clauses have been added to this proof. Provides unique
      * numbers for new clauses.
      */
@@ -88,6 +81,15 @@ public class VeritProof implements Serializable {
      * Used to make node names fresh.
      */
     private long freshNodeNumber = 1;
+
+    /**
+     * Stores names that have been reserved as fresh names, and are currently
+     * being processed to be added to the proof. This allows higher
+     * parallelization as we do not need to make the entire processing of a
+     * fresh new proof node atomic. We just (atomically) reserve a name, process
+     * the new node in parallel, and then add it (atomically).
+     */
+    private final Set<String> reservedNames = new HashSet<String>();
 
     /**
      * Returns a (new) <code>VeritProofNode</code>. It is automatically attached
@@ -114,7 +116,7 @@ public class VeritProof implements Serializable {
      * 
      * @return the requested proof node.
      */
-    public synchronized VeritProofNode addProofNodeWithFreshName(String prefix,
+    public VeritProofNode addProofNodeWithFreshName(String prefix,
             String suffix, Token type, List<Formula> conclusions,
             List<VeritProofNode> clauses, Integer iargs,
             boolean removeSubproofsOfTheoryLemmas) {
@@ -147,7 +149,7 @@ public class VeritProof implements Serializable {
      * 
      * @return the requested proof node.
      */
-    public synchronized VeritProofNode addProofNode(String name, Token type,
+    public VeritProofNode addProofNode(String name, Token type,
             List<Formula> conclusions, List<VeritProofNode> clauses,
             Integer iargs, boolean removeSubproofsOfTheoryLemmas) {
 
@@ -185,9 +187,11 @@ public class VeritProof implements Serializable {
             // This is a "pseudo-" leaf. Compute its partition
             // based on its child before forgetting about the child.
             assert (clauses.size() == 1);
-            assert (partitionsOfLeafs.containsKey(clauses.get(0)));
-            assert (partitionsOfLeafs.get(clauses.get(0)) > 0);
-            partition = partitionsOfLeafs.get(clauses.get(0));
+            synchronized (this) {
+                assert (partitionsOfLeafs.containsKey(clauses.get(0)));
+                assert (partitionsOfLeafs.get(clauses.get(0)) > 0);
+                partition = partitionsOfLeafs.get(clauses.get(0));
+            }
             type = VeriTToken.INPUT;
             clauses = new ArrayList<VeritProofNode>();
             iargs = null;
@@ -198,13 +202,18 @@ public class VeritProof implements Serializable {
         assert (node != null);
 
         assert (node != null);
-        if (partition > 0)
-            partitionsOfLeafs.put(node, partition);
+        if (partition > 0) {
+            synchronized (this) {
+                partitionsOfLeafs.put(node, partition);
+            }
+        }
 
         // Check whether this is the root node
         if (conclusions.size() == 0) {
-            assert (this.root == null);
-            this.root = node;
+            synchronized (this) {
+                assert (this.root == null);
+                this.root = node;
+            }
         }
 
         return node;
@@ -234,13 +243,9 @@ public class VeritProof implements Serializable {
             throw new RuntimeException("Duplicate node name: " + node.getName());
         }
         this.clauseCounter++;
-        proofNodes.put(node.getName(), node);
-
-        if (node.isGoodDefinitionOfBadLiteral()) {
-            assert (!goodDefinitionsOfBadLiterals.contains(node));
-            goodDefinitionsOfBadLiterals.add(node);
-        }
-
+        String name = node.getName();
+        proofNodes.put(name, node);
+        reservedNames.remove(name);
     }
 
     /**
@@ -276,11 +281,6 @@ public class VeritProof implements Serializable {
             for (VeritProofNode subproof : proofNode.getSubProofs())
                 subproof.removeParent(proofNode);
 
-        if (proofNode.isGoodDefinitionOfBadLiteral()) {
-            assert (goodDefinitionsOfBadLiterals.contains(proofNode));
-            goodDefinitionsOfBadLiterals.remove(proofNode);
-            assert (!goodDefinitionsOfBadLiterals.contains(proofNode));
-        }
         proofNodes.remove(proofNode.getName());
     }
 
@@ -294,17 +294,6 @@ public class VeritProof implements Serializable {
     protected void removeDanglingProofNode(VeritProofNode node) {
         assert (node.getParents().isEmpty());
         proofNodes.remove(node.getName());
-        // goodDefinitionsOfBadLiterals.remove(node);
-        // Workaround because removal seems to be broken
-        Set<VeritProofNode> tmp = new HashSet<VeritProofNode>();
-        for (VeritProofNode otherNode : goodDefinitionsOfBadLiterals) {
-            if (!otherNode.equals(node))
-                tmp.add(otherNode);
-        }
-        goodDefinitionsOfBadLiterals.clear();
-        goodDefinitionsOfBadLiterals.addAll(tmp);
-        // End workaround
-        assert (!goodDefinitionsOfBadLiterals.contains(node));
 
         for (VeritProofNode child : node.getSubProofs()) {
             child.removeParent(node);
@@ -334,17 +323,6 @@ public class VeritProof implements Serializable {
      */
     public ImmutableSet<VeritProofNode> getProofNodes() {
         return ImmutableSet.create(proofNodes.values());
-    }
-
-    /**
-     * 
-     * @return one good definition of a bad literal occurring in this proof, or
-     *         <code>null</code> if no such node exists.
-     */
-    @SuppressWarnings("unused")
-    private VeritProofNode getOneGoodDefinitionOfBadLiteral() {
-        return goodDefinitionsOfBadLiterals.isEmpty() ? null
-                : goodDefinitionsOfBadLiterals.iterator().next();
     }
 
     /**
@@ -453,11 +431,6 @@ public class VeritProof implements Serializable {
                 return false;
         }
         Util.printToSystemOutWithWallClockTimePrefix("  All checks on individual nodes done.");
-
-        for (VeritProofNode node : goodDefinitionsOfBadLiterals) {
-            if (proofNodes.get(node.getName()) != node)
-                return false;
-        }
 
         if (!this.isAcyclic())
             return false;
@@ -1183,13 +1156,17 @@ public class VeritProof implements Serializable {
         assert (suffix != null);
 
         String name = prefix + suffix;
-        if (!proofNodes.containsKey(name))
+        if (!proofNodes.containsKey(name) && !reservedNames.contains(name)) {
+            reservedNames.add(name);
             return name;
+        }
 
         while (freshNodeNumber > 0) {
             name = prefix + freshNodeNumber + suffix;
-            if (!proofNodes.containsKey(name))
+            if (!proofNodes.containsKey(name) && !reservedNames.contains(name)) {
+                reservedNames.add(name);
                 return name;
+            }
             freshNodeNumber++;
         }
         // No fresh name found
@@ -1202,7 +1179,6 @@ public class VeritProof implements Serializable {
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.writeObject(proofNodes);
         out.writeObject(root);
-        out.writeObject(goodDefinitionsOfBadLiterals);
         out.writeObject(clauseCounter);
 
         // Map<String, VeritProofNode> synonymsCopy = new HashMap<String,
@@ -1241,12 +1217,6 @@ public class VeritProof implements Serializable {
             proofSetsField.setAccessible(false);
 
             root = (VeritProofNode) in.readObject();
-
-            Field goodDefinitionsOfBadLiteralsField = VeritProof.class
-                    .getDeclaredField("goodDefinitionsOfBadLiterals");
-            goodDefinitionsOfBadLiteralsField.setAccessible(true);
-            goodDefinitionsOfBadLiteralsField.set(this, in.readObject());
-            goodDefinitionsOfBadLiteralsField.setAccessible(false);
 
             clauseCounter = (Integer) in.readObject();
 

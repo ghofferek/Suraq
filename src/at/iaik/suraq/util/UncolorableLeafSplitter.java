@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.util;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +50,16 @@ public class UncolorableLeafSplitter implements Runnable {
     private int numStrongerClauses = 0;
 
     /**
+     * The total wait time of this thread after completion.
+     */
+    private long totalWaitTime = -1;
+
+    /**
+     * The total CPU time of this thread after completion.
+     */
+    private long totalCpuTime = -1;
+
+    /**
      * Stores whether everything went right
      */
     private boolean allOk = false;
@@ -83,6 +95,14 @@ public class UncolorableLeafSplitter implements Runnable {
         try {
             split();
             allOk = true;
+            ThreadMXBean tmxb = ManagementFactory.getThreadMXBean();
+            if (tmxb.isCurrentThreadCpuTimeSupported()) {
+                totalCpuTime = tmxb.getCurrentThreadCpuTime();
+            }
+            if (tmxb.isThreadContentionMonitoringSupported()) {
+                totalWaitTime = tmxb.getThreadInfo(
+                        Thread.currentThread().getId()).getBlockedTime();
+            }
         } catch (Throwable exc) {
             Util.printToSystemOutWithWallClockTimePrefix("Exception in Splitter "
                     + id + ". Stacktrace follows.");
@@ -231,6 +251,22 @@ public class UncolorableLeafSplitter implements Runnable {
      */
     public synchronized int getRemaining() {
         return leavesToSplit.size();
+    }
+
+    /**
+     * @return the total wait time of this thread after completion, or -1 if it
+     *         has not completed yet, or measurement is not supported.
+     */
+    public synchronized long getTotalWaitTime() {
+        return totalWaitTime;
+    }
+
+    /**
+     * @return the total CPU time of this thread after completion, or -1 if it
+     *         has not completed yet, or measurement is not supported.
+     */
+    public synchronized long getTotalCpuTime() {
+        return totalCpuTime;
     }
 
 }

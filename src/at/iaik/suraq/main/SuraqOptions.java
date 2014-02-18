@@ -105,6 +105,11 @@ public final class SuraqOptions {
     private static final int numSplitterThreadsDefault = 1;
 
     /**
+     * Default value for the sleep time of the splitter bookkeeper
+     */
+    private static final int splitterBookkeeperSleepTimeDefault = 1;
+
+    /**
      * The cache file name.
      */
     private static String cacheFile = "savecache.db";
@@ -189,6 +194,11 @@ public final class SuraqOptions {
      * The value of numSplitterThreads
      */
     private final Integer numSplitterThreadsValue;
+
+    /**
+     * The value of splitterBookkeeperSleepTime
+     */
+    private final Integer splitterBookkeeperSleepTimeValue;
 
     /**
      * The value of the dumpSMTQueryFile option.
@@ -291,6 +301,9 @@ public final class SuraqOptions {
         Option numSplitterThreadsOption = cmdLineParser
                 .addIntegerOption("numSplitterThreads");
 
+        Option splitterBookkeeperSleepTimeOption = cmdLineParser
+                .addIntegerOption("splitterBookkeeperSleepTime");
+
         try {
             cmdLineParser.parse(args);
         } catch (OptionException exc) {
@@ -342,6 +355,9 @@ public final class SuraqOptions {
 
         numSplitterThreadsValue = (Integer) cmdLineParser
                 .getOptionValue(numSplitterThreadsOption);
+
+        splitterBookkeeperSleepTimeValue = (Integer) cmdLineParser
+                .getOptionValue(splitterBookkeeperSleepTimeOption);
 
         int end = getInput().lastIndexOf(".");
 
@@ -578,6 +594,11 @@ public final class SuraqOptions {
     public int getNumSplitterThreads() {
         return numSplitterThreadsValue == null ? SuraqOptions.numSplitterThreadsDefault
                 : numSplitterThreadsValue;
+    }
+
+    public int getSplitterBookkeeperSleepTime() {
+        return splitterBookkeeperSleepTimeValue == null ? SuraqOptions.splitterBookkeeperSleepTimeDefault
+                : splitterBookkeeperSleepTimeValue;
     }
 
     /**
