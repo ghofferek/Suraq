@@ -344,6 +344,8 @@ public final class Util {
     public static Formula getSingleLiteral(Formula clause) {
         if (clause == null)
             return null;
+        if (Util.isLiteral(clause))
+            return clause;
         Formula formula = clause.transformToConsequentsForm();
         assert (formula instanceof OrFormula);
         List<Formula> disjuncts = ((OrFormula) formula).getDisjuncts();
