@@ -7,6 +7,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -612,14 +614,26 @@ public class VeritProof implements Serializable {
             splitters[id] = splitter;
         }
 
+        ThreadMXBean tmxb = ManagementFactory.getThreadMXBean();
+        try {
+            tmxb.setThreadCpuTimeEnabled(true);
+            tmxb.setThreadContentionMonitoringEnabled(true);
+        } catch (Exception exc1) {
+            System.out.println("Could not enable thread time monitoring.");
+        }
+        Timer timer = new Timer();
+        timer.start();
         Thread[] threads = new Thread[numThreads];
+        List<Long> threadIds = new ArrayList<Long>(numThreads);
         for (int id = 0; id < numThreads; id++) {
             Thread thread = new Thread(splitters[id], "Splitter_" + id);
             threads[id] = thread;
+            threadIds.add(thread.getId());
             thread.start();
         }
         // Now all threads are running
-        SplitterBookkeeper bookkeeper = new SplitterBookkeeper(splitters);
+        SplitterBookkeeper bookkeeper = new SplitterBookkeeper(splitters,
+                threadIds, timer);
         Thread bookkeeperThread = new Thread(bookkeeper);
         bookkeeperThread.start();
         for (int id = 0; id < numThreads; id++) {
@@ -630,7 +644,14 @@ public class VeritProof implements Serializable {
                 throw new RuntimeException(exc);
             }
         }
+        timer.stop();
         bookkeeper.kill();
+        bookkeeperThread.interrupt();
+        try {
+            bookkeeperThread.join();
+        } catch (InterruptedException exc) {
+            Util.printToSystemOutWithWallClockTimePrefix("InterruptedException while waiting for bookkeeper.");
+        }
         Util.printToSystemOutWithWallClockTimePrefix("All splitters done");
         // Now all threads are done. Collect results.
         int totalLiteralsFewer = 0;
