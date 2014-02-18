@@ -162,6 +162,8 @@ public class Suraq implements Runnable {
      */
     private Map<Integer, Formula> assertPartitionFormulas = new HashMap<Integer, Formula>();
 
+    private VeritProof veritProof = null;
+
     /**
      * Constructs a new <code>Suraq</code>.
      */
@@ -525,13 +527,13 @@ public class Suraq implements Runnable {
     }
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
-            VeritProof proof, List<PropositionalVariable> controlVars) {
+            List<PropositionalVariable> controlVars) {
 
         Timer timer = new Timer();
         // assert (proof.checkProof());
         Util.printToSystemOutWithWallClockTimePrefix("  Splitting uncolorable leaves in veriT proof...");
         timer.start();
-        Map<VeritProofNode, VeritProofNode> replacements = proof
+        Map<VeritProofNode, VeritProofNode> replacements = veritProof
                 .splitUncolorableLeaves();
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
@@ -543,9 +545,20 @@ public class Suraq implements Runnable {
         Map<String, Integer> literalIds = new HashMap<String, Integer>();
         Map<Integer, Formula> literalMap = new HashMap<Integer, Formula>();
         Map<ImmutableSet<Integer>, Integer> leafPartitions = new HashMap<ImmutableSet<Integer>, Integer>();
+        // Use the getLeaves() method of the root, in order to avoid
+        // getting the leaves of the colorable subproofs as well!
+        Set<VeritProofNode> leaves = veritProof.getRoot().getLeaves();
+
+        // Now the original veritProof is no longer need. Let it be garbage
+        // collected.
+        Util.printToSystemOutWithWallClockTimePrefix("Killing reference to original veriT proof.");
+        veritProof = null;
+        // Hint to the garbage collector:
+        System.gc();
+
         ResProof resProof = null;
         try {
-            resProof = ResProof.create(proof, replacements, literalIds,
+            resProof = ResProof.create(leaves, replacements, literalIds,
                     literalMap, leafPartitions);
         } catch (IOException exc) {
             System.out.println("IOException during creation of resProof");
@@ -992,8 +1005,8 @@ public class Suraq implements Runnable {
                 veritProof.removeUnreachableNodes();
                 t.stop();
                 Util.printToSystemOutWithWallClockTimePrefix(" Needed: " + t);
-                iteTrees = proofTransformationAndInterpolation(veritProof,
-                        sc.getControlVars());
+                iteTrees = proofTransformationAndInterpolation(sc
+                        .getControlVars());
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
@@ -1105,8 +1118,8 @@ public class Suraq implements Runnable {
                         veritProof.removeUnreachableNodes();
                         // DebugHelper.getInstance().stringtoFile(
                         // veritProof.toString(), "~parsed-verit-enc.txt");
-                        iteTrees = proofTransformationAndInterpolation(
-                                veritProof, logicParser.getControlVariables());
+                        iteTrees = proofTransformationAndInterpolation(logicParser
+                                .getControlVariables());
                     } catch (Exception e) {
                         e.printStackTrace();
                         throw new RuntimeException(e.getMessage(), e);
@@ -1374,8 +1387,6 @@ public class Suraq implements Runnable {
                 .getTime();
         List<PropositionalVariable> controlVariables = null;
         Map<PropositionalVariable, Formula> iteTrees = null;
-        VeritProof veritProof = null;
-
         SaveCache cache = null;
         // Get from cache whatever we can (if we should)
         if (options.useNewVeritCache() && saveCacheSerial.exists()
@@ -1494,8 +1505,7 @@ public class Suraq implements Runnable {
         VeritProof.setCheckProofEnabled(true);
         VeritProofNode.setCheckProofNodesEnabled(true);
         Util.printMemoryInformation();
-        iteTrees = proofTransformationAndInterpolation(veritProof,
-                controlVariables);
+        iteTrees = proofTransformationAndInterpolation(controlVariables);
 
         for (PropositionalVariable key : iteTrees.keySet()) {
             assert (iteTrees.get(key) != null);

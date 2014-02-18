@@ -22,7 +22,6 @@ import java.util.TreeSet;
 
 import at.iaik.suraq.parser.VeriTParser;
 import at.iaik.suraq.proof.VeriTToken;
-import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -81,13 +80,13 @@ public class ResProof {
      *            "output parameter" for partitions of leaf nodes
      * @throws IOException
      */
-    public static ResProof create(VeritProof proof,
+    public static ResProof create(Set<VeritProofNode> leaves,
             Map<VeritProofNode, VeritProofNode> replacements,
             Map<String, Integer> literalIds, Map<Integer, Formula> literalMap,
             Map<ImmutableSet<Integer>, Integer> leafPartitions)
             throws IOException {
 
-        assert (proof != null);
+        assert (leaves != null);
         assert (replacements != null);
         assert (literalIds != null);
         assert (literalIds.isEmpty());
@@ -99,9 +98,6 @@ public class ResProof {
 
         Map<Integer, Integer> partitions = new HashMap<Integer, Integer>();
 
-        // Use the getLeaves() method of the root, in order to avoid
-        // getting the leaves of the colorable subproofs as well!
-        Set<VeritProofNode> leaves = proof.getRoot().getLeaves();
         Set<VeritProofNode> allLeaves = new HashSet<VeritProofNode>(leaves);
         for (VeritProofNode node : replacements.keySet()) {
             allLeaves.remove(node);
