@@ -651,13 +651,9 @@ public final class Util {
                                 .makeLiteralPositive(inverseLiteral)));
                 Formula reverseInverseLiteral = null;
                 if (Util.isNegativeLiteral(inverseLiteral))
-                    reverseInverseLiteral = Util.getSingleLiteral((NotFormula
-                            .create(reverseLiteral))
-                            .transformToConsequentsForm());
+                    reverseInverseLiteral = NotFormula.create(reverseLiteral);
                 else
-                    reverseInverseLiteral = Util
-                            .getSingleLiteral(reverseLiteral
-                                    .transformToConsequentsForm());
+                    reverseInverseLiteral = reverseLiteral;
                 if (clause2.getDisjuncts().contains(reverseInverseLiteral))
                     return Util.makeLiteralPositive(reverseInverseLiteral);
             }
@@ -935,16 +931,16 @@ public final class Util {
      *         reflexivity (e.g.: a=a).
      */
     public static boolean isReflexivity(Formula formula) {
-        Formula tmp = formula.transformToConsequentsForm();
-        if (!Util.isLiteral(tmp))
+        // Formula tmp = formula.transformToConsequentsForm();
+        if (!Util.isLiteral(formula))
             return false;
         if (!(formula instanceof DomainEq))
             return false;
-        tmp = Util.getSingleLiteral(tmp);
-        if (!(tmp instanceof EqualityFormula))
-            return false;
+        // tmp = Util.getSingleLiteral(tmp);
+        // if (!(formula instanceof EqualityFormula))
+        // return false;
 
-        EqualityFormula equality = (EqualityFormula) tmp;
+        EqualityFormula equality = (EqualityFormula) formula;
 
         if (equality.getTerms().size() != 2)
             return false;
