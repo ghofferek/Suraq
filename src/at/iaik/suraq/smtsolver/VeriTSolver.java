@@ -13,6 +13,7 @@ import java.io.IOException;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.ProcessResult;
 import at.iaik.suraq.util.ProcessUtil;
+import at.iaik.suraq.util.Util;
 
 /**
  * Connection to the VeriTSolver in the path ./lib/veriT/veriT. You can get the
@@ -138,13 +139,14 @@ public class VeriTSolver {
                 // + " --disable-ackermann" // maybe?
                 + " " + tmpInFile;
 
-        System.out.println("starting veriT: " + executionPath);
+        Util.printToSystemOutWithWallClockTimePrefix("starting veriT: "
+                + executionPath);
 
         // ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
         // smt2);
         ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
                 "");
-        System.out.println("i'm back from veriT...");
+        Util.printToSystemOutWithWallClockTimePrefix("veriT is done.");
 
         String output = pResult.getOutputStream();
         String[] lines = output.split("\n");
@@ -216,13 +218,14 @@ public class VeriTSolver {
                 // + " --disable-ackermann" // maybe?
                 + " " + dimacsFile;
 
-        System.out.println("starting veriT: " + executionPath);
+        Util.printToSystemOutWithWallClockTimePrefix("starting veriT: "
+                + executionPath);
 
         // ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
         // smt2);
         ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
                 "");
-        System.out.println("i'm back from veriT...");
+        Util.printToSystemOutWithWallClockTimePrefix("veriT is done.");
 
         String output = pResult.getOutputStream();
         String[] lines = output.split("\n");
