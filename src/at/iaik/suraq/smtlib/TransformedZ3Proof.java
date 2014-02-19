@@ -22,7 +22,7 @@ import at.iaik.suraq.exceptions.WrongFunctionTypeException;
 import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.proof.AnnotatedProofNodes;
-import at.iaik.suraq.resProof.Lit;
+import at.iaik.suraq.resProof.Literal;
 import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -144,7 +144,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 || proofType.equals(SExpressionConstants.MONOTONICITY)
                 || proofType.equals(SExpressionConstants.UNIT_RESOLUTION)
                 || proofType.equals(SExpressionConstants.LEMMA) || proofType
-                .equals(SExpressionConstants.HYPOTHESIS));
+                    .equals(SExpressionConstants.HYPOTHESIS));
         // if (this.id == 548)
         // this.checkZ3ProofNodeRecursive();
         // assert (this.checkZ3ProofNode());
@@ -183,7 +183,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
                 || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
-                .equals(SExpressionConstants.UNIT_RESOLUTION));
+                    .equals(SExpressionConstants.UNIT_RESOLUTION));
         // if (this.id == 548)
         // this.checkZ3ProofNodeRecursive();
         // assert (this.checkZ3ProofNode());
@@ -201,7 +201,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
                 || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
-                .equals(SExpressionConstants.UNIT_RESOLUTION));
+                    .equals(SExpressionConstants.UNIT_RESOLUTION));
     }
 
     /**
@@ -234,7 +234,7 @@ public class TransformedZ3Proof extends Z3Proof {
                 || proofType.equals(SExpressionConstants.TRANSITIVITY)
                 || proofType.equals(SExpressionConstants.SYMMETRY)
                 || proofType.equals(SExpressionConstants.MONOTONICITY) || proofType
-                .equals(SExpressionConstants.UNIT_RESOLUTION));
+                    .equals(SExpressionConstants.UNIT_RESOLUTION));
         // if (this.id == 548 || subProof1.id == 548 || subProof2.id == 548)
         // this.checkZ3ProofNodeRecursive();
         // assert (this.checkZ3ProofNode());
@@ -246,18 +246,18 @@ public class TransformedZ3Proof extends Z3Proof {
         assert (cache != null);
         assert (!cache.containsKey(node));
 
-        if (!node.isLeaf) { // CREATE RESOLUTION NODE
+        if (!node.isLeaf()) { // CREATE RESOLUTION NODE
 
             this.proofType = SExpressionConstants.UNIT_RESOLUTION;
-            this.literal = literalMap.get(node.pivot);
+            this.literal = literalMap.get(node.getPivot());
 
-            TransformedZ3Proof left = cache.get(node.left);
-            this.subProofs.add(left == null ? new TransformedZ3Proof(node.left,
-                    literalMap, cache) : left);
+            TransformedZ3Proof left = cache.get(node.getLeft());
+            this.subProofs.add(left == null ? new TransformedZ3Proof(node
+                    .getLeft(), literalMap, cache) : left);
 
-            TransformedZ3Proof right = cache.get(node.right);
-            this.subProofs.add(right == null ? new TransformedZ3Proof(
-                    node.right, literalMap, cache) : right);
+            TransformedZ3Proof right = cache.get(node.getRight());
+            this.subProofs.add(right == null ? new TransformedZ3Proof(node
+                    .getRight(), literalMap, cache) : right);
         } else { // CREATE ASSERTED NODE
 
             this.proofType = SExpressionConstants.ASSERTED;
@@ -265,8 +265,8 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // build consequent from clause
         List<Formula> disjuncts = new ArrayList<Formula>();
-        for (Lit literal : node.cl) {
-            Formula elem = literalMap.get(literal.var());
+        for (Literal literal : node.getClause()) {
+            Formula elem = literalMap.get(literal.id());
             if (!literal.isPos())
                 elem = NotFormula.create(elem);
             disjuncts.add(elem);
@@ -282,7 +282,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
         // TODO Check: Should this be set for leafs only?
         // assign global clauses to part 1 (arbitrary choice)
-        this.assertPartition = node.part == 0 ? 1 : node.part;
+        this.assertPartition = node.getPart() == 0 ? 1 : node.getPart();
 
         assert (proofType.equals(SExpressionConstants.ASSERTED) || proofType
                 .equals(SExpressionConstants.UNIT_RESOLUTION));
@@ -639,7 +639,7 @@ public class TransformedZ3Proof extends Z3Proof {
         }
         if (this.hasBeenMadeLocal) {
             // Do a quick, sound, but non-complete check
-            // At least, the direct children must also have the flag set.
+            // At least, the direct parents must also have the flag set.
             for (Z3Proof child : subProofs) {
                 assert (child instanceof TransformedZ3Proof);
                 assert (((TransformedZ3Proof) child).hasBeenMadeLocal);
@@ -1326,7 +1326,7 @@ public class TransformedZ3Proof extends Z3Proof {
 
     /**
      * Converts a modus ponens node into something usable. Also, converts the
-     * necessary children into local (transformed) proofs.
+     * necessary parents into local (transformed) proofs.
      * 
      * @param z3Proof
      *            a modus ponens node
@@ -1433,7 +1433,7 @@ public class TransformedZ3Proof extends Z3Proof {
                     .isNegativeLiteral(Util.getSingleLiteral(z3Proof.subProofs
                             .get(0).getConsequent())));
 
-            // Collect relevant children
+            // Collect relevant parents
             Set<Z3Proof> leafs = new HashSet<Z3Proof>();
             Set<Z3Proof> iffsComingFromDomainEq = new HashSet<Z3Proof>();
             assert (z3Proof.subProofs.size() == 2);
@@ -2351,8 +2351,8 @@ public class TransformedZ3Proof extends Z3Proof {
                 assert (literalPartitions.iterator().next() > 0);
                 // This is resolution over a local literal.
                 // ==> This node can be converted to ASSERTED
-                // All descendants should only resolve on locals as well.
-                // TODO: Check descendants!
+                // All parents should only resolve on locals as well.
+                // TODO: Check parents!
                 this.subProofs.clear();
                 this.proofType = SExpressionConstants.ASSERTED;
                 this.literal = null;
@@ -2537,7 +2537,7 @@ public class TransformedZ3Proof extends Z3Proof {
      */
     public void setHasBeenMadeLocal() {
         // Do a quick, sound, but non-complete check
-        // At least, the direct children must also have the flag set.
+        // At least, the direct parents must also have the flag set.
         for (Z3Proof child : subProofs) {
             assert (child instanceof TransformedZ3Proof);
             if (!(((TransformedZ3Proof) child).hasBeenMadeLocal))

@@ -3,206 +3,385 @@
  */
 package at.iaik.suraq.resProof;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
 
-public class ResNode {
+public class ResNode implements Comparable<ResNode> {
 
-    public int id = 0;
-    public boolean isLeaf = true;
+    /**
+     * The id of this node.
+     */
+    public final int id;
 
-    public Clause cl = null;
-    public int pivot = 0;
-    public int part = 0;
+    /**
+     * The clause of this node
+     */
+    private Clause clause;
 
-    public ResNode left = null;
-    public ResNode right = null;
-    public HashSet<ResNode> children = new HashSet<ResNode>(4);
+    /**
+     * The pivot of this resolution step, or 0 if this is a leaf.
+     */
+    private int pivot = 0;
 
-    public ResNode(int pId, boolean pIsLeaf) {
-        id = pId;
-        cl = new Clause();
-        isLeaf = pIsLeaf;
+    /**
+     * The partition of this node.
+     */
+    private int part = 0;
+
+    /**
+     * The left child. Contains the pivot in positive polarity.
+     */
+    private ResNode left = null;
+
+    /**
+     * The right child. Contains the pivot in negative polarity.
+     */
+    private ResNode right = null;
+
+    /**
+     * This used to be called "children". Working hypothesis is that it actually
+     * means parents.
+     */
+    public final Set<ResNode> parents = new TreeSet<ResNode>();
+
+    /**
+     * 
+     * Constructs a new <code>ResNode</code>.
+     * 
+     * @param id
+     */
+    public ResNode(int id) {
+        this.id = id;
+        this.clause = new Clause();
     }
 
-    public ResNode(int pId, boolean pIsLeaf, Collection<Lit> pCl,
-            ResNode pLeft, ResNode pRight, int pPivot, int pPart) {
-        id = pId;
-        isLeaf = pIsLeaf;
-        part = pPart;
+    /**
+     * 
+     * Constructs a new <code>ResNode</code>.
+     * 
+     * @param id
+     * @param clause
+     * @param left
+     * @param right
+     * @param pivot
+     * @param part
+     */
+    public ResNode(int id, Clause clause, ResNode left, ResNode right,
+            int pivot, int part) {
+        this.id = id;
+        this.part = part;
 
-        if (pIsLeaf) {
-            cl = new Clause(pCl);
+        if (left == null && right == null) {
+            this.clause = new Clause(clause);
             return;
         }
 
-        assert (pLeft != null && pRight != null); // "At least a parent is missing!",
+        assert (left != null && right != null); // "At least a parent is missing!",
 
         boolean isLeftPos = true;
 
-        if (pPivot == 0) {
-            Iterator<Lit> itr = pLeft.cl.iterator();
+        if (pivot == 0) {
+            Iterator<Literal> itr = left.clause.iterator();
             while (itr.hasNext()) {
-                Lit l = itr.next();
-                if (pRight.cl.contains(l.negLit())) {
-                    pPivot = l.var();
-                    isLeftPos = l.isPos();
+                Literal lit = itr.next();
+                if (right.clause.contains(lit.negate())) {
+                    pivot = lit.id();
+                    isLeftPos = lit.isPos();
                     break;
                 }
             }
-            assert (pPivot != 0); // "pivot not found!",
+            assert (pivot != 0); // "pivot not found!",
         } else {
-            if (pLeft.cl.contains(pPivot, true)
-                    && pRight.cl.contains(pPivot, false)) {
+            if (left.clause.contains(pivot, true)
+                    && right.clause.contains(pivot, false)) {
                 isLeftPos = true;
-            } else if (pRight.cl.contains(pPivot, true)
-                    && pLeft.cl.contains(pPivot, false)) {
+            } else if (right.clause.contains(pivot, true)
+                    && left.clause.contains(pivot, false)) {
                 isLeftPos = false;
             } else {
-                assert (pPivot != 0);// "Parents do not contain lietrals of pivot!",
+                assert (false);// "Parents do not contain literals of pivot!",
             }
         }
-        pivot = pPivot;
+        this.pivot = pivot;
 
         if (isLeftPos) {
-            left = pLeft;
-            right = pRight;
+            this.left = left;
+            this.right = right;
         } else {
-            left = pRight;
-            right = pLeft;
+            this.left = right;
+            this.right = left;
         }
 
-        if (pCl == null) {
-            cl = new Clause(left.cl, right.cl, pivot);
+        if (clause == null) {
+            this.clause = new Clause(this.left.clause, this.right.clause,
+                    this.pivot);
         } else {
-            cl = new Clause(pCl);
-            // TODO: check if cl is result of the resolution!
+            // check if clause is result of the resolution!
+            assert (!clause.contains(pivot, true));
+            assert (!clause.contains(pivot, false));
+            for (Literal lit : this.left.clause) {
+                if (lit.id() != pivot)
+                    assert (clause.contains(lit));
+            }
+            for (Literal lit : this.right.clause) {
+                if (lit.id() != pivot)
+                    assert (clause.contains(lit));
+            }
+            for (Literal lit : clause) {
+                assert (this.left.clause.contains(lit) || this.right.clause
+                        .contains(lit));
+            }
+            this.clause = new Clause(clause);
         }
 
-        left.addChild(this);
-        right.addChild(this);
+        this.left.addParent(this);
+        this.right.addParent(this);
     }
 
-    public void cleanUP() {
-        if (!isLeaf && children.isEmpty()) {
-            left.rmChild(this);
-            left.cleanUP();
+    /**
+     * Not sure what this does exactly. Seems to remove unreachable nodes.
+     */
+    public void cleanUp() {
+        if (!isLeaf() && parents.isEmpty()) {
+            left.removeParent(this);
+            left.cleanUp();
             left = null;
-            right.rmChild(this);
-            right.cleanUP();
+            right.removeParent(this);
+            right.cleanUp();
             right = null;
-            cl.clear();
+            clause.clear();
             // this is ready for garbage collection.
         }
     }
 
-    public void rmChild(ResNode n) {
-        assert (children.contains(n));// "Removing non-existant child",
-        children.remove(n);
+    /**
+     * Removes the given node from the set of parents.
+     * 
+     * @param n
+     */
+    public void removeParent(ResNode n) {
+        assert (parents.contains(n));// "Removing non-existent child",
+        parents.remove(n);
     }
 
-    public void rmChildWithCleanUP(ResNode n) {
-        rmChild(n);
-        cleanUP();
+    /**
+     * Removes the given node from the set of parents and performs clean up.
+     * 
+     * @param n
+     */
+    public void rmParentWithCleanUp(ResNode n) {
+        removeParent(n);
+        cleanUp();
     }
 
-    public void addChild(ResNode n) {
-        assert (!children.contains(n));// "Adding existing child",
-        children.add(n);
+    /**
+     * Adds the given node to the set of parents.
+     * 
+     * @param n
+     */
+    public void addParent(ResNode n) {
+        assert (!parents.contains(n));// "Adding existing child",
+        parents.add(n);
     }
 
-    public void convertToLeaf(int pPart) {
-        isLeaf = true;
-        part = pPart;
-        left.rmChildWithCleanUP(this);
-        right.rmChildWithCleanUP(this);
-        left = null;
-        right = null;
-        pivot = 0;
+    /**
+     * Converts this node into a leaf of the given partition.
+     * 
+     * @param part
+     */
+    public void convertToLeaf(int part) {
+        this.part = part;
+        this.left.rmParentWithCleanUp(this);
+        this.right.rmParentWithCleanUp(this);
+        this.left = null;
+        this.right = null;
+        this.pivot = 0;
     }
 
-    public int checkMovable(Lit l) {
-        if (isLeaf || part != -1)
+    /**
+     * Fails if this is not a leaf and none of the children has lit.
+     * 
+     * @param lit
+     * @return -1 if move is disallowed, 1 if both children have lit, 2 if left
+     *         child has lit, 3 if right child has lit.
+     */
+    public int checkMovable(Literal lit) {
+        if (isLeaf() || part != -1)
             return -1; // move disallowed
-        boolean ll = left.cl.contains(l);
-        boolean lr = right.cl.contains(l);
+        boolean ll = left.clause.contains(lit);
+        boolean lr = right.clause.contains(lit);
         if (ll && lr)
-            return 1; // both parents have l
+            return 1; // both children have lit
         if (ll)
-            return 2; // left parent have l
+            return 2; // left child has lit
         if (lr)
-            return 3; // right parent have l
-        assert (false);// "l is not in any parent",
+            return 3; // right children has lit
+        assert (false);// "lit is not in any child",
         return 0;
     }
 
-    public void moveParent(boolean LeftParent, boolean LeftGrandParent) {
+    /**
+     * Moves a grandchild to a child position.
+     * 
+     * @param leftChild
+     *            if <code>true</code> take left child
+     * @param leftGrandChild
+     *            if <code>take</code> left child of child specified by
+     *            <code>leftChild</code>
+     */
+    public void moveChild(boolean leftChild, boolean leftGrandChild) {
 
         ResNode looser = null;
         ResNode gainer = null;
 
-        if (LeftParent)
+        if (leftChild)
             looser = left;
         else
             looser = right;
-        if (LeftGrandParent)
+        if (leftGrandChild)
             gainer = looser.left;
         else
             gainer = looser.right;
-        if (LeftParent)
+        if (leftChild)
             left = gainer;
         else
             right = gainer;
 
-        gainer.addChild(this);
-        looser.rmChildWithCleanUP(this);
+        gainer.addParent(this);
+        looser.rmParentWithCleanUp(this);
     }
 
-    public void moveChidren(boolean toLeftParent) {
+    /**
+     * Moves the parents of this node to one of its childs.
+     * 
+     * @param toLeftChild
+     *            if <code>true</code> move parents to left child.
+     */
+    public void moveParents(boolean toLeftChild) {
         ResNode gainer = null;
-        if (toLeftParent)
+        if (toLeftChild)
             gainer = left;
         else
             gainer = right;
 
-        Iterator<ResNode> itr = children.iterator();
+        Iterator<ResNode> itr = parents.iterator();
         while (itr.hasNext()) {
             ResNode n = itr.next();
             if (n.left == this)
                 n.left = gainer;
             else
                 n.right = gainer;
-            gainer.addChild(n);
+            gainer.addParent(n);
         }
 
-        children.clear();
-        cleanUP();
+        parents.clear();
+        cleanUp();
     }
 
+    /**
+     * Checks whether this node has become obsolete, and if not recomputes its
+     * clause.
+     * 
+     * @return <code>true</code> iff this node is still alive.
+     */
     public boolean refresh() {
 
-        if (!left.cl.contains(pivot, true)) {
-            moveChidren(true);
+        if (!left.clause.contains(pivot, true)) {
+            moveParents(true);
             return false; // Node is dead
         }
-        if (!right.cl.contains(pivot, false)) {
-            moveChidren(false);
+        if (!right.clause.contains(pivot, false)) {
+            moveParents(false);
             return false; // Node is dead
         }
-        cl = new Clause(left.cl, right.cl, pivot);
+        clause = new Clause(left.clause, right.clause, pivot);
         return true; // Node is still valid
+    }
+
+    /**
+     * 
+     * @return the clause of this node
+     */
+    public Clause getClause() {
+        return clause;
+    }
+
+    /**
+     * @return the <code>pivot</code>
+     */
+    public int getPivot() {
+        return pivot;
+    }
+
+    /**
+     * @param <code>pivot</code> the new value for <code>pivot</code>
+     */
+    public void setPivot(int pivot) {
+        this.pivot = pivot;
+    }
+
+    /**
+     * @return the <code>part</code>
+     */
+    public int getPart() {
+        return part;
+    }
+
+    /**
+     * @param <code>part</code> the new value for <code>part</code>
+     */
+    public void setPart(int part) {
+        this.part = part;
+    }
+
+    /**
+     * @return the <code>left</code> child. Contains the pivot in positive
+     *         polarity.
+     */
+    public ResNode getLeft() {
+        return left;
+    }
+
+    /**
+     * @param <code>left</code> the new value for <code>left</code>
+     */
+    public void setLeft(ResNode left) {
+        this.left = left;
+    }
+
+    /**
+     * @return the <code>right</code> child. Contains the pivot in negative
+     *         polarity.
+     */
+    public ResNode getRight() {
+        return right;
+    }
+
+    /**
+     * @param <code>right</code> the new value for <code>right</code>
+     */
+    public void setRight(ResNode right) {
+        this.right = right;
+    }
+
+    /**
+     * 
+     * @return <code>true</code> iff this is a leaf.
+     */
+    public boolean isLeaf() {
+        return left == null && right == null;
     }
 
     public void print() {
         System.out.println("------------------------------------");
-        if (isLeaf)
+        if (isLeaf())
             System.out.println(id + "> (leaf) part:" + part);
         else
             System.out.println(id + "> left:" + left.id + " right:" + right.id
                     + " pivot:" + pivot);
-        System.out.println("Clause: " + cl);
-        Iterator<ResNode> itr = children.iterator();
+        System.out.println("Clause: " + clause);
+        Iterator<ResNode> itr = parents.iterator();
         System.out.print("Chidren: [");
         while (itr.hasNext()) {
             ResNode n = itr.next();
@@ -213,13 +392,57 @@ public class ResNode {
 
     @Override
     public String toString() {
-        if (isLeaf)
-            return id + ":" + cl + " (p" + part + ")";
+        if (isLeaf())
+            return id + ":" + clause + " (p" + part + ")";
         else if (part != -1)
-            return id + ":" + cl + " l:" + left.id + " r:" + right.id + " piv:"
-                    + pivot + " (p" + part + ")";
+            return id + ":" + clause + " lit:" + left.id + " r:" + right.id
+                    + " piv:" + pivot + " (p" + part + ")";
         else
-            return id + ":" + cl + " l:" + left.id + " r:" + right.id + " piv:"
-                    + pivot;
+            return id + ":" + clause + " lit:" + left.id + " r:" + right.id
+                    + " piv:" + pivot;
     }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(ResNode other) {
+        return this.id - other.id;
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return this.id;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof ResNode))
+            return false;
+        if (this.hashCode() != obj.hashCode())
+            return false;
+        ResNode other = (ResNode) obj;
+        if (this.id != other.id)
+            return false;
+        if (this.part != other.part)
+            return false;
+        if (this.pivot != other.pivot)
+            return false;
+        if (!this.left.equals(other.left))
+            return false;
+        if (!this.right.equals(other.right))
+            return false;
+        if (!this.parents.equals(other.parents))
+            return false;
+        return true;
+    }
+
 }

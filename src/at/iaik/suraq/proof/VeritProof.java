@@ -19,7 +19,8 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.main.SuraqOptions;
-import at.iaik.suraq.resProof.Lit;
+import at.iaik.suraq.resProof.Clause;
+import at.iaik.suraq.resProof.Literal;
 import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.Token;
@@ -105,7 +106,7 @@ public class VeritProof implements Serializable {
      * @param conclusions
      *            a list of Formulas
      * @param clauses
-     *            a list of VeritProofNodes that are the clauses(=children) of
+     *            a list of VeritProofNodes that are the clauses(=parents) of
      *            the currently added
      * @param iargs
      *            a freshNodeNumber as an Integer (e.g. 1)
@@ -138,7 +139,7 @@ public class VeritProof implements Serializable {
      * @param conclusions
      *            a list of Formulas
      * @param clauses
-     *            a list of VeritProofNodes that are the clauses(=children) of
+     *            a list of VeritProofNodes that are the clauses(=parents) of
      *            the currently added
      * @param iargs
      *            a freshNodeNumber as an Integer (e.g. 1)
@@ -266,8 +267,8 @@ public class VeritProof implements Serializable {
     }
 
     /**
-     * removes a proofSet in the VeritProof. It is detached from all its
-     * children and from all its parents.
+     * removes a proofSet in the VeritProof. It is detached from all its parents
+     * and from all its parents.
      * 
      * @param proofNode
      */
@@ -992,7 +993,6 @@ public class VeritProof implements Serializable {
         resProof.rmDoubleLits();
         resProof.deLocalizeProof();
         resProof.checkProof(false);
-        resProof.tranformResProofs();
 
         Map<ResNode, TransformedZ3Proof> cache = new HashMap<ResNode, TransformedZ3Proof>();
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
@@ -1030,7 +1030,7 @@ public class VeritProof implements Serializable {
         if (proofType.equals(VeriTToken.INPUT) || node.isAxiom()) {
 
             OrFormula clause = node.getConclusionsAsOrFormula();
-            List<Lit> resClause = new ArrayList<Lit>();
+            List<Literal> resClauseLits = new ArrayList<Literal>();
             // TODO: check if correct
             Set<Integer> resClausePartitions = new HashSet<Integer>();
 
@@ -1058,11 +1058,11 @@ public class VeritProof implements Serializable {
                             .containsValue(new Integer(resLiteralID)));
                     literalsID.put(Util.makeIdString(posLiteral), resLiteralID);
                     literalMap.put(resLiteralID, posLiteral);
-                    resProof.var_part.put(resLiteralID, partition < 0 ? 0
+                    resProof.putVarPart(resLiteralID, partition < 0 ? 0
                             : partition);
                 }
-                resClause
-                        .add(new Lit(resLiteralID, Util.getSignValue(literal)));
+                resClauseLits.add(new Literal(resLiteralID, Util
+                        .getSignValue(literal)));
                 resClausePartitions.add(partition < 0 ? 0 : partition);
             }
 
@@ -1081,7 +1081,8 @@ public class VeritProof implements Serializable {
                         leafPartition = partitionsOfLeafs.get(node);
                     }
                 }
-                resLeafNode = resProof.addLeaf(resClause, leafPartition);
+                Clause tmpClause = new Clause(resClauseLits);
+                resLeafNode = resProof.addLeaf(tmpClause, leafPartition);
                 resNodes.put(node, resLeafNode);
             }
             assert (resLeafNode != null);

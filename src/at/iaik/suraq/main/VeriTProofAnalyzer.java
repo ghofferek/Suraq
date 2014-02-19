@@ -152,7 +152,7 @@ public class VeriTProofAnalyzer {
             ends.remove(start_node);
             // System.out.print("  Ends: "+ends.size()+". ");
 
-            // 2. propagate to the children till the (negative) badLiteral
+            // 2. propagate to the parents till the (negative) badLiteral
             // vanishes
             // TODO: split the result in several steps
             NotFormula negatedBadLiteral = NotFormula.create(badLiteral);
@@ -187,7 +187,7 @@ public class VeriTProofAnalyzer {
     }
 
     /**
-     * Propagate to the subProofs (children)
+     * Propagate to the subProofs (parents)
      * 
      * @param node
      *            The node to start
@@ -575,7 +575,7 @@ public class VeriTProofAnalyzer {
      * @param errorClauselFile
      *            all VeriTNodes that contains badLiterals
      * @param errorNoChildren
-     *            only writes nodes, that have no children.
+     *            only writes nodes, that have no parents.
      */
     public void analyzePartitions(File erroraLiteralFile,
             File errorClauselFile, File errorNoChildren) {

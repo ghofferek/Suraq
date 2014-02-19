@@ -551,7 +551,7 @@ public class Suraq implements Runnable {
 
         // Now the original veritProof is no longer need. Let it be garbage
         // collected.
-        Util.printToSystemOutWithWallClockTimePrefix("Killing reference to original veriT proof.");
+        Util.printToSystemOutWithWallClockTimePrefix("    Killing reference to original veriT proof.");
         veritProof = null;
         // Hint to the garbage collector:
         System.gc();
@@ -566,19 +566,25 @@ public class Suraq implements Runnable {
         }
         assert (resProof != null);
         timer.stop();
-        Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
-                + ")");
+        Util.printToSystemOutWithWallClockTimePrefix("  Done. (" + timer + ")");
         timer.reset();
 
-        Util.printToSystemOutWithWallClockTimePrefix("  Reordering resolution proof...");
-        timer.start();
-        // TransformedZ3Proof recoveredProof = proof.reorderResolutionSteps();
-        resProof.checkProof(false);
-        resProof.rmDoubleLits();
-        resProof.deLocalizeProof();
-        resProof.checkProof(false);
-        resProof.tranformResProofs();
+        Util.printToSystemOutWithWallClockTimePrefix("Size of ResProof <= "
+                + resProof.size());
 
+        Util.printToSystemOutWithWallClockTimePrefix("  Processing resolution proof...");
+        boolean checkResult = false;
+        timer.start();
+        Util.printToSystemOutWithWallClockTimePrefix("    Checking resolution proof.");
+        checkResult = resProof.checkProof(false);
+        assert (checkResult);
+        Util.printToSystemOutWithWallClockTimePrefix("    Done.");
+        Util.printToSystemOutWithWallClockTimePrefix("    Making it local first.");
+        checkResult = resProof.makeLocalFirst(true, false, false);
+        assert (checkResult);
+        Util.printToSystemOutWithWallClockTimePrefix("    Done.");
+
+        Util.printToSystemOutWithWallClockTimePrefix("    Recovering.");
         Map<ResNode, TransformedZ3Proof> cache = new HashMap<ResNode, TransformedZ3Proof>();
         TransformedZ3Proof recoveredProof = new TransformedZ3Proof(
                 resProof.getRoot(), literalMap, cache);
@@ -745,7 +751,6 @@ public class Suraq implements Runnable {
         resolutionProof.checkProof(false);
         resolutionProof.deLocalizeProof();
         resolutionProof.checkProof(false);
-        resolutionProof.tranformResProofs();
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");

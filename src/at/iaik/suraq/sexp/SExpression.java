@@ -38,25 +38,25 @@ public class SExpression implements Serializable {
     protected int columnNumber = -1;
 
     /**
-     * The children of this (non-Token) S-expression.
+     * The parents of this (non-Token) S-expression.
      */
     private final List<SExpression> children;
 
     /**
      * Constructs a new <code>SExpression</code>.
      * 
-     * @param children
+     * @param parents
      *            the subexpressions.
      */
     public SExpression(List<? extends SExpression> children) {
         this.children = new ArrayList<SExpression>(children);
-        // this.children.addAll(children);
+        // this.children.addAll(parents);
     }
 
     /**
      * Constructs a new <code>SExpression</code>.
      * 
-     * @param children
+     * @param parents
      *            the subexpressions.
      */
     public SExpression(SExpression[] children) {
@@ -90,7 +90,7 @@ public class SExpression implements Serializable {
 
     /**
      * Convenience method to construct an <code>SExpression</code> with exactly
-     * two children. Constructs a new <code>SExpression</code>.
+     * two parents. Constructs a new <code>SExpression</code>.
      * 
      * @param first
      *            the first child
@@ -112,7 +112,7 @@ public class SExpression implements Serializable {
 
     /**
      * Convenience method to construct an <code>SExpression</code> with exactly
-     * three children. Constructs a new <code>SExpression</code>.
+     * three parents. Constructs a new <code>SExpression</code>.
      * 
      * @param first
      *            the first child
@@ -168,7 +168,7 @@ public class SExpression implements Serializable {
     }
 
     /**
-     * @return the size of this s-expression, i.e., the number of children. 0,
+     * @return the size of this s-expression, i.e., the number of parents. 0,
      *         if empty.
      */
     public int size() {
@@ -184,7 +184,7 @@ public class SExpression implements Serializable {
     }
 
     /**
-     * Adds the given s-expression to the end of the list of children of this
+     * Adds the given s-expression to the end of the list of parents of this
      * one.
      * 
      * @param sexp
@@ -224,7 +224,7 @@ public class SExpression implements Serializable {
     }
 
     /**
-     * Replaces the given s-expression in the children of this one, at the
+     * Replaces the given s-expression in the parents of this one, at the
      * specified position.
      * 
      * @param sexp
@@ -236,13 +236,13 @@ public class SExpression implements Serializable {
         if (sexp == null)
             throw new RuntimeException(
                     "empty child found! null is not allowed!");
-        // children.set(position, sexp);
+        // parents.set(position, sexp);
         children.add(position, sexp);
         children.remove(position + 1);
     }
 
     /**
-     * Adds the given s-expression to the children of this one, at the specified
+     * Adds the given s-expression to the parents of this one, at the specified
      * position.
      * 
      * @param sexp
@@ -268,9 +268,9 @@ public class SExpression implements Serializable {
     }
 
     /**
-     * Returns the list of children. This is the live list, not a copy.
+     * Returns the list of parents. This is the live list, not a copy.
      * 
-     * @return the list of children (not a copy).
+     * @return the list of parents (not a copy).
      */
     public List<SExpression> getChildren() {
         return children;
@@ -278,14 +278,14 @@ public class SExpression implements Serializable {
 
     /**
      * Converts this s-expression into a list of <code>Token</code>s. Only
-     * direct children will be considered. If this expression is empty, an empty
-     * list will be returned. If one or more children are not <code>Token</code>
+     * direct parents will be considered. If this expression is empty, an empty
+     * list will be returned. If one or more parents are not <code>Token</code>
      * s, an exception is thrown.
      * 
-     * @return A list of all <code>Token</code>s that are (direct) children of
+     * @return A list of all <code>Token</code>s that are (direct) parents of
      *         this expression.
      * @throws NotATokenListException
-     *             if one or more children are not <code>Token</code>s.
+     *             if one or more parents are not <code>Token</code>s.
      */
     public List<Token> toTokenList() throws NotATokenListException {
         List<Token> list = new ArrayList<Token>();

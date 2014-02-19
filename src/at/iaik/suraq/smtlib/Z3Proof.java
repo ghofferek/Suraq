@@ -583,7 +583,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * Gets all the lemmas that occur in subproofs.
      * 
      * @return lemmas found from <code>this</code> node "downwards" (towards
-     *         children).
+     *         parents).
      */
     public Set<Z3Proof> getLemmas() {
         long operationId = DagOperationManager.startDAGOperation();
@@ -1676,7 +1676,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
     /**
      * Walks through the set <code>localNodes</code> starting from
-     * <code>this</code> and duplicates all descendants that are contained in
+     * <code>this</code> and duplicates all parents that are contained in
      * <code>toDuplicate</code>.
      * 
      * @param toDuplicate

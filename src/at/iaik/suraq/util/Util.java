@@ -21,7 +21,8 @@ import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.proof.VeritProofNode;
-import at.iaik.suraq.resProof.Lit;
+import at.iaik.suraq.resProof.Clause;
+import at.iaik.suraq.resProof.Literal;
 import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpressionConstants;
@@ -824,7 +825,7 @@ public final class Util {
             Formula clause = proof.getConsequent();
             assert (clause instanceof OrFormula);
 
-            List<Lit> resClause = new ArrayList<Lit>();
+            List<Literal> resClauseLits = new ArrayList<Literal>();
             // TODO: check if correct
             Set<Integer> resClausePartitions = new HashSet<Integer>();
 
@@ -857,11 +858,11 @@ public final class Util {
                             resLiteralID);
                     Util.literalMap.put(resLiteralID, posLiteral);
 
-                    Util.resProof.var_part.put(resLiteralID, partition < 0 ? 0
+                    Util.resProof.putVarPart(resLiteralID, partition < 0 ? 0
                             : partition);
                 }
-                resClause
-                        .add(new Lit(resLiteralID, Util.getSignValue(literal)));
+                resClauseLits.add(new Literal(resLiteralID, Util
+                        .getSignValue(literal)));
                 resClausePartitions.add(partition);
             }
 
@@ -882,7 +883,8 @@ public final class Util {
                     else
                         leafPartition = 1; // arbitrary choice
 
-                resLeafNode = Util.resProof.addLeaf(resClause, leafPartition);
+                Clause tmpClause = new Clause(resClauseLits);
+                resLeafNode = Util.resProof.addLeaf(tmpClause, leafPartition);
 
                 Util.resNodes.put(proof.getID() + 1, resLeafNode);
             }

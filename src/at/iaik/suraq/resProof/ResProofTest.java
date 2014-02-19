@@ -23,12 +23,16 @@ public class ResProofTest {
         System.out.println("Example 1=>");
         ResProof prf = new ResProof();
 
-        prf.var_part.put(1, 0);
-        prf.var_part.put(2, 0);
+        prf.putVarPart(1, 0);
+        prf.putVarPart(2, 0);
 
-        List<Lit> c1 = Arrays.asList(new Lit(1, true), new Lit(2, false));
-        List<Lit> c2 = Arrays.asList(new Lit(1, false));
-        List<Lit> c3 = Arrays.asList(new Lit(2, true));
+        List<Literal> c1lits = Arrays.asList(new Literal(1, true), new Literal(
+                2, false));
+        List<Literal> c2lits = Arrays.asList(new Literal(1, false));
+        List<Literal> c3lits = Arrays.asList(new Literal(2, true));
+        Clause c1 = new Clause(c1lits);
+        Clause c2 = new Clause(c2lits);
+        Clause c3 = new Clause(c3lits);
         ResNode n1 = prf.addLeaf(c1, 1);
         ResNode n2 = prf.addLeaf(c2, 2);
         ResNode n3 = prf.addLeaf(c3, 0);
@@ -49,14 +53,21 @@ public class ResProofTest {
         int g2 = 2;
         int l = 3;
 
-        List<Lit> c1 = Arrays.asList(new Lit(g1, true));
-        List<Lit> c2 = Arrays.asList(new Lit(g1, false), new Lit(l, true));
-        List<Lit> c3 = Arrays.asList(new Lit(g2, false), new Lit(l, false));
-        List<Lit> c4 = Arrays.asList(new Lit(g2, true));
+        List<Literal> c1lits = Arrays.asList(new Literal(g1, true));
+        List<Literal> c2lits = Arrays.asList(new Literal(g1, false),
+                new Literal(l, true));
+        List<Literal> c3lits = Arrays.asList(new Literal(g2, false),
+                new Literal(l, false));
+        List<Literal> c4lits = Arrays.asList(new Literal(g2, true));
 
-        prf.var_part.put(g1, 0); // global variable
-        prf.var_part.put(g2, 0); // global variable
-        prf.var_part.put(l, 2); // partition 2 local variable
+        Clause c1 = new Clause(c1lits);
+        Clause c2 = new Clause(c2lits);
+        Clause c3 = new Clause(c3lits);
+        Clause c4 = new Clause(c4lits);
+
+        prf.putVarPart(g1, 0); // global variable
+        prf.putVarPart(g2, 0); // global variable
+        prf.putVarPart(l, 2); // partition 2 local variable
 
         ResNode n1 = prf.addLeaf(c1, 1);
         ResNode n2 = prf.addLeaf(c2, 2);
@@ -69,7 +80,7 @@ public class ResProofTest {
 
         prf.setRoot(i3);
 
-        prf.localFirstProofs(true, true, false);
+        prf.makeLocalFirst(true, true, false);
 
     }
 
@@ -85,17 +96,26 @@ public class ResProofTest {
         int g2 = 3;
         int g3 = 4;
 
-        prf.var_part.put(l, 1);
-        prf.var_part.put(g1, 0);
-        prf.var_part.put(g2, 0);
-        prf.var_part.put(g3, 0);
+        prf.putVarPart(l, 1);
+        prf.putVarPart(g1, 0);
+        prf.putVarPart(g2, 0);
+        prf.putVarPart(g3, 0);
 
-        List<Lit> c1 = Arrays.asList(new Lit(g1, T), new Lit(l, T));
-        List<Lit> c2 = Arrays.asList(new Lit(g1, F));
-        List<Lit> c3 = Arrays.asList(new Lit(g1, T), new Lit(g2, F), new Lit(l,
+        List<Literal> c1lits = Arrays.asList(new Literal(g1, T), new Literal(l,
+                T));
+        List<Literal> c2lits = Arrays.asList(new Literal(g1, F));
+        List<Literal> c3lits = Arrays.asList(new Literal(g1, T), new Literal(
+                g2, F), new Literal(l, F));
+        List<Literal> c4lits = Arrays.asList(new Literal(g3, T), new Literal(
+                g2, T));
+        List<Literal> c5lits = Arrays.asList(new Literal(l, F), new Literal(g3,
                 F));
-        List<Lit> c4 = Arrays.asList(new Lit(g3, T), new Lit(g2, T));
-        List<Lit> c5 = Arrays.asList(new Lit(l, F), new Lit(g3, F));
+
+        Clause c1 = new Clause(c1lits);
+        Clause c2 = new Clause(c2lits);
+        Clause c3 = new Clause(c3lits);
+        Clause c4 = new Clause(c4lits);
+        Clause c5 = new Clause(c5lits);
 
         ResNode n1 = prf.addLeaf(c1, 1);
         ResNode n2 = prf.addLeaf(c2, 2);
@@ -111,7 +131,7 @@ public class ResProofTest {
 
         prf.setRoot(i5);
 
-        prf.localFirstProofs(true, true, false);
+        prf.makeLocalFirst(true, true, false);
 
     }
 
@@ -119,7 +139,7 @@ public class ResProofTest {
         System.out.println("Example 4=>(with no printing)");
         ResProof prf = new ResProof();
         prf.loadProof("rsc/test/t4.resProof");
-        prf.localFirstProofs(true, false, false);
+        prf.makeLocalFirst(true, false, false);
     }
 
     public void test() {

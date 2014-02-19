@@ -877,7 +877,7 @@ public class VeritProofNode implements Serializable {
         if (this.type.equals(VeriTToken.INPUT)) {
             if (subProofs.size() != 0) {
                 VeritProofNode.checkTimer.stop();
-                return failOnMessage("INPUT node with children");
+                return failOnMessage("INPUT node with parents");
             }
             VeritProofNode.checkTimer.stop();
             return true;
@@ -918,7 +918,7 @@ public class VeritProofNode implements Serializable {
         if (this.type.equals(VeriTToken.EQ_REFLEXIVE)) {
             if (subProofs.size() != 0) {
                 VeritProofNode.checkTimer.stop();
-                return failOnMessage("Reflexivity node with children!");
+                return failOnMessage("Reflexivity node with parents!");
             }
             if (literalConclusions.size() != 1) {
                 VeritProofNode.checkTimer.stop();
@@ -1053,7 +1053,7 @@ public class VeritProofNode implements Serializable {
 
         assert (this.type.equals(VeriTToken.RESOLUTION));
 
-        // Taking the assumption that only resolution with two children occurs.
+        // Taking the assumption that only resolution with two parents occurs.
 
         if (subProofs.size() != 2) {
             VeritProofNode.checkResolutionTimer.stop();
@@ -1061,7 +1061,7 @@ public class VeritProofNode implements Serializable {
                     + subProofs.size());
         }
 
-        // Special case if one of the two children is a unit clause
+        // Special case if one of the two parents is a unit clause
         if (subProofs.get(0).literalConclusions.size() == 1) {
             Formula unitLiteral = subProofs.get(0).literalConclusions.get(0);
             Formula inverseUnitLiteral = Util.invertLiteral(unitLiteral);
@@ -1093,7 +1093,7 @@ public class VeritProofNode implements Serializable {
             return true;
         }
 
-        // Special case if one of the two children is a "LEM instance" (a \/ ~a)
+        // Special case if one of the two parents is a "LEM instance" (a \/ ~a)
         Formula lemLiteral0 = subProofs.get(0).isLEM();
         if (lemLiteral0 != null) {
             Formula resolvingLiteral = Util.findResolvingLiteral(subProofs);
@@ -2473,7 +2473,7 @@ public class VeritProofNode implements Serializable {
         if (alreadyWritten.contains(this))
             return;
 
-        // First write children
+        // First write parents
         for (VeritProofNode subproof : subProofs)
             subproof.writeOut(writer, alreadyWritten, tagContainer);
 
