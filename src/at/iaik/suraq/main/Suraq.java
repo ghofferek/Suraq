@@ -1513,6 +1513,7 @@ public class Suraq implements Runnable {
         Util.printMemoryInformation();
         iteTrees = proofTransformationAndInterpolation(controlVariables);
 
+        Util.printToSystemOutWithWallClockTimePrefix("Starting back-substitution");
         for (PropositionalVariable key : iteTrees.keySet()) {
             assert (iteTrees.get(key) != null);
             // FIXME There is a potential problem with backsubstituting for
@@ -1526,7 +1527,7 @@ public class Suraq implements Runnable {
                                     .getArrayVariables()));
             iteTrees.put(key, iteTree);
         }
-
+        Util.printToSystemOutWithWallClockTimePrefix("Starting generation of output string.");
         // Now we have results. Let's check them and write them to a file.
         String outputStr = createOutputString(sourceFile, iteTrees);
 
