@@ -569,7 +569,7 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("  Done. (" + timer + ")");
         timer.reset();
 
-        Util.printToSystemOutWithWallClockTimePrefix("Size of ResProof <= "
+        Util.printToSystemOutWithWallClockTimePrefix("Size of ResProof: "
                 + resProof.size());
 
         Util.printToSystemOutWithWallClockTimePrefix("  Processing resolution proof...");
@@ -583,6 +583,8 @@ public class Suraq implements Runnable {
         checkResult = resProof.makeLocalFirst(true, false, false);
         assert (checkResult);
         Util.printToSystemOutWithWallClockTimePrefix("    Done.");
+        Util.printToSystemOutWithWallClockTimePrefix("Size of ResProof: "
+                + resProof.size());
 
         Util.printToSystemOutWithWallClockTimePrefix("    Recovering.");
         Map<ResNode, TransformedZ3Proof> cache = new HashMap<ResNode, TransformedZ3Proof>();
