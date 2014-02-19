@@ -861,8 +861,8 @@ public final class Util {
                     Util.resProof.putVarPart(resLiteralID, partition < 0 ? 0
                             : partition);
                 }
-                resClauseLits.add(new Literal(resLiteralID, Util
-                        .getSignValue(literal)));
+                resClauseLits.add(Literal.create(resLiteralID,
+                        Util.getSignValue(literal)));
                 resClausePartitions.add(partition);
             }
 

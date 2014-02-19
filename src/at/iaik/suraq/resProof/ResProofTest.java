@@ -26,10 +26,10 @@ public class ResProofTest {
         prf.putVarPart(1, 0);
         prf.putVarPart(2, 0);
 
-        List<Literal> c1lits = Arrays.asList(new Literal(1, true), new Literal(
-                2, false));
-        List<Literal> c2lits = Arrays.asList(new Literal(1, false));
-        List<Literal> c3lits = Arrays.asList(new Literal(2, true));
+        List<Literal> c1lits = Arrays.asList(Literal.create(1, true),
+                Literal.create(2, false));
+        List<Literal> c2lits = Arrays.asList(Literal.create(1, false));
+        List<Literal> c3lits = Arrays.asList(Literal.create(2, true));
         Clause c1 = new Clause(c1lits);
         Clause c2 = new Clause(c2lits);
         Clause c3 = new Clause(c3lits);
@@ -53,12 +53,12 @@ public class ResProofTest {
         int g2 = 2;
         int l = 3;
 
-        List<Literal> c1lits = Arrays.asList(new Literal(g1, true));
-        List<Literal> c2lits = Arrays.asList(new Literal(g1, false),
-                new Literal(l, true));
-        List<Literal> c3lits = Arrays.asList(new Literal(g2, false),
-                new Literal(l, false));
-        List<Literal> c4lits = Arrays.asList(new Literal(g2, true));
+        List<Literal> c1lits = Arrays.asList(Literal.create(g1, true));
+        List<Literal> c2lits = Arrays.asList(Literal.create(g1, false),
+                Literal.create(l, true));
+        List<Literal> c3lits = Arrays.asList(Literal.create(g2, false),
+                Literal.create(l, false));
+        List<Literal> c4lits = Arrays.asList(Literal.create(g2, true));
 
         Clause c1 = new Clause(c1lits);
         Clause c2 = new Clause(c2lits);
@@ -101,15 +101,15 @@ public class ResProofTest {
         prf.putVarPart(g2, 0);
         prf.putVarPart(g3, 0);
 
-        List<Literal> c1lits = Arrays.asList(new Literal(g1, T), new Literal(l,
-                T));
-        List<Literal> c2lits = Arrays.asList(new Literal(g1, F));
-        List<Literal> c3lits = Arrays.asList(new Literal(g1, T), new Literal(
-                g2, F), new Literal(l, F));
-        List<Literal> c4lits = Arrays.asList(new Literal(g3, T), new Literal(
-                g2, T));
-        List<Literal> c5lits = Arrays.asList(new Literal(l, F), new Literal(g3,
-                F));
+        List<Literal> c1lits = Arrays.asList(Literal.create(g1, T),
+                Literal.create(l, T));
+        List<Literal> c2lits = Arrays.asList(Literal.create(g1, F));
+        List<Literal> c3lits = Arrays.asList(Literal.create(g1, T),
+                Literal.create(g2, F), Literal.create(l, F));
+        List<Literal> c4lits = Arrays.asList(Literal.create(g3, T),
+                Literal.create(g2, T));
+        List<Literal> c5lits = Arrays.asList(Literal.create(l, F),
+                Literal.create(g3, F));
 
         Clause c1 = new Clause(c1lits);
         Clause c2 = new Clause(c2lits);

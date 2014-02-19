@@ -55,7 +55,6 @@ import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.smtsolver.VeriTSolver;
 import at.iaik.suraq.util.BenchmarkTimer;
-import at.iaik.suraq.util.DagOperationManager;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.ImmutableSet;
@@ -1574,7 +1573,7 @@ public class Suraq implements Runnable {
         // All done :-)
         overallTimer.stop();
         printEnd(noErrors, overallTimer);
-        System.err.println(Suraq.extTimer);
+        // System.err.println(Suraq.extTimer);
         return;
     }
 
@@ -2541,13 +2540,6 @@ public class Suraq implements Runnable {
                 .println("################################################################################");
         Util.printToSystemOutWithWallClockTimePrefix("  (Overall time: "
                 + overallTimer + ")");
-        Util.printToSystemOutWithWallClockTimePrefix("  (DAG operation counter: "
-                + DagOperationManager.getOperationCount() + ")");
-        Util.printToSystemOutWithWallClockTimePrefix("  (Total number of proof objects ever created: "
-                + Z3Proof.getInstanceCounter() + ")");
-        Util.printToSystemOutWithWallClockTimePrefix("  (No. of obsolete resolution steps removed: "
-                + TransformedZ3Proof
-                        .getNumberOfRemovedObsoloteResolutionSteps() + ")");
         if (result)
 
             if (SuraqOptions.getInstance().isCheckResult())

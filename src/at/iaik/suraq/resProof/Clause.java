@@ -89,7 +89,7 @@ public class Clause implements Iterable<Literal> {
      * @return <code>true</code> if the clause contained the literal.
      */
     public boolean rmLit(int id, boolean polarity) {
-        return literals.remove(new Literal(id, polarity));
+        return literals.remove(Literal.create(id, polarity));
     }
 
     /**
@@ -101,7 +101,7 @@ public class Clause implements Iterable<Literal> {
      * @return
      */
     public boolean contains(int id, boolean polarity) {
-        return literals.contains(new Literal(id, polarity));
+        return literals.contains(Literal.create(id, polarity));
     }
 
     /**

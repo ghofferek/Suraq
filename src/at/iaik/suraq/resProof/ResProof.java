@@ -385,7 +385,7 @@ public class ResProof {
                     int part = Integer.parseInt(is[2]);
                     Clause cl = new Clause();
                     for (int i = 3; i < is.length; i++) {
-                        Literal l = new Literal(Integer.parseInt(is[i]));
+                        Literal l = Literal.create(Integer.parseInt(is[i]));
                         cl.addLit(l);
                     }
                     n = addLeaf(cl, part);
@@ -601,8 +601,8 @@ public class ResProof {
         } while (move);
 
         // move up the local resolution
-        Literal posPivot = new Literal(node.getPivot(), true);
-        Literal negPivot = new Literal(node.getPivot(), false);
+        Literal posPivot = Literal.create(node.getPivot(), true);
+        Literal negPivot = Literal.create(node.getPivot(), false);
         // Check Left
         int goLeft = node.getLeft().checkMovable(posPivot);
         // Check Right
@@ -820,8 +820,8 @@ public class ResProof {
                                 .getVarName().substring(2));
                 int partition = partitionsMap.get(resLiteralID);
                 this.varPart.put(resLiteralID, partition);
-                resClauseLits.add(new Literal(resLiteralID, Util
-                        .getSignValue(literal)));
+                resClauseLits.add(Literal.create(resLiteralID,
+                        Util.getSignValue(literal)));
                 resClausePartitions.add(partition < 0 ? 0 : partition);
             }
 

@@ -185,9 +185,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.id = Z3Proof.instanceCounter++;
         if (this.id == 1063)
             assert (this.id != 1468192489);
-        if (this.id % 1000 == 0) {
+        if (this.id % 10000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);
-            System.out.println("INFO: Created the " + output + " proof node.");
+            Util.printToSystemOutWithWallClockTimePrefix("INFO: Created the "
+                    + output + " proof node.");
         }
         // this.assertPartition = -1;
     }
@@ -220,9 +221,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.id = Z3Proof.instanceCounter++;
         if (this.id == 1063)
             assert (this.id != 1468192489);
-        if (this.id % 1000 == 0) {
+        if (this.id % 10000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);
-            System.out.println("INFO: Created the " + output + " proof node.");
+            Util.printToSystemOutWithWallClockTimePrefix("INFO: Created the "
+                    + output + " proof node.");
         }
         this.setAssertPartition();
         // assert (this.checkZ3ProofNode());
@@ -276,9 +278,10 @@ public class Z3Proof implements SMTLibObject, Serializable {
         this.id = Z3Proof.instanceCounter++;
         if (this.id == 1063)
             assert (this.id != 1468192489);
-        if (this.id % 1000 == 0) {
+        if (this.id % 10000 == 0) {
             String output = Z3Proof.myFormatter.format(this.id);
-            System.out.println("INFO: Created the " + output + " proof node.");
+            Util.printToSystemOutWithWallClockTimePrefix("INFO: Created the "
+                    + output + " proof node.");
         }
         if (this.proofType.equals(SExpressionConstants.ASSERTED)) {
             if (partition > 0)
@@ -326,7 +329,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
         // This node only takes the "values" of the other node.
         // its position in the DAG stays the same.
 
-        
         Z3Proof.hypModCount++;
         this.hypCacheModCount = proof.hypCacheModCount;
         this.hypCacheDirty = proof.hypCacheDirty;
@@ -389,8 +391,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
             newSubProofs.add(subProof);
         }
 
-        Z3Proof instance = new Z3Proof(Token.generate(this.proofType), newSubProofs,
-                consequent);
+        Z3Proof instance = new Z3Proof(Token.generate(this.proofType),
+                newSubProofs, consequent);
 
         return instance;
     }
@@ -646,7 +648,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
                 return hypothesesCache;
             }
         }
-        
+
         long operationId = DagOperationManager.startDAGOperation();
         Set<Z3Proof> result = this.getHypothesesRecursion(operationId);
         DagOperationManager.endDAGOperation(operationId);
@@ -660,7 +662,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
             this.markHypCacheDirty();
         }
         this.hypCacheModCount = Z3Proof.hypModCount;
-        
+
         this.hypCacheDirty = false;
         Z3Proof.debugGetHypothesesTimer.stop();
         Z3Proof.printDebugGetHypothesesTimerStats();
@@ -2055,9 +2057,8 @@ public class Z3Proof implements SMTLibObject, Serializable {
                         .getTerms().get(1);
                 PropositionalTerm positiveTerm = FormulaTerm.create((Util
                         .makeLiteralPositive(formula)));
-                PropositionalTerm negativeTerm = FormulaTerm
-                        .create(NotFormula.create(Util
-                                .makeLiteralPositive(formula)));
+                PropositionalTerm negativeTerm = FormulaTerm.create(NotFormula
+                        .create(Util.makeLiteralPositive(formula)));
                 if (term1.equals(formula) || term2.equals(formula)
                         || term1.equals(positiveTerm)
                         || term1.equals(negativeTerm)

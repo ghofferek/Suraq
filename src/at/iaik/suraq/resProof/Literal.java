@@ -3,6 +3,10 @@
  */
 package at.iaik.suraq.resProof;
 
+import java.lang.ref.WeakReference;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 /**
  * 
  * Represents a literal in a resolution proof. A literal has an integer
@@ -13,6 +17,11 @@ package at.iaik.suraq.resProof;
  * 
  */
 public class Literal implements Comparable<Literal> {
+
+    /**
+     * Stores the unique literal objects.
+     */
+    private static final Map<Literal, WeakReference<Literal>> uniqueLiterals = new WeakHashMap<Literal, WeakReference<Literal>>();
 
     /**
      * the internal storage for identifier and polarity
@@ -27,7 +36,7 @@ public class Literal implements Comparable<Literal> {
      * @param lit
      *            the internal <code>lit</code> of another <code>Literal</code>.
      */
-    public Literal(int lit) {
+    private Literal(int lit) {
         this.lit = lit;
     }
 
@@ -39,8 +48,56 @@ public class Literal implements Comparable<Literal> {
      * @param id
      * @param polarity
      */
-    public Literal(int id, boolean polarity) {
+    private Literal(int id, boolean polarity) {
         lit = (id << 1) | (polarity ? 1 : 0);
+    }
+
+    /**
+     * 
+     * Constructs a new <code>Literal</code>, based on the given
+     * <code>lit</code>. If the same literal object already exists, the existing
+     * reference is returned.
+     * 
+     * @param lit
+     *            the internal <code>lit</code> of another <code>Literal</code>.
+     */
+    public static Literal create(int lit) {
+        Literal newLiteral = new Literal(lit);
+        WeakReference<Literal> oldLiteralRef = Literal.uniqueLiterals
+                .get(newLiteral);
+        if (oldLiteralRef != null) {
+            Literal oldLiteral = oldLiteralRef.get();
+            if (oldLiteral != null) {
+                return oldLiteral;
+            }
+        }
+        Literal.uniqueLiterals.put(newLiteral, new WeakReference<Literal>(
+                newLiteral));
+        return newLiteral;
+    }
+
+    /**
+     * 
+     * Constructs a new <code>Literal</code>, based on the given identifier and
+     * polarity. If the same literal object already exists, the existing
+     * reference is returned.
+     * 
+     * @param id
+     * @param polarity
+     */
+    public static Literal create(int id, boolean polarity) {
+        Literal newLiteral = new Literal(id, polarity);
+        WeakReference<Literal> oldLiteralRef = Literal.uniqueLiterals
+                .get(newLiteral);
+        if (oldLiteralRef != null) {
+            Literal oldLiteral = oldLiteralRef.get();
+            if (oldLiteral != null) {
+                return oldLiteral;
+            }
+        }
+        Literal.uniqueLiterals.put(newLiteral, new WeakReference<Literal>(
+                newLiteral));
+        return newLiteral;
     }
 
     /**
@@ -65,7 +122,7 @@ public class Literal implements Comparable<Literal> {
      * @return the negated version of this literal.
      */
     public Literal negate() {
-        return new Literal(lit ^ 0x1);
+        return Literal.create(lit ^ 0x1);
     }
 
     /**
