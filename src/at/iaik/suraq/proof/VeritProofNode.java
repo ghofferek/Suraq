@@ -374,14 +374,16 @@ public class VeritProofNode implements Serializable {
         for (Formula literal : literals1) {
             if (!literal.equals(resolvingLiteral)
                     && !conclusions.contains(literal)) {
-                assert (!conclusions.contains(Util.invertLiteral(literal)));
+                assert (VeritProofNode.checkProofNodesEnabled ? !conclusions
+                        .contains(Util.invertLiteral(literal)) : true);
                 conclusions.add(literal);
             }
         }
         for (Formula literal : literals2) {
             if (!literal.equals(Util.invertLiteral(resolvingLiteral))
                     && !conclusions.contains(literal)) {
-                assert (!conclusions.contains(Util.invertLiteral(literal)));
+                assert (VeritProofNode.checkProofNodesEnabled ? !conclusions
+                        .contains(Util.invertLiteral(literal)) : true);
                 conclusions.add(literal);
             }
         }
