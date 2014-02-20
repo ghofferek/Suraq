@@ -85,9 +85,10 @@ public class ResProof {
     private final HashSet<ResNode> leaves = new HashSet<ResNode>();
 
     /**
-     * Maps clause identifiers from veriT to already created ResNodes.
+     * Maps clause identifiers from veriT to already created ResNodes. Will be
+     * destroyed after parsing is complete!
      */
-    private final Map<String, ResNode> namesOfResNodes = new HashMap<String, ResNode>();
+    private Map<String, ResNode> namesOfResNodes = new HashMap<String, ResNode>();
 
     /**
      * 
@@ -175,8 +176,12 @@ public class ResProof {
         VeriTParser parser = new VeriTParser(solver.getStream(),
                 literalIds.size(), resProof, partitions, leafPartitions);
         parser.parse();
-
+        resProof.killNamesOfResNodes();
         return resProof;
+    }
+
+    private void killNamesOfResNodes() {
+        this.namesOfResNodes = null;
     }
 
     /**
@@ -383,11 +388,12 @@ public class ResProof {
                 int piv = Integer.parseInt(is[1]);
                 if (piv == 0) {
                     int part = Integer.parseInt(is[2]);
-                    Clause cl = new Clause();
+                    List<Literal> clLits = new ArrayList<Literal>();
                     for (int i = 3; i < is.length; i++) {
                         Literal l = Literal.create(Integer.parseInt(is[i]));
-                        cl.addLit(l);
+                        clLits.add(l);
                     }
+                    Clause cl = new Clause(clLits);
                     n = addLeaf(cl, part);
                 } else {
                     int lid = Integer.parseInt(is[2]);

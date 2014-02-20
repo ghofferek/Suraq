@@ -150,7 +150,7 @@ public class ResNode implements Comparable<ResNode> {
             right.removeParent(this);
             right.cleanUp();
             right = null;
-            clause.clear();
+            // clause.clear();
             // this is ready for garbage collection.
         }
     }
@@ -181,7 +181,6 @@ public class ResNode implements Comparable<ResNode> {
      * @param n
      */
     public void addParent(ResNode n) {
-        assert (!parents.contains(n));// "Adding existing child",
         parents.add(n);
     }
 
@@ -253,7 +252,7 @@ public class ResNode implements Comparable<ResNode> {
     }
 
     /**
-     * Moves the parents of this node to one of its childs.
+     * Moves the parents of this node to one of its children.
      * 
      * @param toLeftChild
      *            if <code>true</code> move parents to left child.

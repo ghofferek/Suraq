@@ -3,30 +3,50 @@
  */
 package at.iaik.suraq.resProof;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+/**
+ * Represents a clause in a node of a resolution proof. Clauses are immutable.
+ * 
+ */
 public class Clause implements Iterable<Literal> {
 
-    private final TreeSet<Literal> literals = new TreeSet<Literal>();
+    /**
+     * The literals in this clause. This is supposed to be sorted according to
+     * the natural order of Literals.
+     */
+    private final Literal[] literals;
+
+    /**
+     * The hashCode.
+     */
+    private final int hashCode;
 
     /**
      * 
      * Constructs a new <code>Clause</code> that is empty.
      */
     public Clause() {
-        super();
+        literals = new Literal[0];
+        hashCode = 0;
     }
 
     /**
      * 
-     * Constructs a new <code>Clause</code> withe the given literals.
+     * Constructs a new <code>Clause</code> with the given literals.
      * 
      * @param literal
      */
     public Clause(Collection<Literal> literal) {
-        literals.addAll(literal);
+        TreeSet<Literal> literalSet = new TreeSet<Literal>();
+        literalSet.addAll(literal);
+        Literal[] litArray = new Literal[literalSet.size()];
+        literals = literalSet.toArray(litArray);
+        hashCode = literalSet.hashCode();
     }
 
     /**
@@ -36,7 +56,7 @@ public class Clause implements Iterable<Literal> {
      * @param clause
      */
     public Clause(Clause clause) {
-        literals.addAll(clause.literals);
+        this(Arrays.asList(clause.literals));
     }
 
     /**
@@ -49,47 +69,18 @@ public class Clause implements Iterable<Literal> {
      * @param pivot
      */
     public Clause(Clause clLeft, Clause clRight, int pivot) {
-        literals.addAll(clLeft.literals);
-        rmLit(pivot, true);
-        if (contains(pivot, false)) {
-            literals.addAll(clRight.literals);
+        TreeSet<Literal> literalSet = new TreeSet<Literal>();
+        Collections.addAll(literalSet, clLeft.literals);
+        literalSet.remove(Literal.create(pivot, true));
+        if (literalSet.contains(Literal.create(pivot, false))) {
+            Collections.addAll(literalSet, clRight.literals);
         } else {
-            literals.addAll(clRight.literals);
-            rmLit(pivot, false);
+            Collections.addAll(literalSet, clRight.literals);
+            literalSet.remove(Literal.create(pivot, false));
         }
-    }
-
-    /**
-     * Adds the given literal to this clause.
-     * 
-     * @param l
-     * @return <code>true</code> if the clause did not already contain the
-     *         literal.
-     */
-    public boolean addLit(Literal l) {
-        assert (!literals.contains(l.negate()));// "~lit and lit in a clause",
-        return literals.add(l);
-    }
-
-    /**
-     * Removes the given literal from this clause.
-     * 
-     * @param l
-     * @return <code>true</code> if the clause did contain the literal.
-     */
-    public boolean rmLit(Literal l) {
-        return literals.remove(l);
-    }
-
-    /**
-     * Removes the literal with the given id and polarity from this clause.
-     * 
-     * @param id
-     * @param polarity
-     * @return <code>true</code> if the clause contained the literal.
-     */
-    public boolean rmLit(int id, boolean polarity) {
-        return literals.remove(Literal.create(id, polarity));
+        Literal[] litArray = new Literal[literalSet.size()];
+        literals = literalSet.toArray(litArray);
+        hashCode = literalSet.hashCode();
     }
 
     /**
@@ -101,7 +92,7 @@ public class Clause implements Iterable<Literal> {
      * @return
      */
     public boolean contains(int id, boolean polarity) {
-        return literals.contains(Literal.create(id, polarity));
+        return contains(Literal.create(id, polarity));
     }
 
     /**
@@ -112,14 +103,11 @@ public class Clause implements Iterable<Literal> {
      *         clause.
      */
     public boolean contains(Literal literal) {
-        return literals.contains(literal);
-    }
-
-    /**
-     * Clears this clause. I.e., clears the internal set of literals.
-     */
-    public void clear() {
-        literals.clear();
+        for (Literal lit : literals) {
+            if (lit.equals(literal))
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -127,7 +115,7 @@ public class Clause implements Iterable<Literal> {
      * @return <code>true</code> if this clause is empty.
      */
     public boolean isEmpty() {
-        return literals.isEmpty();
+        return literals.length == 0;
     }
 
     /**
@@ -136,7 +124,7 @@ public class Clause implements Iterable<Literal> {
      */
     @Override
     public Iterator<Literal> iterator() {
-        return literals.iterator();
+        return Arrays.asList(literals).iterator();
     }
 
     /**
@@ -144,7 +132,7 @@ public class Clause implements Iterable<Literal> {
      */
     @Override
     public int hashCode() {
-        return literals.hashCode();
+        return hashCode;
     }
 
     /**
@@ -158,7 +146,9 @@ public class Clause implements Iterable<Literal> {
             return false;
         if (this.hashCode() != obj.hashCode())
             return false;
-        return this.literals.equals(((Clause) obj).literals);
-    }
+        if (!Arrays.equals(literals, ((Clause) obj).literals))
+            return false;
 
+        return true;
+    }
 }
