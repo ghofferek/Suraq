@@ -46,6 +46,7 @@ public class Clause implements Iterable<Literal> {
         literalSet.addAll(literal);
         Literal[] litArray = new Literal[literalSet.size()];
         literals = literalSet.toArray(litArray);
+        assert (literalsSorted());
         hashCode = literalSet.hashCode();
     }
 
@@ -80,7 +81,21 @@ public class Clause implements Iterable<Literal> {
         }
         Literal[] litArray = new Literal[literalSet.size()];
         literals = literalSet.toArray(litArray);
+        assert (literalsSorted());
         hashCode = literalSet.hashCode();
+    }
+
+    /**
+     * Checks if the array of literals is sorted.
+     * 
+     * @return
+     */
+    private boolean literalsSorted() {
+        for (int count = 1; count < literals.length; count++) {
+            if (literals[count - 1].compareTo(literals[count]) >= 0)
+                return false;
+        }
+        return true;
     }
 
     /**
