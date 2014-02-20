@@ -20,17 +20,6 @@ public class ImmutableArrayList<E> implements List<E>, Serializable {
     private final ArrayList<E> internalList;
     private final int hashCode;
 
-    /**
-     * Constructs a new <code>ImmutableSet</code>.
-     * 
-     * @param set
-     */
-    public ImmutableArrayList(List<? extends E> set) {
-        assert (set != null);
-        internalList = new ArrayList<E>(set);
-        this.hashCode = internalList.hashCode();
-    }
-
     public ImmutableArrayList(Collection<? extends E> set) {
         assert (set != null);
         internalList = new ArrayList<E>(set);

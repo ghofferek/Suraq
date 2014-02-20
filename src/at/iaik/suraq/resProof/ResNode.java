@@ -144,12 +144,14 @@ public class ResNode implements Comparable<ResNode> {
      */
     public void cleanUp() {
         if (!isLeaf() && parents.isEmpty()) {
-            left.removeParent(this);
-            left.cleanUp();
-            left = null;
-            right.removeParent(this);
-            right.cleanUp();
-            right = null;
+            ResNode oldLeft = this.left;
+            this.left = null;
+            oldLeft.removeParent(this);
+            oldLeft.cleanUp();
+            ResNode oldRight = this.right;
+            this.right = null;
+            oldRight.removeParent(this);
+            oldRight.cleanUp();
             // clause.clear();
             // this is ready for garbage collection.
         }
@@ -158,11 +160,12 @@ public class ResNode implements Comparable<ResNode> {
     /**
      * Removes the given node from the set of parents.
      * 
-     * @param n
+     * @param node
      */
-    public void removeParent(ResNode n) {
-        assert (parents.contains(n));// "Removing non-existent child",
-        parents.remove(n);
+    public void removeParent(ResNode node) {
+        assert (node.left != this && node.right != this);
+        assert (parents.contains(node));// "Removing non-existent child",
+        parents.remove(node);
     }
 
     /**
@@ -191,10 +194,12 @@ public class ResNode implements Comparable<ResNode> {
      */
     public void convertToLeaf(int part) {
         this.part = part;
-        this.left.rmParentWithCleanUp(this);
-        this.right.rmParentWithCleanUp(this);
+        ResNode oldLeft = this.left;
+        ResNode oldRight = this.right;
         this.left = null;
         this.right = null;
+        oldLeft.rmParentWithCleanUp(this);
+        oldRight.rmParentWithCleanUp(this);
         this.pivot = 0;
     }
 

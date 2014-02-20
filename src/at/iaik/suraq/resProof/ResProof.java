@@ -44,9 +44,9 @@ public class ResProof {
     private final ResNode root;
 
     /**
-     * Counter to obtain fresh node IDs.
+     * the next fresh id.
      */
-    private int nodeCount = 1;
+    private int freshId = 1;
 
     // public int[] varPart = new int[ResProof.MAX_LIT_NUM];
     /**
@@ -78,6 +78,11 @@ public class ResProof {
      * Probably the number of nodes. Not sure yet.
      */
     private int numberOfNodes;
+
+    /**
+     * Counting nodes being dumped or loaded
+     */
+    private int dumpLoadCounter = 0;
 
     /**
      * Probably the set of all leaves. Not sure yet.
@@ -193,8 +198,23 @@ public class ResProof {
      */
     public ResNode addLeaf(Clause cl, int part) {
         assert (!vitalInfoFresh);
-        ResNode n = new ResNode(nodeCount, cl, null, null, 0, part);
-        incNodeCount(n);
+        ResNode n = new ResNode(freshId++, cl, null, null, 0, part);
+        nodeRef.put(n.id, n);
+        return n;
+    }
+
+    /**
+     * Adds a leaf with the given id.
+     * 
+     * @param cl
+     * @param part
+     * @param id
+     * @return
+     */
+    public ResNode addLeaf(Clause cl, int part, int id) {
+        freshId = freshId > id ? freshId : id + 1;
+        ResNode n = new ResNode(id, cl, null, null, 0, part);
+        nodeRef.put(n.id, n);
         return n;
     }
 
@@ -205,27 +225,32 @@ public class ResProof {
      */
     public ResNode addIntNode(Clause cl, ResNode left, ResNode right, int pivot) {
         assert (!vitalInfoFresh);
-        ResNode n = new ResNode(nodeCount, cl, left, right, pivot, -1);
-        incNodeCount(n);
+        ResNode n = new ResNode(freshId++, cl, left, right, pivot, -1);
+        nodeRef.put(n.id, n);
         return n;
     }
 
     /**
-     * Stores the given node and increments the node count.
+     * Adds an internal node with the given id.
      * 
-     * @param n
+     * @param cl
+     * @param left
+     * @param right
+     * @param pivot
+     * @return
      */
-    private void incNodeCount(ResNode n) {
-        // nodeRef[nodeCount] = n;
-        assert (!nodeRef.containsKey(n));
+    public ResNode addIntNode(Clause cl, ResNode left, ResNode right,
+            int pivot, int id) {
+        assert (!vitalInfoFresh);
+        freshId = freshId > id ? freshId : id + 1;
+        ResNode n = new ResNode(id, cl, left, right, pivot, -1);
         nodeRef.put(n.id, n);
-        nodeCount++;
-        assert (nodeCount < Integer.MAX_VALUE);
+        return n;
     }
 
     public void setRoot(ResNode n) {
         assert (!vitalInfoFresh);
-
+        assert (n.getClause().isEmpty());
         // GHnote: Not sure what this is supposed to do
         root.setLeft(n);
         n.addParent(root);
@@ -292,6 +317,7 @@ public class ResProof {
     private void recDumpProof(BufferedWriter wr, ResNode n) throws IOException {
         if (visited.contains(n.id))
             return;
+        dumpLoadCounter++;
         if (n.isLeaf()) {
             wr.write(String.valueOf(n.id));
             wr.write(" ");
@@ -329,12 +355,13 @@ public class ResProof {
     public void dumpProof(String file) {
         // String file = "tmp/test.res";
         visited.clear();
+        dumpLoadCounter = 0;
         try {
             // create FileOutputStream object
             File fl = new File(file);
             FileWriter fs = new FileWriter(fl);
             BufferedWriter wr = new BufferedWriter(fs);
-            for (int v = 1; varPart.get(v) != -1; v++) {
+            for (int v : varPart.keySet()) {
                 wr.write(String.valueOf(v));
                 wr.write(" ");
                 wr.write(String.valueOf(varPart.get(v)));
@@ -352,16 +379,19 @@ public class ResProof {
         } catch (IOException e) {
             System.out.println("IOException : " + e);
         }
-
+        Util.printToSystemOutWithWallClockTimePrefix("Dump counter: "
+                + Util.largeNumberFormatter.format(dumpLoadCounter));
     }
 
     /**
      * Loads the proof from the file with the given name.
      * 
      * @param file
+     * @return the proof parsed from <code>file</code>
      */
-    public void loadProof(String file) {
-        // String file = "tmp/test.res";
+    public static ResProof loadProof(String file) {
+        ResProof resProof = new ResProof();
+        resProof.dumpLoadCounter = 0;
         try {
             // create FileOutputStream object
             File fl = new File(file);
@@ -377,7 +407,7 @@ public class ResProof {
                     break;
                 // "var and only parts should be there"
                 assert (is.length == 2);
-                varPart.put(v, Integer.parseInt(is[1]));
+                resProof.varPart.put(v, Integer.parseInt(is[1]));
             }
             ResNode n = null;
             while ((rdLine = rd.readLine()) != null) {
@@ -394,21 +424,24 @@ public class ResProof {
                         clLits.add(l);
                     }
                     Clause cl = new Clause(clLits);
-                    n = addLeaf(cl, part);
+                    n = resProof.addLeaf(cl, part, id);
+                    resProof.dumpLoadCounter++;
                 } else {
                     int lid = Integer.parseInt(is[2]);
                     int rid = Integer.parseInt(is[3]);
-                    n = addIntNode(null, nodeRef.get(lid), nodeRef.get(rid),
-                            piv);
+                    n = resProof.addIntNode(null, resProof.nodeRef.get(lid),
+                            resProof.nodeRef.get(rid), piv, id);
+                    resProof.dumpLoadCounter++;
                 }
-                nodeRef.put(id, n);
             }
-            setRoot(n);
+            resProof.setRoot(n);
             rd.close();
         } catch (IOException e) {
             System.out.println("IOException : " + e);
         }
-
+        Util.printToSystemOutWithWallClockTimePrefix("Load counter: "
+                + Util.largeNumberFormatter.format(resProof.dumpLoadCounter));
+        return resProof;
     }
 
     /**
@@ -480,7 +513,7 @@ public class ResProof {
                 System.out.println("Number of nodes  = " + numberOfNodes);
                 System.out.println("Number of leaves = " + leaves.size());
             } else {
-                System.out.println("Number of active nodes" + "<" + nodeCount);
+                System.out.println("Number of active nodes unknown.");
             }
             System.out.print("var partitions:");
             for (Integer v : varPart.keySet())
@@ -619,7 +652,10 @@ public class ResProof {
                                                // ":Both unmovable parents is not possible!",
 
         // L = Res(LL, LR), R = Res(RL, RR), N = Res(L,R)
-        ResNode L = node.getLeft(), R = node.getRight(), n1 = null, n2 = null;
+        ResNode L = node.getLeft();
+        ResNode R = node.getRight();
+        ResNode n1 = null;
+        ResNode n2 = null;
         ResNode LL = null;
         ResNode LR = null;
         ResNode RL = null;

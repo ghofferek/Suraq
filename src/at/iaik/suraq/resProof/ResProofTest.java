@@ -7,19 +7,21 @@ package at.iaik.suraq.resProof;
 import java.util.Arrays;
 import java.util.List;
 
-public class ResProofTest {
+import at.iaik.suraq.util.Util;
 
-    @SuppressWarnings("unused")
-    private void localizeProof(ResProof prf) {
-        prf.computeVitals();
-        prf.checkProof(true);
-        prf.rmDoubleLits();
-        prf.deLocalizeProof();
-        prf.computeVitals();
-        prf.checkProof(false);
+public class ResProofTest implements Runnable {
+
+    private final String filename;
+
+    public ResProofTest() {
+        filename = null;
     }
 
-    public void t1() {
+    public ResProofTest(String filename) {
+        this.filename = filename;
+    }
+
+    private void t1() {
         System.out.println("Example 1=>");
         ResProof prf = new ResProof();
 
@@ -44,7 +46,7 @@ public class ResProofTest {
         prf.checkProof(true);
     }
 
-    public void t2() {
+    private void t2() {
         System.out.println("Example 2=>");
 
         ResProof prf = new ResProof();
@@ -84,7 +86,7 @@ public class ResProofTest {
 
     }
 
-    public void t3(boolean b) {
+    private void t3(boolean b) {
         ResProof prf = new ResProof();
         System.out.println("Example 3=>" + b);
 
@@ -135,14 +137,14 @@ public class ResProofTest {
 
     }
 
-    public void t4() {
+    private void t4() {
         System.out.println("Example 4=>(with no printing)");
         ResProof prf = new ResProof();
-        prf.loadProof("rsc/test/t4.resProof");
+        ResProof.loadProof("rsc/test/t4.resProof");
         prf.makeLocalFirst(true, false, false);
     }
 
-    public void test() {
+    private void test() {
         System.out.println("----------------------------------------------");
         t1();
         System.out.println("----------------------------------------------");
@@ -155,16 +157,37 @@ public class ResProofTest {
         t4();
     }
 
-    public boolean takeControl() {
-        boolean b = false;
-        // true;
-        if (b)
-            test();
-        return b;
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            ResProofTest test = new ResProofTest();
+            test.test();
+            System.exit(0);
+        }
+
+        assert (args.length > 0);
+        ResProofTest test = new ResProofTest(args[0]);
+        test.run();
+        System.exit(0);
+
     }
 
-    public static void main(String[] args) {
-        ResProofTest test = new ResProofTest();
-        test.test();
+    @Override
+    public void run() {
+        if (this.filename == null)
+            return;
+
+        Util.printToSystemOutWithWallClockTimePrefix("Loading proof from "
+                + filename);
+        ResProof resProof = ResProof.loadProof(filename);
+        Util.printToSystemOutWithWallClockTimePrefix("Done.");
+        Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
+                + resProof.size());
+
+        Util.printToSystemOutWithWallClockTimePrefix("Making Local First.");
+        resProof.makeLocalFirst(true, false, false);
+        Util.printToSystemOutWithWallClockTimePrefix("Done.");
+        Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
+                + resProof.size());
+
     }
 }

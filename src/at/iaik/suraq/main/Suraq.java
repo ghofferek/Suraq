@@ -201,6 +201,8 @@ public class Suraq implements Runnable {
             suraq.run();
 
         } catch (Throwable exc) {
+            Util.printMemoryInformation();
+            Util.printToSystemOutWithWallClockTimePrefix("Program ended with an Exception");
             System.err.println("ERROR: Uncaught exception!");
             System.err.println("Message:" + exc.getMessage() == null ? "<null>"
                     : exc.getMessage());
@@ -567,6 +569,10 @@ public class Suraq implements Runnable {
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("  Done. (" + timer + ")");
         timer.reset();
+
+        Util.printToSystemOutWithWallClockTimePrefix("Dumping resProof.");
+        resProof.dumpProof("resProof.txt");
+        Util.printToSystemOutWithWallClockTimePrefix("Done");
 
         Util.printToSystemOutWithWallClockTimePrefix("Size of ResProof: "
                 + Util.largeNumberFormatter.format(resProof.size()));
