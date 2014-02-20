@@ -103,11 +103,7 @@ public class Clause implements Iterable<Literal> {
      *         clause.
      */
     public boolean contains(Literal literal) {
-        for (Literal lit : literals) {
-            if (lit.equals(literal))
-                return true;
-        }
-        return false;
+        return Arrays.binarySearch(literals, literal) >= 0;
     }
 
     /**
