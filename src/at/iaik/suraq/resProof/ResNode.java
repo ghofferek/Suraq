@@ -52,6 +52,8 @@ public class ResNode implements Comparable<ResNode> {
      * @param id
      */
     public ResNode(int id) {
+        if (id == 1991555)
+            assert (id == 1991555);
         this.id = id;
         this.clause = new Clause();
     }
@@ -69,10 +71,13 @@ public class ResNode implements Comparable<ResNode> {
      */
     public ResNode(int id, Clause clause, ResNode left, ResNode right,
             int pivot, int part) {
+        if (id == 1991555)
+            assert (id == 1991555);
         this.id = id;
         this.part = part;
 
         if (left == null && right == null) {
+            assert (clause != null);
             this.clause = new Clause(clause);
             return;
         }
@@ -243,10 +248,12 @@ public class ResNode implements Comparable<ResNode> {
             looser = left;
         else
             looser = right;
+        assert (looser != null);
         if (leftGrandChild)
             gainer = looser.left;
         else
             gainer = looser.right;
+        assert (gainer != null);
         if (leftChild)
             left = gainer;
         else
@@ -268,15 +275,15 @@ public class ResNode implements Comparable<ResNode> {
             gainer = left;
         else
             gainer = right;
-
+        assert (gainer != null);
         Iterator<ResNode> itr = parents.iterator();
         while (itr.hasNext()) {
-            ResNode n = itr.next();
-            if (n.left == this)
-                n.left = gainer;
+            ResNode parent = itr.next();
+            if (parent.left == this)
+                parent.left = gainer;
             else
-                n.right = gainer;
-            gainer.addParent(n);
+                parent.right = gainer;
+            gainer.addParent(parent);
         }
 
         parents.clear();
@@ -351,6 +358,7 @@ public class ResNode implements Comparable<ResNode> {
      * @param <code>left</code> the new value for <code>left</code>
      */
     public void setLeft(ResNode left) {
+        assert (left != null);
         this.left = left;
     }
 
@@ -366,6 +374,7 @@ public class ResNode implements Comparable<ResNode> {
      * @param <code>right</code> the new value for <code>right</code>
      */
     public void setRight(ResNode right) {
+        assert (right != null);
         this.right = right;
     }
 
@@ -374,6 +383,7 @@ public class ResNode implements Comparable<ResNode> {
      * @return <code>true</code> iff this is a leaf.
      */
     public boolean isLeaf() {
+        assert (!(left == null ^ right == null));
         return left == null && right == null;
     }
 
@@ -396,14 +406,17 @@ public class ResNode implements Comparable<ResNode> {
 
     @Override
     public String toString() {
-        if (isLeaf())
+        if (left == null && right == null)
             return id + ":" + clause + " (p" + part + ")";
         else if (part != -1)
-            return id + ":" + clause + " lit:" + left.id + " r:" + right.id
-                    + " piv:" + pivot + " (p" + part + ")";
+            return id + ":" + clause + " left:"
+                    + (left == null ? "null" : left.id) + " right:"
+                    + (right == null ? "null" : right.id) + " piv:" + pivot
+                    + " (p" + part + ")";
         else
-            return id + ":" + clause + " lit:" + left.id + " r:" + right.id
-                    + " piv:" + pivot;
+            return id + ":" + clause + " left:"
+                    + (left == null ? "null" : left.id) + " right:"
+                    + (right == null ? "null" : right.id) + " piv:" + pivot;
     }
 
     /**

@@ -39,11 +39,12 @@ public class Clause implements Iterable<Literal> {
      * 
      * Constructs a new <code>Clause</code> with the given literals.
      * 
-     * @param literal
+     * @param lits
      */
-    public Clause(Collection<Literal> literal) {
+    public Clause(Collection<Literal> lits) {
+        assert (lits != null);
         TreeSet<Literal> literalSet = new TreeSet<Literal>();
-        literalSet.addAll(literal);
+        literalSet.addAll(lits);
         Literal[] litArray = new Literal[literalSet.size()];
         literals = literalSet.toArray(litArray);
         assert (literalsSorted());

@@ -457,7 +457,6 @@ public class ResProof {
         visited.add(node.id);
         if (doPrint)
             System.out.println(node);
-        // TODO: Check double lits issue if disabled globally
         if (node.isLeaf()) {
             if (node.getPivot() != 0)
                 // "Pivot at leaf!",
@@ -528,6 +527,9 @@ public class ResProof {
             if (!root.getClause().isEmpty())
                 return false;
             result = recCheckProof(root, doPrint);
+            System.out.println("Checked "
+                    + Util.largeNumberFormatter.format(visited.size())
+                    + " nodes.");
         }
         if (doPrint)
             System.out.println("==========================================");
@@ -602,7 +604,8 @@ public class ResProof {
 
             // Check and fix if child pivot is in n
             move = false;
-            boolean leftChild = false, leftGrandChild = false;
+            boolean leftChild = false;
+            boolean leftGrandChild = false;
             // Note: the following condition only checks the partition.
             // If the child is derived from a single partition then
             // we will not move in the direction and don't worry about it.
@@ -675,32 +678,46 @@ public class ResProof {
         }
 
         if (goLeft == 2) { // -> N1 = Res(LL,R) N = Res(N1,LR)
+            assert (LL != null);
+            assert (R != null);
             n1 = addIntNode(null, LL, R, piv);
             node.setLeft(n1);
             node.setRight(LR);
             node.setPivot(Lpiv);
         } else if (goLeft == 3) { // -> N1 = Res(LR,R) N = Res(LL,N1)
+            assert (LR != null);
+            assert (R != null);
             n1 = addIntNode(null, LR, R, piv);
             node.setLeft(LL);
             node.setRight(n1);
             node.setPivot(Lpiv);
         } else if (goRight == 2) { // -> N1 = Res(L,RL) N = Res(N1,RR)
+            assert (L != null);
+            assert (RL != null);
             n1 = addIntNode(null, L, RL, piv);
             node.setLeft(n1);
             node.setRight(RR);
             node.setPivot(Rpiv);
         } else if (goRight == 3) { // -> N1 = Res(L,RR) N = Res(RL,N1)
+            assert (L != null);
+            assert (RR != null);
             n1 = addIntNode(null, L, RR, piv);
             node.setLeft(RL);
             node.setRight(n1);
             node.setPivot(Rpiv);
         } else if (goLeft == 1) {// -> N1=Res(LL,R) N2=Res(LR,R) N = Res(N1,N2)
+            assert (LL != null);
+            assert (R != null);
+            assert (LR != null);
             n1 = addIntNode(null, LL, R, piv);
             n2 = addIntNode(null, LR, R, piv);
             node.setLeft(n1);
             node.setRight(n2);
             node.setPivot(Lpiv);
         } else if (goRight == 1) {// -> N1=Res(L,RL) N2=Res(L,RR) N = Res(N1,N2)
+            assert (L != null);
+            assert (RL != null);
+            assert (RR != null);
             n1 = addIntNode(null, L, RL, piv);
             n2 = addIntNode(null, L, RR, piv);
             node.setLeft(n1);
@@ -770,7 +787,7 @@ public class ResProof {
             Util.printToSystemOutWithWallClockTimePrefix("      Computing vitals ...");
             computeVitals();
             Util.printToSystemOutWithWallClockTimePrefix("      Done.");
-            Util.printToSystemOutWithWallClockTimePrefix("      Checking ResProof...");
+            Util.printToSystemOutWithWallClockTimePrefix("      Checking ResProof ...");
             if (!checkProof(print))
                 return false;
             Util.printToSystemOutWithWallClockTimePrefix("      Done.");
@@ -781,6 +798,12 @@ public class ResProof {
         Util.printToSystemOutWithWallClockTimePrefix("      rmDoubleLits ...");
         rmDoubleLits();
         Util.printToSystemOutWithWallClockTimePrefix("      Done.");
+        if (verify) {
+            Util.printToSystemOutWithWallClockTimePrefix("      Checking ResProof...");
+            if (!checkProof(print))
+                return false;
+            Util.printToSystemOutWithWallClockTimePrefix("      Done.");
+        }
         Util.printToSystemOutWithWallClockTimePrefix("      deLocalize ...");
         deLocalizeProof();
         Util.printToSystemOutWithWallClockTimePrefix("      Done.");
