@@ -748,11 +748,21 @@ public class ResProof {
             return;
         if (node.isLeaf() || node.getPart() != -1) {
             visited.add(node.id);
+            if (visited.size() % 10000 == 0) {
+                Util.printToSystemOutWithWallClockTimePrefix("Visited "
+                        + Util.largeNumberFormatter.format(visited.size())
+                        + " nodes.");
+            }
             return;
         }
         recDeLocalizeProof(node.getLeft());
         recDeLocalizeProof(node.getRight());
         visited.add(node.id);
+        if (visited.size() % 10000 == 0) {
+            Util.printToSystemOutWithWallClockTimePrefix("Visited "
+                    + Util.largeNumberFormatter.format(visited.size())
+                    + " nodes.");
+        }
 
         // Node may get removed in refresh
         if (!node.refresh())
@@ -842,6 +852,15 @@ public class ResProof {
             return numberOfNodes;
         computeVitals();
         return numberOfNodes;
+    }
+
+    /**
+     * 
+     * @return the size of the proof when unwinding the DAG.
+     */
+    public long treeSize() {
+        Map<ResNode, Long> nodeSizes = new HashMap<ResNode, Long>();
+        return this.getRoot().treeSize(nodeSizes);
     }
 
     /**

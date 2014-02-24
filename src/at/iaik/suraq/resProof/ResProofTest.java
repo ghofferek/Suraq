@@ -181,7 +181,10 @@ public class ResProofTest implements Runnable {
         ResProof resProof = ResProof.loadProof(filename);
         Util.printToSystemOutWithWallClockTimePrefix("Done.");
         Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
-                + resProof.size());
+                + Util.largeNumberFormatter.format(resProof.size()));
+
+        Util.printToSystemOutWithWallClockTimePrefix("Tree size: "
+                + Util.largeNumberFormatter.format(resProof.treeSize()));
 
         Util.printToSystemOutWithWallClockTimePrefix("Making Local First.");
         resProof.makeLocalFirst(true, false, false);

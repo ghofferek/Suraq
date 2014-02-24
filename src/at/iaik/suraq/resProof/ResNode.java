@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.resProof;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -52,8 +54,8 @@ public class ResNode implements Comparable<ResNode> {
      * @param id
      */
     public ResNode(int id) {
-        if (id == 1991555)
-            assert (id == 1991555);
+        // if (id == 1991555)
+        // assert (id == 1991555);
         this.id = id;
         this.clause = new Clause();
     }
@@ -71,8 +73,8 @@ public class ResNode implements Comparable<ResNode> {
      */
     public ResNode(int id, Clause clause, ResNode left, ResNode right,
             int pivot, int part) {
-        if (id == 1991555)
-            assert (id == 1991555);
+        // if (id == 1991555)
+        // assert (id == 1991555);
         this.id = id;
         this.part = part;
 
@@ -151,12 +153,14 @@ public class ResNode implements Comparable<ResNode> {
         if (!isLeaf() && parents.isEmpty()) {
             ResNode oldLeft = this.left;
             this.left = null;
-            oldLeft.removeParent(this);
-            oldLeft.cleanUp();
             ResNode oldRight = this.right;
             this.right = null;
-            oldRight.removeParent(this);
-            oldRight.cleanUp();
+            oldLeft.removeParent(this);
+            oldLeft.cleanUp();
+            if (oldLeft != oldRight) {
+                oldRight.removeParent(this);
+                oldRight.cleanUp();
+            }
             // clause.clear();
             // this is ready for garbage collection.
         }
@@ -279,6 +283,7 @@ public class ResNode implements Comparable<ResNode> {
         Iterator<ResNode> itr = parents.iterator();
         while (itr.hasNext()) {
             ResNode parent = itr.next();
+            assert (parent.left == this || parent.right == this);
             if (parent.left == this)
                 parent.left = gainer;
             else
@@ -460,6 +465,64 @@ public class ResNode implements Comparable<ResNode> {
         if (!this.parents.equals(other.parents))
             return false;
         return true;
+    }
+
+    /**
+     * @return the number of nodes in the subproof starting at this node,
+     *         unwinding the DAG to a tree.
+     */
+    public int treeSize() {
+        if (this.isLeaf())
+            return 1;
+        return this.left.treeSize() + this.right.treeSize() + 1;
+    }
+
+    /**
+     * 
+     * @param nodeSizes
+     * @return DAG-aware computation of the tree size
+     */
+    public long treeSize(Map<ResNode, Long> nodeSizes) {
+        if (nodeSizes.keySet().contains(this))
+            return nodeSizes.get(this);
+
+        if (this.isLeaf()) {
+            nodeSizes.put(this, 1l);
+            return 1;
+        }
+
+        long leftSize = this.left.treeSize(nodeSizes);
+        long rightSize = this.right.treeSize(nodeSizes);
+
+        long result = leftSize + rightSize + 1;
+        nodeSizes.put(this, result);
+        return result;
+    }
+
+    /**
+     * 
+     * @return a set of all descendants of this node.
+     */
+    public Set<ResNode> getDescendants() {
+        Set<ResNode> result = new HashSet<ResNode>();
+        this.getDescendantsRecursion(result);
+        return result;
+    }
+
+    /**
+     * Recursion for computing descendants
+     * 
+     * @param result
+     *            descendants will be added to this set.
+     */
+    private void getDescendantsRecursion(Set<ResNode> result) {
+        if (result.contains(this))
+            return;
+        result.add(this);
+        if (!this.isLeaf()) {
+            this.left.getDescendantsRecursion(result);
+            this.right.getDescendantsRecursion(result);
+        }
     }
 
 }
