@@ -666,8 +666,7 @@ public class TseitinParser extends SMTLibParser {
      * @see at.iaik.suraq.parser.SMTLibParser#parseFormulaBody(at.iaik.suraq.sexp.SExpression)
      */
     @Override
-    protected Formula parseFormulaBody(SExpression expression)
-            throws ParseError {
+    public Formula parseFormulaBody(SExpression expression) throws ParseError {
         if (isLet(expression))
             return handleLet(expression);
         else

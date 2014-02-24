@@ -3,6 +3,12 @@
  */
 package at.iaik.suraq.util;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -15,16 +21,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
+import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.parser.LogicParser;
+import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.proof.AnnotatedProofNode;
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.resProof.Clause;
 import at.iaik.suraq.resProof.Literal;
 import at.iaik.suraq.resProof.ResNode;
 import at.iaik.suraq.resProof.ResProof;
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
@@ -1553,4 +1564,182 @@ public final class Util {
         literalMap.put(id, atom);
         return id;
     }
+
+    /**
+     * Dumps the given metadata to files
+     * 
+     * @param filePrefix
+     * @param literalIds
+     * @param literalMap
+     * @param partitions
+     * @param leafPartitions
+     * @throws IOException
+     */
+    public static void dumpMetaData(String filePrefix,
+            Map<String, Integer> literalIds, Map<Integer, Formula> literalMap,
+            Map<Integer, Integer> partitions,
+            Map<ImmutableSet<Integer>, Integer> leafPartitions)
+            throws IOException {
+
+        Util.dumpLiteralMap(filePrefix + ".literalMap", literalMap);
+        Util.dumpPartitions(filePrefix + ".partitions", partitions);
+        Util.dumpLeafPartitions(filePrefix + ".leafPartitions", leafPartitions);
+    }
+
+    /**
+     * Dumps literalMap to given file.
+     * 
+     * @param fileName
+     * @param literalMap
+     * @throws IOException
+     */
+    public static void dumpLiteralMap(String fileName,
+            Map<Integer, Formula> literalIds) throws IOException {
+        Writer fileStream = new FileWriter(fileName);
+        BufferedWriter writer = new BufferedWriter(fileStream);
+        for (Integer id : literalIds.keySet()) {
+            Formula formula = literalIds.get(id);
+            assert (formula != null);
+            writer.write("(");
+            writer.write(id.toString());
+            writer.write(" ");
+            writer.write(formula.toSmtlibV2().toString());
+            writer.write(")\n");
+        }
+        writer.close();
+    }
+
+    /**
+     * 
+     * @param fileName
+     * @param parser
+     *            a parser pre-initialized with the correct set of variable and
+     *            function names.
+     * @return the literal map loaded from the given file
+     * @throws ParseError
+     */
+    public static Map<Integer, Formula> loadLiteralMap(String fileName,
+            LogicParser parser) throws ParseError {
+        Map<Integer, Formula> result = new HashMap<Integer, Formula>();
+
+        SExpParser sexpParser = new SExpParser(fileName);
+        sexpParser.parse();
+        SExpression rootExpr = sexpParser.getRootExpr();
+        sexpParser = null; // GC
+
+        for (SExpression expr : rootExpr.getChildren()) {
+            if (expr.getChildren().size() != 2)
+                throw new ParseError("Illegal number of child expressions");
+            if (!(expr.getChildren().get(0) instanceof Token))
+                throw new ParseError("First child not a token");
+            int literal = Integer
+                    .parseInt(expr.getChildren().get(0).toString());
+            Formula formula = parser
+                    .parseFormulaBody(expr.getChildren().get(1));
+            result.put(literal, formula);
+        }
+
+        return result;
+    }
+
+    /**
+     * Dumps the given leafPartitions to the given file.
+     * 
+     * @param fileName
+     * @param leafPartitions
+     * @throws IOException
+     */
+    public static void dumpLeafPartitions(String fileName,
+            Map<ImmutableSet<Integer>, Integer> leafPartitions)
+            throws IOException {
+        Writer fileStream = new FileWriter(fileName);
+        BufferedWriter writer = new BufferedWriter(fileStream);
+        for (ImmutableSet<Integer> clause : leafPartitions.keySet()) {
+            Integer partition = leafPartitions.get(clause);
+            assert (partition != null);
+            writer.write(partition.toString());
+            writer.write(" : ");
+            for (Integer integer : clause) {
+                writer.write(integer);
+                writer.write(" ");
+            }
+            writer.write("\n");
+        }
+        writer.close();
+    }
+
+    /**
+     * 
+     * @param fileName
+     * @return leaf partitions loaded from the given file.
+     * @throws IOException
+     */
+    public static Map<ImmutableSet<Integer>, Integer> loadLeafPartitions(
+            String fileName) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        Map<ImmutableSet<Integer>, Integer> result = new HashMap<ImmutableSet<Integer>, Integer>();
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] tokens = line.split(" ");
+            assert (tokens.length >= 3);
+            assert (tokens[1].equals(":"));
+            int partition = Integer.parseInt(tokens[0]);
+            Set<Integer> clause = new TreeSet<Integer>();
+            for (int count = 2; count < tokens.length; count++) {
+                clause.add(Integer.parseInt(tokens[count]));
+            }
+            result.put(ImmutableSet.create(clause), partition);
+        }
+
+        reader.close();
+        return result;
+    }
+
+    /**
+     * Dumps the given partitions to the given file.
+     * 
+     * @param fileName
+     * @param partitions
+     * @throws IOException
+     */
+    public static void dumpPartitions(String fileName,
+            Map<Integer, Integer> partitions) throws IOException {
+        Writer fileStream = new FileWriter(fileName);
+        BufferedWriter writer = new BufferedWriter(fileStream);
+        for (Integer lit : partitions.keySet()) {
+            Integer partition = partitions.get(lit);
+            assert (partition != null);
+            writer.write(lit.toString());
+            writer.write(" ");
+            writer.write(partition.toString());
+            writer.write("\n");
+        }
+        writer.close();
+    }
+
+    /**
+     * 
+     * @param fileName
+     * @return partitions loaded from the given file.
+     * @throws IOException
+     */
+    public static Map<Integer, Integer> loadPartitions(String fileName)
+            throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        Map<Integer, Integer> result = new HashMap<Integer, Integer>();
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] tokens = line.split(" ");
+            assert (tokens.length == 2);
+            int lit = Integer.parseInt(tokens[0]);
+            int partition = Integer.parseInt(tokens[1]);
+            result.put(lit, partition);
+        }
+
+        reader.close();
+        return result;
+    }
+
 }

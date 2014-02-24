@@ -529,38 +529,64 @@ public class Suraq implements Runnable {
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
             List<PropositionalVariable> controlVars) {
-
         Timer timer = new Timer();
-        // assert (proof.checkProof());
-        Util.printToSystemOutWithWallClockTimePrefix("  Splitting uncolorable leaves in veriT proof...");
-        timer.start();
-        Map<VeritProofNode, VeritProofNode> replacements = veritProof
-                .splitUncolorableLeaves();
-        timer.stop();
-        Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
-                + ")");
-        timer.reset();
-
-        Util.printToSystemOutWithWallClockTimePrefix("  Obtaining new propositional ResProof based on new leaves...");
-        timer.start();
-        Map<String, Integer> literalIds = new HashMap<String, Integer>();
         Map<Integer, Formula> literalMap = new HashMap<Integer, Formula>();
-        Map<ImmutableSet<Integer>, Integer> leafPartitions = new HashMap<ImmutableSet<Integer>, Integer>();
-        // Use the getLeaves() method of the root, in order to avoid
-        // getting the leaves of the colorable subproofs as well!
-        Set<VeritProofNode> leaves = veritProof.getRoot().getLeaves();
+        Set<VeritProofNode> leaves = null;
+        Map<VeritProofNode, VeritProofNode> replacements = null;
+        LogicParser newLogicParser = null;
+        if (SuraqOptions.getInstance().getUseThisPropProofFile() == null) {
 
-        // Now the original veritProof is no longer need. Let it be garbage
-        // collected.
-        Util.printToSystemOutWithWallClockTimePrefix("    Killing reference to original veriT proof.");
-        veritProof = null;
-        // Hint to the garbage collector:
-        System.gc();
+            // assert (proof.checkProof());
+            Util.printToSystemOutWithWallClockTimePrefix("  Splitting uncolorable leaves in veriT proof...");
+            timer.start();
+            replacements = veritProof.splitUncolorableLeaves();
+            timer.stop();
+            Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
+                    + ")");
+            timer.reset();
+
+            Util.printToSystemOutWithWallClockTimePrefix("  Obtaining new propositional ResProof based on new leaves...");
+            timer.start();
+
+            // Use the getLeaves() method of the root, in order to avoid
+            // getting the leaves of the colorable subproofs as well!
+            leaves = veritProof.getRoot().getLeaves();
+
+            // Now the original veritProof is no longer need. Let it be garbage
+            // collected.
+            Util.printToSystemOutWithWallClockTimePrefix("    Killing reference to original veriT proof.");
+            veritProof = null;
+            // Hint to the garbage collector:
+            System.gc();
+        } else {
+            Set<PropositionalVariable> propVars = new HashSet<PropositionalVariable>();
+            Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+            Set<UninterpretedFunction> functions = new HashSet<UninterpretedFunction>();
+            Formula formula = logicParser.getMainFormula();
+            propVars.addAll(formula.getPropositionalVariables());
+            propVars.addAll(tseitinEncoding.keySet());
+            domainVars.addAll(formula.getDomainVariables());
+            functions.addAll(formula.getUninterpretedFunctions());
+            for (Token nodepVar : noDependenceVarsCopies.keySet()) {
+                for (Term term : noDependenceVarsCopies.get(nodepVar)) {
+                    if (term instanceof DomainVariable)
+                        domainVars.add((DomainVariable) term);
+                    if (term instanceof PropositionalVariable)
+                        propVars.add((PropositionalVariable) term);
+                }
+            }
+            for (Token functionName : noDependenceFunctionsCopies.keySet()) {
+                for (UninterpretedFunction function : noDependenceFunctionsCopies
+                        .get(functionName))
+                    functions.add(function);
+            }
+            newLogicParser = new LogicParser(propVars, domainVars, functions);
+        }
 
         ResProof resProof = null;
         try {
-            resProof = ResProof.create(leaves, replacements, literalIds,
-                    literalMap, leafPartitions);
+            resProof = ResProof.create(leaves, replacements, literalMap,
+                    newLogicParser);
         } catch (IOException exc) {
             System.out.println("IOException during creation of resProof");
             throw new RuntimeException(exc);
@@ -1459,50 +1485,54 @@ public class Suraq implements Runnable {
                     throw new RuntimeException(exc);
                 }
             }
-            VeriTParser veriTParser;
-            veriTParser = new VeriTParser(proofReader, mainFormula,
-                    tseitinEncoding.keySet(), noDependenceVarsCopies.values(),
-                    noDependenceFunctionsCopies);
-            Util.printMemoryInformation();
-            if (!options.getCheckProofWhileParsing()) {
-                VeritProof.setCheckProofEnabled(false);
-                VeritProofNode.setCheckProofNodesEnabled(false);
-            }
-            Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
-            Timer parseTimer = new Timer();
-            parseTimer.start();
-            veriTParser.parse();
-            parseTimer.stop();
-            Util.printToSystemOutWithWallClockTimePrefix("Done parsing. (Took "
-                    + parseTimer.toString() + ")");
-            veritProof = veriTParser.getProof();
-            assert (veritProof != null);
-            Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
-                    + Util.largeNumberFormatter.format(veritProof.size()));
-            veritProof.removeUnreachableNodes();
-            Util.printToSystemOutWithWallClockTimePrefix("Proof size (after removing unreachable nodes): "
-                    + Util.largeNumberFormatter.format(veritProof.size()));
-            assert (veritProof.checkProof());
-            assert (veritProof.hasNoBadLiterals());
+            if (options.getUseThisPropProofFile() == null) {
+                VeriTParser veriTParser;
+                veriTParser = new VeriTParser(proofReader, mainFormula,
+                        tseitinEncoding.keySet(),
+                        noDependenceVarsCopies.values(),
+                        noDependenceFunctionsCopies);
+                Util.printMemoryInformation();
+                if (!options.getCheckProofWhileParsing()) {
+                    VeritProof.setCheckProofEnabled(false);
+                    VeritProofNode.setCheckProofNodesEnabled(false);
+                }
+                Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
+                Timer parseTimer = new Timer();
+                parseTimer.start();
+                veriTParser.parse();
+                parseTimer.stop();
+                Util.printToSystemOutWithWallClockTimePrefix("Done parsing. (Took "
+                        + parseTimer.toString() + ")");
+                veritProof = veriTParser.getProof();
+                assert (veritProof != null);
+                Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
+                        + Util.largeNumberFormatter.format(veritProof.size()));
+                veritProof.removeUnreachableNodes();
+                Util.printToSystemOutWithWallClockTimePrefix("Proof size (after removing unreachable nodes): "
+                        + Util.largeNumberFormatter.format(veritProof.size()));
+                assert (veritProof.checkProof());
+                assert (veritProof.hasNoBadLiterals());
 
-            if (options.useNewVeritCache()) {
-                // Now write to cache
-                Util.printToSystemOutWithWallClockTimePrefix("Now writing to cache.");
-                Timer cacheWriteTimer = new Timer();
-                cacheWriteTimer.start();
-                cache = new SaveCache(propositionalVars, domainVars, arrayVars,
-                        uninterpretedFunctions, controlVariables, mainFormula,
-                        assertPartitionFormulas, tseitinEncoding,
-                        saveCacheSerial.getPath(), veritProof,
-                        noDependenceVarsCopies, noDependenceFunctionsCopies,
-                        constraints, logicParser);
-                cacheWriteTimer.stop();
-                Util.printToSystemOutWithWallClockTimePrefix("Done writing to cache. Took "
-                        + cacheWriteTimer);
-            } else {
-                Util.printToSystemOutWithWallClockTimePrefix("Skipped writing to cache, because --newVeritCache was not specified.");
+                if (options.useNewVeritCache()) {
+                    // Now write to cache
+                    Util.printToSystemOutWithWallClockTimePrefix("Now writing to cache.");
+                    Timer cacheWriteTimer = new Timer();
+                    cacheWriteTimer.start();
+                    cache = new SaveCache(propositionalVars, domainVars,
+                            arrayVars, uninterpretedFunctions,
+                            controlVariables, mainFormula,
+                            assertPartitionFormulas, tseitinEncoding,
+                            saveCacheSerial.getPath(), veritProof,
+                            noDependenceVarsCopies,
+                            noDependenceFunctionsCopies, constraints,
+                            logicParser);
+                    cacheWriteTimer.stop();
+                    Util.printToSystemOutWithWallClockTimePrefix("Done writing to cache. Took "
+                            + cacheWriteTimer);
+                } else {
+                    Util.printToSystemOutWithWallClockTimePrefix("Skipped writing to cache, because --newVeritCache was not specified.");
+                }
             }
-
         } else {
             // Read from cache
             veritProof = cache.getVeritProof();
@@ -1516,10 +1546,12 @@ public class Suraq implements Runnable {
             readFieldsFromCache(cache);
         }
 
-        assert (veritProof != null);
-        VeritProof.setCheckProofEnabled(true);
-        VeritProofNode.setCheckProofNodesEnabled(true);
-        Util.printMemoryInformation();
+        if (options.getUseThisPropProofFile() == null) {
+            assert (veritProof != null);
+            VeritProof.setCheckProofEnabled(true);
+            VeritProofNode.setCheckProofNodesEnabled(true);
+            Util.printMemoryInformation();
+        }
         iteTrees = proofTransformationAndInterpolation(controlVariables);
 
         Util.printToSystemOutWithWallClockTimePrefix("Starting back-substitution");

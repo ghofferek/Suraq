@@ -170,6 +170,8 @@ public final class SuraqOptions {
 
     private final String useThisProofFileValue;
 
+    private final String useThisPropProofFileValue;
+
     /**
      * The value of the solver option.
      */
@@ -298,6 +300,9 @@ public final class SuraqOptions {
         Option useThisProofFileOption = cmdLineParser
                 .addStringOption("useThisProofFile");
 
+        Option useThisPropProofFileOption = cmdLineParser
+                .addStringOption("useThisPropProofFile");
+
         Option numSplitterThreadsOption = cmdLineParser
                 .addIntegerOption("numSplitterThreads");
 
@@ -352,6 +357,9 @@ public final class SuraqOptions {
 
         useThisProofFileValue = (String) cmdLineParser
                 .getOptionValue(useThisProofFileOption);
+
+        useThisPropProofFileValue = (String) cmdLineParser
+                .getOptionValue(useThisPropProofFileOption);
 
         numSplitterThreadsValue = (Integer) cmdLineParser
                 .getOptionValue(numSplitterThreadsOption);
@@ -608,5 +616,22 @@ public final class SuraqOptions {
      */
     public String getUseThisProofFile() {
         return useThisProofFileValue;
+    }
+
+    /**
+     * 
+     * @return The name of the file to read into a ResProof.
+     */
+    public String getUseThisPropProofFile() {
+        return useThisPropProofFileValue;
+    }
+
+    /**
+     * @return
+     */
+    public String getInputWithoutExtension() {
+        String input = this.getInput();
+        int index = input.lastIndexOf(".");
+        return input.substring(0, index);
     }
 }

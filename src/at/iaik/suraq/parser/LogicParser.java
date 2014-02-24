@@ -5,6 +5,7 @@ package at.iaik.suraq.parser;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,6 +52,26 @@ public class LogicParser extends SMTLibParser implements Serializable {
      */
     public LogicParser(SExpression root) {
         rootExpr = root;
+    }
+
+    /**
+     * 
+     * Constructs a new <code>LogicParser</code>, initialized with the given
+     * variable and function names. It can then be used to parse formulas by
+     * calling the <code>parseFormulaBody</code> method.
+     * 
+     * @param propVars
+     * @param domainVars
+     * @param functions
+     */
+    public LogicParser(Collection<? extends PropositionalVariable> propVars,
+            Collection<? extends DomainVariable> domainVars,
+            Collection<? extends UninterpretedFunction> functions) {
+        super();
+        this.boolVariables.addAll(propVars);
+        this.domainVariables.addAll(domainVars);
+        this.functions.addAll(functions);
+
     }
 
     // /**

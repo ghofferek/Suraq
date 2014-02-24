@@ -136,8 +136,7 @@ public abstract class SMTLibParser extends Parser implements Serializable {
      * @throws ParseError
      *             if parsing fails.
      */
-    protected Formula parseFormulaBody(SExpression expression)
-            throws ParseError {
+    public Formula parseFormulaBody(SExpression expression) throws ParseError {
 
         if (expression.toString().charAt(0) == SMTLibParser.REF_FORMULA) {
             // resolve reference with LUT

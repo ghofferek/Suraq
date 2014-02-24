@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import at.iaik.suraq.exceptions.ParseError;
+import at.iaik.suraq.main.SuraqOptions;
+import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.VeriTParser;
 import at.iaik.suraq.proof.VeriTToken;
 import at.iaik.suraq.proof.VeritProofNode;
@@ -120,68 +123,104 @@ public class ResProof {
      */
     public static ResProof create(Set<VeritProofNode> leaves,
             Map<VeritProofNode, VeritProofNode> replacements,
-            Map<String, Integer> literalIds, Map<Integer, Formula> literalMap,
-            Map<ImmutableSet<Integer>, Integer> leafPartitions)
+            Map<Integer, Formula> literalMap, LogicParser logicParser)
             throws IOException {
 
         assert (leaves != null);
         assert (replacements != null);
-        assert (literalIds != null);
-        assert (literalIds.isEmpty());
 
-        File tmpDimacsFile = File.createTempFile("tmp", ".dimacs", new File(
-                "./"));
-        BufferedWriter writer = new BufferedWriter(
-                new FileWriter(tmpDimacsFile));
-
+        Map<String, Integer> literalIds = new HashMap<String, Integer>();
+        Map<ImmutableSet<Integer>, Integer> leafPartitions = new HashMap<ImmutableSet<Integer>, Integer>();
         Map<Integer, Integer> partitions = new HashMap<Integer, Integer>();
-
-        Set<VeritProofNode> allLeaves = new HashSet<VeritProofNode>(leaves);
-        for (VeritProofNode node : replacements.keySet()) {
-            allLeaves.remove(node);
-            VeritProofNode replacement = replacements.get(node);
-            assert (replacement != null);
-            Set<VeritProofNode> replacementLeaves = replacement.getLeaves();
-            allLeaves.addAll(replacementLeaves);
-        }
-
-        for (VeritProofNode leaf : allLeaves) {
-            Set<Integer> clause = new HashSet<Integer>(leaf
-                    .getLiteralConclusions().size());
-            for (Formula literal : leaf.getLiteralConclusions()) {
-                int literalId = Util.getLiteralId(literal, literalIds,
-                        partitions, literalMap);
-                if (Util.isNegativeLiteral(literal))
-                    literalId *= -1;
-                writer.write(Integer.toString(literalId));
-                writer.write(' ');
-                clause.add(literalId);
-            }
-            writer.write("0\n");
-            int leafPartition;
-            if (!leaves.contains(leaf) || leaf.isAxiom()) {
-                // This is a leaf in the subproof of a replacement node
-                Set<Integer> tmpPartitions = leaf.getPartitionsFromSymbols();
-                tmpPartitions.remove(-1);
-                assert (tmpPartitions.size() <= 1);
-                leafPartition = tmpPartitions.isEmpty() ? 0 : tmpPartitions
-                        .iterator().next();
-            } else {
-                leafPartition = leaf.getLeafPartition();
-            }
-            leafPartitions.put(ImmutableSet.create(clause), leafPartition);
-        }
-        writer.close();
-
-        VeriTSolver solver = new VeriTSolver();
-        solver.solveDimacs(tmpDimacsFile);
-        assert (solver.getState() == VeriTSolver.UNSAT);
-
         ResProof resProof = new ResProof();
-        VeriTParser parser = new VeriTParser(solver.getStream(),
-                literalIds.size(), resProof, partitions, leafPartitions);
+        String fileNamePrefix = SuraqOptions.getInstance()
+                .getInputWithoutExtension();
+        BufferedReader stream = null;
+        int maxLit = 0;
+        if (SuraqOptions.getInstance().getUseThisPropProofFile() == null) {
+            File tmpDimacsFile = File.createTempFile("tmp", ".dimacs",
+                    new File("./"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(
+                    tmpDimacsFile));
+
+            Set<VeritProofNode> allLeaves = new HashSet<VeritProofNode>(leaves);
+            for (VeritProofNode node : replacements.keySet()) {
+                allLeaves.remove(node);
+                VeritProofNode replacement = replacements.get(node);
+                assert (replacement != null);
+                Set<VeritProofNode> replacementLeaves = replacement.getLeaves();
+                allLeaves.addAll(replacementLeaves);
+            }
+
+            for (VeritProofNode leaf : allLeaves) {
+                Set<Integer> clause = new HashSet<Integer>(leaf
+                        .getLiteralConclusions().size());
+                for (Formula literal : leaf.getLiteralConclusions()) {
+                    int literalId = Util.getLiteralId(literal, literalIds,
+                            partitions, literalMap);
+                    if (Util.isNegativeLiteral(literal))
+                        literalId *= -1;
+                    writer.write(Integer.toString(literalId));
+                    writer.write(' ');
+                    clause.add(literalId);
+                }
+                writer.write("0\n");
+                int leafPartition;
+                if (!leaves.contains(leaf) || leaf.isAxiom()) {
+                    // This is a leaf in the subproof of a replacement node
+                    Set<Integer> tmpPartitions = leaf
+                            .getPartitionsFromSymbols();
+                    tmpPartitions.remove(-1);
+                    assert (tmpPartitions.size() <= 1);
+                    leafPartition = tmpPartitions.isEmpty() ? 0 : tmpPartitions
+                            .iterator().next();
+                } else {
+                    leafPartition = leaf.getLeafPartition();
+                }
+                leafPartitions.put(ImmutableSet.create(clause), leafPartition);
+            }
+            writer.close();
+
+            Util.dumpMetaData(fileNamePrefix, literalIds, literalMap,
+                    partitions, leafPartitions);
+
+            VeriTSolver solver = new VeriTSolver();
+            solver.solveDimacs(tmpDimacsFile);
+            assert (solver.getState() == VeriTSolver.UNSAT);
+            stream = solver.getStream();
+            maxLit = literalIds.size();
+
+        } else {
+            assert (logicParser != null);
+            stream = new BufferedReader(new FileReader(SuraqOptions
+                    .getInstance().getUseThisPropProofFile()));
+            try {
+                literalMap.clear();
+                literalMap.putAll(Util.loadLiteralMap(fileNamePrefix
+                        + ".literalMap", logicParser));
+            } catch (ParseError exc) {
+                Util.printToSystemOutWithWallClockTimePrefix("Parse Error: "
+                        + exc.getMessage() == null ? exc.getMessage() : "");
+                stream.close();
+                throw new RuntimeException(exc);
+            }
+            partitions = Util.loadPartitions(fileNamePrefix + ".partitions");
+            leafPartitions = Util.loadLeafPartitions(fileNamePrefix
+                    + ".leafPartitions");
+
+            for (Integer lit : literalMap.keySet()) {
+                if (lit > maxLit)
+                    maxLit = lit;
+            }
+        }
+        assert (maxLit != 0);
+        assert (stream != null);
+        VeriTParser parser = new VeriTParser(stream, maxLit, resProof,
+                partitions, leafPartitions);
         parser.parse();
+        stream.close();
         resProof.killNamesOfResNodes();
+
         return resProof;
     }
 
