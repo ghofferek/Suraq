@@ -126,9 +126,6 @@ public class ResProof {
             Map<Integer, Formula> literalMap, LogicParser logicParser)
             throws IOException {
 
-        assert (leaves != null);
-        assert (replacements != null);
-
         Map<String, Integer> literalIds = new HashMap<String, Integer>();
         Map<ImmutableSet<Integer>, Integer> leafPartitions = new HashMap<ImmutableSet<Integer>, Integer>();
         Map<Integer, Integer> partitions = new HashMap<Integer, Integer>();
@@ -138,6 +135,9 @@ public class ResProof {
         BufferedReader stream = null;
         int maxLit = 0;
         if (SuraqOptions.getInstance().getUseThisPropProofFile() == null) {
+            assert (leaves != null);
+            assert (replacements != null);
+
             File tmpDimacsFile = File.createTempFile("tmp", ".dimacs",
                     new File("./"));
             BufferedWriter writer = new BufferedWriter(new FileWriter(
@@ -191,6 +191,8 @@ public class ResProof {
             maxLit = literalIds.size();
 
         } else {
+            Util.printToSystemOutWithWallClockTimePrefix("Loading metadata of propositional proof from files "
+                    + fileNamePrefix + ".* ...");
             assert (logicParser != null);
             stream = new BufferedReader(new FileReader(SuraqOptions
                     .getInstance().getUseThisPropProofFile()));
@@ -212,15 +214,17 @@ public class ResProof {
                 if (lit > maxLit)
                     maxLit = lit;
             }
+            Util.printToSystemOutWithWallClockTimePrefix("Done loading metadata.");
         }
         assert (maxLit != 0);
         assert (stream != null);
+        Util.printToSystemOutWithWallClockTimePrefix("Parsing propositional proof...");
         VeriTParser parser = new VeriTParser(stream, maxLit, resProof,
                 partitions, leafPartitions);
         parser.parse();
         stream.close();
         resProof.killNamesOfResNodes();
-
+        Util.printToSystemOutWithWallClockTimePrefix("Done.");
         return resProof;
     }
 

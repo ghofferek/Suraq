@@ -426,9 +426,12 @@ public abstract class SMTLibParser extends Parser implements Serializable {
         else {
             System.err
                     .println("We could not handle an Expression and it was no Token.");
-            System.err.println("It was a:" + expression.getClass().getName()
+            System.err.println("It was a:"
+                    + expression.getClass().getName()
                     + " and its content was: "
-                    + expression.toString().substring(0, 30) + "...");
+                    + (expression.toString().length() >= 30 ? expression
+                            .toString().substring(0, 30) + "..." : expression
+                            .toString()));
             System.err.println("Full Exception coming soon...");
             throw new ParseError(expression, "Error parsing formula body.");
         }

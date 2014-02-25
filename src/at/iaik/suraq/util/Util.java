@@ -5,6 +5,8 @@ package at.iaik.suraq.util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -1581,9 +1583,12 @@ public final class Util {
             Map<ImmutableSet<Integer>, Integer> leafPartitions)
             throws IOException {
 
+        Util.printToSystemOutWithWallClockTimePrefix("Starting to dump metadata to files "
+                + filePrefix + ".* ...");
         Util.dumpLiteralMap(filePrefix + ".literalMap", literalMap);
         Util.dumpPartitions(filePrefix + ".partitions", partitions);
         Util.dumpLeafPartitions(filePrefix + ".leafPartitions", leafPartitions);
+        Util.printToSystemOutWithWallClockTimePrefix("Done.");
     }
 
     /**
@@ -1617,12 +1622,15 @@ public final class Util {
      *            function names.
      * @return the literal map loaded from the given file
      * @throws ParseError
+     * @throws IOException
+     * @throws FileNotFoundException
      */
     public static Map<Integer, Formula> loadLiteralMap(String fileName,
-            LogicParser parser) throws ParseError {
+            LogicParser parser) throws ParseError, FileNotFoundException,
+            IOException {
         Map<Integer, Formula> result = new HashMap<Integer, Formula>();
 
-        SExpParser sexpParser = new SExpParser(fileName);
+        SExpParser sexpParser = new SExpParser(new File(fileName));
         sexpParser.parse();
         SExpression rootExpr = sexpParser.getRootExpr();
         sexpParser = null; // GC
@@ -1660,7 +1668,7 @@ public final class Util {
             writer.write(partition.toString());
             writer.write(" : ");
             for (Integer integer : clause) {
-                writer.write(integer);
+                writer.write(integer.toString());
                 writer.write(" ");
             }
             writer.write("\n");

@@ -559,14 +559,23 @@ public class Suraq implements Runnable {
             // Hint to the garbage collector:
             System.gc();
         } else {
+            Util.printToSystemOutWithWallClockTimePrefix("Using propositional proof from file: "
+                    + SuraqOptions.getInstance().getUseThisPropProofFile());
             Set<PropositionalVariable> propVars = new HashSet<PropositionalVariable>();
             Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
             Set<UninterpretedFunction> functions = new HashSet<UninterpretedFunction>();
-            Formula formula = logicParser.getMainFormula();
-            propVars.addAll(formula.getPropositionalVariables());
+            propVars.addAll(logicParser.getBoolVariables());
             propVars.addAll(tseitinEncoding.keySet());
-            domainVars.addAll(formula.getDomainVariables());
-            functions.addAll(formula.getUninterpretedFunctions());
+            domainVars.addAll(logicParser.getDomainVariables());
+            functions.addAll(logicParser.getFunctions());
+            for (Formula constraint : constraints) {
+                domainVars.addAll(constraint.getDomainVariables());
+            }
+            for (ArrayVariable arrayVar : logicParser.getArrayVariables()) {
+                functions.add(UninterpretedFunction.create(
+                        arrayVar.getVarName(), 1,
+                        SExpressionConstants.VALUE_TYPE));
+            }
             for (Token nodepVar : noDependenceVarsCopies.keySet()) {
                 for (Term term : noDependenceVarsCopies.get(nodepVar)) {
                     if (term instanceof DomainVariable)
@@ -1458,34 +1467,35 @@ public class Suraq implements Runnable {
                     + inputTransformationTimer + ".\n");
             Util.printMemoryInformation();
 
-            String providedProofFile = options.getUseThisProofFile();
-            BufferedReader proofReader;
-            if (providedProofFile == null) {
-                Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
-                Timer proofcalculationTimer = new Timer();
-                proofcalculationTimer.start();
-
-                VeriTSolver veriT = new VeriTSolver();
-                veriT.solve(solverInputStr);
-                Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
-                try {
-                    proofReader = veriT.getStream();
-                } catch (FileNotFoundException exc) {
-                    throw new RuntimeException(exc);
-                }
-            } else {
-                try {
-                    proofReader = new BufferedReader(new FileReader(
-                            providedProofFile));
-                    Util.printToSystemOutWithWallClockTimePrefix("[INFO] Using the following proof file, instead of calling the solver: "
-                            + providedProofFile);
-                } catch (FileNotFoundException exc) {
-                    System.out.println("Proof file not found: "
-                            + providedProofFile);
-                    throw new RuntimeException(exc);
-                }
-            }
             if (options.getUseThisPropProofFile() == null) {
+                String providedProofFile = options.getUseThisProofFile();
+                BufferedReader proofReader;
+                if (providedProofFile == null) {
+                    Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
+                    Timer proofcalculationTimer = new Timer();
+                    proofcalculationTimer.start();
+
+                    VeriTSolver veriT = new VeriTSolver();
+                    veriT.solve(solverInputStr);
+                    Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
+                    try {
+                        proofReader = veriT.getStream();
+                    } catch (FileNotFoundException exc) {
+                        throw new RuntimeException(exc);
+                    }
+                } else {
+                    try {
+                        proofReader = new BufferedReader(new FileReader(
+                                providedProofFile));
+                        Util.printToSystemOutWithWallClockTimePrefix("[INFO] Using the following proof file, instead of calling the solver: "
+                                + providedProofFile);
+                    } catch (FileNotFoundException exc) {
+                        System.out.println("Proof file not found: "
+                                + providedProofFile);
+                        throw new RuntimeException(exc);
+                    }
+                }
+
                 VeriTParser veriTParser;
                 veriTParser = new VeriTParser(proofReader, mainFormula,
                         tseitinEncoding.keySet(),
