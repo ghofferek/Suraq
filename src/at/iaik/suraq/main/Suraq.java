@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
@@ -44,11 +45,13 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FormulaTerm;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
+import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
@@ -159,9 +162,11 @@ public class Suraq implements Runnable {
     /**
      * stores the assert partition formula for each assert partition
      */
-    private Map<Integer, Formula> assertPartitionFormulas = new HashMap<Integer, Formula>();
+    private TreeMap<Integer, Formula> assertPartitionFormulas = new TreeMap<Integer, Formula>();
 
     private VeritProof veritProof = null;
+
+    private Set<Token> noDependenceVars;
 
     /**
      * Constructs a new <code>Suraq</code>.
@@ -212,13 +217,11 @@ public class Suraq implements Runnable {
         System.exit(0);
     }
 
-    private String inputTransformations(File sourceFile) {
-        DebugHelper.getInstance().setFolder(sourceFile.getPath() + "_out/");
-
-        Suraq.extTimer.stopReset("<inputTransformations>");
+    private void parseInput() {
+        SuraqOptions options = SuraqOptions.getInstance();
+        File sourceFile = new File(options.getInput());
         Util.printToSystemOutWithWallClockTimePrefix("Starting to read "
                 + sourceFile.getPath() + " ...");
-        SuraqOptions options = SuraqOptions.getInstance();
 
         SExpParser sExpParser = null;
         try {
@@ -243,7 +246,7 @@ public class Suraq implements Runnable {
         } catch (ParseError exc) {
             handleParseError(exc);
             noErrors = false;
-            return null;
+            throw new RuntimeException(exc);
         } finally {
             sExpParseTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("S-Expression parsing took "
@@ -262,7 +265,7 @@ public class Suraq implements Runnable {
         } catch (ParseError exc) {
             handleParseError(exc);
             noErrors = false;
-            return null;
+            throw new RuntimeException(exc);
         } finally {
             logicParseTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("Logic parsing took "
@@ -271,7 +274,20 @@ public class Suraq implements Runnable {
         // Parsing complete
         if (options.isVerbose())
             Util.printToSystemOutWithWallClockTimePrefix("Parsing completed successfully!");
+    }
 
+    /**
+     * Input transformations as they are used in non-iterative mode
+     * 
+     * @param sourceFile
+     * @return
+     */
+    private String inputTransformations(File sourceFile) {
+        DebugHelper.getInstance().setFolder(sourceFile.getPath() + "_out/");
+        SuraqOptions options = SuraqOptions.getInstance();
+
+        Suraq.extTimer.stopReset("<inputTransformations>");
+        parseInput();
         try {
             mainFormula = doMainWork();
         } catch (SuraqException exc) {
@@ -390,7 +406,8 @@ public class Suraq implements Runnable {
 
         List<String> tseitinPartitions = new ArrayList<String>();
 
-        for (SExpression assertPartition : assertPartitionList) {
+        for (Integer partition : assertPartitionFormulas.keySet()) {
+            Formula assertPartition = assertPartitionFormulas.get(partition);
 
             onePartitionTimer.reset();
             onePartitionTimer.start();
@@ -931,22 +948,220 @@ public class Suraq implements Runnable {
     }
 
     /**
+     * Run synthesis in iterative mode.
+     * 
+     * @throws SuraqException
+     */
+    private void runIterative() throws SuraqException {
+        assert (VeriTSolver.isActive());
+
+        SuraqOptions options = SuraqOptions.getInstance();
+        File sourceFile = new File(options.getInput());
+
+        List<PropositionalVariable> controlVariables = logicParser
+                .getControlVariables();
+        Map<PropositionalVariable, Formula> interpolants = new HashMap<PropositionalVariable, Formula>(
+                2 * controlVariables.size());
+
+        Util.printMemoryInformation();
+        Util.printToSystemOutWithWallClockTimePrefix("start input transformations");
+        Timer inputTransformationTimer = new Timer();
+        parseInput();
+
+        inputTransformationTimer.stop();
+        Util.printToSystemOutWithWallClockTimePrefix("finished input transformations in "
+                + inputTransformationTimer + ".\n");
+        Util.printMemoryInformation();
+
+        mainFormula = performFormulaReductions();
+
+        int numControlSignals = controlVariables.size();
+        Util.printToSystemOutWithWallClockTimePrefix("Starting iterative interpolant computation");
+        // Main loop where one interpolant per iteration is computed
+        for (int count = 0; count < numControlSignals; count++) {
+
+            Util.printToSystemOutWithWallClockTimePrefix("##########################################");
+            Util.printToSystemOutWithWallClockTimePrefix("Iteration " + count);
+
+            Util.printToSystemOutWithWallClockTimePrefix("Preparing output expressions...");
+            prepareOutputExpressions(mainFormula, controlVariables);
+            Util.printToSystemOutWithWallClockTimePrefix("Done.");
+
+            List<String> tseitinPartitions = new ArrayList<String>();
+
+            if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
+                Util.printToSystemOutWithWallClockTimePrefix("  Performing tseitin encoding without Z3...");
+                tseitinPartitions = performTseitinEncodingWithoutZ3();
+            } else {
+                Util.printToSystemOutWithWallClockTimePrefix("  Performing tseitin encoding with Z3...");
+                tseitinPartitions = performTseitinEncodingWithZ3();
+            }
+            Util.printToSystemOutWithWallClockTimePrefix("  All partitions done.");
+
+            // make asserts out of tseitinPartitions (returns the inputstring
+            // for the solver
+            String solverInputStr = buildSMTDescriptionFromTseitinPartitions(
+                    declarationStr, tseitinPartitions);
+
+            BufferedReader proofReader;
+            Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
+            Timer proofcalculationTimer = new Timer();
+            proofcalculationTimer.start();
+
+            VeriTSolver veriT = new VeriTSolver();
+            veriT.solve(solverInputStr);
+            Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
+            try {
+                proofReader = veriT.getStream();
+            } catch (FileNotFoundException exc) {
+                throw new RuntimeException(exc);
+            }
+
+            VeriTParser veriTParser;
+            veriTParser = new VeriTParser(proofReader, mainFormula,
+                    tseitinEncoding.keySet(), noDependenceVarsCopies.values(),
+                    noDependenceFunctionsCopies);
+            Util.printMemoryInformation();
+            if (!options.getCheckProofWhileParsing()) {
+                VeritProof.setCheckProofEnabled(false);
+                VeritProofNode.setCheckProofNodesEnabled(false);
+            }
+            Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
+            Timer parseTimer = new Timer();
+            parseTimer.start();
+            veriTParser.parse();
+            parseTimer.stop();
+            Util.printToSystemOutWithWallClockTimePrefix("Done parsing. (Took "
+                    + parseTimer.toString() + ")");
+            veritProof = veriTParser.getProof();
+            assert (veritProof != null);
+            Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
+                    + Util.largeNumberFormatter.format(veritProof.size()));
+            veritProof.removeUnreachableNodes();
+            Util.printToSystemOutWithWallClockTimePrefix("Proof size (after removing unreachable nodes): "
+                    + Util.largeNumberFormatter.format(veritProof.size()));
+            assert (veritProof.checkProof());
+            assert (veritProof.hasNoBadLiterals());
+
+            Util.printToSystemOutWithWallClockTimePrefix("Starting to interpolate even vs. odd partitions.");
+            Timer interpolationTimer = new Timer();
+            interpolationTimer.start();
+            Formula interpolant = veritProof.interpolateEvenVsOddPartitions();
+            interpolationTimer.stop();
+            Util.printToSystemOutWithWallClockTimePrefix("Done interpolation. (Took "
+                    + interpolationTimer.toString() + ")");
+
+            interpolant = simplify(interpolant);
+
+            Util.printToSystemOutWithWallClockTimePrefix("Resubstituting...");
+            PropositionalVariable currentSignal = controlVariables.remove(0);
+            interpolants.put(currentSignal, interpolant);
+            Map<Token, PropositionalTerm> substMap = new TreeMap<Token, PropositionalTerm>();
+            substMap.put(Token.generate(currentSignal.getVarName()),
+                    FormulaTerm.create(interpolant));
+            mainFormula = mainFormula.substituteFormula(substMap);
+
+        }
+
+        // Done with iterative interpolation
+
+        Util.printToSystemOutWithWallClockTimePrefix("Starting back-substitution");
+        for (PropositionalVariable key : interpolants.keySet()) {
+            assert (interpolants.get(key) != null);
+            // FIXME There is a potential problem with backsubstituting for
+            // newly created array vars (e.g., the ones introduced to remove
+            // writes. Declarations might be missing, or backsubstitutions
+            // might be forgotten.
+            // Check if it occurs in practice.
+            Formula interpolant = interpolants.get(key)
+                    .uninterpretedFunctionsBackToArrayReads(
+                            new HashSet<ArrayVariable>(logicParser
+                                    .getArrayVariables()));
+            interpolants.put(key, interpolant);
+        }
+        Util.printToSystemOutWithWallClockTimePrefix("Starting generation of output string.");
+        // Now we have results. Let's check them and write them to a file.
+        String outputStr = createOutputString(sourceFile, interpolants);
+
+        if (options.isCheckResult()) {
+            Util.printToSystemOutWithWallClockTimePrefix("Starting to check results with z3...");
+            Timer checkTimer = new Timer();
+            checkTimer.start();
+            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
+            z3.solve(outputStr);
+
+            switch (z3.getState()) {
+            case SMTSolver.UNSAT:
+                Util.printToSystemOutWithWallClockTimePrefix("SUCCESSFULLY MODEL-CHECKED RESULTS WITH Z3! :-)");
+                break;
+            case SMTSolver.SAT:
+                noErrors = false;
+                Util.printToSystemOutWithWallClockTimePrefix("ERROR: Z3 tells us SAT. Implementation of control signal is not correct");
+                break;
+            default:
+                noErrors = false;
+                Util.printToSystemOutWithWallClockTimePrefix("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
+            }
+            checkTimer.stop();
+            Util.printToSystemOutWithWallClockTimePrefix("Check finished in "
+                    + checkTimer);
+
+        }
+
+        // write output file
+        try {
+            Util.printToSystemOutWithWallClockTimePrefix(" Writing output to file "
+                    + options.getOutput());
+            FileWriter fstream = new FileWriter(options.getOutput());
+            fstream.write(outputStr);
+            fstream.close();
+        } catch (IOException exc) {
+            Util.printToSystemOutWithWallClockTimePrefix("Error while writing to output file: "
+                    + options.getOutput());
+            exc.printStackTrace();
+            noErrors = false;
+        }
+
+        Util.printToSystemOutWithWallClockTimePrefix(" done!");
+        // All done :-)
+        overallTimer.stop();
+        printEnd(noErrors, overallTimer);
+        // System.err.println(Suraq.extTimer);
+        return;
+
+    }
+
+    /**
+     * @param interpolant
+     * @return
+     */
+    private Formula simplify(Formula interpolant) {
+        assert (false); // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
      * @see java.lang.Runnable#run()
      */
     @Override
     public void run() {
         overallTimer.start();
-        // START: ASHUTOSH code
-        // ResProofTest pTst = new ResProofTest();
-        // if (pTst.takeControl())
-        // return;
-        // END: ASHUTOSH code
 
         printWelcome();
 
         SuraqOptions options = SuraqOptions.getInstance();
         Map<PropositionalVariable, Formula> iteTrees = null;
         File sourceFile = new File(options.getInput());
+        if (options.getIterativeInterpolation() == true) {
+            Util.printToSystemOutWithWallClockTimePrefix("Running in iterative mode...");
+            VeriTSolver.setActive(true);
+            try {
+                runIterative();
+            } catch (SuraqException exc) {
+                throw new RuntimeException(exc);
+            }
+            return;
+        }
         if (options.getSolver().toLowerCase().equals("z3")) {
             VeriTSolver.setActive(false);
         } else if (options.getSolver().toLowerCase().equals("verit")) {
@@ -2029,14 +2244,12 @@ public class Suraq implements Runnable {
     }
 
     /**
-     * Performs the main work.
+     * Takes the main formula from <code>logicParser</code> and performs the
+     * reductions on it (arrays, ITEs, ...)
      * 
-     * @return
-     * 
-     * @throws SuraqException
-     *             if something goes wrong
+     * @return the reduced formula.
      */
-    private Formula doMainWork() throws SuraqException {
+    private Formula performFormulaReductions() throws SuraqException {
         Suraq.extTimer.stopReset("<doMainWork>");
         Timer timer = new Timer();
 
@@ -2050,7 +2263,7 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
         assert (formula.getFunctionMacros().size() == 0);
-        Set<Token> noDependenceVars = new HashSet<Token>(
+        noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
 
         Set<Formula> constraints = new HashSet<Formula>();
@@ -2243,22 +2456,29 @@ public class Suraq implements Runnable {
         }
 
         System.err.println(Suraq.extTimer);
+        return formula;
+    }
 
-        // /////////////////////////////////////////////////
-        // /////////////////////////////////////////////////
-        // /////////////////////////////////////////////////
-
-        if (controlSignals.size() > 30) {
-            throw new SuraqException(
-                    "Current implementation cannot handle more than 30 control signals.");
-        }
-
+    /**
+     * Expands the given formula for the given <code>controlSignals</code> and
+     * the nodepvars in the field <code>noDependenceVars</code>.
+     * 
+     * Initializes the fields <code>declarationStr</code> and
+     * <code>outputExpressions</code>.
+     * 
+     * @param formula
+     * @param controlSignals
+     * @throws SuraqException
+     */
+    private void prepareOutputExpressions(Formula formula,
+            List<PropositionalVariable> controlSignals) throws SuraqException {
+        Timer timer = new Timer();
         outputExpressions = new ArrayList<SExpression>();
         // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
 
         outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
         outputExpressions.add(SExpressionConstants.AUTO_CONFIG_FALSE);
-        outputExpressions.add(SExpressionConstants.PROOF_MODE_2);
+        // outputExpressions.add(SExpressionConstants.PROOF_MODE_2);
         // outputExpressions
         // .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
         outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
@@ -2313,6 +2533,26 @@ public class Suraq implements Runnable {
          */
 
         Suraq.extTimer.stopReset("</doMainWork>");
+
+    }
+
+    /**
+     * Performs the main work.
+     * 
+     * @return
+     * 
+     * @throws SuraqException
+     *             if something goes wrong
+     */
+    private Formula doMainWork() throws SuraqException {
+        Formula formula = performFormulaReductions();
+        List<PropositionalVariable> controlSignals = logicParser
+                .getControlVariables();
+        if (controlSignals.size() > 30) {
+            throw new SuraqException(
+                    "Current implementation cannot handle more than 30 control signals.");
+        }
+        prepareOutputExpressions(formula, logicParser.getControlVariables());
         return formula;
     }
 

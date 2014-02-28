@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -677,5 +678,20 @@ public class ImpliesFormula extends BooleanCombinationFormula {
             rightSide.writeOut(writer, tagContainer, true);
             writer.append(')');
         }
+    }
+
+    /**
+     * @throws IOException
+     * @see at.iaik.suraq.smtlib.formula.Term#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.append('(').append(SExpressionConstants.IMPLIES.toString());
+        writer.append(' ');
+        leftSide.writeTo(writer);
+        writer.append(' ');
+        rightSide.writeTo(writer);
+        writer.append(')');
+
     }
 }

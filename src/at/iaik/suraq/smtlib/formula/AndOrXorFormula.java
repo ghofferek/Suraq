@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -592,6 +593,33 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             writer.append(") ");
         }
 
+    }
+
+    /**
+     * @throws IOException
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.append('(');
+        if (this instanceof AndFormula)
+            writer.append(SExpressionConstants.AND.toString());
+        else {
+            if (this instanceof OrFormula)
+                writer.append(SExpressionConstants.OR.toString());
+            else {
+                if (this instanceof XorFormula)
+                    writer.append(SExpressionConstants.XOR.toString());
+                else {
+                    throw new RuntimeException("Unexpected formula type.");
+                }
+            }
+        }
+        writer.append(' ');
+        for (Formula subformula : formulas) {
+            subformula.writeTo(writer);
+        }
+        writer.append(") ");
     }
 
 }

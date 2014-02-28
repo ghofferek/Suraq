@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -578,4 +580,21 @@ public class ArrayWrite extends ArrayTerm {
                 noDependenceVars, constraints);
         return ArrayWrite.create(newArrayTerm, newIndexTerm, newValueTerm);
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.write("(");
+        writer.write(SExpressionConstants.STORE.toString());
+        writer.write(" ");
+        arrayTerm.writeTo(writer);
+        writer.write(" ");
+        indexTerm.writeTo(writer);
+        writer.write(" ");
+        valueTerm.writeTo(writer);
+        writer.write(" ");
+    }
+
 }

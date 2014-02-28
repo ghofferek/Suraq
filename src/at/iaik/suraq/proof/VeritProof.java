@@ -1310,4 +1310,26 @@ public class VeritProof implements Serializable {
         return result;
     }
 
+    /**
+     * Computes an interpolant between even and odd partitions. Since partitions
+     * in the symbols and leaf nodes are counted from 1 to 2^n, we will have to
+     * subtract 1 every time before we determine whether it's even or odd. That
+     * is because the values of control signals iterate from 0 to (2^n)-1. After
+     * subtracting 1, even partitions represent "A" (i.e., where the control
+     * signal is 0), and odd partitions represent "B" (i.e., where the control
+     * signal is 1).
+     * 
+     * @return an interpolant between the even and the odd partitions of this
+     *         proof
+     */
+    public Formula interpolateEvenVsOddPartitions() {
+        assert (root != null);
+        assert (root.getLiteralConclusions().isEmpty());
+        Map<VeritProofNode, Formula> partialInterpolants = new HashMap<VeritProofNode, Formula>(
+                Integer.highestOneBit(proofNodes.size() - 1) << 1);
+        Formula result = root
+                .interpolateEvenVsOddPartitions(partialInterpolants);
+        return result;
+    }
+
 }

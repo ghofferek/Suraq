@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib.formula;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -380,6 +381,14 @@ public class DomainVariable extends DomainTerm implements Serializable {
             throws IOException {
         writer.append(varName);
         writer.append(' ');
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.write(varName);
     }
 
 }

@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -846,6 +847,26 @@ public class ArrayProperty implements Formula {
     public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
             boolean handleThisWithTagContainer) throws IOException {
         throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.write("(forall");
+        for (DomainVariable var : uVars) {
+            writer.write(" (");
+            writer.write(var.getVarName());
+            writer.write(" ");
+            writer.write(SExpressionConstants.VALUE_TYPE.toString());
+            writer.write(")");
+        }
+        writer.write(" (=> ");
+        indexGuard.writeTo(writer);
+        writer.write(" ");
+        valueConstraint.writeTo(writer);
+        writer.write(")");
     }
 
 }

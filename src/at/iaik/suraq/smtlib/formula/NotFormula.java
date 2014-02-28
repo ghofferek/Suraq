@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -633,4 +634,17 @@ public class NotFormula extends BooleanCombinationFormula {
             writer.append(')');
         }
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.append('(').append(SExpressionConstants.NOT.toString());
+        writer.append(' ');
+        formula.writeTo(writer);
+        writer.append(')');
+
+    }
+
 }

@@ -18,6 +18,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
@@ -2452,5 +2453,156 @@ public class VeritProofNode implements Serializable {
     public Integer getLeafPartition() {
         assert (this.isLeaf());
         return this.proof.getPartitionOfLeaf(this);
+    }
+
+    /**
+     * Computes the partial interpolant for this node, stores it to the given
+     * map and returns it.
+     * 
+     * Since partitions in the symbols and leaf nodes are counted from 1 to 2^n,
+     * we will have to subtract 1 every time before we determine whether it's
+     * even or odd. That is because the values of control signals iterate from 0
+     * to (2^n)-1. After subtracting 1, even partitions represent "A" (i.e.,
+     * where the control signal is 0), and odd partitions represent "B" (i.e.,
+     * where the control signal is 1).
+     * 
+     * @param partialInterpolants
+     *            map of partial interpolants to query before making recursive
+     *            calls
+     * @return the partial interpolant for this node
+     */
+    public Formula interpolateEvenVsOddPartitions(
+            Map<VeritProofNode, Formula> partialInterpolants) {
+
+        Formula result = partialInterpolants.get(this);
+        if (result != null)
+            return result;
+
+        if (this.subProofs.isEmpty()) {
+            result = leafInterpolant();
+        } else {
+            result = resolutionInterpolant(partialInterpolants);
+        }
+        assert (result != null);
+        partialInterpolants.put(this, result);
+        return result;
+    }
+
+    /**
+     * Computes the partial interpolant for a leaf. Follows Pudlak's
+     * interpolation system for input clauses and theory lemmas with just one
+     * color. Follows Fuchs et al. for theory lemmas with more than one color.
+     * 
+     * @return a partial interpolant for this leaf.
+     */
+    private Formula leafInterpolant() {
+        assert (subProofs.isEmpty());
+        assert (type.equals(VeriTToken.INPUT) || type
+                .equals(VeriTToken.TRANS_CONGR));
+
+        Formula result = null;
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        if (partitions.size() > 1) { // uncolorable theory lemma
+            assert (type.equals(VeriTToken.TRANS_CONGR));
+            TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                    .create(this);
+            result = chain.fuchsEtAlInterpolant();
+        } else {
+            assert (partitions.size() <= 1);
+            int partition;
+            if (partitions.isEmpty()) { // Leaf with only global symbols
+                if (this.type.equals(VeriTToken.INPUT))
+                    partition = this.proof.getPartitionOfLeaf(this);
+                else
+                    // arbitrary choice
+                    partition = 0;
+            } else {
+                assert (partitions.size() == 1);
+                partition = partitions.iterator().next();
+            }
+            if (partition % 2 == 0) { // "A" clause
+                result = PropositionalConstant.create(false);
+            } else { // "B" clause
+                result = PropositionalConstant.create(true);
+            }
+        }
+
+        assert (result != null);
+        return result;
+    }
+
+    /**
+     * This method follows Pudlak's interpolation system.
+     * 
+     * @param partialInterpolants
+     *            for recursive calls
+     * @return even vs. odd partial interpolant for a resolution node.
+     */
+    private Formula resolutionInterpolant(
+            Map<VeritProofNode, Formula> partialInterpolants) {
+        assert (this.type.equals(VeriTToken.RESOLUTION));
+        assert (this.subProofs.size() == 2);
+
+        Formula resolvingLiteral = findResolvingLiteral();
+        VeritProofNode posChild = null;
+        VeritProofNode negChild = null;
+
+        if (subProofs.get(0).getLiteralConclusions().contains(resolvingLiteral)) {
+            posChild = subProofs.get(0);
+            assert (subProofs.get(1).getLiteralConclusions().contains(Util
+                    .invertLiteral(resolvingLiteral)));
+            negChild = subProofs.get(1);
+        } else {
+            assert (subProofs.get(1).getLiteralConclusions()
+                    .contains(resolvingLiteral));
+            posChild = subProofs.get(1);
+            assert (subProofs.get(0).getLiteralConclusions().contains(Util
+                    .invertLiteral(resolvingLiteral)));
+            negChild = subProofs.get(0);
+        }
+        assert (posChild != null);
+        assert (negChild != null);
+
+        Formula posPartialInterpolant = posChild
+                .interpolateEvenVsOddPartitions(partialInterpolants);
+        Formula negPartialInterpolant = negChild
+                .interpolateEvenVsOddPartitions(partialInterpolants);
+
+        Formula result = null;
+        Set<Integer> partitions = resolvingLiteral.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() <= 1);
+        if (partitions.size() == 0) { // global literal
+            List<Formula> disjunctsPos = new ArrayList<Formula>(2);
+            List<Formula> disjunctsNeg = new ArrayList<Formula>(2);
+            List<Formula> conjuncts = new ArrayList<Formula>(2);
+            disjunctsPos.add(resolvingLiteral);
+            disjunctsPos.add(posPartialInterpolant);
+            disjunctsNeg.add(Util.invertLiteral(resolvingLiteral));
+            disjunctsNeg.add(negPartialInterpolant);
+            OrFormula posConjunct = OrFormula.generate(disjunctsPos);
+            OrFormula negConjunct = OrFormula.generate(disjunctsNeg);
+            conjuncts.add(posConjunct);
+            conjuncts.add(negConjunct);
+            result = AndFormula.generate(conjuncts);
+        } else {
+            assert (partitions.size() == 1);
+            int partition = partitions.iterator().next() - 1;
+            if (partition % 2 == 0) { // even ("A") literal
+                List<Formula> disjuncts = new ArrayList<Formula>(2);
+                disjuncts.add(posPartialInterpolant);
+                disjuncts.add(negPartialInterpolant);
+                result = OrFormula.generate(disjuncts);
+            } else { // odd ("B") literal
+                List<Formula> conjuncts = new ArrayList<Formula>(2);
+                conjuncts.add(posPartialInterpolant);
+                conjuncts.add(negPartialInterpolant);
+                result = AndFormula.generate(conjuncts);
+            }
+        }
+
+        assert (result != null);
+        return result;
     }
 }

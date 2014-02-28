@@ -2092,4 +2092,16 @@ public class TransitivityCongruenceChain implements
         return getLiteral(this.start, this.getEnd());
     }
 
+    /**
+     * Computes an interpolant from this chain based on the algorihtm presented
+     * by Fuchs et al. in the paper
+     * "Ground interpolation for the theory of equality".
+     * 
+     * @return an interpolant from this chain, as described in Fuchs et al.
+     */
+    public Formula fuchsEtAlInterpolant() {
+        assert (false); // TODO Auto-generated method stub
+        return null;
+    }
+
 }

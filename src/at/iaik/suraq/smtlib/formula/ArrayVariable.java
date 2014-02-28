@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -356,6 +358,14 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
     public ArrayVariable removeArrayITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, Collection<Formula> constraints) {
         return this;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.write(varName);
     }
 
 }

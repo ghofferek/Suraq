@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -831,6 +832,21 @@ public abstract class EqualityFormula implements Formula {
             writer.append(") ");
         }
 
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        assert (false); // TODO Auto-generated method stub
+        writer.append('(').append(SExpressionConstants.EQUAL.toString())
+                .append(' ');
+        for (Term term : terms) {
+            term.writeTo(writer);
+            writer.append(' ');
+        }
+        writer.append(") ");
     }
 
 }

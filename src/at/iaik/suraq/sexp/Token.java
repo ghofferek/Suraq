@@ -15,7 +15,8 @@ import at.iaik.suraq.util.FormulaCache;
  * 
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  */
-public class Token extends SExpression implements Serializable {
+public class Token extends SExpression implements Serializable,
+        Comparable<Token> {
 
     /**
      * 
@@ -37,11 +38,11 @@ public class Token extends SExpression implements Serializable {
     protected Token(String token) {
         this.token = token;
         hashCode = token.hashCode();
-    }    
-    public static Token generate(String token)
-    {
-    	Token t = new Token(token);
-    	return FormulaCache.token.put(t);
+    }
+
+    public static Token generate(String token) {
+        Token t = new Token(token);
+        return FormulaCache.token.put(t);
     }
 
     /**
@@ -54,10 +55,10 @@ public class Token extends SExpression implements Serializable {
         this.token = token.toString();
         hashCode = token.hashCode();
     }
-    public static Token generate(StringBuffer token)
-    {
-    	Token t = new Token(token);
-    	return FormulaCache.token.put(t);
+
+    public static Token generate(StringBuffer token) {
+        Token t = new Token(token);
+        return FormulaCache.token.put(t);
     }
 
     /**
@@ -72,10 +73,11 @@ public class Token extends SExpression implements Serializable {
         this.columnNumber = columnNumber;
         hashCode = token.hashCode();
     }
-    public static Token generate(StringBuffer token, int lineNumber, int columnNumber)
-    {
-    	Token t = new Token(token, lineNumber, columnNumber);
-    	return FormulaCache.token.put(t);
+
+    public static Token generate(StringBuffer token, int lineNumber,
+            int columnNumber) {
+        Token t = new Token(token, lineNumber, columnNumber);
+        return FormulaCache.token.put(t);
     }
 
     /**
@@ -88,10 +90,10 @@ public class Token extends SExpression implements Serializable {
         this.token = new String(original.token);
         hashCode = token.hashCode();
     }
-    public static Token generate(Token original)
-    {
-    	Token t = new Token(original);
-    	return FormulaCache.token.put(t);
+
+    public static Token generate(Token original) {
+        Token t = new Token(original);
+        return FormulaCache.token.put(t);
     }
 
     /**
@@ -201,6 +203,14 @@ public class Token extends SExpression implements Serializable {
         List<Token> list = new ArrayList<Token>();
         list.add(this);
         return list;
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(Token o) {
+        return token.compareTo(o.token);
     }
 
 }

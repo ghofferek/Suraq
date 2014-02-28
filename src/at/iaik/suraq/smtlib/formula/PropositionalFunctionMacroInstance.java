@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -659,4 +660,13 @@ public class PropositionalFunctionMacroInstance implements Formula {
             boolean handleThisWithTagContainer) throws IOException {
         throw new NotImplementedException();
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        throw new NotImplementedException();
+    }
+
 }

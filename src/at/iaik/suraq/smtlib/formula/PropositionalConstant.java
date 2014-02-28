@@ -5,6 +5,7 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -450,6 +451,15 @@ public class PropositionalConstant extends PropositionalTerm {
             throws IOException {
         writeOut(writer, tagContainer, true);
 
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Term#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.write(constant ? SExpressionConstants.TRUE.toString()
+                : SExpressionConstants.FALSE.toString());
     }
 
 }

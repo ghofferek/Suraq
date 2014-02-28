@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib.formula;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -382,5 +383,14 @@ public interface Formula extends SMTLibObject, Serializable {
      */
     public void writeOut(BufferedWriter writer, HashTagContainer tagContainer,
             boolean handleThisWithTagContainer) throws IOException;
+
+    /**
+     * Writes this formula to the given writer. This method should write the
+     * same thing <code>toString</code> would produce.
+     * 
+     * @param writer
+     * @throws IOException
+     */
+    public void writeTo(Writer writer) throws IOException;
 
 }

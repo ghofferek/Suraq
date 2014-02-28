@@ -95,6 +95,11 @@ public final class SuraqOptions {
     private static final boolean dontRemoveLemmaSubproofsDefault = false;
 
     /**
+     * Default value for performing iterative interpolation
+     */
+    private static final boolean iterativeInterpolationDefault = false;
+
+    /**
      * Default value for checkProofWhileParsing option.
      */
     private static final boolean checkProofWhileParsingDefault = false;
@@ -186,6 +191,11 @@ public final class SuraqOptions {
      * the value of removeLemmaSubproofs
      */
     private final Boolean dontRemoveLemmaSubproofs;
+
+    /**
+     * the value of the option for performing iterative interpolation
+     */
+    private final Boolean iterativeInterpolation;
 
     /**
      * the value of checkProofWhileParsing
@@ -288,6 +298,9 @@ public final class SuraqOptions {
         Option dontRemoveLemmaSubproofsOption = cmdLineParser
                 .addBooleanOption("dontRemoveLemmaSubproofs");
 
+        Option iterativeInterpolationOption = cmdLineParser
+                .addBooleanOption("iterative");
+
         Option dumpSMTQueryFileOption = cmdLineParser
                 .addStringOption("dumpSMTQueryFile");
 
@@ -345,6 +358,9 @@ public final class SuraqOptions {
 
         dontRemoveLemmaSubproofs = (Boolean) cmdLineParser
                 .getOptionValue(dontRemoveLemmaSubproofsOption);
+
+        iterativeInterpolation = (Boolean) cmdLineParser
+                .getOptionValue(iterativeInterpolationOption);
 
         checkProofWhileParsing = (Boolean) cmdLineParser
                 .getOptionValue(checkProofWhileParsingOption);
@@ -582,6 +598,11 @@ public final class SuraqOptions {
     public boolean getDontRemoveLemmaSubproofs() {
         return dontRemoveLemmaSubproofs == null ? SuraqOptions.dontRemoveLemmaSubproofsDefault
                 : dontRemoveLemmaSubproofs;
+    }
+
+    public boolean getIterativeInterpolation() {
+        return iterativeInterpolation == null ? SuraqOptions.iterativeInterpolationDefault
+                : iterativeInterpolation;
     }
 
     public String getDumpSMTQueryFile() {

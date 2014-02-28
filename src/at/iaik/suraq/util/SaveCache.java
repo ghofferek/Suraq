@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.WeakHashMap;
 
 import at.iaik.suraq.parser.LogicParser;
@@ -48,7 +49,7 @@ public class SaveCache implements Serializable {
     private final Z3Proof proof;
     private final Integer instanceCounter;
     private final Formula mainFormula;
-    private final Map<Integer, Formula> assertPartitionFormulas;
+    private final TreeMap<Integer, Formula> assertPartitionFormulas;
     private final Map<PropositionalVariable, Formula> tseitinEncoding;
     private final Map<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> immutableSetInstances;
     private final Map<Object, WeakReference<Object>> immutableSetUniqueElements;
@@ -72,7 +73,7 @@ public class SaveCache implements Serializable {
             Set<UninterpretedFunction> uninterpretedFunctions,
             List<PropositionalVariable> controlVars,
             Formula mainFormula,
-            Map<Integer, Formula> assertPartitionFormulas,
+            TreeMap<Integer, Formula> assertPartitionFormulas,
             Map<PropositionalVariable, Formula> tseitinEncoding,
             Z3Proof proof,
             Map<ImmutableSet<?>, WeakReference<ImmutableSet<?>>> immutableSetInstances,
@@ -109,7 +110,7 @@ public class SaveCache implements Serializable {
             Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,
             Set<UninterpretedFunction> uninterpretedFunctions,
             List<PropositionalVariable> controlVars, Formula mainFormula,
-            Map<Integer, Formula> assertPartitionFormulas,
+            TreeMap<Integer, Formula> assertPartitionFormulas,
             Map<PropositionalVariable, Formula> tseitinEncoding,
             String filename, String veriTProofFile,
             Map<Token, List<Term>> noDependenceVarsCopies,
@@ -161,7 +162,7 @@ public class SaveCache implements Serializable {
             Set<UninterpretedFunction> uninterpretedFunctions,
             List<PropositionalVariable> controlVars,
             Formula mainFormula,
-            Map<Integer, Formula> assertPartitionFormulas,
+            TreeMap<Integer, Formula> assertPartitionFormulas,
             Map<PropositionalVariable, Formula> tseitinEncoding,
             String filename,
             VeritProof veriTProof,
@@ -296,7 +297,7 @@ public class SaveCache implements Serializable {
         return this.mainFormula;
     }
 
-    public Map<Integer, Formula> getAssertPartitionFormulas() {
+    public TreeMap<Integer, Formula> getAssertPartitionFormulas() {
         return this.assertPartitionFormulas;
     }
 

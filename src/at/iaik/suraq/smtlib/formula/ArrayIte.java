@@ -3,6 +3,8 @@
  */
 package at.iaik.suraq.smtlib.formula;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -563,6 +565,23 @@ public class ArrayIte extends ArrayTerm {
             throw new RuntimeException(
                     "Unexpected exception while removing DomainITEs.", exc);
         }
+    }
+
+    /**
+     * @throws IOException
+     * @see at.iaik.suraq.smtlib.formula.Term#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.append('(').append(SExpressionConstants.ITE.toString());
+        writer.append(' ');
+        condition.writeTo(writer);
+        writer.append(' ');
+        thenBranch.writeTo(writer);
+        writer.append(' ');
+        elseBranch.writeTo(writer);
+        writer.append(')');
+
     }
 
 }

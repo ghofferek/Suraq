@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib.formula;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -355,4 +356,14 @@ public abstract class Term implements Serializable {
      */
     public abstract void writeOut(BufferedWriter writer,
             HashTagContainer tagContainer) throws IOException;
+
+    /**
+     * Writes the term to the given writer. Essentially, this should write the
+     * same thing as would be produced by <code>toString</code>.
+     * 
+     * @param writer
+     * @throws IOException
+     */
+    public abstract void writeTo(Writer writer) throws IOException;
+
 }
