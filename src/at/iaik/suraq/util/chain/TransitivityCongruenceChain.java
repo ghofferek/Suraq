@@ -14,9 +14,11 @@ import java.util.TreeSet;
 import at.iaik.suraq.proof.VeriTToken;
 import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
+import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
@@ -2093,15 +2095,311 @@ public class TransitivityCongruenceChain implements
     }
 
     /**
-     * Computes an interpolant from this chain based on the algorihtm presented
+     * Computes an interpolant from this chain based on the algorithm presented
      * by Fuchs et al. in the paper
      * "Ground interpolation for the theory of equality".
+     * 
+     * After subtracting 1, even partitions are "A", odd partitions are "B".
      * 
      * @return an interpolant from this chain, as described in Fuchs et al.
      */
     public Formula fuchsEtAlInterpolant() {
-        assert (false); // TODO Auto-generated method stub
-        return null;
+        if (this.isBPath()) {
+            Formula result = this.internalInterpolant();
+            return result;
+        }
+        assert (this.isAPath());
+        Formula result = this.modifiedInternalInterpolant();
+        return result;
     }
 
+    /**
+     * 
+     * @return I(pi) according to Fuchs et al.
+     */
+    private Formula internalInterpolant() {
+        List<TransitivityCongruenceChain> factors = this.factor();
+        if (factors.size() == 1) {
+            assert (factors.get(0).equals(this));
+            if (this.isBPath()) {
+                List<Formula> conjuncts = new ArrayList<Formula>();
+                for (TransitivityCongruenceChain chain : this.getSubChains())
+                    conjuncts.add(chain.internalInterpolant());
+                Formula result = AndFormula.generate(conjuncts);
+                return result;
+            } else {
+                assert (this.isAPath());
+                Set<TransitivityCongruenceChain> bPremises = this
+                        .getBPremises();
+                List<Formula> bPremiseEqualities = new ArrayList<Formula>(
+                        bPremises.size());
+                List<Formula> conjuncts = new ArrayList<Formula>(
+                        bPremises.size() + 1);
+                for (TransitivityCongruenceChain bPremise : bPremises) {
+                    conjuncts.add(bPremise.internalInterpolant());
+                    bPremiseEqualities.add(bPremise.getLiteral());
+                }
+                AndFormula bPremiseEqualitiesAnd = AndFormula
+                        .generate(bPremiseEqualities);
+                Formula pathEquality = this.getLiteral();
+                Formula justification = ImpliesFormula.create(
+                        bPremiseEqualitiesAnd, pathEquality);
+                conjuncts.add(justification);
+                Formula result = AndFormula.generate(conjuncts);
+                return result;
+            }
+        }
+
+        assert (factors.size() > 1);
+        List<Formula> conjuncts = new ArrayList<Formula>(factors.size());
+        for (TransitivityCongruenceChain factor : factors)
+            conjuncts.add(factor.internalInterpolant());
+        Formula result = AndFormula.generate(conjuncts);
+        return result;
+    }
+
+    /**
+     * 
+     * @return I'(pi) according to Fuchs et al.
+     */
+    private Formula modifiedInternalInterpolant() {
+        TransitivityCongruenceChain[] decomposition = this.decomposeABA();
+        assert (decomposition.length == 3);
+
+        List<Formula> conjuncts = new ArrayList<Formula>(3);
+
+        if (decomposition[1] != null) {
+            conjuncts.add(decomposition[1].internalInterpolant());
+        }
+
+        Set<TransitivityCongruenceChain> bPremises = new HashSet<TransitivityCongruenceChain>();
+        if (decomposition[0] != null) {
+            bPremises.addAll(decomposition[0].getBPremises());
+        }
+        if (decomposition[2] != null) {
+            bPremises.addAll(decomposition[2].getBPremises());
+        }
+        List<Formula> bPremiseEqualities = new ArrayList<Formula>(
+                bPremises.size());
+        for (TransitivityCongruenceChain bPremise : bPremises) {
+            conjuncts.add(bPremise.internalInterpolant());
+            bPremiseEqualities.add(bPremise.getLiteral());
+        }
+        if (decomposition[1] != null) {
+            AndFormula bPremiseEqualitiesAnd = AndFormula
+                    .generate(bPremiseEqualities);
+            NotFormula negatedTheta = NotFormula.create(decomposition[1]
+                    .getLiteral());
+            ImpliesFormula implication = ImpliesFormula.create(
+                    bPremiseEqualitiesAnd, negatedTheta);
+            conjuncts.add(implication);
+        }
+
+        AndFormula result = AndFormula.generate(conjuncts);
+        return result;
+    }
+
+    /**
+     * 
+     * @return a set of all (direct) subchains of this chain
+     */
+    public Set<TransitivityCongruenceChain> getSubChains() {
+        Set<TransitivityCongruenceChain> result = new HashSet<TransitivityCongruenceChain>();
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            if (current.getCongruenceJustification() != null) {
+                assert (current.getEqualityJustification() == null);
+                result.addAll(current.getCongruenceJustification());
+            }
+            current = current.getNext();
+        }
+        return result;
+    }
+
+    /**
+     * Checks whether all nodes on this path can be A-colored. Note that a
+     * "global" path will return true for both <code>isAPath</code> and
+     * <code>isBPath</code>.
+     * 
+     * @return <code>false</code> iff there is at least one node that is only
+     *         B-colorable
+     */
+    public boolean isAPath() {
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            DomainTerm term = current.getTerm();
+            Set<Integer> partitions = term.getPartitionsFromSymbols();
+            partitions.remove(-1);
+            assert (partitions.size() <= 1);
+            if (partitions.size() == 1) {
+                int partition = partitions.iterator().next();
+                if ((partition - 1) % 2 == 0)
+                    return false;
+            }
+            current = current.getNext();
+        }
+        return true;
+    }
+
+    /**
+     * Checks whether all nodes on this path can be B-colored. Note that a
+     * "global" path will return true for both <code>isAPath</code> and
+     * <code>isBPath</code>.
+     * 
+     * @return <code>false</code> iff there is at least one node that is only
+     *         A-colorable
+     */
+    public boolean isBPath() {
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            DomainTerm term = current.getTerm();
+            Set<Integer> partitions = term.getPartitionsFromSymbols();
+            partitions.remove(-1);
+            assert (partitions.size() <= 1);
+            if (partitions.size() == 1) {
+                int partition = partitions.iterator().next();
+                if ((partition - 1) % 2 == 0)
+                    return false;
+            }
+            current = current.getNext();
+        }
+        return true;
+    }
+
+    /**
+     * Decomposes this chain into pi1-theta-pi2 (see Fuchs et al.). The returned
+     * array will always be of size 3. If necessary, <code>null</code> values
+     * will be inserted. Global terms will be treated as B-colorable. The parts
+     * returned will be clones of this chain.
+     * 
+     * @return a decomposition of this chain into pi1-theta-pi2, where theta is
+     *         the maxium sub-path with B-colorable endpoints.
+     */
+    public TransitivityCongruenceChain[] decomposeABA() {
+        TransitivityCongruenceChain[] result = new TransitivityCongruenceChain[3];
+        TransitivityCongruenceChain clone = this.clone();
+        TransitivityCongruenceChainElement current = clone.start;
+        while (current != null) {
+            DomainTerm term = current.getTerm();
+            Set<Integer> partitions = term.getPartitionsFromSymbols();
+            partitions.remove(-1);
+            assert (partitions.size() <= 1);
+            if (partitions.size() == 1) {
+                int partition = partitions.iterator().next();
+                if ((partition - 1) % 2 == 1) {
+                    break;
+                }
+            }
+            current = current.getNext();
+        }
+
+        if (current == null) {
+            // Whole chain only A-colorable
+            result[0] = clone;
+            result[1] = null;
+            result[2] = null;
+            return result;
+        }
+
+        if (current == clone.start) {
+            // First node is B-colorable
+            result[0] = null;
+            result[1] = clone;
+        } else {
+            // A real A-factor occurred.
+            // "current" is the global intermediate
+            assert (Util.isGlobal(current.getTerm()));
+            result[0] = clone;
+            result[1] = clone.split(current);
+        }
+
+        // Search for last B-colorable term
+        TransitivityCongruenceChainElement beginTheta = current;
+        current = result[1].getEnd();
+        while (current != beginTheta) {
+            DomainTerm term = current.getTerm();
+            Set<Integer> partitions = term.getPartitionsFromSymbols();
+            partitions.remove(-1);
+            assert (partitions.size() <= 1);
+            if (partitions.size() == 1) {
+                int partition = partitions.iterator().next();
+                if ((partition - 1) % 2 == 1) {
+                    break;
+                }
+            }
+            current = result[1].getPredecessor(current);
+        }
+
+        if (current == result[1].getEnd()) {
+            // Chain ends with B-color
+            result[2] = null;
+            return result;
+        }
+
+        assert (current != beginTheta);
+        assert (Util.isGlobal(current.getTerm()));
+        result[2] = result[1].split(current);
+        return result;
+    }
+
+    /**
+     * Factors a clone of this chain into A- and B-colorable paths.
+     * 
+     * @return
+     */
+    public List<TransitivityCongruenceChain> factor() {
+        List<TransitivityCongruenceChain> result = new ArrayList<TransitivityCongruenceChain>();
+        TransitivityCongruenceChain clone = this.clone();
+        TransitivityCongruenceChainElement current = clone.start;
+        int currentColor = current.getTermPartition() > 0 ? (current
+                .getTermPartition() - 1) % 2 : -1;
+        while (current != null) {
+            int color = current.getTermPartition() > 0 ? (current
+                    .getTermPartition() - 1) % 2 : -1;
+            if (color >= 0) {
+                if (currentColor < 0)
+                    currentColor = color;
+                if (color != currentColor) {
+                    TransitivityCongruenceChainElement predecessor = clone
+                            .getPredecessor(current);
+                    result.add(clone);
+                    clone = clone.split(predecessor);
+                    current = clone.start;
+                    assert (current.getTermPartition() > 0);
+                    currentColor = (current.getTermPartition() - 1) % 2;
+                    continue;
+                }
+            }
+            current = current.getNext();
+        }
+        result.add(clone);
+        return result;
+    }
+
+    /**
+     * 
+     * @return the B-premises of this chain (according to Fuchs et al.)
+     */
+    public Set<TransitivityCongruenceChain> getBPremises() {
+        Set<TransitivityCongruenceChain> result = new HashSet<TransitivityCongruenceChain>();
+
+        if (this.isBPath()) {
+            result.add(this);
+            return result;
+        }
+
+        if (this.isAPath()) {
+            for (TransitivityCongruenceChain subchain : this.getSubChains()) {
+                result.addAll(subchain.getBPremises());
+            }
+            return result;
+        }
+
+        List<TransitivityCongruenceChain> factors = this.factor();
+        for (TransitivityCongruenceChain factor : factors) {
+            result.addAll(factor.getBPremises());
+        }
+        return result;
+
+    }
 }
