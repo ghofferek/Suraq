@@ -1144,8 +1144,11 @@ public class Suraq implements Runnable {
         Timer timer = new Timer();
         timer.start();
         Util.printToSystemOutWithWallClockTimePrefix("Simplifying formula.");
-
         BufferedReader simpliefiedFormulaReader = z3.simplify(formula);
+        timer.stop();
+        Util.printToSystemOutWithWallClockTimePrefix("Done. (Took "
+                + timer.toString() + ")");
+        Util.printToSystemOutWithWallClockTimePrefix("Starting parsing.");
         try {
             FormulaParser parser = new FormulaParser(
                     formula.getPropositionalVariables(),
@@ -1154,6 +1157,7 @@ public class Suraq implements Runnable {
                     simpliefiedFormulaReader);
             parser.parse();
             Formula result = parser.getParsedFormula();
+            Util.printToSystemOutWithWallClockTimePrefix("Done.");
             return result;
         } catch (ParseError exc) {
             System.out.println("Parser error.");
