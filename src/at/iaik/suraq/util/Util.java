@@ -1750,4 +1750,52 @@ public final class Util {
         return result;
     }
 
+    /**
+     * Writes all declarations required for <code>formula</code> to
+     * <code>writer.</code>
+     * 
+     * @param formula
+     * @param writer
+     * @throws IOException
+     */
+    public static void writeDeclarations(Formula formula, BufferedWriter writer)
+            throws IOException {
+        Set<PropositionalVariable> propVars = formula
+                .getPropositionalVariables();
+        for (PropositionalVariable propVar : propVars) {
+            writer.write("(" + SExpressionConstants.DECLARE_FUN.toString()
+                    + " " + propVar.getVarName() + " () "
+                    + SExpressionConstants.BOOL_TYPE.toString() + " )\n");
+        }
+
+        Set<DomainVariable> domainVars = formula.getDomainVariables();
+        for (DomainVariable domainVar : domainVars) {
+            writer.write("(" + SExpressionConstants.DECLARE_FUN.toString()
+                    + " " + domainVar.getVarName() + " () "
+                    + SExpressionConstants.VALUE_TYPE.toString() + " )\n");
+        }
+
+        Set<ArrayVariable> arrayVars = formula.getArrayVariables();
+        for (ArrayVariable arrayVar : arrayVars) {
+            writer.write("(" + SExpressionConstants.DECLARE_FUN.toString()
+                    + " " + arrayVar.getVarName() + " () "
+                    + SExpressionConstants.ARRAY_TYPE.toString() + " )\n");
+        }
+
+        Set<UninterpretedFunction> uninterpretedFunctions = formula
+                .getUninterpretedFunctions();
+        for (UninterpretedFunction function : uninterpretedFunctions) {
+            StringBuilder params = new StringBuilder();
+            final int numParams = function.getNumParams();
+            for (int count = 0; count < numParams; count++) {
+                params.append(SExpressionConstants.VALUE_TYPE.toString());
+                if (count != numParams - 1)
+                    params.append(" ");
+            }
+            writer.write("(" + SExpressionConstants.DECLARE_FUN.toString()
+                    + " " + function.getName().toString() + " ("
+                    + params.toString() + ") " + function.getType() + " )\n");
+        }
+
+    }
 }

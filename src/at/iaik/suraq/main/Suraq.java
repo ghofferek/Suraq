@@ -25,6 +25,7 @@ import java.util.TreeMap;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.parser.FormulaParser;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.ProofParser;
 import at.iaik.suraq.parser.SExpParser;
@@ -57,6 +58,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.smtsolver.VeriTSolver;
+import at.iaik.suraq.smtsolver.z3;
 import at.iaik.suraq.util.BenchmarkTimer;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.FormulaCache;
@@ -1132,12 +1134,34 @@ public class Suraq implements Runnable {
     }
 
     /**
-     * @param interpolant
+     * @param formula
      * @return
      */
-    private Formula simplify(Formula interpolant) {
-        assert (false); // TODO Auto-generated method stub
-        return null;
+    private Formula simplify(Formula formula) {
+        z3 z3 = (at.iaik.suraq.smtsolver.z3) SMTSolver.create(
+                SMTSolver.z3_type, SuraqOptions.getZ3_4Path());
+
+        Timer timer = new Timer();
+        timer.start();
+        Util.printToSystemOutWithWallClockTimePrefix("Simplifying formula.");
+
+        BufferedReader simpliefiedFormulaReader = z3.simplify(formula);
+        try {
+            FormulaParser parser = new FormulaParser(
+                    formula.getPropositionalVariables(),
+                    formula.getDomainVariables(), formula.getArrayVariables(),
+                    formula.getUninterpretedFunctions(),
+                    simpliefiedFormulaReader);
+            parser.parse();
+            Formula result = parser.getParsedFormula();
+            return result;
+        } catch (ParseError exc) {
+            System.out.println("Parser error.");
+            throw new RuntimeException(exc);
+        } catch (IOException exc) {
+            System.out.println("IOException.");
+            throw new RuntimeException(exc);
+        }
     }
 
     /**

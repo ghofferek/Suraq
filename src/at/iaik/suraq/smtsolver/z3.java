@@ -4,8 +4,18 @@
 
 package at.iaik.suraq.smtsolver;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.util.ProcessResult;
+import at.iaik.suraq.util.ProcessResultStreams;
 import at.iaik.suraq.util.ProcessUtil;
+import at.iaik.suraq.util.Util;
 
 /**
  * SMT-solver bindings for the Microsoft(TM) Z3 solver. Utilizes external calls
@@ -94,5 +104,55 @@ public class z3 extends SMTSolver {
 
         }
         return pResult.getOutputStream();
+    }
+
+    public BufferedReader simplify(Formula formula) {
+        File tmpInFile = null;
+        try {
+            // in the following code, a temporary file in the root directory of
+            // the project is created.
+            // TODO: You may want to change the folder or overwrite the old
+            // files.
+            // To overwrite just call the constructor of File instead of
+            // createTempFile...
+
+            tmpInFile = File.createTempFile("z3-in-simplify", ".smt2",
+                    new File("./"));
+            FileWriter fw = new FileWriter(tmpInFile);
+            BufferedWriter writer = new BufferedWriter(fw);
+            writer.write(SExpressionConstants.SET_LOGIC_QF_UF.toString());
+            writer.write("\n");
+            writer.write(SExpressionConstants.DECLARE_SORT_VALUE.toString());
+            writer.write("\n");
+            Util.writeDeclarations(formula, writer);
+            writer.write("(" + SExpressionConstants.SIMPLIFY.toString() + " ");
+            formula.writeTo(writer);
+            writer.write(")\n");
+            writer.write(SExpressionConstants.EXIT.toString());
+            writer.close();
+            fw.close();
+            System.out.println("Temporary z3 file: " + tmpInFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        assert (tmpInFile != null);
+        String executionPath = z3Path;
+        if (System.getProperty("os.name").toLowerCase().contains("windows"))
+            executionPath += " /smt2 /file:" + tmpInFile.toString();
+        else
+            executionPath += " -smt2 -file:" + tmpInFile.toString();
+
+        ProcessResultStreams pResult = ProcessUtil
+                .runExternalProcessWithStreamResult(executionPath);
+
+        if (pResult.getExitCode() != 0) {
+            System.out.println("EXIT CODE: " + pResult.getExitCode());
+            System.out.println("ERROR from Z3: " + pResult.getErrorStream());
+            System.out.println("OUTPUT from Z3: " + pResult.getOutputStream());
+
+        }
+        return pResult.getOutputStream();
+
     }
 }

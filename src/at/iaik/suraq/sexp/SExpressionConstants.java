@@ -112,6 +112,9 @@ public class SExpressionConstants {
     public static final SExpression APPLY_TSEITIN = SExpression
             .fromString("(apply (then (! simplify :elim-and true) (! simplify :elim-and true) tseitin-cnf))");
 
+    public static final Token SIMPLIFY = (Token) SExpression
+            .fromString("simplify");
+
     public static final Token UNSAT = (Token) SExpression.fromString("unsat");
 
     public static final Token LET = (Token) SExpression.fromString("let");
@@ -189,11 +192,11 @@ public class SExpressionConstants {
             .fromString("modus-pones-oeq");
     public static final Token TH_LEMMA = (Token) SExpression
             .fromString("th-lemma");
-    
+
     // added by chillebold on 06.07.2012
     public static final Token SIMPLEPROOF = (Token) SExpression
             .fromString("proof");
-    
+
     public static final Token TRANS = (Token) SExpression.fromString("trans");
     public static final Token MP = (Token) SExpression.fromString("mp");
     public static final Token[] PROOF_TYPES = SExpressionConstants
@@ -250,7 +253,6 @@ public class SExpressionConstants {
         proofTypes[36] = SExpressionConstants.SKOLEMIZE;
         proofTypes[37] = SExpressionConstants.MODUS_PONENS_OEQ;
         proofTypes[38] = SExpressionConstants.TH_LEMMA;
-        
 
         // added by chillebold on 06.07.2012
         proofTypes[39] = SExpressionConstants.SIMPLEPROOF;

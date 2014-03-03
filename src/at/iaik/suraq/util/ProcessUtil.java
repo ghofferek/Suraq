@@ -70,6 +70,40 @@ public class ProcessUtil {
     }
 
     /**
+     * Runs an external process and gets the output and error stream as real
+     * streams, instead of strings.
+     * 
+     * @param executable
+     *            path to the external executable
+     * @return structure containing the process results.
+     */
+    public static ProcessResultStreams runExternalProcessWithStreamResult(
+            String executable) {
+        int exitCode = -1;
+        ProcessResultStreams result = null;
+        try {
+            Process p = Runtime.getRuntime().exec(executable);
+
+            BufferedReader input = new BufferedReader(new InputStreamReader(
+                    p.getInputStream()));
+            BufferedReader error = new BufferedReader(new InputStreamReader(
+                    p.getErrorStream()));
+
+            try {
+                exitCode = p.waitFor();
+            } catch (InterruptedException exc) {
+                throw new RuntimeException("InterruptedException...", exc);
+            }
+
+            result = new ProcessResultStreams(input, error, exitCode);
+        } catch (IOException exc) {
+            throw new RuntimeException("IOException...", exc);
+        }
+
+        return result;
+    }
+
+    /**
      * Runs an external process writes a string to stdin and gets the output and
      * error stream.
      * 

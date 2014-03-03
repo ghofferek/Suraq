@@ -125,6 +125,23 @@ public class SExpParser extends Parser {
     }
 
     /**
+     * Constructs a new <code>SExpParser</code>.
+     * 
+     * @param input
+     * @throws IOException
+     */
+    public SExpParser(BufferedReader input) throws IOException {
+        sourceLines = new ArrayList<String>();
+
+        String currentLine = input.readLine();
+        while (currentLine != null) {
+            sourceLines.add(currentLine);
+            currentLine = input.readLine();
+        }
+        input.close();
+    }
+
+    /**
      * @return an array containing all the source lines.
      */
     public String[] getSourceLines() {
