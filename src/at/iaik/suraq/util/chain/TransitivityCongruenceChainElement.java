@@ -544,4 +544,39 @@ public class TransitivityCongruenceChainElement {
         // return it in the order of the chain, by default.
         return literal;
     }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        int result = term.hashCode();
+        return result;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (this.hashCode() != obj.hashCode())
+            return false;
+        if (!(obj instanceof TransitivityCongruenceChainElement))
+            return false;
+        TransitivityCongruenceChainElement other = (TransitivityCongruenceChainElement) obj;
+        if (!this.term.equals(other.term))
+            return false;
+        if (!(this.equalityJustification == null ? other.equalityJustification == null
+                : this.equalityJustification
+                        .equals(other.equalityJustification)))
+            return false;
+        if (!(this.congruenceJustification == null ? other.congruenceJustification == null
+                : this.congruenceJustification
+                        .equals(other.congruenceJustification)))
+            return false;
+        return true;
+    }
+
 }

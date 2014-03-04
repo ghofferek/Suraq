@@ -1828,7 +1828,7 @@ public class VeritProofNode implements Serializable {
         assert (this.type.equals(VeriTToken.EQ_CONGRUENT_PRED) ? this
                 .checkCongruencePred() : this.checkTransCongr());
 
-        // Compute
+        // Compute implied literal
         Formula positiveLiteral = Util.getImpliedLiteral(literalConclusions);
         assert (positiveLiteral instanceof UninterpretedPredicateInstance);
         UninterpretedPredicateInstance impliedLiteral = (UninterpretedPredicateInstance) positiveLiteral;
@@ -1875,6 +1875,13 @@ public class VeritProofNode implements Serializable {
             if (leftChain.allTermsSameColor()) {
                 // Special case that the uncolorable literals are actually not
                 // needed for proving parameter equality
+
+                // FIXME This part wrongly assumes that the predicate is unary!
+                // Thus, in case it's not, we fail fast.
+                if (impliedLiteral.getParameters().size() != 1) {
+                    throw new RuntimeException(
+                            "Only unary predicates supported");
+                }
                 VeritProofNode result = this
                         .createColorablePredicateCongruenceProof(leftChain,
                                 inversePredicateLiteral, impliedLiteral);
@@ -1882,6 +1889,7 @@ public class VeritProofNode implements Serializable {
                         .containsAll(result.literalConclusions));
                 return result;
             }
+
             TransitivityCongruenceChain rightChain = leftChain
                     .splitAtGlobalTerm();
             assert (leftChain.isComplete());
@@ -1966,7 +1974,7 @@ public class VeritProofNode implements Serializable {
      *            a colorable chain
      * @param inversePredicateLiteral
      * @param impliedLiteral
-     * @return a colorbale proof for the congruence
+     * @return a colorable proof for the congruence
      */
     private VeritProofNode createColorablePredicateCongruenceProof(
             TransitivityCongruenceChain chain,
@@ -2489,6 +2497,143 @@ public class VeritProofNode implements Serializable {
     }
 
     /**
+     * Computes the partial interpolant for a predicate leaf.
+     * 
+     * @return a partial interpolant for this leaf.
+     */
+    private Formula predicateLeafInterpolant() {
+
+        // Compute implied literal and inverse predicate literal
+        Formula positiveLiteral = Util.getImpliedLiteral(literalConclusions);
+        assert (positiveLiteral instanceof UninterpretedPredicateInstance);
+        UninterpretedPredicateInstance impliedLiteral = (UninterpretedPredicateInstance) positiveLiteral;
+        UninterpretedPredicateInstance inversePredicateLiteral = Util
+                .findInversePredicateLiteral(impliedLiteral, literalConclusions);
+        assert (inversePredicateLiteral != null);
+        assert (impliedLiteral.getParameters().size() == inversePredicateLiteral
+                .getParameters().size());
+        Set<Integer> partitions = impliedLiteral.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() <= 1);
+
+        // Compute other literals
+        List<DomainEq> otherLiterals = new ArrayList<DomainEq>(
+                literalConclusions.size() - 2);
+        for (Formula literal : literalConclusions) {
+            if (literal.equals(impliedLiteral)
+                    || Util.makeLiteralPositive(literal).equals(
+                            inversePredicateLiteral))
+                continue;
+            assert (Util.isLiteral(literal));
+            assert (Util.isNegativeLiteral(literal));
+            assert (Util.makeLiteralPositive(literal) instanceof DomainEq);
+            otherLiterals.add((DomainEq) Util.makeLiteralPositive(literal));
+        }
+
+        List<Formula> leftParameterEqualities = new ArrayList<Formula>(
+                impliedLiteral.getParameters().size());
+        List<Formula> rightParameterEqualities = new ArrayList<Formula>(
+                impliedLiteral.getParameters().size());
+        Map<Formula, Formula> interpolantsForParameterEqualities = new HashMap<Formula, Formula>(
+                2 * impliedLiteral.getParameters().size());
+        List<DomainTerm> globalParameters = new ArrayList<DomainTerm>(
+                impliedLiteral.getParameters().size());
+
+        // Compute interpolants for each parameter equality
+        for (int count = 0; count < impliedLiteral.getParameters().size(); count++) {
+            List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+            terms.add(inversePredicateLiteral.getParameters().get(count));
+            terms.add(impliedLiteral.getParameters().get(count));
+            DomainEq parameterEquality = DomainEq.create(terms, true);
+
+            if (Util.isReflexivity(parameterEquality)) {
+                Set<Integer> parts = parameterEquality
+                        .getPartitionsFromSymbols();
+                parts.remove(-1);
+                assert (parts.size() <= 1);
+                if (parts.size() == 1) {
+                    int part = parts.iterator().next();
+                    if ((part - 1) % 2 == 0) { // A-literal
+                        interpolantsForParameterEqualities.put(
+                                parameterEquality,
+                                PropositionalConstant.create(false));
+                    } else { // B-literal
+                        interpolantsForParameterEqualities.put(
+                                parameterEquality,
+                                PropositionalConstant.create(true));
+                    }
+                } else { // global literal
+                    assert (parts.isEmpty());
+                    // Arbitrary choice
+                    interpolantsForParameterEqualities.put(parameterEquality,
+                            PropositionalConstant.create(false));
+                }
+                leftParameterEqualities.add(parameterEquality);
+                rightParameterEqualities.add(parameterEquality);
+                globalParameters.add(terms.get(0));
+                continue;
+            }
+
+            TransitivityCongruenceChain leftChain = TransitivityCongruenceChain
+                    .create(parameterEquality, otherLiterals, this);
+            assert (leftChain.isComplete());
+
+            TransitivityCongruenceChain rightChain = leftChain
+                    .splitAtGlobalTerm();
+            assert (leftChain.isComplete());
+            assert (rightChain.isComplete());
+            assert (leftChain.getEndTerm().equals(rightChain.getStart()
+                    .getTerm()));
+            globalParameters.add(rightChain.getStart().getTerm());
+
+            Formula leftParameterEqualityInterpolant = leftChain
+                    .fuchsEtAlInterpolant();
+            Formula rightParameterEqualityInterpolant = rightChain
+                    .fuchsEtAlInterpolant();
+            leftParameterEqualities.add(leftChain.getLiteral());
+            rightParameterEqualities.add(rightChain.getLiteral());
+            interpolantsForParameterEqualities.put(leftChain.getLiteral(),
+                    leftParameterEqualityInterpolant);
+            interpolantsForParameterEqualities.put(rightChain.getLiteral(),
+                    rightParameterEqualityInterpolant);
+        }
+
+        // Create global predicate instance
+        UninterpretedPredicateInstance globalPredicateInstance = null;
+        try {
+            globalPredicateInstance = UninterpretedPredicateInstance.create(
+                    impliedLiteral.getFunction(), globalParameters);
+        } catch (SuraqException exc) {
+            throw new RuntimeException(
+                    "Unexpected Exception while creating global predicate instance.",
+                    exc);
+        }
+        assert (globalPredicateInstance != null);
+
+        // Left side interpolants
+        Formula leftInterpolant = globalPredicateInstance;
+        for (Formula literal : leftParameterEqualities) {
+            Formula pos = interpolantsForParameterEqualities.get(literal);
+            assert (pos != null);
+            leftInterpolant = resolutionInterpolant(literal, pos,
+                    leftInterpolant);
+        }
+
+        // Right side of interpolants
+        Formula rightInterpolant = NotFormula.create(globalPredicateInstance);
+        for (Formula literal : rightParameterEqualities) {
+            Formula pos = interpolantsForParameterEqualities.get(literal);
+            assert (pos != null);
+            rightInterpolant = resolutionInterpolant(literal, pos,
+                    rightInterpolant);
+        }
+
+        Formula result = resolutionInterpolant(globalPredicateInstance,
+                leftInterpolant, rightInterpolant);
+        return result;
+    }
+
+    /**
      * Computes the partial interpolant for a leaf. Follows Pudlak's
      * interpolation system for input clauses and theory lemmas with just one
      * color. Follows Fuchs et al. for theory lemmas with more than one color.
@@ -2505,9 +2650,14 @@ public class VeritProofNode implements Serializable {
         partitions.remove(-1);
         if (partitions.size() > 1) { // uncolorable theory lemma
             assert (type.equals(VeriTToken.TRANS_CONGR));
-            TransitivityCongruenceChain chain = TransitivityCongruenceChain
-                    .create(this);
-            result = chain.fuchsEtAlInterpolant();
+            Formula impliedLiteral = Util.getImpliedLiteral(literalConclusions);
+            if (impliedLiteral instanceof UninterpretedPredicateInstance)
+                result = predicateLeafInterpolant();
+            else {
+                TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                        .create(this);
+                result = chain.fuchsEtAlInterpolant();
+            }
         } else {
             assert (partitions.size() <= 1);
             int partition;
@@ -2569,6 +2719,15 @@ public class VeritProofNode implements Serializable {
         Formula negPartialInterpolant = negChild
                 .interpolateEvenVsOddPartitions(partialInterpolants);
 
+        Formula result = resolutionInterpolant(resolvingLiteral,
+                posPartialInterpolant, negPartialInterpolant);
+
+        assert (result != null);
+        return result;
+    }
+
+    private Formula resolutionInterpolant(Formula resolvingLiteral,
+            Formula posPartialInterpolant, Formula negPartialInterpolant) {
         Formula result = null;
         Set<Integer> partitions = resolvingLiteral.getPartitionsFromSymbols();
         partitions.remove(-1);
@@ -2601,7 +2760,6 @@ public class VeritProofNode implements Serializable {
                 result = AndFormula.generate(conjuncts);
             }
         }
-
         assert (result != null);
         return result;
     }

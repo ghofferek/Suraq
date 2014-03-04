@@ -2402,4 +2402,42 @@ public class TransitivityCongruenceChain implements
         return result;
 
     }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        int result = this.start.hashCode() + this.target.hashCode() << 8 + this
+                .length() << 16;
+        return result;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (this.hashCode() != obj.hashCode())
+            return false;
+        if (!(obj instanceof TransitivityCongruenceChain))
+            return false;
+        TransitivityCongruenceChain other = (TransitivityCongruenceChain) obj;
+        if (!this.start.equals(other.start))
+            return false;
+        if (!this.target.equals(other.target))
+            return false;
+        TransitivityCongruenceChainElement current = this.start.getNext();
+        TransitivityCongruenceChainElement currentOhter = other.start.getNext();
+        while (current != null) {
+            if (!current.equals(currentOhter))
+                return false;
+            current = current.getNext();
+            currentOhter = currentOhter.getNext();
+        }
+        return true;
+    }
+
 }
