@@ -960,11 +960,6 @@ public class Suraq implements Runnable {
         SuraqOptions options = SuraqOptions.getInstance();
         File sourceFile = new File(options.getInput());
 
-        List<PropositionalVariable> controlVariables = logicParser
-                .getControlVariables();
-        Map<PropositionalVariable, Formula> interpolants = new HashMap<PropositionalVariable, Formula>(
-                2 * controlVariables.size());
-
         Util.printMemoryInformation();
         Util.printToSystemOutWithWallClockTimePrefix("start input transformations");
         Timer inputTransformationTimer = new Timer();
@@ -976,6 +971,10 @@ public class Suraq implements Runnable {
         Util.printMemoryInformation();
 
         mainFormula = performFormulaReductions();
+        List<PropositionalVariable> controlVariables = logicParser
+                .getControlVariables();
+        Map<PropositionalVariable, Formula> interpolants = new HashMap<PropositionalVariable, Formula>(
+                2 * controlVariables.size());
 
         int numControlSignals = controlVariables.size();
         Util.printToSystemOutWithWallClockTimePrefix("Starting iterative interpolant computation");
@@ -988,6 +987,34 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Preparing output expressions...");
             prepareOutputExpressions(mainFormula, controlVariables);
             Util.printToSystemOutWithWallClockTimePrefix("Done.");
+
+            Util.printToSystemOutWithWallClockTimePrefix("  build function and variable lists for parser");
+            propositionalVars = mainFormula.getPropositionalVariables();
+            domainVars = mainFormula.getDomainVariables();
+            arrayVars = mainFormula.getArrayVariables();
+            uninterpretedFunctions = mainFormula.getUninterpretedFunctions();
+            for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
+                    .entrySet()) {
+                assert (varList.getValue() != null);
+                assert (varList.getValue().size() > 0);
+
+                Term first = varList.getValue().get(0);
+
+                if (first instanceof DomainVariable)
+                    for (Term var : varList.getValue())
+                        domainVars.add((DomainVariable) var);
+
+                if (first instanceof PropositionalVariable)
+                    for (Term var : varList.getValue())
+                        propositionalVars.add((PropositionalVariable) var);
+
+                if (first instanceof ArrayVariable)
+                    for (Term var : varList.getValue())
+                        arrayVars.add((ArrayVariable) var);
+            }
+            for (Map.Entry<Token, List<UninterpretedFunction>> functionList : noDependenceFunctionsCopies
+                    .entrySet())
+                uninterpretedFunctions.addAll(functionList.getValue());
 
             List<String> tseitinPartitions = new ArrayList<String>();
 
