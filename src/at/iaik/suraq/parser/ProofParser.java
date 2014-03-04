@@ -142,7 +142,7 @@ public class ProofParser extends SMTLibParser {
             }
 
             if (isLet(expression)) {
-                handleLet(expression);
+                handleLetInProof(expression);
                 continue;
             }
 
@@ -171,7 +171,7 @@ public class ProofParser extends SMTLibParser {
      * @param expression
      *            the assert expression to parse.
      */
-    private void handleLet(SExpression expression) throws ParseError {
+    private void handleLetInProof(SExpression expression) throws ParseError {
 
         Token key = (Token) expression.getChildren().get(1).getChildren()
                 .get(0).getChildren().get(0);

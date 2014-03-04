@@ -115,6 +115,9 @@ public class SExpressionConstants {
     public static final Token SIMPLIFY = (Token) SExpression
             .fromString("simplify");
 
+    public static final SExpression ELIM_AND = SExpression
+            .fromString("(:elim-and true)");
+
     public static final Token UNSAT = (Token) SExpression.fromString("unsat");
 
     public static final Token LET = (Token) SExpression.fromString("let");

@@ -137,6 +137,8 @@ public abstract class SMTLibParser extends Parser implements Serializable {
      *             if parsing fails.
      */
     public Formula parseFormulaBody(SExpression expression) throws ParseError {
+        if (isLet(expression))
+            return handleLet(expression);
 
         if (expression.toString().charAt(0) == SMTLibParser.REF_FORMULA) {
             // resolve reference with LUT
@@ -1236,5 +1238,40 @@ public abstract class SMTLibParser extends Parser implements Serializable {
      */
     public List<FunctionMacro> getMacros() {
         return new ArrayList<FunctionMacro>(macros.values());
+    }
+
+    /**
+     * Handles a let expression that defines Tseitin variables.
+     * 
+     * @param expr
+     * @return
+     * @throws ParseError
+     */
+    protected Formula handleLet(SExpression expr) throws ParseError {
+        assert (expr.size() == 3);
+        assert (expr.getChildren().get(0) instanceof Token);
+        assert (expr.getChildren().get(0).equals(SExpressionConstants.LET));
+
+        Map<Token, SExpression> letDefinitions = new HashMap<Token, SExpression>();
+
+        for (SExpression defineExpr : expr.getChildren().get(1).getChildren()) {
+            assert (defineExpr.size() == 2);
+            assert (defineExpr.getChildren().get(0) instanceof Token);
+            Token key = (Token) defineExpr.getChildren().get(0);
+            SExpression value = defineExpr.getChildren().get(1);
+
+            letDefinitions.put(key, value);
+        }
+
+        String formulaString = expr.getChildren().get(2).toString();
+
+        for (Token token : letDefinitions.keySet())
+            formulaString = formulaString.replaceAll(token.toString()
+                    + "[\\t\\n\\x0B\\f\\r(]", letDefinitions.get(token)
+                    .toString());
+
+        SExpression tmpExpr = SExpression.fromString(formulaString);
+
+        return parseFormulaBody(tmpExpr);
     }
 }

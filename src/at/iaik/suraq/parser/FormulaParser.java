@@ -10,7 +10,6 @@ import java.util.HashSet;
 
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.sexp.SExpression;
-import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -61,12 +60,9 @@ public class FormulaParser extends SMTLibParser {
         sExpParser.parse();
         assert (sExpParser.parsingSuccessfull);
         SExpression expression = sExpParser.getRootExpr();
-        if (expression.getChildren().size() == 1) {
-            if (expression.getChildren().get(0) instanceof Token)
-                this.rootExpr = expression.getChildren().get(0);
-            else
-                this.rootExpr = sExpParser.getRootExpr();
-        } else
+        if (expression.getChildren().size() == 1)
+            this.rootExpr = sExpParser.getRootExpr().getChildren().get(0);
+        else
             this.rootExpr = sExpParser.getRootExpr();
     }
 

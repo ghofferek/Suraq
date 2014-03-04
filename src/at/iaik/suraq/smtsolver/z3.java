@@ -127,7 +127,7 @@ public class z3 extends SMTSolver {
             Util.writeDeclarations(formula, writer);
             writer.write("(" + SExpressionConstants.SIMPLIFY.toString() + " ");
             formula.writeTo(writer);
-            writer.write(")\n");
+            writer.write(" " + SExpressionConstants.ELIM_AND.toString() + ")\n");
             writer.write(SExpressionConstants.EXIT.toString());
             writer.close();
             fw.close();
