@@ -2578,24 +2578,77 @@ public class VeritProofNode implements Serializable {
                     .create(parameterEquality, otherLiterals, this);
             assert (leftChain.isComplete());
 
-            TransitivityCongruenceChain rightChain = leftChain
-                    .splitAtGlobalTerm();
-            assert (leftChain.isComplete());
-            assert (rightChain.isComplete());
-            assert (leftChain.getEndTerm().equals(rightChain.getStart()
-                    .getTerm()));
-            globalParameters.add(rightChain.getStart().getTerm());
+            if (!leftChain.isColorable()) {
+                TransitivityCongruenceChain rightChain = leftChain
+                        .splitAtGlobalTerm();
+                assert (leftChain.isComplete());
+                assert (rightChain.isComplete());
+                assert (leftChain.getEndTerm().equals(rightChain.getStart()
+                        .getTerm()));
+                globalParameters.add(rightChain.getStart().getTerm());
 
-            Formula leftParameterEqualityInterpolant = leftChain
-                    .fuchsEtAlInterpolant();
-            Formula rightParameterEqualityInterpolant = rightChain
-                    .fuchsEtAlInterpolant();
-            leftParameterEqualities.add(leftChain.getLiteral());
-            rightParameterEqualities.add(rightChain.getLiteral());
-            interpolantsForParameterEqualities.put(leftChain.getLiteral(),
-                    leftParameterEqualityInterpolant);
-            interpolantsForParameterEqualities.put(rightChain.getLiteral(),
-                    rightParameterEqualityInterpolant);
+                Formula leftParameterEqualityInterpolant = leftChain
+                        .fuchsEtAlInterpolant();
+                Formula rightParameterEqualityInterpolant = rightChain
+                        .fuchsEtAlInterpolant();
+                leftParameterEqualities.add(leftChain.getLiteral());
+                rightParameterEqualities.add(rightChain.getLiteral());
+                interpolantsForParameterEqualities.put(leftChain.getLiteral(),
+                        leftParameterEqualityInterpolant);
+                interpolantsForParameterEqualities.put(rightChain.getLiteral(),
+                        rightParameterEqualityInterpolant);
+            } else {
+                DomainTerm start = leftChain.getStart().getTerm();
+                if (Util.isGlobal(start)) {
+                    globalParameters.add(start);
+                    Formula leftEquality = Util.createReflexivity(start);
+                    leftParameterEqualities.add(leftEquality);
+                    // Arbitrarily choose false as interpolant
+                    interpolantsForParameterEqualities.put(leftEquality,
+                            PropositionalConstant.create(false));
+                    Formula rightEquality = leftChain.getLiteral();
+                    rightParameterEqualities.add(rightEquality);
+                    interpolantsForParameterEqualities.put(rightEquality,
+                            leftChain.fuchsEtAlInterpolant());
+                } else {
+                    DomainTerm end = leftChain.getEndTerm();
+                    if (Util.isGlobal(end)) {
+                        globalParameters.add(end);
+                        Formula rightEquality = Util.createReflexivity(start);
+                        rightParameterEqualities.add(rightEquality);
+                        // Arbitrarily choose false as interpolant
+                        interpolantsForParameterEqualities.put(rightEquality,
+                                PropositionalConstant.create(false));
+                        Formula leftEquality = leftChain.getLiteral();
+                        leftParameterEqualities.add(leftEquality);
+                        interpolantsForParameterEqualities.put(leftEquality,
+                                leftChain.fuchsEtAlInterpolant());
+                    } else {
+                        DomainTerm globalTerm = leftChain.findGlobalTerm();
+                        TransitivityCongruenceChain rightChain = leftChain
+                                .split(globalTerm);
+                        assert (leftChain.isComplete());
+                        assert (rightChain.isComplete());
+                        assert (leftChain.getEndTerm().equals(rightChain
+                                .getStart().getTerm()));
+                        globalParameters.add(rightChain.getStart().getTerm());
+
+                        Formula leftParameterEqualityInterpolant = leftChain
+                                .fuchsEtAlInterpolant();
+                        Formula rightParameterEqualityInterpolant = rightChain
+                                .fuchsEtAlInterpolant();
+                        leftParameterEqualities.add(leftChain.getLiteral());
+                        rightParameterEqualities.add(rightChain.getLiteral());
+                        interpolantsForParameterEqualities.put(
+                                leftChain.getLiteral(),
+                                leftParameterEqualityInterpolant);
+                        interpolantsForParameterEqualities.put(
+                                rightChain.getLiteral(),
+                                rightParameterEqualityInterpolant);
+                    }
+                }
+            }
+
         }
 
         // Create global predicate instance

@@ -1790,6 +1790,22 @@ public class TransitivityCongruenceChain implements
     }
 
     /**
+     * Splits the chain at the given term, and returns the right side.
+     * 
+     * @param term
+     * @return the right side of the split, or <code>null</code> if the term was
+     *         not contained in the chain
+     */
+    public TransitivityCongruenceChain split(DomainTerm term) {
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            if (current.getTerm().equals(term))
+                return this.split(current);
+        }
+        return null;
+    }
+
+    /**
      * 
      * @return the set of partitions formed by all symbols in this chain.
      */
@@ -2438,6 +2454,37 @@ public class TransitivityCongruenceChain implements
             currentOhter = currentOhter.getNext();
         }
         return true;
+    }
+
+    /**
+     * Returns the first global term. Splits uncolorable congruence links, if
+     * necessary.
+     * 
+     * @return the first global term found in this chain, or <code>null</code>
+     *         if there is none.
+     * 
+     */
+    public DomainTerm findGlobalTerm() {
+        TransitivityCongruenceChainElement current = this.start;
+        while (current != null) {
+            DomainTerm term = current.getTerm();
+            if (Util.isGlobal(term)) {
+                return term;
+            }
+            current = current.getNext();
+        }
+
+        splitUncolorableCongruenceLinks();
+
+        current = this.start;
+        while (current != null) {
+            DomainTerm term = current.getTerm();
+            if (Util.isGlobal(term)) {
+                return term;
+            }
+            current = current.getNext();
+        }
+        return null;
     }
 
 }
