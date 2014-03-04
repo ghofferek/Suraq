@@ -147,9 +147,22 @@ public class z3 extends SMTSolver {
                 .runExternalProcessWithStreamResult(executionPath);
 
         if (pResult.getExitCode() != 0) {
+
             System.out.println("EXIT CODE: " + pResult.getExitCode());
-            System.out.println("ERROR from Z3: " + pResult.getErrorStream());
-            System.out.println("OUTPUT from Z3: " + pResult.getOutputStream());
+            System.out.println("ERROR from Z3:");
+            String line;
+            try {
+                while ((line = pResult.getErrorStream().readLine()) != null)
+                    System.out.println(line);
+                System.out.println();
+                System.out.println("OUTPUT from Z3:");
+                while ((line = pResult.getOutputStream().readLine()) != null)
+                    System.out.println(line);
+            } catch (IOException exc) {
+                System.out
+                        .println("IOException while trying to display Z3 output.");
+                throw new RuntimeException(exc);
+            }
 
         }
         return pResult.getOutputStream();

@@ -2249,7 +2249,7 @@ public class TransitivityCongruenceChain implements
             assert (partitions.size() <= 1);
             if (partitions.size() == 1) {
                 int partition = partitions.iterator().next();
-                if ((partition - 1) % 2 == 0)
+                if ((partition - 1) % 2 == 1)
                     return false;
             }
             current = current.getNext();

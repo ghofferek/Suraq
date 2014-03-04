@@ -839,7 +839,6 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public void writeTo(Writer writer) throws IOException {
-        assert (false); // TODO Auto-generated method stub
         writer.append('(').append(SExpressionConstants.EQUAL.toString())
                 .append(' ');
         for (Term term : terms) {

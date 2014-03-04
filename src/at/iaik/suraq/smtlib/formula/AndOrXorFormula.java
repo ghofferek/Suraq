@@ -615,8 +615,8 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
                 }
             }
         }
-        writer.append(' ');
         for (Formula subformula : formulas) {
+            writer.append(' ');
             subformula.writeTo(writer);
         }
         writer.append(") ");

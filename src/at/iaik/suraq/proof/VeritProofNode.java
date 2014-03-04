@@ -2719,12 +2719,12 @@ public class VeritProofNode implements Serializable {
                     partition = this.proof.getPartitionOfLeaf(this);
                 else
                     // arbitrary choice
-                    partition = 0;
+                    partition = 1;
             } else {
                 assert (partitions.size() == 1);
                 partition = partitions.iterator().next();
             }
-            if (partition % 2 == 0) { // "A" clause
+            if ((partition - 1) % 2 == 0) { // "A" clause
                 result = PropositionalConstant.create(false);
             } else { // "B" clause
                 result = PropositionalConstant.create(true);

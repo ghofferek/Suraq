@@ -983,6 +983,8 @@ public class Suraq implements Runnable {
 
             Util.printToSystemOutWithWallClockTimePrefix("##########################################");
             Util.printToSystemOutWithWallClockTimePrefix("Iteration " + count);
+            Util.printToSystemOutWithWallClockTimePrefix("Computing witness function for signal '"
+                    + controlVariables.get(0) + "'.");
 
             Util.printToSystemOutWithWallClockTimePrefix("Preparing output expressions...");
             prepareOutputExpressions(mainFormula, controlVariables);
@@ -1097,6 +1099,8 @@ public class Suraq implements Runnable {
                     FormulaTerm.create(interpolant));
             mainFormula = mainFormula.substituteFormula(substMap);
 
+            assertPartitionFormulas.clear();
+            declarationStr = "";
         }
 
         // Done with iterative interpolation
