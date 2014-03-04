@@ -1053,6 +1053,13 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Done interpolation. (Took "
                     + interpolationTimer.toString() + ")");
 
+            Util.printToSystemOutWithWallClockTimePrefix("Backsubsituting Tseitin encoding.");
+            Map<Token, Term> substitutionsMap = new HashMap<Token, Term>();
+            for (PropositionalVariable tseitinVar : tseitinEncoding.keySet())
+                substitutionsMap.put(Token.generate(tseitinVar.getVarName()),
+                        FormulaTerm.create(tseitinEncoding.get(tseitinVar)));
+            Util.printToSystemOutWithWallClockTimePrefix("Done.");
+            interpolant = interpolant.substituteFormula(substitutionsMap);
             interpolant = simplify(interpolant);
 
             Util.printToSystemOutWithWallClockTimePrefix("Resubstituting...");
