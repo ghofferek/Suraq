@@ -604,7 +604,7 @@ public class NotFormula extends BooleanCombinationFormula {
     @Override
     public Formula uninterpretedFunctionsBackToArrayReads(
             Set<ArrayVariable> arrayVars) {
-        return formula.uninterpretedFunctionsBackToArrayReads(arrayVars);
+        return NotFormula.create(formula.uninterpretedFunctionsBackToArrayReads(arrayVars));
     }
 
     /**
