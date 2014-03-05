@@ -127,6 +127,8 @@ public abstract class SMTLibParser extends Parser implements Serializable {
      */
     protected Collection<DomainVariable> currentUVars = null;
 
+    protected Map<Token, Formula> letDefinitions = new HashMap<Token, Formula>();
+
     /**
      * Parses a given s-expression into a formula.
      * 
@@ -190,6 +192,12 @@ public abstract class SMTLibParser extends Parser implements Serializable {
             if (!tseitinVariables.contains(var))
                 tseitinVariables.add(var);
             return var;
+        }
+
+        if (isLetKey(expression)) {
+            Formula value = letDefinitions.get(expression);
+            assert (value != null);
+            return value;
         }
 
         Token operator = isBooleanCombination(expression);
@@ -1167,6 +1175,20 @@ public abstract class SMTLibParser extends Parser implements Serializable {
     }
 
     /**
+     * Checks whether the given expression is a key defined by a let expression.
+     * 
+     * @param expression
+     *            the expression to check.
+     * @return <code>true</code> if the given expression is a key defined by a
+     *         let expression, <code>false</code> otherwise.
+     */
+    protected boolean isLetKey(SExpression expression) {
+        if (!(expression instanceof Token))
+            return false;
+        return letDefinitions.containsKey(expression);
+    }
+
+    /**
      * Returns a copy of the list of control variables.
      * 
      * @return a copy of the <code>controlVariables</code>
@@ -1247,31 +1269,39 @@ public abstract class SMTLibParser extends Parser implements Serializable {
      * @return
      * @throws ParseError
      */
-    protected Formula handleLet(SExpression expr) throws ParseError {
+    protected final Formula handleLet(SExpression expr) throws ParseError {
         assert (expr.size() == 3);
         assert (expr.getChildren().get(0) instanceof Token);
         assert (expr.getChildren().get(0).equals(SExpressionConstants.LET));
 
-        Map<Token, SExpression> letDefinitions = new HashMap<Token, SExpression>();
-
+        Set<Token> currentLetTokens = new HashSet<Token>();
         for (SExpression defineExpr : expr.getChildren().get(1).getChildren()) {
             assert (defineExpr.size() == 2);
             assert (defineExpr.getChildren().get(0) instanceof Token);
             Token key = (Token) defineExpr.getChildren().get(0);
-            SExpression value = defineExpr.getChildren().get(1);
+            Formula value = parseFormulaBody(defineExpr.getChildren().get(1));
 
             letDefinitions.put(key, value);
+            currentLetTokens.add(key);
         }
 
-        String formulaString = expr.getChildren().get(2).toString();
+        // String formulaString = expr.getChildren().get(2).toString();
+        //
+        // for (Token token : letDefinitions.keySet())
+        // formulaString = formulaString.replaceAll(token.toString()
+        // + "[\\t\\n\\x0B\\f\\r(]", letDefinitions.get(token)
+        // .toString());
+        //
+        // SExpression tmpExpr = SExpression.fromString(formulaString);
 
-        for (Token token : letDefinitions.keySet())
-            formulaString = formulaString.replaceAll(token.toString()
-                    + "[\\t\\n\\x0B\\f\\r(]", letDefinitions.get(token)
-                    .toString());
+        // SExpression tmpExpr = expr.getChildren().get(2);
+        // tmpExpr.replace(letDefinitions);
 
-        SExpression tmpExpr = SExpression.fromString(formulaString);
+        Formula result = parseFormulaBody(expr.getChildren().get(2));
 
-        return parseFormulaBody(tmpExpr);
+        for (Token key : currentLetTokens)
+            letDefinitions.remove(key);
+
+        return result;
     }
 }

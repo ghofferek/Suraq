@@ -6,6 +6,7 @@ package at.iaik.suraq.sexp;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import at.iaik.suraq.exceptions.NotATokenListException;
 import at.iaik.suraq.exceptions.ParseError;
@@ -168,8 +169,8 @@ public class SExpression implements Serializable {
     }
 
     /**
-     * @return the size of this s-expression, i.e., the number of parents. 0,
-     *         if empty.
+     * @return the size of this s-expression, i.e., the number of parents. 0, if
+     *         empty.
      */
     public int size() {
         return children.size();
@@ -511,6 +512,27 @@ public class SExpression implements Serializable {
         if (SExpressionConstants.ITE.equals(expr))
             return true;
         return false;
+    }
+
+    /**
+     * Replaces all the tokens in this expression (and sub-expressions) with
+     * their associated values in the given map.
+     * 
+     * @param replacements
+     */
+    public void replace(Map<Token, SExpression> replacements) {
+        for (int count = 0; count < children.size(); count++) {
+            SExpression child = children.get(count);
+            if (child instanceof Token) {
+                for (Token token : replacements.keySet()) {
+                    if (child.equals(token)) {
+                        children.set(count, replacements.get(token));
+                        break;
+                    }
+                }
+            } else
+                child.replace(replacements);
+        }
     }
 
 }

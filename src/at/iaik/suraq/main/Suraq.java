@@ -1193,6 +1193,7 @@ public class Suraq implements Runnable {
                     formula.getDomainVariables(), formula.getArrayVariables(),
                     formula.getUninterpretedFunctions(),
                     simpliefiedFormulaReader);
+            Util.printToSystemOutWithWallClockTimePrefix("Finished parsing SExpressions. Starting to parse formula.");
             parser.parse();
             Formula result = parser.getParsedFormula();
             Util.printToSystemOutWithWallClockTimePrefix("Done.");
@@ -1853,10 +1854,11 @@ public class Suraq implements Runnable {
             // writes. Declarations might be missing, or backsubstitutions
             // might be forgotten.
             // Check if it occurs in practice.
-            Formula iteTree = iteTrees.get(key)
-                    .uninterpretedFunctionsBackToArrayReads(
-                            new HashSet<ArrayVariable>(logicParser
-                                    .getArrayVariables()));
+            Formula iteTree = iteTrees.get(key);
+            iteTree = simplify(iteTree);
+            iteTree = iteTree
+                    .uninterpretedFunctionsBackToArrayReads(new HashSet<ArrayVariable>(
+                            logicParser.getArrayVariables()));
             iteTrees.put(key, iteTree);
         }
         Util.printToSystemOutWithWallClockTimePrefix("Starting generation of output string.");
