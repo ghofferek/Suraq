@@ -1904,6 +1904,53 @@ public final class Util {
     }
 
     /**
+     * 
+     * @param interpolant
+     * @param theoryLemma
+     * @return <code>true</code> iff the given <code>interpolant</code> is a
+     *         valid interpolant for <code>theoryLemma</code>.
+     */
+    public static boolean checkTheoryLemmaInterpolant(Formula interpolant,
+            OrFormula theoryLemma) {
+        List<Formula> literals = theoryLemma.getDisjuncts();
+        List<Formula> literalsA = new ArrayList<Formula>(literals.size());
+        List<Formula> literalsB = new ArrayList<Formula>(literals.size());
+
+        for (Formula literal : literals) {
+            assert (Util.isLiteral(literal));
+            Set<Integer> partitions = literal.getPartitionsFromSymbols();
+            partitions.remove(-1);
+            literal = Util.invertLiteral(literal);
+            if (partitions.isEmpty()) {
+                literalsA.add(literal);
+                literalsB.add(literal);
+            } else {
+                assert (partitions.size() == 1);
+                int partition = partitions.iterator().next();
+                if ((partition - 1) % 2 == 0)
+                    literalsA.add(literal);
+                else
+                    literalsB.add(literal);
+            }
+        }
+
+        AndFormula cubeA = AndFormula.generate(literalsA);
+        AndFormula cubeB = AndFormula.generate(literalsB);
+
+        if (!Util.checkFormulaImplication(cubeA, interpolant))
+            return false;
+
+        if (!Util
+                .checkFormulaImplication(cubeB, NotFormula.create(interpolant)))
+            return false;
+
+        if (!Util.isGlobal(interpolant))
+            return false;
+
+        return true;
+    }
+
+    /**
      * Checks if the given formulas imply each other.
      * 
      * @param formula1

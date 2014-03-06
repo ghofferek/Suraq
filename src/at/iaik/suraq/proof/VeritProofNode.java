@@ -2714,6 +2714,8 @@ public class VeritProofNode implements Serializable {
                         .create(this);
                 result = chain.fuchsEtAlInterpolant();
             }
+            assert (Util.checkTheoryLemmaInterpolant(result,
+                    getConclusionsAsOrFormula()));
         } else {
             assert (partitions.size() <= 1);
             int partition;
