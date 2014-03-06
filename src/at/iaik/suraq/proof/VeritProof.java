@@ -50,6 +50,11 @@ public class VeritProof implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * Used for debugging purposes during interpolation.
+     */
+    Map<Integer, Formula> partitions = null;
+
+    /**
      * Map from proof node names (e.g. ".c44") to nodes.
      */
     private final HashMap<String, VeritProofNode> proofNodes = new HashMap<String, VeritProofNode>();
@@ -1319,12 +1324,20 @@ public class VeritProof implements Serializable {
      * signal is 0), and odd partitions represent "B" (i.e., where the control
      * signal is 1).
      * 
+     * @param partitions
+     *            Used only for debugging purposes. Can be null, if assertions
+     *            are disabled.
+     * 
      * @return an interpolant between the even and the odd partitions of this
      *         proof
      */
-    public Formula interpolateEvenVsOddPartitions() {
+    public Formula interpolateEvenVsOddPartitions(
+            Map<Integer, Formula> partitions) {
         assert (root != null);
         assert (root.getLiteralConclusions().isEmpty());
+
+        this.partitions = partitions;
+
         Map<VeritProofNode, Formula> partialInterpolants = new HashMap<VeritProofNode, Formula>(
                 Integer.highestOneBit(proofNodes.size() - 1) << 1);
         Formula result = root

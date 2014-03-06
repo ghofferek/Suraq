@@ -540,9 +540,8 @@ public class Suraq implements Runnable {
             // "debug-tseitin-encoding.txt");
 
             Util.printToSystemOutWithWallClockTimePrefix("      test if tseitin encoding is correct...");
-            assert (Util
-                    .checkFormulaImplication(encodedPartitionFormula,
-                            assertPartitionFormulas.get(count)));
+            assert (Util.checkFormulaImplication(encodedPartitionFormula,
+                    assertPartitionFormulas.get(count)));
             Util.printToSystemOutWithWallClockTimePrefix("      ...test finished");
 
             onePartitionTimer.stop();
@@ -1086,7 +1085,8 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Starting to interpolate even vs. odd partitions.");
             Timer interpolationTimer = new Timer();
             interpolationTimer.start();
-            Formula interpolant = veritProof.interpolateEvenVsOddPartitions();
+            Formula interpolant = veritProof
+                    .interpolateEvenVsOddPartitions(assertPartitionFormulas);
             interpolationTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("Done interpolation. (Took "
                     + interpolationTimer.toString() + ")");
@@ -1099,8 +1099,7 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Done.");
             interpolant = interpolant.substituteFormula(substitutionsMap);
             interpolant = simplify(interpolant);
-            assert (Util.checkInterpolant(interpolant,
-                    assertPartitionFormulas));
+            assert (Util.checkInterpolant(interpolant, assertPartitionFormulas));
 
             Util.printToSystemOutWithWallClockTimePrefix("Resubstituting...");
             PropositionalVariable currentSignal = controlVariables.remove(0);

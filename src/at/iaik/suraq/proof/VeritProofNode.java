@@ -2492,6 +2492,9 @@ public class VeritProofNode implements Serializable {
             result = resolutionInterpolant(partialInterpolants);
         }
         assert (result != null);
+        assert (this.proof.partitions != null ? Util.checkPartialInterpolant(
+                result, getConclusionsAsOrFormula(), this.proof.partitions)
+                : true);
         partialInterpolants.put(this, result);
         return result;
     }
