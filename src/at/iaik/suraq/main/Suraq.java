@@ -481,8 +481,8 @@ public class Suraq implements Runnable {
         Timer onePartitionTimer = new Timer();
         List<String> tseitinPartitions = new ArrayList<String>();
 
-        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
-                SuraqOptions.getZ3_4Path());
+        // SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+        // SuraqOptions.getZ3_4Path());
 
         for (int count = 1; count <= assertPartitionFormulas.size(); count++) {
             onePartitionTimer.reset();
@@ -494,22 +494,28 @@ public class Suraq implements Runnable {
 
             // simplify assert partition
 
-            String smtStr = "";
-            smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
-            smtStr += SExpressionConstants.SET_OPTION_PRODUCE_MODELS_TRUE
-                    .toString();
-            smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
-            smtStr += declarationStr;
-            smtStr += "(assert " + partitionFormula.toString() + " )";
-            smtStr += "(apply (then (! simplify :elim-and true) skip))";
-            smtStr += SExpressionConstants.EXIT.toString();
-
-            String simpleSmtStr = z3.solve2(smtStr);
-
-            TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
+            // String smtStr = "";
+            // smtStr += SExpressionConstants.SET_LOGIC_QF_UF.toString();
+            // smtStr += SExpressionConstants.SET_OPTION_PRODUCE_MODELS_TRUE
+            // .toString();
+            // smtStr += SExpressionConstants.DECLARE_SORT_VALUE.toString();
+            // smtStr += declarationStr;
+            // smtStr += "(assert " + partitionFormula.toString() + " )";
+            // smtStr += "(apply (then (! simplify :elim-and true) skip))";
+            // smtStr += SExpressionConstants.EXIT.toString();
+            //
+            // String simpleSmtStr = z3.solve2(smtStr);
+            //
+            Formula simplifiedPartitionFormula = simplify(partitionFormula);
+            assert (TseitinParser.checkEquivalenceOfFormulas(partitionFormula,
+                    simplifiedPartitionFormula));
+            partitionFormula = simplifiedPartitionFormula;
+            Util.printToSystemOutWithWallClockTimePrefix("Done simplifying.");
+            // TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
+            // Util.printToSystemOutWithWallClockTimePrefix("Done parsing simplified partition");
             // assert (parser.getTseitinVariables().size() == 0);
 
-            partitionFormula = parser.getRootFormula();
+            // partitionFormula = parser.getRootFormula();
 
             // apply tseitin encoding
 
@@ -518,6 +524,7 @@ public class Suraq implements Runnable {
             // also changes the partitionFormula
             Formula tseitinVar = partitionFormula.tseitinEncode(clauses,
                     encoding, count);
+            Util.printToSystemOutWithWallClockTimePrefix("Done encoding.");
             assert (Util.isLiteral(tseitinVar));
             tseitinEncoding.putAll(encoding);
             if (tseitinVar instanceof PropositionalVariable)
@@ -529,12 +536,13 @@ public class Suraq implements Runnable {
             clauses.add(OrFormula.generate(disjuncts));
             Formula encodedPartitionFormula = AndFormula.generate(clauses);
 
-            DebugHelper.getInstance().formulaToFile(encodedPartitionFormula,
-                    "debug-tseitin-encoding.txt");
+            // DebugHelper.getInstance().formulaToFile(encodedPartitionFormula,
+            // "debug-tseitin-encoding.txt");
 
             Util.printToSystemOutWithWallClockTimePrefix("      test if tseitin encoding is correct...");
-            assert (TseitinParser.checkFormulaImplication(partitionFormula,
-                    assertPartitionFormulas.get(count)));
+            assert (TseitinParser
+                    .checkFormulaImplication(encodedPartitionFormula,
+                            assertPartitionFormulas.get(count)));
             Util.printToSystemOutWithWallClockTimePrefix("      ...test finished");
 
             onePartitionTimer.stop();
@@ -2664,7 +2672,7 @@ public class Suraq implements Runnable {
 
         for (int count = 0; count < (1 << controlSignals.size()); count++) {
             Util.printToSystemOutWithWallClockTimePrefix("  Writing assert-partition number "
-                    + count + " of " + (1 << controlSignals.size()));
+                    + (count + 1) + " of " + (1 << controlSignals.size()));
             Formula tempFormula = formula;// .deepFormulaCopy();
             Map<Token, Term> variableSubstitutions = new HashMap<Token, Term>();
             Map<Token, UninterpretedFunction> ufSubstitutions = new HashMap<Token, UninterpretedFunction>();

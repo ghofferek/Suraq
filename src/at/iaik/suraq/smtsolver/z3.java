@@ -106,6 +106,12 @@ public class z3 extends SMTSolver {
         return pResult.getOutputStream();
     }
 
+    /**
+     * Simplified the given formula.
+     * 
+     * @param formula
+     * @return a reader with the output of the solver.
+     */
     public BufferedReader simplify(Formula formula) {
         File tmpInFile = null;
         try {
