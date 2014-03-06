@@ -841,8 +841,9 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public void writeTo(Writer writer) throws IOException {
-        writer.append('(').append(SExpressionConstants.EQUAL.toString())
-                .append(' ');
+        writer.append('(')
+                .append(this.equal ? SExpressionConstants.EQUAL.toString()
+                        : SExpressionConstants.DISTINCT.toString()).append(' ');
         for (Term term : terms) {
             term.writeTo(writer);
             writer.append(' ');
