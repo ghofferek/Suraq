@@ -1098,6 +1098,8 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Done.");
             interpolant = interpolant.substituteFormula(substitutionsMap);
             interpolant = simplify(interpolant);
+            assert (TseitinParser.checkInterpolant(interpolant,
+                    assertPartitionFormulas));
 
             Util.printToSystemOutWithWallClockTimePrefix("Resubstituting...");
             PropositionalVariable currentSignal = controlVariables.remove(0);

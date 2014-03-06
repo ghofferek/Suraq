@@ -637,4 +637,75 @@ public class TseitinParser extends SMTLibParser {
         else
             return super.parseFormulaBody(expression);
     }
+
+    /**
+     * @param interpolant
+     * @param partitionFormulas
+     * @return
+     */
+    public static boolean checkInterpolant(Formula interpolant,
+            Map<Integer, Formula> partitionFormulas) {
+
+        List<Formula> conjunctsA = new ArrayList<Formula>(
+                partitionFormulas.size() / 2 + 1);
+        List<Formula> conjunctsB = new ArrayList<Formula>(
+                partitionFormulas.size() / 2 + 1);
+
+        for (int num : partitionFormulas.keySet()) {
+            Formula partition = partitionFormulas.get(num);
+            assert (partition != null);
+            if ((num - 1) % 2 == 0)
+                conjunctsA.add(partition);
+            else
+                conjunctsB.add(partition);
+        }
+
+        AndFormula partitionsA = AndFormula.generate(conjunctsA);
+        AndFormula partitionsB = AndFormula.generate(conjunctsB);
+
+        if (!TseitinParser.checkFormulaImplication(partitionsA, interpolant))
+            return false;
+
+        if (!TseitinParser.checkFormulaImplication(partitionsB,
+                NotFormula.create(interpolant)))
+            return false;
+
+        Set<Object> symbolsA = new HashSet<Object>();
+        symbolsA.addAll(partitionsA.getDomainVariables());
+        symbolsA.addAll(partitionsA.getPropositionalVariables());
+        symbolsA.addAll(partitionsA.getArrayVariables());
+        symbolsA.addAll(partitionsA.getUninterpretedFunctions());
+
+        Set<Object> symbolsB = new HashSet<Object>();
+        symbolsB.addAll(partitionsB.getDomainVariables());
+        symbolsB.addAll(partitionsB.getPropositionalVariables());
+        symbolsB.addAll(partitionsB.getArrayVariables());
+        symbolsB.addAll(partitionsB.getUninterpretedFunctions());
+
+        Set<Object> symbolsI = new HashSet<Object>();
+        symbolsI.addAll(interpolant.getDomainVariables());
+        symbolsI.addAll(interpolant.getPropositionalVariables());
+        symbolsI.addAll(interpolant.getArrayVariables());
+        symbolsI.addAll(interpolant.getUninterpretedFunctions());
+
+        Set<Object> globalSymbols = new HashSet<Object>();
+        for (Object symbol : symbolsA) {
+            if (symbolsB.contains(symbol))
+                globalSymbols.add(symbol);
+        }
+
+        symbolsA.removeAll(globalSymbols);
+        symbolsB.removeAll(globalSymbols);
+
+        for (Object symbol : symbolsI) {
+            if (!globalSymbols.contains(symbol))
+                return false;
+            if (symbolsA.contains(symbol))
+                return false;
+            if (symbolsB.contains(symbol))
+                return false;
+        }
+
+        return true;
+    }
 }
