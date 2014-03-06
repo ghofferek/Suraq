@@ -990,7 +990,8 @@ public class Suraq implements Runnable {
         for (int count = 0; count < numControlSignals; count++) {
 
             Util.printToSystemOutWithWallClockTimePrefix("##########################################");
-            Util.printToSystemOutWithWallClockTimePrefix("Iteration " + count);
+            Util.printToSystemOutWithWallClockTimePrefix("Iteration "
+                    + (count + 1));
             Util.printToSystemOutWithWallClockTimePrefix("Computing witness function for signal '"
                     + controlVariables.get(0) + "'.");
 
