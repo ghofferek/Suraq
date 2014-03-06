@@ -823,7 +823,9 @@ public abstract class EqualityFormula implements Formula {
         if (handleThisWithTagContainer) {
             tagContainer.handle(this, writer);
         } else {
-            writer.append('(').append(SExpressionConstants.EQUAL.toString())
+            writer.append('(')
+                    .append(this.equal ? SExpressionConstants.EQUAL.toString()
+                            : SExpressionConstants.DISTINCT.toString())
                     .append(' ');
             for (Term term : terms) {
                 term.writeOut(writer, tagContainer);
