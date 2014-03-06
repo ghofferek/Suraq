@@ -1854,7 +1854,7 @@ public final class Util {
             List<Formula> disjuncts2 = new ArrayList<Formula>(2);
             disjuncts2.add(impliedByB);
             disjuncts2.add(clause);
-            impliedByA = OrFormula.generate(disjuncts2);
+            impliedByB = OrFormula.generate(disjuncts2);
         }
 
         if (!Util.checkFormulaImplication(partitionsA, impliedByA))
