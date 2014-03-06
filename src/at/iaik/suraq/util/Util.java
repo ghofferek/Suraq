@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.proof.AnnotatedProofNode;
@@ -42,6 +43,7 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
+import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -59,6 +61,7 @@ import at.iaik.suraq.smtlib.formula.Term;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
+import at.iaik.suraq.smtsolver.SMTSolver;
 
 /**
  * 
@@ -1797,5 +1800,228 @@ public final class Util {
                     + params.toString() + ") " + function.getType() + " )\n");
         }
 
+    }
+
+    /**
+     * @param interpolant
+     * @param partitionFormulas
+     * @return <code>true</code> if the given interpolant is a partial
+     *         interpolant with respect to the partition formulas.
+     */
+    public static boolean checkInterpolant(Formula interpolant,
+            Map<Integer, Formula> partitionFormulas) {
+        return Util.checkPartialInterpolant(interpolant, null,
+                partitionFormulas);
+    }
+
+    /**
+     * @param interpolant
+     * @param clause
+     * @param partitionFormulas
+     * @return <code>true</code> if the given interpolant is a partial
+     *         interpolant with respect to the partition formulas and the given
+     *         clause.
+     */
+    public static boolean checkPartialInterpolant(Formula interpolant,
+            Formula clause, Map<Integer, Formula> partitionFormulas) {
+    
+        List<Formula> conjunctsA = new ArrayList<Formula>(
+                partitionFormulas.size() / 2 + 1);
+        List<Formula> conjunctsB = new ArrayList<Formula>(
+                partitionFormulas.size() / 2 + 1);
+    
+        for (int num : partitionFormulas.keySet()) {
+            Formula partition = partitionFormulas.get(num);
+            assert (partition != null);
+            if ((num - 1) % 2 == 0)
+                conjunctsA.add(partition);
+            else
+                conjunctsB.add(partition);
+        }
+    
+        AndFormula partitionsA = AndFormula.generate(conjunctsA);
+        AndFormula partitionsB = AndFormula.generate(conjunctsB);
+    
+        Formula impliedByA = interpolant;
+        Formula impliedByB = NotFormula.create(interpolant);
+    
+        if (clause != null) {
+            List<Formula> disjuncts = new ArrayList<Formula>(2);
+            disjuncts.add(impliedByA);
+            disjuncts.add(clause);
+            impliedByA = OrFormula.generate(disjuncts);
+    
+            List<Formula> disjuncts2 = new ArrayList<Formula>(2);
+            disjuncts2.add(impliedByB);
+            disjuncts2.add(clause);
+            impliedByA = OrFormula.generate(disjuncts2);
+        }
+    
+        if (!Util.checkFormulaImplication(partitionsA, impliedByA))
+            return false;
+    
+        if (!Util.checkFormulaImplication(partitionsB, impliedByB))
+            return false;
+    
+        Set<Object> symbolsA = new HashSet<Object>();
+        symbolsA.addAll(partitionsA.getDomainVariables());
+        symbolsA.addAll(partitionsA.getPropositionalVariables());
+        symbolsA.addAll(partitionsA.getArrayVariables());
+        symbolsA.addAll(partitionsA.getUninterpretedFunctions());
+    
+        Set<Object> symbolsB = new HashSet<Object>();
+        symbolsB.addAll(partitionsB.getDomainVariables());
+        symbolsB.addAll(partitionsB.getPropositionalVariables());
+        symbolsB.addAll(partitionsB.getArrayVariables());
+        symbolsB.addAll(partitionsB.getUninterpretedFunctions());
+    
+        Set<Object> symbolsI = new HashSet<Object>();
+        symbolsI.addAll(interpolant.getDomainVariables());
+        symbolsI.addAll(interpolant.getPropositionalVariables());
+        symbolsI.addAll(interpolant.getArrayVariables());
+        symbolsI.addAll(interpolant.getUninterpretedFunctions());
+    
+        Set<Object> globalSymbols = new HashSet<Object>();
+        for (Object symbol : symbolsA) {
+            if (symbolsB.contains(symbol))
+                globalSymbols.add(symbol);
+        }
+    
+        symbolsA.removeAll(globalSymbols);
+        symbolsB.removeAll(globalSymbols);
+    
+        for (Object symbol : symbolsI) {
+            if (!globalSymbols.contains(symbol))
+                return false;
+            if (symbolsA.contains(symbol))
+                return false;
+            if (symbolsB.contains(symbol))
+                return false;
+        }
+    
+        return true;
+    }
+
+    /**
+     * Checks if the given formulas imply each other.
+     * 
+     * @param formula1
+     *            the first formula
+     * 
+     * @param formula2
+     *            the second formula
+     * 
+     * @return returns true, if the two formulas imply each other.
+     */
+    public static boolean checkEquivalenceOfFormulas(Formula formula1,
+            Formula formula2) {
+    
+        Set<DomainVariable> domainVars1 = formula1.getDomainVariables();
+        Set<PropositionalVariable> propVars1 = formula1
+                .getPropositionalVariables();
+        Set<UninterpretedFunction> uif1 = formula1.getUninterpretedFunctions();
+    
+        Set<DomainVariable> domainVars2 = formula2.getDomainVariables();
+        Set<PropositionalVariable> propVars2 = formula2
+                .getPropositionalVariables();
+        Set<UninterpretedFunction> uif2 = formula2.getUninterpretedFunctions();
+    
+        HashSet<DomainVariable> intersection = new HashSet<DomainVariable>(
+                domainVars2);
+        intersection.removeAll(domainVars1);
+    
+        if (!domainVars1.equals(domainVars2))
+            return false;
+        if (!propVars1.equals(propVars2))
+            return false;
+        if (!uif1.equals(uif2))
+            return false;
+    
+        if (!Util.checkFormulaImplication(formula1, formula2))
+            return false;
+        if (!Util.checkFormulaImplication(formula2, formula1))
+            return false;
+    
+        return true;
+    }
+
+    /**
+     * Checks if the first formula implies the second formula.
+     * 
+     * @param formula1
+     *            the first formula
+     * 
+     * @param formula2
+     *            the second formula
+     * 
+     * @return returns true, the first formula implies the second formula.
+     */
+    public static boolean checkFormulaImplication(Formula formula1,
+            Formula formula2) {
+        List<Formula> conjuncts = new ArrayList<Formula>();
+        conjuncts.add(formula1);
+        conjuncts.add(NotFormula.create(formula2));
+        Formula formulaToCheck = AndFormula.generate(conjuncts);
+    
+        // Writes the declarations of all domain variables, propositional
+        // variables and uninterpreted functions
+        List<SExpression> outputExpressions = new ArrayList<SExpression>();
+    
+        outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
+        outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
+    
+        Set<PropositionalVariable> allPropositionalVars = formula1
+                .getPropositionalVariables();
+        allPropositionalVars.addAll(formula2.getPropositionalVariables());
+    
+        Set<DomainVariable> allDomainVars = formula1.getDomainVariables();
+        allDomainVars.addAll(formula2.getDomainVariables());
+    
+        Set<UninterpretedFunction> allFunctions = formula1
+                .getUninterpretedFunctions();
+        allFunctions.addAll(formula2.getUninterpretedFunctions());
+    
+        for (PropositionalVariable var : allPropositionalVars)
+            outputExpressions
+                    .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
+                            SExpressionConstants.BOOL_TYPE, 0));
+    
+        for (DomainVariable var : allDomainVars)
+            outputExpressions.add(SExpression.makeDeclareFun(
+                    (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
+                    0));
+    
+        for (UninterpretedFunction function : allFunctions)
+            outputExpressions.add(SExpression.makeDeclareFun(
+                    function.getName(), function.getType(),
+                    function.getNumParams()));
+    
+        outputExpressions.add(new SExpression(Token.generate("assert"),
+                SExpression.fromString(formulaToCheck.toString())));
+    
+        outputExpressions.add(SExpressionConstants.CHECK_SAT);
+        outputExpressions.add(SExpressionConstants.EXIT);
+    
+        String smtstr = "";
+        for (SExpression exp : outputExpressions)
+            smtstr += exp;
+    
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                SuraqOptions.getZ3Path());
+        // DebugHelper.getInstance().stringtoFile(smtstr,
+        // "debug-tseitin-check.txt");
+        // System.out.print('.');
+        z3.solve(smtstr);
+    
+        switch (z3.getState()) {
+        case SMTSolver.UNSAT:
+            return true;
+        case SMTSolver.SAT:
+            return false;
+        default:
+            throw (new RuntimeException(
+                    "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+        }
+    
     }
 }

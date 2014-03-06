@@ -451,7 +451,7 @@ public class Suraq implements Runnable {
             timer2.start();
 
             Util.printToSystemOutWithWallClockTimePrefix("      test if tseitin encoding is correct...");
-            assert (TseitinParser.checkFormulaImplication(partitionFormula,
+            assert (Util.checkFormulaImplication(partitionFormula,
                     assertPartitionFormulas.get(count)));
             Util.printToSystemOutWithWallClockTimePrefix("      ...test finished");
             timer2.end();
@@ -507,7 +507,7 @@ public class Suraq implements Runnable {
             // String simpleSmtStr = z3.solve2(smtStr);
             //
             Formula simplifiedPartitionFormula = simplify(partitionFormula);
-            assert (TseitinParser.checkEquivalenceOfFormulas(partitionFormula,
+            assert (Util.checkEquivalenceOfFormulas(partitionFormula,
                     simplifiedPartitionFormula));
             partitionFormula = simplifiedPartitionFormula;
             Util.printToSystemOutWithWallClockTimePrefix("Done simplifying.");
@@ -540,7 +540,7 @@ public class Suraq implements Runnable {
             // "debug-tseitin-encoding.txt");
 
             Util.printToSystemOutWithWallClockTimePrefix("      test if tseitin encoding is correct...");
-            assert (TseitinParser
+            assert (Util
                     .checkFormulaImplication(encodedPartitionFormula,
                             assertPartitionFormulas.get(count)));
             Util.printToSystemOutWithWallClockTimePrefix("      ...test finished");
@@ -1099,7 +1099,7 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Done.");
             interpolant = interpolant.substituteFormula(substitutionsMap);
             interpolant = simplify(interpolant);
-            assert (TseitinParser.checkInterpolant(interpolant,
+            assert (Util.checkInterpolant(interpolant,
                     assertPartitionFormulas));
 
             Util.printToSystemOutWithWallClockTimePrefix("Resubstituting...");

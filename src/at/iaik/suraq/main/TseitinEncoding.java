@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import at.iaik.suraq.parser.TseitinParser;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
@@ -56,7 +55,7 @@ public class TseitinEncoding {
                 "debug-tseitin-encoding.txt");
 
         System.out.println("      test if tseitin encoding is correct...");
-        assert (TseitinParser.checkFormulaImplication(encodedFormula, formula2));
+        assert (Util.checkFormulaImplication(encodedFormula, formula2));
         System.out.println("      ...test finished");
 
         System.out.println(" Done. (" + timer + ")");
