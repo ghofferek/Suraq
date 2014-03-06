@@ -171,6 +171,11 @@ public class Suraq implements Runnable {
     private Set<Token> noDependenceVars;
 
     /**
+     * Stores the Tseitin-encoded partitions.
+     */
+    private TreeMap<Integer, Formula> tseitinPartitions = new TreeMap<Integer, Formula>();
+
+    /**
      * Constructs a new <code>Suraq</code>.
      */
     public Suraq(String[] args) {
@@ -358,15 +363,14 @@ public class Suraq implements Runnable {
         boolean activetseitin = true;
         String z3InputStr = null;
         if (activetseitin) {
-            List<String> tseitinPartitions = new ArrayList<String>();
 
             Suraq.extTimer.stopReset("before tseitin");
             if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
                 Util.printToSystemOutWithWallClockTimePrefix("  Performing tseitin encoding without Z3...");
-                tseitinPartitions = performTseitinEncodingWithoutZ3();
+                performTseitinEncodingWithoutZ3();
             } else {
                 Util.printToSystemOutWithWallClockTimePrefix("  Performing tseitin encoding with Z3...");
-                tseitinPartitions = performTseitinEncodingWithZ3();
+                performTseitinEncodingWithZ3();
             }
             Suraq.extTimer.stopReset("after tseitin");
             // DebugHelper.getInstance().stringtoFile(tseitinPartitions.toString(),
@@ -398,15 +402,13 @@ public class Suraq implements Runnable {
      * @return the tseitin encoded partitions
      * 
      */
-    private List<String> performTseitinEncodingWithZ3() {
+    private void performTseitinEncodingWithZ3() {
 
         int count = 1;
         Timer onePartitionTimer = new Timer();
         Timer timer2 = new Timer();
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3_4Path());
-
-        List<String> tseitinPartitions = new ArrayList<String>();
 
         for (Integer partition : assertPartitionFormulas.keySet()) {
             Formula assertPartition = assertPartitionFormulas.get(partition);
@@ -444,7 +446,7 @@ public class Suraq implements Runnable {
             timer2.reset();
             timer2.start();
 
-            tseitinPartitions.add(partitionFormula.toString());
+            tseitinPartitions.put(partition, partitionFormula);
             timer2.end();
             Util.printToSystemOutWithWallClockTimePrefix("T6: " + timer2);
             timer2.reset();
@@ -465,7 +467,6 @@ public class Suraq implements Runnable {
             count++;
 
         }
-        return tseitinPartitions;
     }
 
     /**
@@ -476,10 +477,9 @@ public class Suraq implements Runnable {
      * @return the tseitin encoded partitions
      * 
      */
-    private List<String> performTseitinEncodingWithoutZ3() {
+    private void performTseitinEncodingWithoutZ3() {
 
         Timer onePartitionTimer = new Timer();
-        List<String> tseitinPartitions = new ArrayList<String>();
 
         // SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
         // SuraqOptions.getZ3_4Path());
@@ -547,10 +547,9 @@ public class Suraq implements Runnable {
             onePartitionTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix(" Done. ("
                     + onePartitionTimer + ")");
-            tseitinPartitions.add(encodedPartitionFormula.toString());
+            tseitinPartitions.put(count, encodedPartitionFormula);
 
         }
-        return tseitinPartitions;
     }
 
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
@@ -1026,14 +1025,12 @@ public class Suraq implements Runnable {
                     .entrySet())
                 uninterpretedFunctions.addAll(functionList.getValue());
 
-            List<String> tseitinPartitions = new ArrayList<String>();
-
             if (options.getTseitinType() == SuraqOptions.TSEITIN_WITHOUT_Z3) {
                 Util.printToSystemOutWithWallClockTimePrefix("  Performing tseitin encoding without Z3...");
-                tseitinPartitions = performTseitinEncodingWithoutZ3();
+                performTseitinEncodingWithoutZ3();
             } else {
                 Util.printToSystemOutWithWallClockTimePrefix("  Performing tseitin encoding with Z3...");
-                tseitinPartitions = performTseitinEncodingWithZ3();
+                performTseitinEncodingWithZ3();
             }
             Util.printToSystemOutWithWallClockTimePrefix("  All partitions done.");
 
@@ -1086,7 +1083,7 @@ public class Suraq implements Runnable {
             Timer interpolationTimer = new Timer();
             interpolationTimer.start();
             Formula interpolant = veritProof
-                    .interpolateEvenVsOddPartitions(assertPartitionFormulas);
+                    .interpolateEvenVsOddPartitions(tseitinPartitions);
             interpolationTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("Done interpolation. (Took "
                     + interpolationTimer.toString() + ")");
@@ -1110,6 +1107,8 @@ public class Suraq implements Runnable {
             mainFormula = mainFormula.substituteFormula(substMap);
 
             assertPartitionFormulas.clear();
+            tseitinPartitions.clear();
+            tseitinEncoding.clear();
             declarationStr = "";
         }
 
@@ -2182,9 +2181,9 @@ public class Suraq implements Runnable {
      * 
      */
     private String buildSMTDescriptionFromTseitinPartitions(
-            String declarationStr, List<String> tseitinPartitions) {
+            String declarationStr, Map<Integer, Formula> tseitinPartitions) {
 
-        StringBuffer smtStr = new StringBuffer();
+        StringBuilder smtStr = new StringBuilder();
 
         smtStr.append(SExpressionConstants.SET_LOGIC_QF_UF.toString());
         if (!VeriTSolver.isActive()) {
@@ -2204,8 +2203,9 @@ public class Suraq implements Runnable {
                     Token.generate(var.getVarName()),
                     SExpressionConstants.BOOL_TYPE, 0));
 
-        for (String tseitinPartition : tseitinPartitions) {
-            smtStr.append("(assert " + tseitinPartition + ")");
+        for (int count : tseitinPartitions.keySet()) {
+            Formula tseitinPartition = tseitinPartitions.get(count);
+            smtStr.append("(assert " + tseitinPartition.toString() + ")");
         }
 
         smtStr.append(SExpressionConstants.CHECK_SAT.toString());
