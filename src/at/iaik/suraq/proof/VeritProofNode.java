@@ -2726,11 +2726,12 @@ public class VeritProofNode implements Serializable {
             otherLiterals.add((DomainEq) Util.makeLiteralPositive(literal));
         }
 
-        // Compute coloring of predicate instances
+        // Compute coloring of predicate instances (as they would occur in the
+        // unsat cube)
         // A=0, B=1, G=-1
         int positiveColor;
         partitions.clear();
-        partitions = impliedLiteral.getPartitionsFromSymbols();
+        partitions = inversePredicateLiteral.getPartitionsFromSymbols();
         partitions.remove(-1);
         assert (partitions.size() <= 1);
         if (partitions.isEmpty())
@@ -2740,7 +2741,7 @@ public class VeritProofNode implements Serializable {
 
         int negativeColor;
         partitions.clear();
-        partitions = inversePredicateLiteral.getPartitionsFromSymbols();
+        partitions = impliedLiteral.getPartitionsFromSymbols();
         partitions.remove(-1);
         assert (partitions.size() <= 1);
         if (partitions.isEmpty())
@@ -2751,7 +2752,7 @@ public class VeritProofNode implements Serializable {
         if (positiveColor >= 0 && negativeColor >= 0
                 && positiveColor != negativeColor) {
             // A-B or B-A predicate congruence
-            boolean polarityA = negativeColor == 0; // in the cube, "negative"
+            boolean polarityA = positiveColor == 0; // in the cube, "negative"
                                                     // is "positive" and vice
                                                     // versa!
             List<Formula> conjuncts = new ArrayList<Formula>(impliedLiteral
@@ -2760,16 +2761,21 @@ public class VeritProofNode implements Serializable {
             List<DomainTerm> globalParameters = new ArrayList<DomainTerm>(
                     impliedLiteral.getParameters().size());
             for (int count = 0; count < impliedLiteral.getParameters().size(); count++) {
-                DomainTerm param1 = inversePredicateLiteral.getParameters()
-                        .get(count);
-                DomainTerm param2 = impliedLiteral.getParameters().get(count);
+                DomainTerm paramA = (positiveColor == 0 ? inversePredicateLiteral
+                        : impliedLiteral).getParameters().get(count);
+                DomainTerm paramB = (positiveColor == 1 ? inversePredicateLiteral
+                        : impliedLiteral).getParameters().get(count);
                 TransitivityCongruenceChain chain = TransitivityCongruenceChain
-                        .create(param1, param2, otherLiterals, this);
+                        .create(paramA, paramB, otherLiterals, this);
                 // We need the right half for interpolation, the left half for
                 // computing B-premises
                 TransitivityCongruenceChain leftHalfChain = chain;
                 TransitivityCongruenceChain rightHalfChain = chain
                         .splitAtGlobalTerm();
+                DomainTerm globalParameter = rightHalfChain.getStart()
+                        .getTerm();
+                assert (globalParameter.equals(leftHalfChain.getEndTerm()));
+                globalParameters.add(globalParameter);
                 Formula chainInterpolant = rightHalfChain
                         .fuchsEtAlInterpolant();
                 conjuncts.add(chainInterpolant);
