@@ -20,6 +20,7 @@ import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
+import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.util.CongruenceClosure;
@@ -2236,15 +2237,14 @@ public class TransitivityCongruenceChain implements
             conjuncts.add(bPremise.internalInterpolant());
             bPremiseEqualities.add(bPremise.getLiteral());
         }
-        if (decomposition[1] != null) {
-            AndFormula bPremiseEqualitiesAnd = AndFormula
-                    .generate(bPremiseEqualities);
-            NotFormula negatedTheta = NotFormula.create(decomposition[1]
-                    .getLiteral());
-            ImpliesFormula implication = ImpliesFormula.create(
-                    bPremiseEqualitiesAnd, negatedTheta);
-            conjuncts.add(implication);
-        }
+        AndFormula bPremiseEqualitiesAnd = AndFormula
+                .generate(bPremiseEqualities);
+        Formula negatedTheta = decomposition[1] != null ? NotFormula
+                .create(decomposition[1].getLiteral()) : PropositionalConstant
+                .create(false);
+        ImpliesFormula implication = ImpliesFormula.create(
+                bPremiseEqualitiesAnd, negatedTheta);
+        conjuncts.add(implication);
 
         AndFormula result = AndFormula.generate(conjuncts);
         return result;
