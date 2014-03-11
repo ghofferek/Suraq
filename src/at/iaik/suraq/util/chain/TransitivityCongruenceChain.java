@@ -2140,11 +2140,25 @@ public class TransitivityCongruenceChain implements
      * @return an interpolant from this chain, as described in Fuchs et al.
      */
     public Formula fuchsEtAlInterpolant() {
-        if (this.isBPath()) {
+        Formula literal = this.getLiteral();
+        Set<Integer> partitions = literal.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() <= 1);
+
+        if (partitions.isEmpty()) { // Treat global equality as B
             Formula result = this.internalInterpolant();
             return result;
         }
-        assert (this.isAPath());
+
+        assert (!partitions.isEmpty());
+        assert (partitions.size() == 1);
+        int partition = partitions.iterator().next();
+
+        if ((partition - 1) % 2 == 1) { // B equality
+            Formula result = this.internalInterpolant();
+            return result;
+        }
+        assert ((partition - 1) % 2 == 0); // A equality
         Formula result = this.modifiedInternalInterpolant();
         return result;
     }
@@ -2398,9 +2412,10 @@ public class TransitivityCongruenceChain implements
                 if (color != currentColor) {
                     TransitivityCongruenceChainElement predecessor = clone
                             .getPredecessor(current);
+                    assert (predecessor.getTermPartition() == -1);
                     result.add(clone);
                     clone = clone.split(predecessor);
-                    current = clone.start;
+                    current = clone.start.getNext();
                     assert (current.getTermPartition() > 0);
                     currentColor = (current.getTermPartition() - 1) % 2;
                     continue;

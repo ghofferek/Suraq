@@ -17,6 +17,7 @@ import java.util.Set;
 
 import at.iaik.suraq.exceptions.IncomparableTermsException;
 import at.iaik.suraq.exceptions.SuraqException;
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.DomainEq;
@@ -2491,11 +2492,15 @@ public class VeritProofNode implements Serializable {
             result = leafInterpolant();
         } else {
             result = resolutionInterpolant(partialInterpolants);
+            assert (this.proof.partitions != null
+                    && SuraqOptions.getInstance()
+                            .getCheckResolutionInterpolants() ? Util
+                    .checkPartialInterpolant(result,
+                            getConclusionsAsOrFormula(), this.proof.partitions)
+                    : true);
         }
         assert (result != null);
-        assert (this.proof.partitions != null ? Util.checkPartialInterpolant(
-                result, getConclusionsAsOrFormula(), this.proof.partitions)
-                : true);
+
         partialInterpolants.put(this, result);
         return result;
     }
@@ -2880,8 +2885,9 @@ public class VeritProofNode implements Serializable {
                         .create(this);
                 result = chain.fuchsEtAlInterpolant();
             }
-            assert (Util.checkTheoryLemmaInterpolant(result,
-                    getConclusionsAsOrFormula()));
+            assert (SuraqOptions.getInstance().getCheckLeafInterpolants() ? Util
+                    .checkTheoryLemmaInterpolant(result,
+                            getConclusionsAsOrFormula()) : true);
         } else {
             assert (partitions.size() <= 1);
             int partition;

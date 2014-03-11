@@ -202,6 +202,10 @@ public final class SuraqOptions {
      */
     private final Boolean checkProofWhileParsing;
 
+    private final Boolean checkLeafInterpolants;
+
+    private final Boolean checkResolutionInterpolants;
+
     /**
      * The value of numSplitterThreads
      */
@@ -310,6 +314,12 @@ public final class SuraqOptions {
         Option checkProofWhileParsingOption = cmdLineParser
                 .addBooleanOption("checkProofWhileParsing");
 
+        Option checkLeafInterpolantsOption = cmdLineParser
+                .addBooleanOption("checkLeafInterpolants");
+
+        Option checkResolutionInterpolantsOption = cmdLineParser
+                .addBooleanOption("checkResolutionInterpolants");
+
         Option useThisProofFileOption = cmdLineParser
                 .addStringOption("useThisProofFile");
 
@@ -364,6 +374,12 @@ public final class SuraqOptions {
 
         checkProofWhileParsing = (Boolean) cmdLineParser
                 .getOptionValue(checkProofWhileParsingOption);
+
+        checkLeafInterpolants = (Boolean) cmdLineParser
+                .getOptionValue(checkLeafInterpolantsOption);
+
+        checkResolutionInterpolants = (Boolean) cmdLineParser
+                .getOptionValue(checkResolutionInterpolantsOption);
 
         dumpSMTQueryFileValue = (String) cmdLineParser
                 .getOptionValue(dumpSMTQueryFileOption);
@@ -618,6 +634,15 @@ public final class SuraqOptions {
     public boolean getCheckProofWhileParsing() {
         return checkProofWhileParsing == null ? SuraqOptions.checkProofWhileParsingDefault
                 : checkProofWhileParsing;
+    }
+
+    public boolean getCheckLeafInterpolants() {
+        return checkLeafInterpolants == null ? false : checkLeafInterpolants;
+    }
+
+    public boolean getCheckResolutionInterpolants() {
+        return checkResolutionInterpolants == null ? false
+                : checkResolutionInterpolants;
     }
 
     public int getNumSplitterThreads() {
