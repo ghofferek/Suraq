@@ -93,6 +93,26 @@ public class TransitivityCongruenceChain implements
     }
 
     /**
+     * 
+     * @param term1
+     * @param term2
+     * @param implyingLiteral
+     * @param node
+     * @return a chain from <code>term1</code> to <code>term2</code> using
+     *         <code>implyingLiterals</code>.
+     */
+    public static TransitivityCongruenceChain create(DomainTerm term1,
+            DomainTerm term2, List<DomainEq> implyingLiteral,
+            VeritProofNode node) {
+        List<DomainTerm> terms = new ArrayList<DomainTerm>(2);
+        terms.add(term1);
+        terms.add(term2);
+        DomainEq equality = DomainEq.create(terms, true);
+        return TransitivityCongruenceChain.create(equality, implyingLiteral,
+                node);
+    }
+
+    /**
      * Creates a chain for the given <code>impliedLiteral</code> from the given
      * <code>otherLiterals</code>.
      * 

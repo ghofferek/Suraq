@@ -23,6 +23,7 @@ import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
@@ -2500,10 +2501,13 @@ public class VeritProofNode implements Serializable {
     }
 
     /**
-     * Computes the partial interpolant for a predicate leaf.
+     * Computes the partial interpolant for a predicate leaf. <strong> Does not
+     * work correctly!</strong>
      * 
      * @return a partial interpolant for this leaf.
      */
+    @SuppressWarnings("unused")
+    @Deprecated
     private Formula predicateLeafInterpolant() {
 
         // Compute implied literal and inverse predicate literal
@@ -2667,7 +2671,7 @@ public class VeritProofNode implements Serializable {
         assert (globalPredicateInstance != null);
 
         // Left side interpolants
-        Formula leftInterpolant = globalPredicateInstance;
+        Formula leftInterpolant = NotFormula.create(globalPredicateInstance);
         for (Formula literal : leftParameterEqualities) {
             Formula pos = interpolantsForParameterEqualities.get(literal);
             assert (pos != null);
@@ -2676,7 +2680,7 @@ public class VeritProofNode implements Serializable {
         }
 
         // Right side of interpolants
-        Formula rightInterpolant = NotFormula.create(globalPredicateInstance);
+        Formula rightInterpolant = globalPredicateInstance;
         for (Formula literal : rightParameterEqualities) {
             Formula pos = interpolantsForParameterEqualities.get(literal);
             assert (pos != null);
@@ -2686,6 +2690,162 @@ public class VeritProofNode implements Serializable {
 
         Formula result = resolutionInterpolant(globalPredicateInstance,
                 leftInterpolant, rightInterpolant);
+        return result;
+    }
+
+    /**
+     * Computes the partial interpolant for a predicate leaf.
+     * 
+     * @return a partial interpolant for this leaf.
+     */
+    private Formula predicateLeafInterpolantNew() {
+        // Compute implied literal and inverse predicate literal
+        Formula positiveLiteral = Util.getImpliedLiteral(literalConclusions);
+        assert (positiveLiteral instanceof UninterpretedPredicateInstance);
+        UninterpretedPredicateInstance impliedLiteral = (UninterpretedPredicateInstance) positiveLiteral;
+        UninterpretedPredicateInstance inversePredicateLiteral = Util
+                .findInversePredicateLiteral(impliedLiteral, literalConclusions);
+        assert (inversePredicateLiteral != null);
+        assert (impliedLiteral.getParameters().size() == inversePredicateLiteral
+                .getParameters().size());
+        Set<Integer> partitions = impliedLiteral.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() <= 1);
+
+        // Compute other literals
+        List<DomainEq> otherLiterals = new ArrayList<DomainEq>(
+                literalConclusions.size() - 2);
+        for (Formula literal : literalConclusions) {
+            if (literal.equals(impliedLiteral)
+                    || Util.makeLiteralPositive(literal).equals(
+                            inversePredicateLiteral))
+                continue;
+            assert (Util.isLiteral(literal));
+            assert (Util.isNegativeLiteral(literal));
+            assert (Util.makeLiteralPositive(literal) instanceof DomainEq);
+            otherLiterals.add((DomainEq) Util.makeLiteralPositive(literal));
+        }
+
+        // Compute coloring of predicate instances
+        // A=0, B=1, G=-1
+        int positiveColor;
+        partitions.clear();
+        partitions = impliedLiteral.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() <= 1);
+        if (partitions.isEmpty())
+            positiveColor = -1;
+        else
+            positiveColor = (partitions.iterator().next() - 1) % 2;
+
+        int negativeColor;
+        partitions.clear();
+        partitions = inversePredicateLiteral.getPartitionsFromSymbols();
+        partitions.remove(-1);
+        assert (partitions.size() <= 1);
+        if (partitions.isEmpty())
+            negativeColor = -1;
+        else
+            negativeColor = (partitions.iterator().next() - 1) % 2;
+
+        if (positiveColor >= 0 && negativeColor >= 0
+                && positiveColor != negativeColor) {
+            // A-B or B-A predicate congruence
+            boolean polarityA = negativeColor == 0; // in the cube, "negative"
+                                                    // is "positive" and vice
+                                                    // versa!
+            List<Formula> conjuncts = new ArrayList<Formula>(impliedLiteral
+                    .getParameters().size() + 1);
+            Set<TransitivityCongruenceChain> bPremises = new HashSet<TransitivityCongruenceChain>();
+            List<DomainTerm> globalParameters = new ArrayList<DomainTerm>(
+                    impliedLiteral.getParameters().size());
+            for (int count = 0; count < impliedLiteral.getParameters().size(); count++) {
+                DomainTerm param1 = inversePredicateLiteral.getParameters()
+                        .get(count);
+                DomainTerm param2 = impliedLiteral.getParameters().get(count);
+                TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                        .create(param1, param2, otherLiterals, this);
+                // We need the right half for interpolation, the left half for
+                // computing B-premises
+                TransitivityCongruenceChain leftHalfChain = chain;
+                TransitivityCongruenceChain rightHalfChain = chain
+                        .splitAtGlobalTerm();
+                Formula chainInterpolant = rightHalfChain
+                        .fuchsEtAlInterpolant();
+                conjuncts.add(chainInterpolant);
+                bPremises.addAll(leftHalfChain.getBPremises());
+            }
+            List<Formula> bPremiseEqualities = new ArrayList<Formula>(
+                    bPremises.size());
+            for (TransitivityCongruenceChain bPremise : bPremises)
+                bPremiseEqualities.add(bPremise.getLiteral());
+            AndFormula bPremiseEqualitiesFormula = AndFormula
+                    .generate(bPremiseEqualities);
+            UninterpretedPredicateInstance globalInstance;
+            try {
+                globalInstance = UninterpretedPredicateInstance.create(
+                        impliedLiteral.getFunction(), globalParameters);
+            } catch (SuraqException exc) {
+                throw new RuntimeException(exc);
+            }
+            Formula rightSide = polarityA ? globalInstance : NotFormula
+                    .create(globalInstance);
+            ImpliesFormula lastConjunct = ImpliesFormula.create(
+                    bPremiseEqualitiesFormula, rightSide);
+            conjuncts.add(lastConjunct);
+            AndFormula result = AndFormula.generate(conjuncts);
+            return result;
+        }
+
+        assert (positiveColor != negativeColor || (positiveColor == -1 && negativeColor == -1));
+
+        if (positiveColor == 0 || negativeColor == 0) {
+            // A-G, G-A, or A-A congruence
+            assert (positiveColor != 1 && negativeColor != 1);
+
+            Set<TransitivityCongruenceChain> bPremises = new HashSet<TransitivityCongruenceChain>();
+            for (int count = 0; count < impliedLiteral.getParameters().size(); count++) {
+                DomainTerm param1 = inversePredicateLiteral.getParameters()
+                        .get(count);
+                DomainTerm param2 = impliedLiteral.getParameters().get(count);
+                TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                        .create(param1, param2, otherLiterals, this);
+                bPremises.addAll(chain.getBPremises());
+            }
+            List<Formula> conjuncts = new ArrayList<Formula>(
+                    bPremises.size() + 1);
+            List<Formula> bPremiseEqualities = new ArrayList<Formula>(
+                    bPremises.size());
+            for (TransitivityCongruenceChain bPremise : bPremises) {
+                Formula interpolant = bPremise.fuchsEtAlInterpolant();
+                conjuncts.add(interpolant);
+                bPremiseEqualities.add(bPremise.getLiteral());
+            }
+            AndFormula bPremiseEqualiesFormula = AndFormula
+                    .generate(bPremiseEqualities);
+            NotFormula lastConjunct = NotFormula
+                    .create(bPremiseEqualiesFormula);
+            conjuncts.add(lastConjunct);
+            AndFormula result = AndFormula.generate(conjuncts);
+            return result;
+        }
+
+        assert (positiveColor == 1 || negativeColor == 1);
+        assert (positiveColor != 0 && negativeColor != 0);
+        // B-G, G-B, or B-B congruence
+
+        List<Formula> conjuncts = new ArrayList<Formula>(impliedLiteral
+                .getParameters().size());
+        for (int count = 0; count < impliedLiteral.getParameters().size(); count++) {
+            DomainTerm param1 = inversePredicateLiteral.getParameters().get(
+                    count);
+            DomainTerm param2 = impliedLiteral.getParameters().get(count);
+            TransitivityCongruenceChain chain = TransitivityCongruenceChain
+                    .create(param1, param2, otherLiterals, this);
+            Formula interpolant = chain.fuchsEtAlInterpolant();
+            conjuncts.add(interpolant);
+        }
+        AndFormula result = AndFormula.generate(conjuncts);
         return result;
     }
 
@@ -2708,7 +2868,7 @@ public class VeritProofNode implements Serializable {
             assert (type.equals(VeriTToken.TRANS_CONGR));
             Formula impliedLiteral = Util.getImpliedLiteral(literalConclusions);
             if (impliedLiteral instanceof UninterpretedPredicateInstance)
-                result = predicateLeafInterpolant();
+                result = predicateLeafInterpolantNew();
             else {
                 TransitivityCongruenceChain chain = TransitivityCongruenceChain
                         .create(this);
