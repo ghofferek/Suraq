@@ -2140,6 +2140,7 @@ public class TransitivityCongruenceChain implements
      * @return an interpolant from this chain, as described in Fuchs et al.
      */
     public Formula fuchsEtAlInterpolant() {
+        this.splitUncolorableCongruenceLinks();
         Formula literal = this.getLiteral();
         Set<Integer> partitions = literal.getPartitionsFromSymbols();
         partitions.remove(-1);
@@ -2334,6 +2335,8 @@ public class TransitivityCongruenceChain implements
             Set<Integer> partitions = term.getPartitionsFromSymbols();
             partitions.remove(-1);
             assert (partitions.size() <= 1);
+            if (partitions.isEmpty())
+                break;
             if (partitions.size() == 1) {
                 int partition = partitions.iterator().next();
                 if ((partition - 1) % 2 == 1) {
@@ -2364,13 +2367,15 @@ public class TransitivityCongruenceChain implements
         }
 
         // Search for last B-colorable term
-        TransitivityCongruenceChainElement beginTheta = current;
+        TransitivityCongruenceChainElement beginTheta = result[1].start;
         current = result[1].getEnd();
         while (current != beginTheta) {
             DomainTerm term = current.getTerm();
             Set<Integer> partitions = term.getPartitionsFromSymbols();
             partitions.remove(-1);
             assert (partitions.size() <= 1);
+            if (partitions.isEmpty())
+                break;
             if (partitions.size() == 1) {
                 int partition = partitions.iterator().next();
                 if ((partition - 1) % 2 == 1) {
@@ -2386,7 +2391,14 @@ public class TransitivityCongruenceChain implements
             return result;
         }
 
-        assert (current != beginTheta);
+        if (current == beginTheta) {
+            // no B-colorable term in the second half found
+            // --> Theta is null
+            result[0] = this.clone();
+            result[1] = null;
+            result[2] = null;
+            return result;
+        }
         assert (Util.isGlobal(current.getTerm()));
         result[2] = result[1].split(current);
         return result;
