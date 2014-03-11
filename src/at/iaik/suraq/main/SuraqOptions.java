@@ -206,6 +206,8 @@ public final class SuraqOptions {
 
     private final Boolean checkResolutionInterpolants;
 
+    private final Boolean checkTseitinValue;
+
     /**
      * The value of numSplitterThreads
      */
@@ -320,6 +322,9 @@ public final class SuraqOptions {
         Option checkResolutionInterpolantsOption = cmdLineParser
                 .addBooleanOption("checkResolutionInterpolants");
 
+        Option checkTseitinOption = cmdLineParser
+                .addBooleanOption("checkTseitin");
+
         Option useThisProofFileOption = cmdLineParser
                 .addStringOption("useThisProofFile");
 
@@ -380,6 +385,9 @@ public final class SuraqOptions {
 
         checkResolutionInterpolants = (Boolean) cmdLineParser
                 .getOptionValue(checkResolutionInterpolantsOption);
+
+        checkTseitinValue = (Boolean) cmdLineParser
+                .getOptionValue(checkTseitinOption);
 
         dumpSMTQueryFileValue = (String) cmdLineParser
                 .getOptionValue(dumpSMTQueryFileOption);
@@ -643,6 +651,10 @@ public final class SuraqOptions {
     public boolean getCheckResolutionInterpolants() {
         return checkResolutionInterpolants == null ? false
                 : checkResolutionInterpolants;
+    }
+
+    public boolean getCheckTseitin() {
+        return checkTseitinValue == null ? false : checkTseitinValue;
     }
 
     public int getNumSplitterThreads() {

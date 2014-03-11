@@ -452,10 +452,13 @@ public class Suraq implements Runnable {
             timer2.reset();
             timer2.start();
 
-            Util.printToSystemOutWithWallClockTimePrefix("      test if tseitin encoding is correct...");
-            assert (Util.checkFormulaImplication(partitionFormula,
-                    assertPartitionFormulas.get(count)));
-            Util.printToSystemOutWithWallClockTimePrefix("      ...test finished");
+            if (SuraqOptions.getInstance().getCheckTseitin()) {
+                Util.printToSystemOutWithWallClockTimePrefix("      test if tseitin encoding is correct...");
+                if (!Util.checkFormulaImplication(partitionFormula,
+                        assertPartitionFormulas.get(count)))
+                    throw new RuntimeException("Tseitin encoding incorrect.");
+                Util.printToSystemOutWithWallClockTimePrefix("      ...test finished");
+            }
             timer2.end();
             Util.printToSystemOutWithWallClockTimePrefix("T7: " + timer2);
             timer2.reset();
@@ -539,11 +542,13 @@ public class Suraq implements Runnable {
             // DebugHelper.getInstance().formulaToFile(encodedPartitionFormula,
             // "debug-tseitin-encoding.txt");
 
-            Util.printToSystemOutWithWallClockTimePrefix("      test if tseitin encoding is correct...");
-            assert (Util.checkFormulaImplication(encodedPartitionFormula,
-                    assertPartitionFormulas.get(count)));
-            Util.printToSystemOutWithWallClockTimePrefix("      ...test finished");
-
+            if (SuraqOptions.getInstance().getCheckTseitin()) {
+                Util.printToSystemOutWithWallClockTimePrefix("      test if tseitin encoding is correct...");
+                if (!Util.checkFormulaImplication(encodedPartitionFormula,
+                        assertPartitionFormulas.get(count)))
+                    throw new RuntimeException("Tseitin encoding incorrect.");
+                Util.printToSystemOutWithWallClockTimePrefix("      ...test finished");
+            }
             onePartitionTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix(" Done. ("
                     + onePartitionTimer + ")");
