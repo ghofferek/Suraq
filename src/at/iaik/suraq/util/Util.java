@@ -41,6 +41,7 @@ import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
@@ -51,6 +52,7 @@ import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.FormulaTerm;
+import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
@@ -116,75 +118,6 @@ public final class Util {
         Util.tseitinVarCounter = 0;
     }
 
-    /**
-     * Chooses a fresh variable name with respect to the given formula. The name
-     * is also distinct from present macro names and uninterpreted function
-     * names.
-     * 
-     * @param formula
-     *            the formula
-     * @param prefix
-     *            a prefix that should be included in the variable name
-     * @return a fresh variable name (w.r.t.<code>formula</code>), starting with
-     *         <code>prefix</code>.
-     */
-    @Deprecated
-    public static final String freshVarName(Formula formula, String prefix) {
-        Set<ArrayVariable> arrayVars = formula.getArrayVariables();
-        Set<DomainVariable> domainVars = formula.getDomainVariables();
-        Set<PropositionalVariable> propVars = formula
-                .getPropositionalVariables();
-        Set<String> functionNames = formula.getUninterpretedFunctionNames();
-        Set<String> macroNames = formula.getFunctionMacroNames();
-
-        int count = -1;
-        while (++count >= 0) {
-            String name = prefix + (count > 0 ? ("_fresh" + count) : "");
-            if (arrayVars.contains(ArrayVariable.create(name)))
-                continue;
-            if (domainVars.contains(DomainVariable.create(name)))
-                continue;
-            if (propVars.contains(PropositionalVariable.create(name)))
-                continue;
-            if (functionNames.contains(name))
-                continue;
-            if (macroNames.contains(name))
-                continue;
-            return name;
-        }
-        throw new RuntimeException("Could not create fresh variable name.");
-    }
-
-    @Deprecated
-    public static final String freshVarName(Formula formula, String prefix,
-            Set<String> instances) {
-        Set<ArrayVariable> arrayVars = formula.getArrayVariables();
-        Set<DomainVariable> domainVars = formula.getDomainVariables();
-        Set<PropositionalVariable> propVars = formula
-                .getPropositionalVariables();
-        Set<String> functionNames = formula.getUninterpretedFunctionNames();
-        Set<String> macroNames = formula.getFunctionMacroNames();
-
-        int count = -1;
-        while (++count >= 0) {
-            String name = prefix + (count > 0 ? ("_fresh" + count) : "");
-            if (arrayVars.contains(ArrayVariable.create(name)))
-                continue;
-            if (domainVars.contains(DomainVariable.create(name)))
-                continue;
-            if (propVars.contains(PropositionalVariable.create(name)))
-                continue;
-            if (functionNames.contains(name))
-                continue;
-            if (macroNames.contains(name))
-                continue;
-            if (instances.contains(name))
-                continue;
-            return name;
-        }
-        throw new RuntimeException("Could not create fresh variable name.");
-    }
-
     static Formula lastFormula = null;
     static Set<Object> lostNames = new HashSet<Object>();
 
@@ -199,11 +132,28 @@ public final class Util {
             Util.lastFormula = formula;
             Util.lostNames.clear();
             // hashcode must be varname.hashcode() !!!
-            Util.lostNames.addAll(formula.getArrayVariables());
-            Util.lostNames.addAll(formula.getDomainVariables());
-            Util.lostNames.addAll(formula.getPropositionalVariables());
-            Util.lostNames.addAll(formula.getUninterpretedFunctionNames());
-            Util.lostNames.addAll(formula.getFunctionMacroNames());
+            Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+            Set<ArrayVariable> aVars = new HashSet<ArrayVariable>();
+            formula.getArrayVariables(aVars, done);
+            done.clear();
+            Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+            formula.getPropositionalVariables(pVars, done);
+            done.clear();
+            Set<DomainVariable> dVars = new HashSet<DomainVariable>();
+            formula.getDomainVariables(dVars, done);
+            done.clear();
+            Set<UninterpretedFunction> ufs = new HashSet<UninterpretedFunction>();
+            formula.getUninterpretedFunctions(ufs, done);
+            done.clear();
+            Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+            formula.getFunctionMacros(macros, done);
+            done.clear();
+
+            Util.lostNames.addAll(aVars);
+            Util.lostNames.addAll(dVars);
+            Util.lostNames.addAll(pVars);
+            Util.lostNames.addAll(ufs);
+            Util.lostNames.addAll(macros);
         }
 
         int count = -1;
@@ -234,23 +184,33 @@ public final class Util {
      */
     public static final boolean formulaContainsAny(Formula formula,
             Set<Token> names) {
-        Set<ArrayVariable> arrayVars = formula.getArrayVariables();
-        Set<DomainVariable> domainVars = formula.getDomainVariables();
-        Set<PropositionalVariable> propVars = formula
-                .getPropositionalVariables();
-        Set<String> functionNames = formula.getUninterpretedFunctionNames();
-        Set<String> macroNames = formula.getFunctionMacroNames();
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+        Set<ArrayVariable> aVars = new HashSet<ArrayVariable>();
+        formula.getArrayVariables(aVars, done);
+        done.clear();
+        Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+        formula.getPropositionalVariables(pVars, done);
+        done.clear();
+        Set<DomainVariable> dVars = new HashSet<DomainVariable>();
+        formula.getDomainVariables(dVars, done);
+        done.clear();
+        Set<String> ufs = new HashSet<String>();
+        formula.getUninterpretedFunctionNames(ufs, done);
+        done.clear();
+        Set<String> macros = new HashSet<String>();
+        formula.getFunctionMacroNames(macros, done);
+        done.clear();
 
         for (Token token : names) {
-            if (arrayVars.contains(ArrayVariable.create(token)))
+            if (aVars.contains(ArrayVariable.create(token)))
                 return true;
-            if (domainVars.contains(DomainVariable.create(token)))
+            if (dVars.contains(DomainVariable.create(token)))
                 return true;
-            if (propVars.contains(PropositionalVariable.create(token)))
+            if (pVars.contains(PropositionalVariable.create(token)))
                 return true;
-            if (functionNames.contains(token))
+            if (ufs.contains(token.toString()))
                 return true;
-            if (macroNames.contains(token))
+            if (macros.contains(token.toString()))
                 return true;
         }
         return false;
@@ -269,37 +229,36 @@ public final class Util {
      *         <code>false</code> otherwise.
      */
     public static final boolean termContainsAny(Term term, Set<Token> names) {
-        Set<ArrayVariable> arrayVars = term.getArrayVariables();
-        Set<DomainVariable> domainVars = term.getDomainVariables();
-        Set<PropositionalVariable> propVars = term.getPropositionalVariables();
-        Set<String> functionNames = term.getUninterpretedFunctionNames();
-        Set<String> macroNames = term.getFunctionMacroNames();
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+        Set<ArrayVariable> aVars = new HashSet<ArrayVariable>();
+        term.getArrayVariables(aVars, done);
+        done.clear();
+        Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+        term.getPropositionalVariables(pVars, done);
+        done.clear();
+        Set<DomainVariable> dVars = new HashSet<DomainVariable>();
+        term.getDomainVariables(dVars, done);
+        done.clear();
+        Set<String> ufs = new HashSet<String>();
+        term.getUninterpretedFunctionNames(ufs, done);
+        done.clear();
+        Set<String> macros = new HashSet<String>();
+        term.getFunctionMacroNames(macros, done);
+        done.clear();
 
         for (Token token : names) {
-            if (arrayVars.contains(ArrayVariable.create(token)))
+            if (aVars.contains(ArrayVariable.create(token)))
                 return true;
-            if (domainVars.contains(DomainVariable.create(token)))
+            if (dVars.contains(DomainVariable.create(token)))
                 return true;
-            if (propVars.contains(PropositionalVariable.create(token)))
+            if (pVars.contains(PropositionalVariable.create(token)))
                 return true;
-            if (functionNames.contains(token))
+            if (ufs.contains(token.toString()))
                 return true;
-            if (macroNames.contains(token))
+            if (macros.contains(token.toString()))
                 return true;
         }
         return false;
-    }
-
-    /**
-     * Chooses a fresh variable name w.r.t. the given formula.
-     * 
-     * @param formula
-     *            the formula.
-     * @return a fresh variable name w.r.t. <code>formula</code>
-     */
-    @Deprecated
-    public static final String freshVarName(Formula formula) {
-        return Util.freshVarName(formula, "");
     }
 
     /**
@@ -1763,30 +1722,36 @@ public final class Util {
      */
     public static void writeDeclarations(Formula formula, BufferedWriter writer)
             throws IOException {
-        Set<PropositionalVariable> propVars = formula
-                .getPropositionalVariables();
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+        Set<PropositionalVariable> propVars = new HashSet<PropositionalVariable>();
+        formula.getPropositionalVariables(propVars, done);
+        done.clear();
         for (PropositionalVariable propVar : propVars) {
             writer.write("(" + SExpressionConstants.DECLARE_FUN.toString()
                     + " " + propVar.getVarName() + " () "
                     + SExpressionConstants.BOOL_TYPE.toString() + " )\n");
         }
 
-        Set<DomainVariable> domainVars = formula.getDomainVariables();
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        formula.getDomainVariables(domainVars, done);
+        done.clear();
         for (DomainVariable domainVar : domainVars) {
             writer.write("(" + SExpressionConstants.DECLARE_FUN.toString()
                     + " " + domainVar.getVarName() + " () "
                     + SExpressionConstants.VALUE_TYPE.toString() + " )\n");
         }
 
-        Set<ArrayVariable> arrayVars = formula.getArrayVariables();
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+        formula.getArrayVariables(arrayVars, new HashSet<SMTLibObject>());
         for (ArrayVariable arrayVar : arrayVars) {
             writer.write("(" + SExpressionConstants.DECLARE_FUN.toString()
                     + " " + arrayVar.getVarName() + " () "
                     + SExpressionConstants.ARRAY_TYPE.toString() + " )\n");
         }
 
-        Set<UninterpretedFunction> uninterpretedFunctions = formula
-                .getUninterpretedFunctions();
+        Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        formula.getUninterpretedFunctions(uninterpretedFunctions, done);
+        done.clear();
         for (UninterpretedFunction function : uninterpretedFunctions) {
             StringBuilder params = new StringBuilder();
             final int numParams = function.getNumParams();
@@ -1863,30 +1828,72 @@ public final class Util {
         if (!Util.checkFormulaImplication(partitionsB, impliedByB))
             return false;
 
-        Set<Object> symbolsA = new HashSet<Object>();
-        symbolsA.addAll(partitionsA.getDomainVariables());
-        symbolsA.addAll(partitionsA.getPropositionalVariables());
-        symbolsA.addAll(partitionsA.getArrayVariables());
-        symbolsA.addAll(partitionsA.getUninterpretedFunctions());
+        Set<SMTLibObject> symbolsA = new HashSet<SMTLibObject>();
+        Set<DomainVariable> domainVarsA = new HashSet<DomainVariable>();
+        partitionsA
+                .getDomainVariables(domainVarsA, new HashSet<SMTLibObject>());
+        symbolsA.addAll(domainVarsA);
+        Set<PropositionalVariable> propVarsA = new HashSet<PropositionalVariable>();
+        partitionsA.getPropositionalVariables(propVarsA,
+                new HashSet<SMTLibObject>());
+        symbolsA.addAll(propVarsA);
+        Set<ArrayVariable> arrayVarsA = new HashSet<ArrayVariable>();
+        partitionsA.getArrayVariables(arrayVarsA, new HashSet<SMTLibObject>());
+        symbolsA.addAll(arrayVarsA);
+        Set<UninterpretedFunction> ufsA = new HashSet<UninterpretedFunction>();
+        partitionsA
+                .getUninterpretedFunctions(ufsA, new HashSet<SMTLibObject>());
+        symbolsA.addAll(ufsA);
 
-        Set<Object> symbolsB = new HashSet<Object>();
-        symbolsB.addAll(partitionsB.getDomainVariables());
-        symbolsB.addAll(partitionsB.getPropositionalVariables());
-        symbolsB.addAll(partitionsB.getArrayVariables());
-        symbolsB.addAll(partitionsB.getUninterpretedFunctions());
+        Set<SMTLibObject> symbolsB = new HashSet<SMTLibObject>();
+        Set<DomainVariable> domainVarsB = new HashSet<DomainVariable>();
+        partitionsB
+                .getDomainVariables(domainVarsB, new HashSet<SMTLibObject>());
+        symbolsB.addAll(domainVarsB);
+        Set<PropositionalVariable> propVarsB = new HashSet<PropositionalVariable>();
+        partitionsB.getPropositionalVariables(propVarsB,
+                new HashSet<SMTLibObject>());
+        symbolsB.addAll(propVarsB);
+        Set<ArrayVariable> arrayVarsB = new HashSet<ArrayVariable>();
+        partitionsB.getArrayVariables(arrayVarsB, new HashSet<SMTLibObject>());
+        symbolsB.addAll(arrayVarsB);
+        Set<UninterpretedFunction> ufsB = new HashSet<UninterpretedFunction>();
+        partitionsB
+                .getUninterpretedFunctions(ufsB, new HashSet<SMTLibObject>());
+        symbolsB.addAll(ufsB);
 
-        Set<Object> symbolsI = new HashSet<Object>();
-        symbolsI.addAll(interpolant.getDomainVariables());
-        symbolsI.addAll(interpolant.getPropositionalVariables());
-        symbolsI.addAll(interpolant.getArrayVariables());
-        symbolsI.addAll(interpolant.getUninterpretedFunctions());
+        Set<SMTLibObject> symbolsI = new HashSet<SMTLibObject>();
+        Set<DomainVariable> domainVarsI = new HashSet<DomainVariable>();
+        interpolant
+                .getDomainVariables(domainVarsI, new HashSet<SMTLibObject>());
+        symbolsI.addAll(domainVarsI);
+        Set<PropositionalVariable> propVarsI = new HashSet<PropositionalVariable>();
+        interpolant.getPropositionalVariables(propVarsI,
+                new HashSet<SMTLibObject>());
+        symbolsI.addAll(propVarsI);
+        Set<ArrayVariable> arrayVarsI = new HashSet<ArrayVariable>();
+        interpolant.getArrayVariables(arrayVarsI, new HashSet<SMTLibObject>());
+        symbolsI.addAll(arrayVarsI);
+        Set<UninterpretedFunction> ufsI = new HashSet<UninterpretedFunction>();
+        interpolant
+                .getUninterpretedFunctions(ufsI, new HashSet<SMTLibObject>());
+        symbolsI.addAll(ufsI);
 
-        Set<Object> symbolsC = new HashSet<Object>();
+        Set<SMTLibObject> symbolsC = new HashSet<SMTLibObject>();
         if (clause != null) {
-            symbolsC.addAll(clause.getDomainVariables());
-            symbolsC.addAll(clause.getPropositionalVariables());
-            symbolsC.addAll(clause.getArrayVariables());
-            symbolsC.addAll(clause.getUninterpretedFunctions());
+            Set<DomainVariable> domainVarsC = new HashSet<DomainVariable>();
+            clause.getDomainVariables(domainVarsC, new HashSet<SMTLibObject>());
+            symbolsC.addAll(domainVarsC);
+            Set<PropositionalVariable> propVarsC = new HashSet<PropositionalVariable>();
+            clause.getPropositionalVariables(propVarsC,
+                    new HashSet<SMTLibObject>());
+            symbolsC.addAll(propVarsC);
+            Set<ArrayVariable> arrayVarsC = new HashSet<ArrayVariable>();
+            clause.getArrayVariables(arrayVarsC, new HashSet<SMTLibObject>());
+            symbolsC.addAll(arrayVarsC);
+            Set<UninterpretedFunction> ufsC = new HashSet<UninterpretedFunction>();
+            clause.getUninterpretedFunctions(ufsC, new HashSet<SMTLibObject>());
+            symbolsC.addAll(ufsC);
         }
 
         Set<Object> globalSymbols = new HashSet<Object>();
@@ -1963,20 +1970,27 @@ public final class Util {
      */
     public static boolean checkEquivalenceOfFormulas(Formula formula1,
             Formula formula2) {
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
 
-        Set<DomainVariable> domainVars1 = formula1.getDomainVariables();
-        Set<PropositionalVariable> propVars1 = formula1
-                .getPropositionalVariables();
-        Set<UninterpretedFunction> uif1 = formula1.getUninterpretedFunctions();
+        Set<DomainVariable> domainVars1 = new HashSet<DomainVariable>();
+        formula1.getDomainVariables(domainVars1, done);
+        done.clear();
+        Set<PropositionalVariable> propVars1 = new HashSet<PropositionalVariable>();
+        formula1.getPropositionalVariables(propVars1, done);
+        done.clear();
+        Set<UninterpretedFunction> uif1 = new HashSet<UninterpretedFunction>();
+        formula1.getUninterpretedFunctions(uif1, done);
+        done.clear();
 
-        Set<DomainVariable> domainVars2 = formula2.getDomainVariables();
-        Set<PropositionalVariable> propVars2 = formula2
-                .getPropositionalVariables();
-        Set<UninterpretedFunction> uif2 = formula2.getUninterpretedFunctions();
-
-        HashSet<DomainVariable> intersection = new HashSet<DomainVariable>(
-                domainVars2);
-        intersection.removeAll(domainVars1);
+        Set<DomainVariable> domainVars2 = new HashSet<DomainVariable>();
+        formula2.getDomainVariables(domainVars2, done);
+        done.clear();
+        Set<PropositionalVariable> propVars2 = new HashSet<PropositionalVariable>();
+        formula2.getPropositionalVariables(propVars2, done);
+        done.clear();
+        Set<UninterpretedFunction> uif2 = new HashSet<UninterpretedFunction>();
+        formula2.getUninterpretedFunctions(uif2, done);
+        done.clear();
 
         if (!domainVars1.equals(domainVars2))
             return false;
@@ -2011,55 +2025,12 @@ public final class Util {
         conjuncts.add(NotFormula.create(formula2));
         Formula formulaToCheck = AndFormula.generate(conjuncts);
 
-        // Writes the declarations of all domain variables, propositional
-        // variables and uninterpreted functions
-        List<SExpression> outputExpressions = new ArrayList<SExpression>();
-
-        outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
-        outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
-
-        Set<PropositionalVariable> allPropositionalVars = formula1
-                .getPropositionalVariables();
-        allPropositionalVars.addAll(formula2.getPropositionalVariables());
-
-        Set<DomainVariable> allDomainVars = formula1.getDomainVariables();
-        allDomainVars.addAll(formula2.getDomainVariables());
-
-        Set<UninterpretedFunction> allFunctions = formula1
-                .getUninterpretedFunctions();
-        allFunctions.addAll(formula2.getUninterpretedFunctions());
-
-        for (PropositionalVariable var : allPropositionalVars)
-            outputExpressions
-                    .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
-                            SExpressionConstants.BOOL_TYPE, 0));
-
-        for (DomainVariable var : allDomainVars)
-            outputExpressions.add(SExpression.makeDeclareFun(
-                    (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
-                    0));
-
-        for (UninterpretedFunction function : allFunctions)
-            outputExpressions.add(SExpression.makeDeclareFun(
-                    function.getName(), function.getType(),
-                    function.getNumParams()));
-
-        outputExpressions.add(new SExpression(Token.generate("assert"),
-                SExpression.fromString(formulaToCheck.toString())));
-
-        outputExpressions.add(SExpressionConstants.CHECK_SAT);
-        outputExpressions.add(SExpressionConstants.EXIT);
-
-        String smtstr = "";
-        for (SExpression exp : outputExpressions)
-            smtstr += exp;
-
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3Path());
         // DebugHelper.getInstance().stringtoFile(smtstr,
         // "debug-tseitin-check.txt");
         // System.out.print('.');
-        z3.solve(smtstr);
+        z3.solve(formulaToCheck);
 
         switch (z3.getState()) {
         case SMTSolver.UNSAT:

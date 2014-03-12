@@ -38,6 +38,7 @@ import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.TransformedZ3Proof;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
@@ -62,7 +63,6 @@ import at.iaik.suraq.smtsolver.z3;
 import at.iaik.suraq.util.BenchmarkTimer;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.FormulaCache;
-import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.SaveCache;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
@@ -289,7 +289,7 @@ public class Suraq implements Runnable {
      * @param sourceFile
      * @return
      */
-    private String inputTransformations(File sourceFile) {
+    private void inputTransformations(File sourceFile) {
         DebugHelper.getInstance().setFolder(sourceFile.getPath() + "_out/");
         SuraqOptions options = SuraqOptions.getInstance();
 
@@ -307,14 +307,20 @@ public class Suraq implements Runnable {
 
         if (mainFormula == null) {
             // abort (workaround not to crash for QBF-Enc)
-            return null;
+            return;
         }
 
         Util.printToSystemOutWithWallClockTimePrefix("  build function and variable lists for parser");
-        propositionalVars = mainFormula.getPropositionalVariables();
-        domainVars = mainFormula.getDomainVariables();
-        arrayVars = mainFormula.getArrayVariables();
-        uninterpretedFunctions = mainFormula.getUninterpretedFunctions();
+        propositionalVars.clear();
+        mainFormula.getPropositionalVariables(propositionalVars,
+                new HashSet<SMTLibObject>());
+        domainVars.clear();
+        mainFormula.getDomainVariables(domainVars, new HashSet<SMTLibObject>());
+        arrayVars.clear();
+        mainFormula.getArrayVariables(arrayVars, new HashSet<SMTLibObject>());
+        uninterpretedFunctions.clear();
+        mainFormula.getUninterpretedFunctions(uninterpretedFunctions,
+                new HashSet<SMTLibObject>());
 
         for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
                 .entrySet()) {
@@ -361,7 +367,6 @@ public class Suraq implements Runnable {
         allPartitionsTimer.start();
 
         boolean activetseitin = true;
-        String z3InputStr = null;
         if (activetseitin) {
 
             Suraq.extTimer.stopReset("before tseitin");
@@ -380,18 +385,10 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("  All partitions done. ("
                     + allPartitionsTimer + ")");
 
-            // make asserts out of tseitinPartitions (returns the inputstring
-            // for the z3)
-            z3InputStr = buildSMTDescriptionFromTseitinPartitions(
-                    declarationStr, tseitinPartitions);
             Suraq.extTimer
                     .stopReset("after buildSMTDescriptionFromTseitinPartitions");
-        } else {
-            z3InputStr = buildSMTDescriptionWithoutTsetin(declarationStr);
         }
         Suraq.extTimer.stopReset("</inputTransformations>");
-
-        return z3InputStr;
     }
 
     /**
@@ -407,8 +404,8 @@ public class Suraq implements Runnable {
         int count = 1;
         Timer onePartitionTimer = new Timer();
         Timer timer2 = new Timer();
-        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
-                SuraqOptions.getZ3_4Path());
+        z3 z3 = (at.iaik.suraq.smtsolver.z3) SMTSolver.create(
+                SMTSolver.z3_type, SuraqOptions.getZ3_4Path());
 
         for (Integer partition : assertPartitionFormulas.keySet()) {
             Formula assertPartition = assertPartitionFormulas.get(partition);
@@ -599,7 +596,8 @@ public class Suraq implements Runnable {
             domainVars.addAll(logicParser.getDomainVariables());
             functions.addAll(logicParser.getFunctions());
             for (Formula constraint : constraints) {
-                domainVars.addAll(constraint.getDomainVariables());
+                constraint.getDomainVariables(domainVars,
+                        new HashSet<SMTLibObject>());
             }
             for (ArrayVariable arrayVar : logicParser.getArrayVariables()) {
                 functions.add(UninterpretedFunction.create(
@@ -681,6 +679,8 @@ public class Suraq implements Runnable {
         return iteTrees;
     }
 
+    @SuppressWarnings("unused")
+    @Deprecated
     private Map<PropositionalVariable, Formula> proofTransformationAndInterpolation(
             Z3Proof rootProof, List<PropositionalVariable> controlVars) {
 
@@ -1003,10 +1003,18 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Done.");
 
             Util.printToSystemOutWithWallClockTimePrefix("  build function and variable lists for parser");
-            propositionalVars = mainFormula.getPropositionalVariables();
-            domainVars = mainFormula.getDomainVariables();
-            arrayVars = mainFormula.getArrayVariables();
-            uninterpretedFunctions = mainFormula.getUninterpretedFunctions();
+            propositionalVars.clear();
+            mainFormula.getPropositionalVariables(propositionalVars,
+                    new HashSet<SMTLibObject>());
+            domainVars.clear();
+            mainFormula.getDomainVariables(domainVars,
+                    new HashSet<SMTLibObject>());
+            arrayVars.clear();
+            mainFormula.getArrayVariables(arrayVars,
+                    new HashSet<SMTLibObject>());
+            uninterpretedFunctions.clear();
+            mainFormula.getUninterpretedFunctions(uninterpretedFunctions,
+                    new HashSet<SMTLibObject>());
             for (Map.Entry<Token, List<Term>> varList : noDependenceVarsCopies
                     .entrySet()) {
                 assert (varList.getValue() != null);
@@ -1039,18 +1047,18 @@ public class Suraq implements Runnable {
             }
             Util.printToSystemOutWithWallClockTimePrefix("  All partitions done.");
 
-            // make asserts out of tseitinPartitions (returns the inputstring
-            // for the solver
-            String solverInputStr = buildSMTDescriptionFromTseitinPartitions(
-                    declarationStr, tseitinPartitions);
-
             BufferedReader proofReader;
             Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
             Timer proofcalculationTimer = new Timer();
             proofcalculationTimer.start();
 
+            List<Formula> tseitinPartitionsList = new ArrayList<Formula>(
+                    tseitinPartitions.size());
+            for (Integer key : tseitinPartitions.keySet())
+                tseitinPartitionsList.add(tseitinPartitions.get(key));
+
             VeriTSolver veriT = new VeriTSolver();
-            veriT.solve(solverInputStr);
+            veriT.solve(tseitinPartitionsList);
             Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
             try {
                 proofReader = veriT.getStream();
@@ -1099,7 +1107,8 @@ public class Suraq implements Runnable {
                 substitutionsMap.put(Token.generate(tseitinVar.getVarName()),
                         FormulaTerm.create(tseitinEncoding.get(tseitinVar)));
             Util.printToSystemOutWithWallClockTimePrefix("Done.");
-            interpolant = interpolant.substituteFormula(substitutionsMap);
+            Map<SMTLibObject, SMTLibObject> done = new HashMap<SMTLibObject, SMTLibObject>();
+            interpolant = interpolant.substituteFormula(substitutionsMap, done);
             interpolant = simplify(interpolant);
             assert (Util.checkInterpolant(interpolant, assertPartitionFormulas));
 
@@ -1109,7 +1118,8 @@ public class Suraq implements Runnable {
             Map<Token, PropositionalTerm> substMap = new TreeMap<Token, PropositionalTerm>();
             substMap.put(Token.generate(currentSignal.getVarName()),
                     FormulaTerm.create(interpolant));
-            mainFormula = mainFormula.substituteFormula(substMap);
+            done.clear();
+            mainFormula = mainFormula.substituteFormula(substMap, done);
 
             assertPartitionFormulas.clear();
             tseitinPartitions.clear();
@@ -1202,10 +1212,19 @@ public class Suraq implements Runnable {
                 + timer.toString() + ")");
         Util.printToSystemOutWithWallClockTimePrefix("Starting parsing.");
         try {
-            FormulaParser parser = new FormulaParser(
-                    formula.getPropositionalVariables(),
-                    formula.getDomainVariables(), formula.getArrayVariables(),
-                    formula.getUninterpretedFunctions(),
+            Set<ArrayVariable> aVars = new HashSet<ArrayVariable>();
+            formula.getArrayVariables(aVars, new HashSet<SMTLibObject>());
+            Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+            Set<DomainVariable> dVars = new HashSet<DomainVariable>();
+            Set<UninterpretedFunction> ufs = new HashSet<UninterpretedFunction>();
+            Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+            formula.getPropositionalVariables(pVars, done);
+            done.clear();
+            formula.getDomainVariables(dVars, done);
+            done.clear();
+            formula.getUninterpretedFunctions(ufs, done);
+            done.clear();
+            FormulaParser parser = new FormulaParser(pVars, dVars, aVars, ufs,
                     simpliefiedFormulaReader);
             Util.printToSystemOutWithWallClockTimePrefix("Finished parsing SExpressions. Starting to parse formula.");
             parser.parse();
@@ -1231,8 +1250,6 @@ public class Suraq implements Runnable {
         printWelcome();
 
         SuraqOptions options = SuraqOptions.getInstance();
-        Map<PropositionalVariable, Formula> iteTrees = null;
-        File sourceFile = new File(options.getInput());
         if (options.getIterativeInterpolation() == true) {
             Util.printToSystemOutWithWallClockTimePrefix("Running in iterative mode...");
             VeriTSolver.setActive(true);
@@ -1265,456 +1282,8 @@ public class Suraq implements Runnable {
 
         assert (!VeriTSolver.isActive());
         assert (options.getSolver().toLowerCase().equals("z3"));
+        throw new RuntimeException("Only veriT solver currently supported!");
 
-        if (options.getVeriTVarsCache() != null) {
-
-            Timer t = new Timer();
-            Util.printToSystemOutWithWallClockTimePrefix("****************************************");
-            Util.printToSystemOutWithWallClockTimePrefix("* I am using the Cached VeriT-Proof!!! *");
-            Util.printToSystemOutWithWallClockTimePrefix("****************************************");
-
-            System.out.print("\nLoading Variable Cache... ");
-            t.reset();
-            t.start();
-            SaveCache sc = SaveCache.loadSaveCacheFromFile(options
-                    .getVeriTVarsCache());
-
-            propositionalVars = sc.getPropsitionalVars();
-            domainVars = sc.getDomainVars();
-            arrayVars = sc.getArrayVars();
-            uninterpretedFunctions = sc.getUninterpretedFunctions();
-            mainFormula = sc.getMainFormula();
-            assertPartitionFormulas = sc.getAssertPartitionFormulas();
-            tseitinEncoding = sc.getTseitinEncoding();
-            // controlVars = sc.getControlVars(); // are not set!
-            noDependenceVarsCopies = sc.getNoDependenceVarsCopies();
-            noDependenceFunctionsCopies = sc.getNoDependenceFunctionsCopies();
-            t.stop();
-            Util.printToSystemOutWithWallClockTimePrefix(" Needed: " + t);
-
-            Util.printToSystemOutWithWallClockTimePrefix("Copying to FormulaCache... ");
-            t.reset();
-            t.start();
-            for (PropositionalVariable tmp : propositionalVars)
-                FormulaCache.propVar.post(tmp);
-            for (DomainVariable tmp : domainVars)
-                FormulaCache.domainVarFormula.post(tmp);
-            for (UninterpretedFunction tmp : uninterpretedFunctions)
-                FormulaCache.uninterpretedFunction.post(tmp);
-            for (List<Term> tmp2 : noDependenceVarsCopies.values())
-                for (Term tmp : tmp2) {
-                    if (tmp instanceof DomainVariable)
-                        FormulaCache.domainVarFormula
-                                .post((DomainVariable) tmp);
-                    if (tmp instanceof PropositionalVariable)
-                        FormulaCache.propVar.post((PropositionalVariable) tmp);
-                }
-            for (List<UninterpretedFunction> tmp2 : noDependenceFunctionsCopies
-                    .values())
-                for (UninterpretedFunction tmp : tmp2)
-                    FormulaCache.uninterpretedFunction.post(tmp);
-
-            t.stop();
-            Util.printToSystemOutWithWallClockTimePrefix(" Needed: " + t);
-
-            System.out.print("Prepare to parse the proof...");
-            t.reset();
-            t.start();
-            VeriTParser veriTParser = null;
-            try {
-                String filename = sc.getProofFile();
-                if (options.getVeriTFile() != null)
-                    filename = options.getVeriTFile();
-
-                BufferedReader reader = new BufferedReader(new FileReader(
-                        filename));
-                veriTParser = new VeriTParser(reader, mainFormula,
-                        tseitinEncoding.keySet(),
-                        noDependenceVarsCopies.values(),
-                        noDependenceFunctionsCopies);
-
-                t.stop();
-                Util.printToSystemOutWithWallClockTimePrefix(" Needed: " + t);
-
-                System.out.print("Parse the proof... ");
-                t.reset();
-                t.start();
-                veriTParser.parse();
-                t.stop();
-                Util.printToSystemOutWithWallClockTimePrefix(" Needed: " + t);
-
-                System.out
-                        .print("Get the proof and remove unreachable nodes... ");
-                t.reset();
-                t.start();
-                VeritProof veritProof = veriTParser.getProof();
-                veritProof.removeUnreachableNodes();
-                t.stop();
-                Util.printToSystemOutWithWallClockTimePrefix(" Needed: " + t);
-                iteTrees = proofTransformationAndInterpolation(sc
-                        .getControlVars());
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-        } // End of using veriT in cache mode
-        else {
-            if (options.isVerbose())
-                Util.printToSystemOutWithWallClockTimePrefix("Parsing input file "
-                        + sourceFile.toString());
-
-            File z3InputFile = new File(options.getZ3Input());
-            File z3ProofFile = new File(options.getZ3Proof());
-            File saveCacheFile = new File(options.getCacheFile());
-            File saveCacheSerial = new File(options.getCacheFileSerial());
-
-            boolean useCachedResults = false;
-
-            if (z3InputFile.exists() && z3ProofFile.exists()
-                    && options.getCacheType() == SuraqOptions.CACHE_FILE
-                    && saveCacheFile.exists()) {
-
-                Date inputFileDate = new Date(sourceFile.lastModified());
-                Date z3InputFileDate = new Date(z3InputFile.lastModified());
-                Date z3ProofFileDate = new Date(z3ProofFile.lastModified());
-
-                if ((inputFileDate.getTime() <= z3InputFileDate.getTime())
-                        && (z3InputFileDate.getTime() <= z3ProofFileDate
-                                .getTime())) {
-
-                    useCachedResults = true;
-                    Util.printToSystemOutWithWallClockTimePrefix("INFO: using FILE cached intermediate results.");
-                    Util.printToSystemOutWithWallClockTimePrefix(z3ProofFile
-                            .toString());
-                }
-            }
-
-            if (z3InputFile.exists()
-                    && options.getCacheType() == SuraqOptions.CACHE_SERIAL
-                    && saveCacheSerial.exists()) {
-
-                Date inputFileDate = new Date(sourceFile.lastModified());
-                Date z3InputFileDate = new Date(z3InputFile.lastModified());
-                Date cacheFileDate = new Date(saveCacheSerial.lastModified());
-
-                if ((inputFileDate.getTime() <= z3InputFileDate.getTime())
-                        && (z3InputFileDate.getTime() <= cacheFileDate
-                                .getTime())) {
-
-                    useCachedResults = true;
-                    System.out
-                            .println("INFO: using SERIAL cached intermediate results.");
-                    Util.printToSystemOutWithWallClockTimePrefix(saveCacheSerial
-                            .toString());
-                }
-            }
-
-            String proof = null;
-            Z3Proof rootProof = null;
-            SaveCache intermediateVars = null;
-
-            if (!useCachedResults) {
-                Util.printToSystemOutWithWallClockTimePrefix("start input transformations");
-                Timer inputTransformationTimer = new Timer();
-                inputTransformationTimer.start();
-
-                String z3InputStr = inputTransformations(sourceFile);
-                if (z3InputStr == null) // abort (not to crash on QBF-Enc)
-                    return;
-
-                inputTransformationTimer.stop();
-                Util.printToSystemOutWithWallClockTimePrefix("finished input transformations in "
-                        + inputTransformationTimer + ".\n");
-
-                // write z3Input to file //only if not read already from file
-                try {
-                    FileWriter fstream = new FileWriter(z3InputFile);
-                    fstream.write(z3InputStr);
-                    fstream.close();
-                } catch (IOException exc) {
-                    System.err.println("Error while writing to z3InputFile: "
-                            + options.getZ3Input());
-                    exc.printStackTrace();
-                    noErrors = false;
-                }
-
-                Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
-                Timer proofcalculationTimer = new Timer();
-                proofcalculationTimer.start();
-
-                if (VeriTSolver.isActive()) {
-                    VeriTSolver veriT = new VeriTSolver();
-                    veriT.solve(z3InputStr);
-                    Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
-                    VeriTParser veriTParser;
-                    try {
-                        veriTParser = new VeriTParser(veriT.getStream(),
-                                mainFormula, tseitinEncoding.keySet(),
-                                noDependenceVarsCopies.values(),
-                                noDependenceFunctionsCopies);
-
-                        Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
-                        Timer parseTimer = new Timer();
-                        parseTimer.start();
-                        veriTParser.parse();
-                        parseTimer.stop();
-                        Util.printToSystemOutWithWallClockTimePrefix("Done parsing. (Took "
-                                + parseTimer.toString() + ")");
-                        VeritProof veritProof = veriTParser.getProof();
-                        veritProof.removeUnreachableNodes();
-                        // DebugHelper.getInstance().stringtoFile(
-                        // veritProof.toString(), "~parsed-verit-enc.txt");
-                        iteTrees = proofTransformationAndInterpolation(logicParser
-                                .getControlVariables());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new RuntimeException(e.getMessage(), e);
-                    }
-                } else { // use z3
-
-                    SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
-                            SuraqOptions.getZ3_4Path());
-                    z3.solve(z3InputStr);
-                    z3InputStr = null; // Allow this to be garbage collected
-
-                    switch (z3.getState()) {
-                    case SMTSolver.UNSAT:
-                        break;
-                    case SMTSolver.SAT:
-                        noErrors = false;
-                        System.err.println("Z3 tells us SAT.");
-                        throw (new RuntimeException("Z3 tells us SAT."));
-                    default:
-                        noErrors = false;
-                        Util.printToSystemOutWithWallClockTimePrefix("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
-                        throw (new RuntimeException(
-                                "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
-                    }
-
-                    proofcalculationTimer.stop();
-                    Util.printToSystemOutWithWallClockTimePrefix("finished proof calculation in "
-                            + proofcalculationTimer + ".\n");
-
-                    // write z3Proof to file
-                    if (z3.getState() == SMTSolver.UNSAT) {
-                        Suraq.extTimer.stopReset("UNSAT :-)");
-                        Util.printToSystemOutWithWallClockTimePrefix("UNSAT");
-                        proof = z3.getProof();
-
-                        try {
-                            System.err.println(Suraq.extTimer);
-                            Util.printToSystemOutWithWallClockTimePrefix("writing proof to: "
-                                    + z3ProofFile);
-                            FileWriter fstream = new FileWriter(z3ProofFile);
-                            fstream.write(z3.getProof());
-                            fstream.close();
-                        } catch (IOException exc) {
-                            System.err
-                                    .println("Error while writing to z3ProofFile: "
-                                            + options.getZ3Proof());
-                            exc.printStackTrace();
-                            noErrors = false;
-                        }
-                    } else {
-                        Suraq.extTimer.abortReset("SAT :-(");
-                        Util.printToSystemOutWithWallClockTimePrefix("SAT");
-                        proof = z3.getProof();
-
-                        try {
-                            System.err.println(Suraq.extTimer);
-                            Util.printToSystemOutWithWallClockTimePrefix("writing proof to: "
-                                    + z3ProofFile);
-                            FileWriter fstream = new FileWriter(z3ProofFile);
-                            fstream.write(z3.getProof());
-                            fstream.close();
-                        } catch (IOException exc) {
-                            System.err
-                                    .println("Error while writing to z3ProofFile: "
-                                            + options.getZ3Proof());
-                            exc.printStackTrace();
-                            noErrors = false;
-                        }
-                    }
-                    z3 = null; // Allow this to be garbage collected
-
-                    assert (proof.length() > 0); // added by chillebold
-
-                    rootProof = parseProof(proof, propositionalVars,
-                            domainVars, arrayVars, uninterpretedFunctions);
-
-                    proof = null; // Allow this to be garbage collected
-
-                    assert (rootProof != null);
-
-                    // write intermediate variables to file, if caching is
-                    // enabled
-                    String filename;
-                    if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
-                        filename = saveCacheFile.getPath();
-                        intermediateVars = new SaveCache(propositionalVars,
-                                domainVars, arrayVars, uninterpretedFunctions,
-                                logicParser.getControlVariables(), mainFormula,
-                                assertPartitionFormulas, tseitinEncoding, null,
-                                ImmutableSet.getInstances(),
-                                ImmutableSet.getUniqueElements(), filename);
-                    } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
-                        filename = saveCacheSerial.getPath();
-                        intermediateVars = new SaveCache(propositionalVars,
-                                domainVars, arrayVars, uninterpretedFunctions,
-                                logicParser.getControlVariables(), mainFormula,
-                                assertPartitionFormulas, tseitinEncoding,
-                                rootProof, ImmutableSet.getInstances(),
-                                ImmutableSet.getUniqueElements(), filename);
-                    } else {
-                        intermediateVars = new SaveCache(propositionalVars,
-                                domainVars, arrayVars, uninterpretedFunctions,
-                                logicParser.getControlVariables(), mainFormula,
-                                assertPartitionFormulas, tseitinEncoding, null,
-                                ImmutableSet.getInstances(),
-                                ImmutableSet.getUniqueElements(), null);
-                    }
-
-                    logicParser = null; // Allow this to be garbage collected
-                    assertPartitionFormulas = null; // Allow this to be garbage
-                                                    // collected
-                }
-            } else { // use cached files
-                try {
-
-                    if (options.getCacheType() == SuraqOptions.CACHE_FILE) {
-                        // read proof from file
-
-                        Timer loadTimer = new Timer();
-                        loadTimer.start();
-
-                        FileReader reader = new FileReader(z3ProofFile);
-                        BufferedReader bufferedReader = new BufferedReader(
-                                reader);
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String currentLine = bufferedReader.readLine();
-                        String ls = System.getProperty("line.separator");
-                        while (currentLine != null) {
-                            stringBuilder.append(currentLine);
-                            stringBuilder.append(ls);
-                            currentLine = bufferedReader.readLine();
-                        }
-                        bufferedReader.close();
-                        reader.close();
-
-                        proof = stringBuilder.toString();
-
-                        intermediateVars = SaveCache
-                                .loadSaveCacheFromFile(saveCacheFile.getPath());
-
-                        mainFormula = intermediateVars.getMainFormula();
-                        // assertPartitionFormulas = intermediateVars
-                        // .getAssertPartitionFormulas();
-                        tseitinEncoding = intermediateVars.getTseitinEncoding();
-
-                        rootProof = parseProof(proof,
-                                intermediateVars.getPropsitionalVars(),
-                                intermediateVars.getDomainVars(),
-                                intermediateVars.getArrayVars(),
-                                intermediateVars.getUninterpretedFunctions());
-                        loadTimer.stop();
-                        Util.printToSystemOutWithWallClockTimePrefix("Cached proof loaded and parsed in: "
-                                + loadTimer);
-                        assert (rootProof != null);
-
-                    } else if (options.getCacheType() == SuraqOptions.CACHE_SERIAL) {
-                        Timer loadTimer = new Timer();
-                        loadTimer.start();
-                        intermediateVars = SaveCache
-                                .loadSaveCacheFromFile(saveCacheSerial
-                                        .getPath());
-
-                        mainFormula = intermediateVars.getMainFormula();
-                        // assertPartitionFormulas = intermediateVars
-                        // .getAssertPartitionFormulas();
-                        tseitinEncoding = intermediateVars.getTseitinEncoding();
-
-                        loadTimer.stop();
-                        Util.printToSystemOutWithWallClockTimePrefix("Serialized cache loaded in: "
-                                + loadTimer);
-                        rootProof = intermediateVars.getProof();
-
-                        assert (rootProof != null);
-
-                    } else
-                        throw new RuntimeException(
-                                "loading from cache, but cache not enabled!!");
-
-                } catch (IOException exc) {
-                    Util.printToSystemOutWithWallClockTimePrefix("ERROR: Could not read cached proof!");
-                }
-            }
-
-            if (!VeriTSolver.isActive()) {
-                Util.printToSystemOutWithWallClockTimePrefix("start proof transformations and interpolation calculations.");
-                Timer interpolationTimer = new Timer();
-                interpolationTimer.start();
-
-                List<PropositionalVariable> controlVars = intermediateVars
-                        .getControlVars();
-                intermediateVars = null; // Allow this to be garbage collected
-                iteTrees = proofTransformationAndInterpolation(rootProof,
-                        controlVars);
-                rootProof = null; // Allow this to be garbage collected
-                interpolationTimer.stop();
-                Util.printToSystemOutWithWallClockTimePrefix("finished proof transformations and interpolation calculations in "
-                        + interpolationTimer + ".\n");
-            }
-        }
-
-        // Now we have results. Let's check them and write them to a file.
-        String outputStr = createOutputString(sourceFile, iteTrees);
-
-        if (options.isCheckResult()) {
-            Util.printToSystemOutWithWallClockTimePrefix("Starting to check results with z3...");
-            Timer checkTimer = new Timer();
-            checkTimer.start();
-            SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
-            z3.solve(outputStr);
-
-            switch (z3.getState()) {
-            case SMTSolver.UNSAT:
-                Util.printToSystemOutWithWallClockTimePrefix("SUCCESSFULLY MODEL-CHECKED RESULTS WITH Z3! :-)");
-                break;
-            case SMTSolver.SAT:
-                noErrors = false;
-                Util.printToSystemOutWithWallClockTimePrefix("ERROR: Z3 tells us SAT. Implementation of control signal is not correct");
-                break;
-            default:
-                noErrors = false;
-                Util.printToSystemOutWithWallClockTimePrefix("Z3 OUTCOME ---->  UNKNOWN! CHECK ERROR STREAM.");
-            }
-            checkTimer.stop();
-            Util.printToSystemOutWithWallClockTimePrefix("Check finished in "
-                    + checkTimer);
-
-        }
-
-        // write output file
-        try {
-            System.out
-                    .println(" Writing output to file " + options.getOutput());
-            FileWriter fstream = new FileWriter(options.getOutput());
-            fstream.write(outputStr);
-            fstream.close();
-        } catch (IOException exc) {
-            System.err.println("Error while writing to output file: "
-                    + options.getOutput());
-            exc.printStackTrace();
-            noErrors = false;
-        }
-
-        Util.printToSystemOutWithWallClockTimePrefix(" done!");
-
-        // All done :-)
-        overallTimer.stop();
-        printEnd(noErrors, overallTimer);
-        System.err.println(Suraq.extTimer);
-        return;
     }
 
     /**
@@ -1756,7 +1325,7 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("start input transformations");
             Timer inputTransformationTimer = new Timer();
             inputTransformationTimer.start();
-            String solverInputStr = inputTransformations(sourceFile);
+            inputTransformations(sourceFile);
             controlVariables = logicParser.getControlVariables();
             inputTransformationTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("finished input transformations in "
@@ -1770,9 +1339,12 @@ public class Suraq implements Runnable {
                     Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
                     Timer proofcalculationTimer = new Timer();
                     proofcalculationTimer.start();
-
+                    List<Formula> tseitinPartitionsList = new ArrayList<Formula>(
+                            tseitinPartitions.size());
+                    for (Integer key : tseitinPartitions.keySet())
+                        tseitinPartitionsList.add(tseitinPartitions.get(key));
                     VeriTSolver veriT = new VeriTSolver();
-                    veriT.solve(solverInputStr);
+                    veriT.solve(tseitinPartitionsList);
                     Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
                     try {
                         proofReader = veriT.getStream();
@@ -2098,7 +1670,9 @@ public class Suraq implements Runnable {
                 constraints));
 
         // Adding declare-fun for array variables
-        Set<ArrayVariable> localArrayVars = constraint.getArrayVariables();
+        Set<ArrayVariable> localArrayVars = new HashSet<ArrayVariable>();
+        constraint.getArrayVariables(localArrayVars,
+                new HashSet<SMTLibObject>());
         localArrayVars.removeAll(this.logicParser.getArrayVariables());
         for (ArrayVariable var : localArrayVars) {
             SExpression declare = SExpression.makeDeclareFun(
@@ -2109,7 +1683,9 @@ public class Suraq implements Runnable {
         }
 
         // Adding declare-fun for domain variables
-        Set<DomainVariable> localDomainVars = constraint.getDomainVariables();
+        Set<DomainVariable> localDomainVars = new HashSet<DomainVariable>();
+        constraint.getDomainVariables(localDomainVars,
+                new HashSet<SMTLibObject>());
         localDomainVars.removeAll(this.logicParser.getDomainVariables());
         for (DomainVariable var : localDomainVars) {
             SExpression declare = SExpression.makeDeclareFun(
@@ -2120,8 +1696,9 @@ public class Suraq implements Runnable {
         }
 
         // Adding declare-fun for propositional variables
-        Set<PropositionalVariable> localPropositionalVars = constraint
-                .getPropositionalVariables();
+        Set<PropositionalVariable> localPropositionalVars = new HashSet<PropositionalVariable>();
+        constraint.getPropositionalVariables(localPropositionalVars,
+                new HashSet<SMTLibObject>());
         localPropositionalVars.removeAll(this.logicParser.getBoolVariables());
         localPropositionalVars
                 .removeAll(this.logicParser.getControlVariables());
@@ -2185,6 +1762,8 @@ public class Suraq implements Runnable {
      * @return SMT description to proof
      * 
      */
+    @SuppressWarnings("unused")
+    @Deprecated
     private String buildSMTDescriptionFromTseitinPartitions(
             String declarationStr, Map<Integer, Formula> tseitinPartitions) {
 
@@ -2222,6 +1801,8 @@ public class Suraq implements Runnable {
         return smtStr.toString();
     }
 
+    @SuppressWarnings("unused")
+    @Deprecated
     private String buildSMTDescriptionWithoutTsetin(String declarationStr) {
 
         StringBuffer smtStr = new StringBuffer();
@@ -2345,7 +1926,9 @@ public class Suraq implements Runnable {
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
-        assert (formula.getFunctionMacros().size() == 0);
+        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+        formula.getFunctionMacros(macros, new HashSet<SMTLibObject>());
+        assert (macros.isEmpty());
         noDependenceVars = new HashSet<Token>(
                 logicParser.getNoDependenceVariables());
 
@@ -2440,7 +2023,9 @@ public class Suraq implements Runnable {
         formula = ImpliesFormula.create(lambdaConstraints, formula);
 
         Set<Token> currentDependenceArrayVariables = new HashSet<Token>();
-        for (ArrayVariable var : formula.getArrayVariables())
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+        formula.getArrayVariables(arrayVars, new HashSet<SMTLibObject>());
+        for (ArrayVariable var : arrayVars)
             if (!noDependenceVars.contains(Token.generate(var.getVarName())))
                 currentDependenceArrayVariables.add(Token.generate(var
                         .getVarName()));
@@ -2734,7 +2319,8 @@ public class Suraq implements Runnable {
                 currentCount = currentCount >> 1;
             }
 
-            tempFormula = tempFormula.substituteFormula(variableSubstitutions);
+            tempFormula = tempFormula.substituteFormula(variableSubstitutions,
+                    new HashMap<SMTLibObject, SMTLibObject>());
             tempFormula = NotFormula.create(tempFormula);
             this.assertPartitionFormulas.put(count + 1, tempFormula);
             SExpression assertPartitionExpression = new SExpression();
@@ -2773,9 +2359,13 @@ public class Suraq implements Runnable {
                 SExpressionConstants.VALUE_TYPE);
         Map<Token, Integer> functionArity = new HashMap<Token, Integer>();
 
+        Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+        formula.getPropositionalVariables(pVars, done);
+        done.clear();
         Util.printToSystemOutWithWallClockTimePrefix("   step 1: prop. vars: "
-                + formula.getPropositionalVariables().size());
-        for (PropositionalVariable var : formula.getPropositionalVariables()) {
+                + pVars.size());
+        for (PropositionalVariable var : pVars) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(Token.generate(var.getVarName()),
                         SExpressionConstants.BOOL_TYPE);
@@ -2786,9 +2376,12 @@ public class Suraq implements Runnable {
                             SExpressionConstants.BOOL_TYPE, 0));
         }
 
+        Set<DomainVariable> dVars = new HashSet<DomainVariable>();
+        formula.getDomainVariables(dVars, done);
+        done.clear();
         Util.printToSystemOutWithWallClockTimePrefix("   step 2: domain vars: "
-                + formula.getDomainVariables().size());
-        for (DomainVariable var : formula.getDomainVariables()) {
+                + dVars.size());
+        for (DomainVariable var : dVars) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(Token.generate(var.getVarName()),
                         SExpressionConstants.VALUE_TYPE);
@@ -2799,12 +2392,15 @@ public class Suraq implements Runnable {
                     0));
         }
 
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+        formula.getArrayVariables(arrayVars, done);
+        done.clear();
         Util.printToSystemOutWithWallClockTimePrefix("   step 3: debug / Array Vars: "
-                + formula.getArrayVariables().size());
+                + arrayVars.size());
         // DEBUG
         // For debugging purposes, also handle array variables
         // (so that performing only some of the reductions can be tested)
-        for (ArrayVariable var : formula.getArrayVariables()) {
+        for (ArrayVariable var : arrayVars) {
             if (noDependenceVars.contains(var.toSmtlibV2())) {
                 varTypes.put(Token.generate(var.getVarName()),
                         SExpressionConstants.ARRAY_TYPE);
@@ -2815,10 +2411,12 @@ public class Suraq implements Runnable {
                     0));
         } // end debug
 
+        Set<UninterpretedFunction> ufs = new HashSet<UninterpretedFunction>();
+        formula.getUninterpretedFunctions(ufs, done);
+        done.clear();
         Util.printToSystemOutWithWallClockTimePrefix("   step 4: UF: "
-                + formula.getUninterpretedFunctions().size());
-        for (UninterpretedFunction function : formula
-                .getUninterpretedFunctions()) {
+                + ufs.size());
+        for (UninterpretedFunction function : ufs) {
             if (noDependenceVars.contains(function.getName())) {
                 varTypes.put(Token.generate(function.getName()),
                         SExpressionConstants.VALUE_TYPE);
@@ -2898,7 +2496,10 @@ public class Suraq implements Runnable {
             }
         }
         Util.printToSystemOutWithWallClockTimePrefix("\n   step 6: macro");
-        for (FunctionMacro macro : formula.getFunctionMacros())
+        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+        formula.getFunctionMacros(macros, done);
+        done.clear();
+        for (FunctionMacro macro : macros)
             outputExpressions.add(macro.toSmtlibV2());
     }
 
@@ -3015,6 +2616,8 @@ public class Suraq implements Runnable {
      * @return the Z3Proof Object
      * 
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     private Z3Proof parseProof(String proofStr,
             Set<PropositionalVariable> propsitionalVars,
             Set<DomainVariable> domainVars, Set<ArrayVariable> arrayVars,

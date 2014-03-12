@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
@@ -116,67 +117,83 @@ public class ArrayIte extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        Set<ArrayVariable> result = thenBranch.getArrayVariables();
-        result.addAll(elseBranch.getArrayVariables());
-        result.addAll(condition.getArrayVariables());
-        return result;
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getArrayVariables(result, done);
+        elseBranch.getArrayVariables(result, done);
+        condition.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> result = thenBranch.getDomainVariables();
-        result.addAll(elseBranch.getDomainVariables());
-        result.addAll(condition.getDomainVariables());
-        return result;
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getDomainVariables(result, done);
+        elseBranch.getDomainVariables(result, done);
+        condition.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> result = thenBranch
-                .getPropositionalVariables();
-        result.addAll(elseBranch.getPropositionalVariables());
-        result.addAll(condition.getPropositionalVariables());
-        return result;
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getPropositionalVariables(result, done);
+        elseBranch.getPropositionalVariables(result, done);
+        condition.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> result = thenBranch.getFunctionMacroNames();
-        result.addAll(elseBranch.getFunctionMacroNames());
-        result.addAll(condition.getFunctionMacroNames());
-        return result;
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getFunctionMacroNames(result, done);
+        elseBranch.getFunctionMacroNames(result, done);
+        condition.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = thenBranch.getFunctionMacros();
-        result.addAll(elseBranch.getFunctionMacros());
-        result.addAll(condition.getFunctionMacros());
-        return result;
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getFunctionMacros(result, done);
+        elseBranch.getFunctionMacros(result, done);
+        condition.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> result = thenBranch.getUninterpretedFunctionNames();
-        result.addAll(elseBranch.getUninterpretedFunctionNames());
-        result.addAll(condition.getUninterpretedFunctionNames());
-        return result;
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getUninterpretedFunctionNames(result, done);
+        elseBranch.getUninterpretedFunctionNames(result, done);
+        condition.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
@@ -221,14 +238,25 @@ public class ArrayIte extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        ArrayTerm convertedThenBranch = (ArrayTerm) thenBranch
-                .substituteTerm(paramMap);
-        ArrayTerm convertedElseBranch = (ArrayTerm) elseBranch
-                .substituteTerm(paramMap);
-        Formula convertedCondition = condition.substituteFormula(paramMap);
-        return ArrayIte.create(convertedCondition, convertedThenBranch,
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Term);
+            return (Term) done.get(this);
+        }
+        ArrayTerm convertedThenBranch = (ArrayTerm) thenBranch.substituteTerm(
+                paramMap, done);
+        ArrayTerm convertedElseBranch = (ArrayTerm) elseBranch.substituteTerm(
+                paramMap, done);
+        Formula convertedCondition = condition
+                .substituteFormula(paramMap, done);
+
+        Term result = ArrayIte.create(convertedCondition, convertedThenBranch,
                 convertedElseBranch);
+        assert (result != null);
+        done.put(this, result);
+        return result;
     }
 
     /**
@@ -366,12 +394,14 @@ public class ArrayIte extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        Set<UninterpretedFunction> result = thenBranch
-                .getUninterpretedFunctions();
-        result.addAll(elseBranch.getUninterpretedFunctions());
-        result.addAll(condition.getUninterpretedFunctions());
-        return result;
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getUninterpretedFunctions(result, done);
+        elseBranch.getUninterpretedFunctions(result, done);
+        condition.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**

@@ -19,6 +19,7 @@ import at.iaik.suraq.exceptions.WrongNumberOfParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.HashTagContainer;
 import at.iaik.suraq.util.ImmutableArrayList;
@@ -191,68 +192,73 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        Set<ArrayVariable> variables = new HashSet<ArrayVariable>();
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : parameters)
-            variables.addAll(term.getArrayVariables());
-        return variables;
+            term.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> variables = new HashSet<DomainVariable>();
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : parameters)
-            variables.addAll(term.getDomainVariables());
-        return variables;
+            term.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> variables = new HashSet<PropositionalVariable>();
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : parameters)
-            variables.addAll(term.getPropositionalVariables());
-        return variables;
+            term.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> result = new HashSet<String>();
-        if (UninterpretedPredicateInstance.method)
-            result.add(function.getName().toString());
-        for (Term term : parameters)
-            result.addAll(term.getUninterpretedFunctionNames());
-        return result;
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        result.add(this.function.getName().toString());
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> result = new HashSet<String>();
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : parameters)
-            result.addAll(term.getFunctionMacroNames());
-        return result;
+            term.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = new HashSet<FunctionMacro>();
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : parameters)
-            result.addAll(term.getFunctionMacros());
-        return result;
+            term.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
@@ -279,11 +285,17 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
         List<DomainTerm> convertedParameters = new ArrayList<DomainTerm>();
         for (int count = 0; count < parameters.size(); count++)
             convertedParameters.add((DomainTerm) parameters.get(count)
-                    .substituteTerm(paramMap));
+                    .substituteTerm(paramMap, done));
 
         UninterpretedPredicateInstance result;
         try {
@@ -293,6 +305,8 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             throw new RuntimeException(
                     "Unexpected error while subsituting parameters.", exc);
         }
+        assert (result != null);
+        done.put(this, result);
         return result;
     }
 
@@ -543,13 +557,9 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        Set<UninterpretedFunction> result = new HashSet<UninterpretedFunction>();
-        if (UninterpretedPredicateInstance.method) // TODO: remove IF
-            result.add(function);
-        for (Term term : parameters)
-            result.addAll(term.getUninterpretedFunctions());
-        return result;
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        result.add(function);
     }
 
     /**
@@ -664,8 +674,9 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        return (Term) substituteFormula(paramMap);
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        return (Term) substituteFormula(paramMap, done);
     }
 
     /**

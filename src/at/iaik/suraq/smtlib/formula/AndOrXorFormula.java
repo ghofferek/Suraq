@@ -106,33 +106,39 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        Set<ArrayVariable> variables = new HashSet<ArrayVariable>();
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Formula formula : formulas)
-            variables.addAll(formula.getArrayVariables());
-        return variables;
+            formula.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> variables = new HashSet<DomainVariable>();
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Formula formula : formulas)
-            variables.addAll(formula.getDomainVariables());
-        return variables;
+            formula.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> variables = new HashSet<PropositionalVariable>();
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Formula formula : formulas)
-            variables.addAll(formula.getPropositionalVariables());
-        return variables;
+            formula.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
@@ -176,33 +182,38 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> functionNames = new HashSet<String>();
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Formula formula : formulas)
-            functionNames.addAll(formula.getUninterpretedFunctionNames());
-        return functionNames;
+            formula.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> macroNames = new HashSet<String>();
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Formula formula : formulas)
-            macroNames.addAll(formula.getFunctionMacroNames());
-        return macroNames;
+            formula.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Formula formula : formulas)
-            macros.addAll(formula.getFunctionMacros());
-        return macros;
+            formula.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
@@ -255,12 +266,21 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
         List<Formula> convertedFormulas = new ArrayList<Formula>();
         for (Formula formula : formulas)
-            convertedFormulas.add(formula.substituteFormula(paramMap));
+            convertedFormulas.add(formula.substituteFormula(paramMap, done));
 
-        return create(convertedFormulas);
+        Formula result = create(convertedFormulas);
+        assert (result != null);
+        done.put(this, result);
+        return result;
     }
 
     /**
@@ -371,11 +391,13 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        Set<UninterpretedFunction> functionNames = new HashSet<UninterpretedFunction>();
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Formula formula : formulas)
-            functionNames.addAll(formula.getUninterpretedFunctions());
-        return functionNames;
+            formula.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**

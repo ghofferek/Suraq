@@ -16,6 +16,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.Util;
 
@@ -111,67 +112,83 @@ public class ArrayWrite extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        Set<ArrayVariable> result = arrayTerm.getArrayVariables();
-        result.addAll(indexTerm.getArrayVariables());
-        result.addAll(valueTerm.getArrayVariables());
-        return result;
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        arrayTerm.getArrayVariables(result, done);
+        indexTerm.getArrayVariables(result, done);
+        valueTerm.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> result = arrayTerm.getDomainVariables();
-        result.addAll(indexTerm.getDomainVariables());
-        result.addAll(valueTerm.getDomainVariables());
-        return result;
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        arrayTerm.getDomainVariables(result, done);
+        indexTerm.getDomainVariables(result, done);
+        valueTerm.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> result = arrayTerm
-                .getPropositionalVariables();
-        result.addAll(indexTerm.getPropositionalVariables());
-        result.addAll(valueTerm.getPropositionalVariables());
-        return result;
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        arrayTerm.getPropositionalVariables(result, done);
+        indexTerm.getPropositionalVariables(result, done);
+        valueTerm.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> result = arrayTerm.getFunctionMacroNames();
-        result.addAll(indexTerm.getFunctionMacroNames());
-        result.addAll(valueTerm.getFunctionMacroNames());
-        return result;
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        arrayTerm.getFunctionMacroNames(result, done);
+        indexTerm.getFunctionMacroNames(result, done);
+        valueTerm.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = arrayTerm.getFunctionMacros();
-        result.addAll(indexTerm.getFunctionMacros());
-        result.addAll(valueTerm.getFunctionMacros());
-        return result;
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        arrayTerm.getFunctionMacros(result, done);
+        indexTerm.getFunctionMacros(result, done);
+        valueTerm.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> result = arrayTerm.getUninterpretedFunctionNames();
-        result.addAll(indexTerm.getUninterpretedFunctionNames());
-        result.addAll(valueTerm.getUninterpretedFunctionNames());
-        return result;
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        arrayTerm.getUninterpretedFunctionNames(result, done);
+        indexTerm.getUninterpretedFunctionNames(result, done);
+        valueTerm.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
@@ -214,11 +231,20 @@ public class ArrayWrite extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        return ArrayWrite.create(
-                (ArrayTerm) arrayTerm.substituteTerm(paramMap),
-                (DomainTerm) indexTerm.substituteTerm(paramMap),
-                (DomainTerm) valueTerm.substituteTerm(paramMap));
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Term);
+            return (Term) done.get(this);
+        }
+        Term result = ArrayWrite.create(
+                (ArrayTerm) arrayTerm.substituteTerm(paramMap, done),
+                (DomainTerm) indexTerm.substituteTerm(paramMap, done),
+                (DomainTerm) valueTerm.substituteTerm(paramMap, done));
+        assert (result != null);
+        done.put(this, result);
+        return result;
     }
 
     /**
@@ -402,12 +428,14 @@ public class ArrayWrite extends ArrayTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        Set<UninterpretedFunction> result = arrayTerm
-                .getUninterpretedFunctions();
-        result.addAll(indexTerm.getUninterpretedFunctions());
-        result.addAll(valueTerm.getUninterpretedFunctions());
-        return result;
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        arrayTerm.getUninterpretedFunctions(result, done);
+        indexTerm.getUninterpretedFunctions(result, done);
+        valueTerm.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**

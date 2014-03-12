@@ -109,34 +109,42 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        Set<ArrayVariable> result = thenBranch.getArrayVariables();
-        result.addAll(elseBranch.getArrayVariables());
-        result.addAll(condition.getArrayVariables());
-        return result;
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getArrayVariables(result, done);
+        elseBranch.getArrayVariables(result, done);
+        condition.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> result = thenBranch.getDomainVariables();
-        result.addAll(elseBranch.getDomainVariables());
-        result.addAll(condition.getDomainVariables());
-        return result;
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getDomainVariables(result, done);
+        elseBranch.getDomainVariables(result, done);
+        condition.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> result = thenBranch
-                .getPropositionalVariables();
-        result.addAll(elseBranch.getPropositionalVariables());
-        result.addAll(condition.getPropositionalVariables());
-        return result;
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getPropositionalVariables(result, done);
+        elseBranch.getPropositionalVariables(result, done);
+        condition.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
@@ -174,33 +182,41 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> result = thenBranch.getUninterpretedFunctionNames();
-        result.addAll(elseBranch.getUninterpretedFunctionNames());
-        result.addAll(condition.getUninterpretedFunctionNames());
-        return result;
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getUninterpretedFunctionNames(result, done);
+        elseBranch.getUninterpretedFunctionNames(result, done);
+        condition.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> result = thenBranch.getFunctionMacroNames();
-        result.addAll(elseBranch.getFunctionMacroNames());
-        result.addAll(condition.getFunctionMacroNames());
-        return result;
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getFunctionMacroNames(result, done);
+        elseBranch.getFunctionMacroNames(result, done);
+        condition.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = thenBranch.getFunctionMacros();
-        result.addAll(elseBranch.getFunctionMacros());
-        result.addAll(condition.getFunctionMacros());
-        return result;
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getFunctionMacros(result, done);
+        elseBranch.getFunctionMacros(result, done);
+        condition.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
@@ -244,10 +260,20 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return PropositionalIte.create(condition.substituteFormula(paramMap),
-                thenBranch.substituteFormula(paramMap),
-                elseBranch.substituteFormula(paramMap));
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
+        Formula result = PropositionalIte.create(
+                condition.substituteFormula(paramMap, done),
+                thenBranch.substituteFormula(paramMap, done),
+                elseBranch.substituteFormula(paramMap, done));
+        assert (result != null);
+        done.put(this, result);
+        return result;
     }
 
     /**
@@ -404,12 +430,14 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        Set<UninterpretedFunction> result = thenBranch
-                .getUninterpretedFunctions();
-        result.addAll(elseBranch.getUninterpretedFunctions());
-        result.addAll(condition.getUninterpretedFunctions());
-        return result;
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        thenBranch.getUninterpretedFunctions(result, done);
+        elseBranch.getUninterpretedFunctions(result, done);
+        condition.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**

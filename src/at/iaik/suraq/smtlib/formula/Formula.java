@@ -37,48 +37,6 @@ public interface Formula extends SMTLibObject, Serializable {
     public Formula deepFormulaCopy();
 
     /**
-     * Returns a set of all array variables used in this formula.
-     * 
-     * @return a set of array variables used in this formula.
-     */
-    public Set<ArrayVariable> getArrayVariables();
-
-    /**
-     * Returns a set of all domain variables used in this formula.
-     * 
-     * @return a set of domain variables used in this formula.
-     */
-    public Set<DomainVariable> getDomainVariables();
-
-    /**
-     * Returns a set of all propositional variables used in this formula.
-     * 
-     * @return a set of propositional variables used in this formula.
-     */
-    public Set<PropositionalVariable> getPropositionalVariables();
-
-    /**
-     * Returns a set of all uninterpreted function names used in this formula.
-     * 
-     * @return a set of uninterpreted function names used in this formula.
-     */
-    public Set<String> getUninterpretedFunctionNames();
-
-    /**
-     * Returns a set of all function macro names used in this formula.
-     * 
-     * @return a set of all function macro names used in this formula.
-     */
-    public Set<String> getFunctionMacroNames();
-
-    /**
-     * Returns a set of all function macros used in this formula.
-     * 
-     * @return a set of all function macros used in this formula.
-     */
-    public Set<FunctionMacro> getFunctionMacros();
-
-    /**
      * Computes the index set of this formula. (Cf. Bradley/Manna, p. 295) The
      * set does <em>not</em> yet include the new variable <code>lambda</code>.
      * 
@@ -110,7 +68,8 @@ public interface Formula extends SMTLibObject, Serializable {
      *            the map to convert local terms to the caller's scope
      * @return a (new) formula, converted according to the given map.
      */
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap);
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done);
 
     /**
      * Replaces all instances of <code>oldFunction</code> with instances of
@@ -199,15 +158,6 @@ public interface Formula extends SMTLibObject, Serializable {
      */
     public Formula arrayReadsToUninterpretedFunctions(
             Set<Token> noDependenceVars);
-
-    /**
-     * Returns all uninterpreted functions used in this formula. Don't confuse
-     * with <code>getUninterpretedFunctionNames()</code> which just collects the
-     * names of the functions, and not the function objects itself.
-     * 
-     * @return a set of all uninterpreted functions used in this formula.
-     */
-    public Set<UninterpretedFunction> getUninterpretedFunctions();
 
     /**
      * Replaces all indices of array reads which are not simple domain variables

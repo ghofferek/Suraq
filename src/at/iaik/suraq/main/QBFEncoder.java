@@ -4,16 +4,22 @@
 package at.iaik.suraq.main;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.formula.AndFormula;
+import at.iaik.suraq.smtlib.formula.ArrayVariable;
+import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
+import at.iaik.suraq.smtlib.formula.FunctionMacro;
 import at.iaik.suraq.smtlib.formula.NotFormula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 
 /**
  * Helps encoding a Formula to QBF-Format
@@ -125,8 +131,9 @@ public class QBFEncoder {
                 + "\n");
 
         // input vars
-        Set<PropositionalVariable> inputVars = formula
-                .getPropositionalVariables();
+        Set<PropositionalVariable> inputVars = new HashSet<PropositionalVariable>();
+        formula.getPropositionalVariables(inputVars,
+                new HashSet<SMTLibObject>());
         inputVars.removeAll(controlSignals);
         inputVars.removeAll(tseitinEncoding);
         header = header.append("a ");
@@ -187,21 +194,29 @@ public class QBFEncoder {
             System.err.println("QBFEncoder: QBFEncoder is inactive!");
             return false;
         }
-        if (formula.getArrayVariables().size() != 0) {
+        Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
+        formula.getArrayVariables(arrayVars, new HashSet<SMTLibObject>());
+        if (!arrayVars.isEmpty()) {
             System.err.println("QBFEncoder: There are Arrays in the Formula!");
             return false;
         }
-        if (formula.getDomainVariables().size() != 0) {
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        formula.getDomainVariables(domainVars, new HashSet<SMTLibObject>());
+        if (!domainVars.isEmpty()) {
             System.err
                     .println("QBFEncoder: There are DomainVariables in the Formula!");
             return false;
         }
-        if (formula.getFunctionMacros().size() != 0) {
+        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+        formula.getFunctionMacros(macros, new HashSet<SMTLibObject>());
+        if (!macros.isEmpty()) {
             System.err
                     .println("QBFEncoder: There are FunctionMacros in the Formula!");
             return false;
         }
-        if (formula.getUninterpretedFunctions().size() != 0) {
+        Set<UninterpretedFunction> ufs = new HashSet<UninterpretedFunction>();
+        formula.getUninterpretedFunctions(ufs, new HashSet<SMTLibObject>());
+        if (!ufs.isEmpty()) {
             System.err
                     .println("QBFEncoder: There are UninterpretedFunctions in the Formula!");
             return false;

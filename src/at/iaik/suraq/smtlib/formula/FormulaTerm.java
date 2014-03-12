@@ -15,6 +15,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.HashTagContainer;
 
@@ -92,8 +93,18 @@ public class FormulaTerm extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return FormulaTerm.create(formula.substituteFormula(paramMap));
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
+        Formula result = FormulaTerm.create(formula.substituteFormula(paramMap,
+                done));
+        assert (result != null);
+        done.put(this, result);
+        return result;
     }
 
     /**
@@ -116,56 +127,86 @@ public class FormulaTerm extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        return formula.getArrayVariables();
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+
+        formula.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        return formula.getDomainVariables();
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+
+        formula.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        return formula.getPropositionalVariables();
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+
+        formula.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        return formula.getFunctionMacroNames();
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+
+        formula.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        return formula.getFunctionMacros();
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+
+        formula.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        return formula.getUninterpretedFunctionNames();
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+
+        formula.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
-        return (FormulaTerm) substituteFormula(paramMap);
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        return (FormulaTerm) substituteFormula(paramMap, done);
     }
 
     /**
@@ -250,8 +291,13 @@ public class FormulaTerm extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        return formula.getUninterpretedFunctions();
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+
+        formula.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**

@@ -30,6 +30,7 @@ import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.OrFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalConstant;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.smtsolver.VeriTSolver;
 import at.iaik.suraq.util.ImmutableSet;
 import at.iaik.suraq.util.Util;
@@ -186,7 +187,7 @@ public class ResProof {
 
             VeriTSolver solver = new VeriTSolver();
             solver.solveDimacs(tmpDimacsFile);
-            assert (solver.getState() == VeriTSolver.UNSAT);
+            assert (solver.getState() == SMTSolver.UNSAT);
             stream = solver.getStream();
             maxLit = literalIds.size();
 

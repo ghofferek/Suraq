@@ -313,30 +313,37 @@ public class ArrayProperty implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        return valueConstraint.getArrayVariables();
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        valueConstraint.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> result = indexGuard.getDomainVariables();
-        result.addAll(valueConstraint.getDomainVariables());
-        result.removeAll(uVars);
-        return result;
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        valueConstraint.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> result = indexGuard
-                .getPropositionalVariables();
-        result.addAll(valueConstraint.getPropositionalVariables());
-        return result;
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        indexGuard.getPropositionalVariables(result, done);
+        valueConstraint.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
@@ -353,30 +360,38 @@ public class ArrayProperty implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> result = indexGuard.getUninterpretedFunctionNames();
-        result.addAll(valueConstraint.getUninterpretedFunctionNames());
-        return result;
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        indexGuard.getUninterpretedFunctionNames(result, done);
+        valueConstraint.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> result = indexGuard.getFunctionMacroNames();
-        result.addAll(valueConstraint.getFunctionMacroNames());
-        return result;
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        indexGuard.getFunctionMacroNames(result, done);
+        valueConstraint.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = indexGuard.getFunctionMacros();
-        result.addAll(valueConstraint.getFunctionMacros());
-        return result;
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        indexGuard.getFunctionMacros(result, done);
+        valueConstraint.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
@@ -416,11 +431,20 @@ public class ArrayProperty implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
         try {
-            return ArrayProperty.create(uVars,
-                    indexGuard.substituteFormula(paramMap),
-                    valueConstraint.substituteFormula(paramMap));
+            Formula result = ArrayProperty.create(uVars,
+                    indexGuard.substituteFormula(paramMap, done),
+                    valueConstraint.substituteFormula(paramMap, done));
+            assert (result != null);
+            done.put(this, result);
+            return result;
         } catch (SuraqException exc) {
             throw new RuntimeException(
                     "Unable to convert ArrayProperty to caller scope.", exc);
@@ -460,9 +484,10 @@ public class ArrayProperty implements Formula {
             substitutions.put(Token.generate(uVars.get(count).toString()),
                     indices.get(count));
 
-        return ImpliesFormula.create(
-                indexGuard.substituteFormula(substitutions),
-                valueConstraint.substituteFormula(substitutions));
+        return ImpliesFormula.create(indexGuard.substituteFormula(
+                substitutions, new HashMap<SMTLibObject, SMTLibObject>()),
+                valueConstraint.substituteFormula(substitutions,
+                        new HashMap<SMTLibObject, SMTLibObject>()));
     }
 
     /**
@@ -588,11 +613,13 @@ public class ArrayProperty implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        Set<UninterpretedFunction> result = indexGuard
-                .getUninterpretedFunctions();
-        result.addAll(valueConstraint.getUninterpretedFunctions());
-        return result;
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        indexGuard.getUninterpretedFunctions(result, done);
+        valueConstraint.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**

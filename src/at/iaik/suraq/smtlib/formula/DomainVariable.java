@@ -17,6 +17,7 @@ import java.util.TreeSet;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.HashTagContainer;
 
@@ -148,50 +149,63 @@ public class DomainVariable extends DomainTerm implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.Term#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        return new HashSet<ArrayVariable>();
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        return;
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> result = new HashSet<DomainVariable>();
-        result.add(DomainVariable.create(varName));
-        return result;
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        result.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        return new HashSet<PropositionalVariable>();
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        return;
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getFunctionMacroNames()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        return new HashSet<FunctionMacro>();
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        return;
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getFunctionMacros()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        return new HashSet<String>();
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        return;
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        return new HashSet<String>();
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        return;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getUninterpretedFunctions(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        return;
     }
 
     /**
@@ -206,11 +220,21 @@ public class DomainVariable extends DomainTerm implements Serializable {
      * @see at.iaik.suraq.smtlib.formula.Term#substituteTerm(Map)
      */
     @Override
-    public Term substituteTerm(Map<Token, ? extends Term> paramMap) {
+    public Term substituteTerm(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Term);
+            return (Term) done.get(this);
+        }
+        Term result;
         if (paramMap.containsKey(Token.generate(varName)))
-            return paramMap.get(Token.generate(varName));
+            result = paramMap.get(Token.generate(varName));
         else
-            return this;
+            result = this;
+        assert (result != null);
+        done.put(this, result);
+        return result;
     }
 
     /**
@@ -257,14 +281,6 @@ public class DomainVariable extends DomainTerm implements Serializable {
             Set<Token> noDependenceVars) {
         // nothing to do
         return this;
-    }
-
-    /**
-     * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctions()
-     */
-    @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        return new HashSet<UninterpretedFunction>();
     }
 
     /**

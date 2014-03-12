@@ -6,6 +6,8 @@ package at.iaik.suraq.test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,6 +16,7 @@ import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.parser.LogicParser;
 import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.formula.PropositionalFunctionMacroInstance;
 
 /**
@@ -108,12 +111,11 @@ public class LogicParserTest {
         Assert.assertTrue(logicParser.getMainFormula().equals(
                 logicParser.getMainFormula()));
 
-        Assert.assertTrue(logicParser.getMainFormula()
-                .getUninterpretedFunctionNames().contains("alu-op-of"));
-        Assert.assertFalse(logicParser.getMainFormula()
-                .getUninterpretedFunctionNames().contains("Tintifax"));
-        Assert.assertEquals(logicParser.getMainFormula()
-                .getUninterpretedFunctionNames().size(), logicParser
-                .getMainFormula().getUninterpretedFunctions().size());
+        Set<String> ufs = new HashSet<String>();
+        logicParser.getMainFormula().getUninterpretedFunctionNames(ufs,
+                new HashSet<SMTLibObject>());
+        Assert.assertTrue(ufs.contains("alu-op-of"));
+        Assert.assertFalse(ufs.contains("Tintifax"));
+
     }
 }

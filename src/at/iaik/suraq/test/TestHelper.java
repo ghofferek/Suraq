@@ -12,6 +12,7 @@ import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -29,7 +30,7 @@ public class TestHelper {
         SuraqOptions.reset();
         Z3Proof.setInstanceCounter(0);
     }
-    
+
     private void handleParseError(ParseError exc) {
         System.err.println("PARSE ERROR!");
         System.err.println(exc.getMessage());
@@ -43,27 +44,41 @@ public class TestHelper {
                         + (exc.getContext() != "" ? exc.getContext()
                                 : "not available"));
     }
+
     protected String makeDeclarationsAndDefinitions(Formula formula) {
 
         Set<SExpression> outputExpressions = new HashSet<SExpression>();
 
-        for (PropositionalVariable var : formula.getPropositionalVariables())
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+        Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+        formula.getPropositionalVariables(pVars, done);
+        done.clear();
+
+        for (PropositionalVariable var : pVars)
             outputExpressions
                     .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
                             SExpressionConstants.BOOL_TYPE, 0));
 
-        for (DomainVariable var : formula.getDomainVariables())
+        Set<DomainVariable> dVars = new HashSet<DomainVariable>();
+        formula.getDomainVariables(dVars, done);
+        done.clear();
+        for (DomainVariable var : dVars)
             outputExpressions.add(SExpression.makeDeclareFun(
                     (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
                     0));
 
-        for (UninterpretedFunction function : formula
-                .getUninterpretedFunctions())
+        Set<UninterpretedFunction> ufs = new HashSet<UninterpretedFunction>();
+        formula.getUninterpretedFunctions(ufs, done);
+        done.clear();
+        for (UninterpretedFunction function : ufs)
             outputExpressions.add(SExpression.makeDeclareFun(
                     function.getName(), function.getType(),
                     function.getNumParams()));
 
-        for (FunctionMacro macro : this.consequent.getFunctionMacros())
+        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+        this.consequent.getFunctionMacros(macros, done);
+        done.clear();
+        for (FunctionMacro macro : macros)
             outputExpressions.add(macro.toSmtlibV2());
 
         String declarationsStr = "";
@@ -72,6 +87,7 @@ public class TestHelper {
 
         return declarationsStr;
     }
+
     protected String buildSMTDescription(String declarationStr,
             String formulaStr) {
         String smtStr = "";
@@ -88,16 +104,14 @@ public class TestHelper {
 
         return smtStr;
     }
-    
-    
-    protected Formula getFormulaOfFile(String filename)
-    {
+
+    protected Formula getFormulaOfFile(String filename) {
         File input = new File(filename);
-        //String z3InputStr = inputTransformations(sourceFile);
-        
-        try{
+        // String z3InputStr = inputTransformations(sourceFile);
+
+        try {
             SExpParser sExpParser = new SExpParser(input);
-            
+
             try {
                 sExpParser.parse();
                 assert (sExpParser.wasParsingSuccessfull());
@@ -105,7 +119,7 @@ public class TestHelper {
                 handleParseError(exc);
                 return null;
             }
-            
+
             LogicParser logicParser = new LogicParser(sExpParser.getRootExpr());
             logicParser.parse();
             assert (logicParser.wasParsingSuccessfull());
@@ -113,75 +127,63 @@ public class TestHelper {
             Formula formula = mainFormula.flatten();
             consequent = formula;
             return formula;
-        }catch(ParseError ex)
-        {
+        } catch (ParseError ex) {
             handleParseError(ex);
             throw new RuntimeException("Unable to parse proof!");
-        }
-        catch(Exception ex)
-        {
+        } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Other Exception");
         }
     }
-    
-    protected String transformFormulaToString(Formula mainFormula)
-    {
+
+    protected String transformFormulaToString(Formula mainFormula) {
         String declarationStr = makeDeclarationsAndDefinitions(mainFormula);
         String formulaSmtStr = buildSMTDescription(declarationStr,
                 mainFormula.toString());
         return formulaSmtStr;
     }
-    
-    protected void writeFile(String filename, String content)
-    {
-        try{
+
+    protected void writeFile(String filename, String content) {
+        try {
             File outputFile = new File(filename);
             FileWriter fstream = new FileWriter(outputFile);
             fstream.write(content);
             fstream.close();
-        }
-        catch(Exception ex)
-        {
-            System.err.println("Datei konnte nicht geschrieben werden: "+ filename);
+        } catch (Exception ex) {
+            System.err.println("Datei konnte nicht geschrieben werden: "
+                    + filename);
         }
     }
-    
-    protected boolean isFormulaValid(Formula formula, String description)
-    {
+
+    protected boolean isFormulaValid(Formula formula, String description) {
         this.setUp();
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3_4Path());
         NotFormula valid = NotFormula.create(formula);
         z3.solve(transformFormulaToString(valid));
         int valid2 = z3.getState();
-        if(valid2==1) //  (1=UNSAT, 2=SAT) 
+        if (valid2 == 1) // (1=UNSAT, 2=SAT)
         {
-            System.out.println("Formula '"+description+"' is valid");
+            System.out.println("Formula '" + description + "' is valid");
             return true;
-        }
-        else
-        {
-            System.out.println("Formula '"+description+"' is not valid");
+        } else {
+            System.out.println("Formula '" + description + "' is not valid");
             return false;
         }
     }
-    
-   protected boolean isFormulaSat(Formula formula, String description)
-    {
+
+    protected boolean isFormulaSat(Formula formula, String description) {
         this.setUp();
         SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
                 SuraqOptions.getZ3_4Path());
         z3.solve(transformFormulaToString(formula));
         int valid2 = z3.getState();
-        if(valid2==1) //  (1=UNSAT, 2=SAT) 
+        if (valid2 == 1) // (1=UNSAT, 2=SAT)
         {
-            System.out.println("Formula '"+description+"' is UNSAT");
+            System.out.println("Formula '" + description + "' is UNSAT");
             return false;
-        }
-        else
-        {
-            System.out.println("Formula '"+description+"' is SAT");
+        } else {
+            System.out.println("Formula '" + description + "' is SAT");
             return true;
         }
     }

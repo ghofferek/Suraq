@@ -11,6 +11,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 
 /**
@@ -179,8 +180,9 @@ public class TermFunctionMacro extends FunctionMacro {
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#getUninterpretedFunctions()
      */
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        return body.getUninterpretedFunctions();
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        body.getUninterpretedFunctions(result, done);
     }
 
     /**

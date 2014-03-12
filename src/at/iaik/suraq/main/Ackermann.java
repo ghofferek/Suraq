@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.DomainEq;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -20,6 +21,7 @@ import at.iaik.suraq.smtlib.formula.ImpliesFormula;
 import at.iaik.suraq.smtlib.formula.PropositionalEq;
 import at.iaik.suraq.smtlib.formula.PropositionalTerm;
 import at.iaik.suraq.smtlib.formula.PropositionalVariable;
+import at.iaik.suraq.smtlib.formula.UninterpretedFunction;
 import at.iaik.suraq.smtlib.formula.UninterpretedFunctionInstance;
 import at.iaik.suraq.smtlib.formula.UninterpretedPredicateInstance;
 import at.iaik.suraq.util.DebugHelper;
@@ -67,7 +69,10 @@ public class Ackermann {
 
         UninterpretedPredicateInstance.method = Ackermann._isPredicateActive;
         UninterpretedFunctionInstance.method = Ackermann._isFunctionActive;
-        for (String var : topLevelFormula.getUninterpretedFunctionNames())
+        Set<String> ufs = new HashSet<String>();
+        topLevelFormula.getUninterpretedFunctionNames(ufs,
+                new HashSet<SMTLibObject>());
+        for (String var : ufs)
             currentUninterpretedFunctions.add(Token.generate(var));
         UninterpretedPredicateInstance.method = true;
         UninterpretedFunctionInstance.method = true;
@@ -173,9 +178,12 @@ public class Ackermann {
 
         // debug check:
         if (Ackermann._isPredicateActive && Ackermann._isFunctionActive) {
-            System.out.println("Count of UF: "
-                    + topLevelFormula.getUninterpretedFunctions().size());
-            assert (topLevelFormula.getUninterpretedFunctions().size() == 0);
+
+            Set<UninterpretedFunction> ufs2 = new HashSet<UninterpretedFunction>();
+            topLevelFormula.getUninterpretedFunctions(ufs2,
+                    new HashSet<SMTLibObject>());
+            System.out.println("Count of UF: " + ufs2.size());
+            assert (ufs2.isEmpty());
         }
 
         // //////////////////////////////////////////////////////////

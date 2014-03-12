@@ -4,12 +4,19 @@
 package at.iaik.suraq.smtsolver;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
+import at.iaik.suraq.sexp.SExpressionConstants;
+import at.iaik.suraq.smtlib.formula.AndFormula;
+import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.ProcessResult;
 import at.iaik.suraq.util.ProcessUtil;
@@ -27,38 +34,12 @@ import at.iaik.suraq.util.Util;
  * @author chillebold
  * 
  */
-public class VeriTSolver {
+public class VeriTSolver extends SMTSolver {
     /**
      * Defines whether the method .solve(..) shall do anything or not (true =
      * active)
      */
     private static boolean isActive = true;
-
-    /**
-     * The method .solve(..) and the VeriT-Solver did not return until now
-     */
-    public static final int NOT_RUN = 0;
-
-    /**
-     * The VeriTSolver says that the given SMT-String is UNSAT
-     */
-    public static final int UNSAT = 1;
-
-    /**
-     * The VeriTSolver says that the given SMT-String is SAT
-     */
-    public static final int SAT = 2;
-
-    /**
-     * The VeriTSolver didn't say if the given SMT-String is SAT or UNSAT. Maybe
-     * there was an error on parsing or something unexpected.
-     */
-    public static final int UNKNOWN = -1;
-
-    /**
-     * The state of the Parser, by Default it is VeriTSolver.NOT_RUN
-     */
-    private int state = VeriTSolver.NOT_RUN;
 
     /**
      * The Path of the executable veriT
@@ -88,10 +69,12 @@ public class VeriTSolver {
      * 
      * @param smt2
      */
+    @Override
+    @Deprecated
     public void solve(String smt2) {
         // reset these variables
         lastFile = null;
-        state = VeriTSolver.NOT_RUN;
+        state = SMTSolver.NOT_RUN;
 
         if (!VeriTSolver.isActive) {
             System.err
@@ -161,11 +144,11 @@ public class VeriTSolver {
                 System.out.print("-");
                 continue;
             } else if (line.equalsIgnoreCase("sat")) {
-                state = VeriTSolver.SAT;
+                state = SMTSolver.SAT;
                 System.out.println("\nVeriT/SAT");
                 continue;
             } else if (line.equalsIgnoreCase("unsat")) {
-                state = VeriTSolver.UNSAT;
+                state = SMTSolver.UNSAT;
                 System.out.println("\nVeriT/UNSAT");
                 continue;
             }
@@ -177,8 +160,8 @@ public class VeriTSolver {
             // }
         }
 
-        if (state == VeriTSolver.NOT_RUN)
-            state = VeriTSolver.UNKNOWN;
+        if (state == SMTSolver.NOT_RUN)
+            state = SMTSolver.UNKNOWN;
 
         if (pResult.getExitCode() != 0) {
             System.out.println("EXIT CODE: " + pResult.getExitCode());
@@ -192,6 +175,137 @@ public class VeriTSolver {
         if (proofFile.exists()) {
             lastFile = proofFile;
         }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtsolver.SMTSolver#solve(at.iaik.suraq.smtlib.formula.Formula)
+     */
+    @Override
+    public void solve(Formula formula) {
+        List<Formula> formulas = new ArrayList<Formula>(1);
+        formulas.add(formula);
+        solve(formulas);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtsolver.SMTSolver#solve(at.iaik.suraq.smtlib.formula.Formula)
+     */
+    public void solve(Collection<? extends Formula> formulas) {
+        // reset these variables
+        lastFile = null;
+        state = SMTSolver.NOT_RUN;
+
+        if (!VeriTSolver.isActive) {
+            System.err
+                    .println("VeriTSolver didn't perform, because it was set inactive!");
+            return;
+        }
+
+        File tmpInFile;
+        try {
+            // in the following code, a temporary file in the root directory of
+            // the project is created.
+            // TODO: You may want to change the folder or overwrite the old
+            // files.
+            // To overwrite just call the constructor of File instead of
+            // createTempFile...
+            proofFile = File.createTempFile("veriT-proof", ".smt2", new File(
+                    "./"));
+            tmpInFile = File
+                    .createTempFile("veriT-in", ".smt2", new File("./"));
+            FileWriter fw = new FileWriter(tmpInFile);
+            BufferedWriter writer = new BufferedWriter(fw);
+            writer.write(SExpressionConstants.SET_LOGIC_QF_UF.toString());
+            writer.write("\n");
+            writer.write(SExpressionConstants.DECLARE_SORT_VALUE.toString());
+            writer.write("\n");
+            AndFormula conjunction = AndFormula
+                    .generate(new ArrayList<Formula>(formulas));
+            Util.writeDeclarations(conjunction, writer);
+            for (Formula formula : formulas) {
+                writer.write("(" + SExpressionConstants.ASSERT.toString() + " ");
+                formula.writeTo(writer);
+                writer.write(" )\n");
+            }
+            writer.write(SExpressionConstants.CHECK_SAT.toString());
+            writer.write(SExpressionConstants.EXIT.toString());
+            writer.close();
+            fw.close();
+            System.out.println("Temporary Out file: " + proofFile);
+            System.out.println("Temporary In  file: " + tmpInFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        String executionPath = VeriTSolver.path //
+                + " --proof-version=1" // 0|1
+                + " --proof=" + proofFile // temporary file
+                + " --proof-with-sharing" //
+                + " --proof-prune" //
+                + " --proof-merge" //
+                + " --input=smtlib2" //
+                + " --output=smtlib2" //
+                + " --disable-print-success" //
+                + " --disable-banner" //
+                // + " --max-time=SECONDS" // max. execution time in seconds
+                // + " --disable-ackermann" // maybe?
+                + " " + tmpInFile;
+
+        Util.printToSystemOutWithWallClockTimePrefix("starting veriT: "
+                + executionPath);
+
+        // ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
+        // smt2);
+        ProcessResult pResult = ProcessUtil.runExternalProcess(executionPath,
+                "");
+        Util.printToSystemOutWithWallClockTimePrefix("veriT is done.");
+
+        String output = pResult.getOutputStream();
+        String[] lines = output.split("\n");
+        // StringBuffer proofBuffer = new StringBuffer();
+
+        // parse the lines of the output:
+        for (String line : lines) {
+            if (line.equalsIgnoreCase("success")) {
+                // System.out.print(".");
+                continue;
+            } else if (line.equalsIgnoreCase("unsupported")) {
+                System.out.print("-");
+                continue;
+            } else if (line.equalsIgnoreCase("sat")) {
+                state = SMTSolver.SAT;
+                System.out.println("\nVeriT/SAT");
+                continue;
+            } else if (line.equalsIgnoreCase("unsat")) {
+                state = SMTSolver.UNSAT;
+                System.out.println("\nVeriT/UNSAT");
+                continue;
+            }
+
+            // for pipes this would be working:
+            // if (!line.equals("success") && !line.equals("sat") &&
+            // !line.equals("unsat")) {
+            // proofBuffer.append(line + "\n");
+            // }
+        }
+
+        if (state == SMTSolver.NOT_RUN)
+            state = SMTSolver.UNKNOWN;
+
+        if (pResult.getExitCode() != 0) {
+            System.out.println("EXIT CODE: " + pResult.getExitCode());
+            System.out.println("ERROR:     " + pResult.getErrorStream());
+            System.out.println("OUTPUT:    " + output);
+        }
+
+        // Code to view the proof (gedit required)
+        // ProcessUtil.runExternalProcess("gedit " + tmpOutFile);
+
+        if (proofFile.exists()) {
+            lastFile = proofFile;
+        }
+
     }
 
     /**
@@ -240,11 +354,11 @@ public class VeriTSolver {
                 System.out.print("-");
                 continue;
             } else if (line.equalsIgnoreCase("sat")) {
-                state = VeriTSolver.SAT;
+                state = SMTSolver.SAT;
                 System.out.println("\nVeriT/SAT");
                 continue;
             } else if (line.equalsIgnoreCase("unsat")) {
-                state = VeriTSolver.UNSAT;
+                state = SMTSolver.UNSAT;
                 System.out.println("\nVeriT/UNSAT");
                 continue;
             }
@@ -283,6 +397,7 @@ public class VeriTSolver {
      * 
      * @return a constant of VeriTSolver (NOT_RUN, UNSAT, SAT, UNKNOWN)
      */
+    @Override
     public int getState() {
         return state;
     }

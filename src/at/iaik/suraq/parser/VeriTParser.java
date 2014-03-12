@@ -25,6 +25,7 @@ import at.iaik.suraq.proof.VeritProof;
 import at.iaik.suraq.proof.VeritProofNode;
 import at.iaik.suraq.resProof.ResProof;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainTerm;
@@ -139,13 +140,22 @@ public class VeriTParser extends Parser {
         this.reader = reader;
 
         // extract all variables out of the old Formula
-        this.domainVariables = oldTopLevelFormula.getDomainVariables();
-        this.propositionalVariables = oldTopLevelFormula
-                .getPropositionalVariables();
-        this.uninterpretedFunctionNames = oldTopLevelFormula
-                .getUninterpretedFunctionNames();
-        this.uninterpretedFunctions = oldTopLevelFormula
-                .getUninterpretedFunctions();
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+        this.domainVariables = new HashSet<DomainVariable>();
+        oldTopLevelFormula.getDomainVariables(this.domainVariables, done);
+        done.clear();
+        this.propositionalVariables = new HashSet<PropositionalVariable>();
+        oldTopLevelFormula.getPropositionalVariables(
+                this.propositionalVariables, done);
+        done.clear();
+        this.uninterpretedFunctionNames = new HashSet<String>();
+        oldTopLevelFormula.getUninterpretedFunctionNames(
+                this.uninterpretedFunctionNames, done);
+        done.clear();
+        this.uninterpretedFunctions = new HashSet<UninterpretedFunction>();
+        oldTopLevelFormula.getUninterpretedFunctions(
+                this.uninterpretedFunctions, done);
+        done.clear();
 
         // add the tseitinVars
         propositionalVariables.addAll(tseitinVars);

@@ -15,6 +15,7 @@ import java.util.Set;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.HashTagContainer;
 
 /**
@@ -26,7 +27,7 @@ import at.iaik.suraq.util.HashTagContainer;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class Term implements Serializable {
+public abstract class Term implements Serializable, SMTLibObject {
 
     /**
      * 
@@ -102,48 +103,6 @@ public abstract class Term implements Serializable {
     public abstract Term deepTermCopy();
 
     /**
-     * Returns a set of all array variables used in this term.
-     * 
-     * @return a set of array variables used in this term.
-     */
-    public abstract Set<ArrayVariable> getArrayVariables();
-
-    /**
-     * Returns a set of all domain variables used in this term.
-     * 
-     * @return a set of domain variables used in this term.
-     */
-    public abstract Set<DomainVariable> getDomainVariables();
-
-    /**
-     * Returns a set of all propositional variables used in this term.
-     * 
-     * @return a set of propositional variables used in this term.
-     */
-    public abstract Set<PropositionalVariable> getPropositionalVariables();
-
-    /**
-     * Returns a set of all function macro names used in this term.
-     * 
-     * @return a set of function macro names used in this term.
-     */
-    public abstract Set<String> getFunctionMacroNames();
-
-    /**
-     * Returns a set of all function macros used in this term.
-     * 
-     * @return a set of all function macros used in this term.
-     */
-    public abstract Set<FunctionMacro> getFunctionMacros();
-
-    /**
-     * Returns a set of all uninterpreted function names used in this formula.
-     * 
-     * @return a set of uninterpreted function names used in this formula.
-     */
-    public abstract Set<String> getUninterpretedFunctionNames();
-
-    /**
      * Returns a new term that is a version of this term, with the substitutions
      * given by the given map applied. E.g., the local term of a function
      * macro's body is converted to the (more) global term of the macro's
@@ -153,7 +112,8 @@ public abstract class Term implements Serializable {
      *            the map to convert local terms to the caller's scope
      * @return a (new) term, converted according to the given map.
      */
-    public abstract Term substituteTerm(Map<Token, ? extends Term> paramMap);
+    public abstract Term substituteTerm(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done);
 
     /**
      * Computes the index set of this term. I.e., if it is an array read, its
@@ -174,6 +134,7 @@ public abstract class Term implements Serializable {
      * 
      * @return this term as an SMTLIBv2 s-expression.
      */
+    @Override
     public abstract SExpression toSmtlibV2();
 
     /**
@@ -222,11 +183,6 @@ public abstract class Term implements Serializable {
             Set<Token> noDependenceVars);
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
-     */
-    public abstract Set<UninterpretedFunction> getUninterpretedFunctions();
-
-    /**
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
@@ -268,6 +224,7 @@ public abstract class Term implements Serializable {
      * 
      * @return assert-partition of the element.
      */
+    @Override
     public abstract Set<Integer> getPartitionsFromSymbols();
 
     /**
@@ -365,5 +322,13 @@ public abstract class Term implements Serializable {
      * @throws IOException
      */
     public abstract void writeTo(Writer writer) throws IOException;
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return this.toString().compareTo(o.toString());
+    }
 
 }

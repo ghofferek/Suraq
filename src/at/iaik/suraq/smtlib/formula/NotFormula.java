@@ -92,24 +92,36 @@ public class NotFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        return formula.getArrayVariables();
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        formula.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        return formula.getDomainVariables();
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        formula.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        return formula.getPropositionalVariables();
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        formula.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
@@ -215,24 +227,35 @@ public class NotFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        return formula.getUninterpretedFunctionNames();
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        formula.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        return formula.getFunctionMacroNames();
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        formula.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        return formula.getFunctionMacros();
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        formula.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
@@ -269,8 +292,18 @@ public class NotFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return NotFormula.create(formula.substituteFormula(paramMap));
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
+        Formula result = NotFormula.create(formula.substituteFormula(paramMap,
+                done));
+        assert (result != null);
+        done.put(this, result);
+        return result;
     }
 
     /**
@@ -386,8 +419,12 @@ public class NotFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        return formula.getUninterpretedFunctions();
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        formula.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**
@@ -604,7 +641,8 @@ public class NotFormula extends BooleanCombinationFormula {
     @Override
     public Formula uninterpretedFunctionsBackToArrayReads(
             Set<ArrayVariable> arrayVars) {
-        return NotFormula.create(formula.uninterpretedFunctionsBackToArrayReads(arrayVars));
+        return NotFormula.create(formula
+                .uninterpretedFunctionsBackToArrayReads(arrayVars));
     }
 
     /**

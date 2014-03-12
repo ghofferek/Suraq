@@ -14,6 +14,7 @@ import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 
 /**
@@ -235,7 +236,8 @@ public class PropositionalFunctionMacro extends FunctionMacro {
 
         Formula bodyCopy = body.deepFormulaCopy();
 
-        bodyCopy = bodyCopy.substituteFormula(paramMap);
+        bodyCopy = bodyCopy.substituteFormula(paramMap,
+                new HashMap<SMTLibObject, SMTLibObject>());
         bodyCopy = bodyCopy.simplify();
 
         if (bodyCopy instanceof PropositionalConstant)
@@ -291,8 +293,9 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        return body.getUninterpretedFunctions();
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        body.getUninterpretedFunctions(result, done);
     }
 
     /**

@@ -135,33 +135,39 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        Set<ArrayVariable> variables = new HashSet<ArrayVariable>();
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : paramMap.values())
-            variables.addAll(term.getArrayVariables());
-        return variables;
+            term.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> variables = new HashSet<DomainVariable>();
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : paramMap.values())
-            variables.addAll(term.getDomainVariables());
-        return variables;
+            term.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> variables = new HashSet<PropositionalVariable>();
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : paramMap.values())
-            variables.addAll(term.getPropositionalVariables());
-        return variables;
+            term.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
@@ -178,38 +184,34 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> functionNames = new HashSet<String>();
-        functionNames.addAll(macro.getBody().getUninterpretedFunctionNames());
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : paramMap.values())
-            functionNames.addAll(term.getUninterpretedFunctionNames());
-        return functionNames;
+            term.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> macroNames = new HashSet<String>();
-        macroNames.add(macro.getName().toString());
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : paramMap.values())
-            macroNames.addAll(term.getFunctionMacroNames());
-        macroNames.addAll(macro.getBody().getFunctionMacroNames());
-        return macroNames;
+            term.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
-        macros.add(macro);
-        for (Term term : paramMap.values())
-            macros.addAll(term.getFunctionMacros());
-        macros.addAll(macro.getBody().getFunctionMacros());
-        return macros;
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        result.add(this.macro);
     }
 
     /**
@@ -248,7 +250,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
         Set<DomainTerm> localIndexSet = macro.getBody().getIndexSet();
         Set<DomainTerm> result = new HashSet<DomainTerm>();
         for (DomainTerm term : localIndexSet) {
-            result.add((DomainTerm) term.substituteTerm(paramMap));
+            result.add((DomainTerm) term.substituteTerm(paramMap,
+                    new HashMap<SMTLibObject, SMTLibObject>()));
         }
         return result;
     }
@@ -257,16 +260,27 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
         Map<Token, Term> convertedMap = new HashMap<Token, Term>();
 
         for (Token token : this.paramMap.keySet())
-            convertedMap.put(token,
-                    this.paramMap.get(token).substituteTerm(paramMap));
+            convertedMap.put(
+                    token,
+                    this.paramMap.get(token).substituteTerm(paramMap,
+                            new HashMap<SMTLibObject, SMTLibObject>()));
 
         try {
-            return PropositionalFunctionMacroInstance.create(macro,
+            Formula result = PropositionalFunctionMacroInstance.create(macro,
                     convertedMap);
+            assert (result != null);
+            done.put(this, result);
+            return result;
         } catch (InvalidParametersException exc) {
             throw new RuntimeException(
                     "Unexpected exception while converting PropositionalFunctionMacroInstance to caller scope.",
@@ -340,7 +354,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public Formula flatten() {
-        return macro.getBody().substituteFormula(paramMap).flatten();
+        HashMap<SMTLibObject, SMTLibObject> done = new HashMap<SMTLibObject, SMTLibObject>();
+        return macro.getBody().substituteFormula(paramMap, done).flatten();
     }
 
     /**
@@ -364,8 +379,10 @@ public class PropositionalFunctionMacroInstance implements Formula {
         Set<Formula> localConstraints = new HashSet<Formula>();
         PropositionalFunctionMacro macro = this.macro.removeArrayWrites(
                 topLevelFormula, localConstraints, noDependenceVars);
-        for (Formula localConstraint : localConstraints)
-            constraints.add(localConstraint.substituteFormula(paramMap));
+        for (Formula localConstraint : localConstraints) {
+            Map<SMTLibObject, SMTLibObject> done = new HashMap<SMTLibObject, SMTLibObject>();
+            constraints.add(localConstraint.substituteFormula(paramMap, done));
+        }
 
         Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token token : paramMap.keySet()) {
@@ -414,8 +431,13 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        return macro.getUninterpretedFunctions();
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        for (Term term : paramMap.values())
+            term.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**
@@ -463,8 +485,10 @@ public class PropositionalFunctionMacroInstance implements Formula {
 
         // TODO: does substituteFormula change the localConstraint object? i
         // hope not
-        for (Formula localConstraint : localConstraints)
-            constraints.add(localConstraint.substituteFormula(paramMap));
+        for (Formula localConstraint : localConstraints) {
+            Map<SMTLibObject, SMTLibObject> done = new HashMap<SMTLibObject, SMTLibObject>();
+            constraints.add(localConstraint.substituteFormula(paramMap, done));
+        }
 
         Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token token : paramMap.keySet()) {

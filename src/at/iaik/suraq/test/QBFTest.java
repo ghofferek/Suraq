@@ -2,6 +2,7 @@ package at.iaik.suraq.test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -15,6 +16,7 @@ import at.iaik.suraq.main.QBFSolver;
 import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.main.TseitinEncoding;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.Z3Proof;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -114,8 +116,10 @@ public class QBFTest {
             // return false;
         }
 
+        Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+        formula.getPropositionalVariables(pVars, new HashSet<SMTLibObject>());
         ArrayList<PropositionalVariable> tmp = new ArrayList<PropositionalVariable>(
-                formula.getPropositionalVariables());
+                pVars);
 
         TseitinEncoding tseitin = new TseitinEncoding();
         formula = tseitin.performTseitinEncodingWithoutZ3(formula);

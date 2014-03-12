@@ -2329,7 +2329,8 @@ public class TransformedZ3Proof extends Z3Proof {
                 substitutionsMap.put(Token.generate(tseitinVar.getVarName()),
                         FormulaTerm.create(tseitinEncoding.get(tseitinVar)));
 
-            trees.put(signal, tree.substituteFormula(substitutionsMap));
+            trees.put(signal, tree.substituteFormula(substitutionsMap,
+                    new HashMap<SMTLibObject, SMTLibObject>()));
         }
 
         return trees;

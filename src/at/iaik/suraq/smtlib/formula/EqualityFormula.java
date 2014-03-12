@@ -140,33 +140,39 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        Set<ArrayVariable> variables = new HashSet<ArrayVariable>();
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : terms)
-            variables.addAll(term.getArrayVariables());
-        return variables;
+            term.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> variables = new HashSet<DomainVariable>();
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : terms)
-            variables.addAll(term.getDomainVariables());
-        return variables;
+            term.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> variables = new HashSet<PropositionalVariable>();
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : terms)
-            variables.addAll(term.getPropositionalVariables());
-        return variables;
+            term.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
@@ -212,33 +218,38 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> functionNames = new HashSet<String>();
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : terms)
-            functionNames.addAll(term.getUninterpretedFunctionNames());
-        return functionNames;
+            term.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> macroNames = new HashSet<String>();
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : terms)
-            macroNames.addAll(term.getFunctionMacroNames());
-        return macroNames;
+            term.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : terms)
-            macros.addAll(term.getFunctionMacros());
-        return macros;
+            term.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
@@ -282,12 +293,21 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
         List<Term> convertedTerms = new ArrayList<Term>();
         for (Term term : terms)
-            convertedTerms.add(term.substituteTerm(paramMap));
+            convertedTerms.add(term.substituteTerm(paramMap, done));
         try {
-            return EqualityFormula.create(convertedTerms, equal);
+            Formula result = EqualityFormula.create(convertedTerms, equal);
+            assert (result != null);
+            done.put(this, result);
+            return result;
         } catch (IncomparableTermsException exc) {
             throw new RuntimeException(
                     "Unexpected problems with term types while converting EqualityFormula to caller scope.",
@@ -451,11 +471,13 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        Set<UninterpretedFunction> functions = new HashSet<UninterpretedFunction>();
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         for (Term term : terms)
-            functions.addAll(term.getUninterpretedFunctions());
-        return functions;
+            term.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**

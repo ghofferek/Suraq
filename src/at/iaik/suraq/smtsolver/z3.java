@@ -45,6 +45,7 @@ public class z3 extends SMTSolver {
      * @see at.iaik.suraq.smtsolver.SMTSolver#solveStr(String)
      */
     @Override
+    @Deprecated
     public void solve(String smtStr) {
         String executionPath = z3Path;
 
@@ -86,7 +87,6 @@ public class z3 extends SMTSolver {
     /**
      * @see at.iaik.suraq.smtsolver.SMTSolver#solve2(String)
      */
-    @Override
     public String solve2(String smtStr) {
         String executionPath = z3Path;
         if (System.getProperty("os.name").toLowerCase().contains("windows"))
@@ -175,4 +175,87 @@ public class z3 extends SMTSolver {
         return pResult.getOutputStream();
 
     }
+
+    /**
+     * @see at.iaik.suraq.smtsolver.SMTSolver#solve(at.iaik.suraq.smtlib.formula.Formula)
+     */
+    @Override
+    public void solve(Formula formula) {
+        File tmpInFile = null;
+        try {
+            // in the following code, a temporary file in the root directory of
+            // the project is created.
+            // TODO: You may want to change the folder or overwrite the old
+            // files.
+            // To overwrite just call the constructor of File instead of
+            // createTempFile...
+
+            tmpInFile = File.createTempFile("z3-in-solve", ".smt2", new File(
+                    "./"));
+            FileWriter fw = new FileWriter(tmpInFile);
+            BufferedWriter writer = new BufferedWriter(fw);
+            writer.write(SExpressionConstants.SET_LOGIC_QF_UF.toString());
+            writer.write("\n");
+            writer.write(SExpressionConstants.DECLARE_SORT_VALUE.toString());
+            writer.write("\n");
+            Util.writeDeclarations(formula, writer);
+            writer.write("(" + SExpressionConstants.ASSERT.toString() + " ");
+            formula.writeTo(writer);
+            writer.write(" )\n");
+            writer.write(SExpressionConstants.CHECK_SAT.toString());
+            writer.write(SExpressionConstants.EXIT.toString());
+            writer.close();
+            fw.close();
+            System.out.println("Temporary z3 file: " + tmpInFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        assert (tmpInFile != null);
+        String executionPath = z3Path;
+        if (System.getProperty("os.name").toLowerCase().contains("windows"))
+            executionPath += " /smt2 /file:" + tmpInFile.toString();
+        else
+            executionPath += " -smt2 -file:" + tmpInFile.toString();
+
+        ProcessResultStreams pResult = ProcessUtil
+                .runExternalProcessWithStreamResult(executionPath);
+
+        if (pResult.getExitCode() != 0) {
+
+            System.out.println("EXIT CODE: " + pResult.getExitCode());
+            System.out.println("ERROR from Z3:");
+            String line;
+            try {
+                while ((line = pResult.getErrorStream().readLine()) != null)
+                    System.out.println(line);
+                System.out.println();
+                System.out.println("OUTPUT from Z3:");
+                while ((line = pResult.getOutputStream().readLine()) != null)
+                    System.out.println(line);
+            } catch (IOException exc) {
+                System.out
+                        .println("IOException while trying to display Z3 output.");
+                throw new RuntimeException(exc);
+            }
+
+        }
+        String line;
+        try {
+            while ((line = pResult.getOutputStream().readLine()) != null) {
+
+                if (line.equals("sat"))
+                    state = SMTSolver.SAT;
+                else if (line.equals("unsat"))
+                    state = SMTSolver.UNSAT;
+            }
+        } catch (IOException exc) {
+            throw new RuntimeException("IOException while reading z3 output",
+                    exc);
+        }
+
+        if (state == SMTSolver.NOT_RUN)
+            state = SMTSolver.UNKNOWN;
+    }
+
 }

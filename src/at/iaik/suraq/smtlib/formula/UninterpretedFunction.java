@@ -7,7 +7,9 @@ import java.io.Serializable;
 import java.util.Set;
 import java.util.TreeSet;
 
+import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 
 /**
@@ -19,7 +21,7 @@ import at.iaik.suraq.util.FormulaCache;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public class UninterpretedFunction implements Serializable {
+public class UninterpretedFunction implements SMTLibObject, Serializable {
 
     /**
      * 
@@ -70,8 +72,7 @@ public class UninterpretedFunction implements Serializable {
     public static UninterpretedFunction create(UninterpretedFunction original) {
         return original; // experimental
     }
-    
-    
+
     /**
      * 
      * Constructs a new <code>UninterpretedFunction</code>.
@@ -92,7 +93,7 @@ public class UninterpretedFunction implements Serializable {
         this.hashCode = name.hashCode() * 31 * 31 + type.hashCode() * 31
                 + numParams;
     }
-    
+
     /**
      * 
      * Constructs a new <code>UninterpretedFunction</code>.
@@ -229,6 +230,97 @@ public class UninterpretedFunction implements Serializable {
         Set<Integer> partitions = new TreeSet<Integer>();
         partitions.add(this.assertPartition);
         return partitions;
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(SMTLibObject o) {
+        return name.compareTo(((UninterpretedFunction) o).name);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getPartitionsFromSymbols()
+     */
+    @Override
+    public Set<Integer> getPartitionsFromSymbols() {
+        assert (false); // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#toSmtlibV2()
+     */
+    @Override
+    public SExpression toSmtlibV2() {
+        return name;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getArrayVariables(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        return;
+
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getDomainVariables()
+     */
+    @Override
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        return;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getPropositionalVariables()
+     */
+    @Override
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        return;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getUninterpretedFunctionNames()
+     */
+    @Override
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        result.add(name.toString());
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getUninterpretedFunctions(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        result.add(this);
+
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getFunctionMacroNames()
+     */
+    @Override
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        return;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getFunctionMacros()
+     */
+    @Override
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        return;
     }
 
 }

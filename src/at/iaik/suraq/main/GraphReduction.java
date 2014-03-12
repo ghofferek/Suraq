@@ -18,6 +18,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.EqualityFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -245,7 +246,9 @@ public class GraphReduction {
 
         // delete all NoDepVars that are not propositional vars
         HashSet<Token> toDelete = new HashSet<Token>(noDependenceVars);
-        toDelete.removeAll(formula.getPropositionalVariables());
+        Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+        formula.getPropositionalVariables(pVars, new HashSet<SMTLibObject>());
+        toDelete.removeAll(pVars);
         noDependenceVars.removeAll(toDelete);
 
         return ImpliesFormula.create(btrans, formula);

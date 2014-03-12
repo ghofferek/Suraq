@@ -18,6 +18,7 @@ import at.iaik.suraq.parser.SExpParser;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -203,23 +204,35 @@ public class AckermannTest {
 
         Set<SExpression> outputExpressions = new HashSet<SExpression>();
 
-        for (PropositionalVariable var : formula.getPropositionalVariables())
+        Set<PropositionalVariable> propVars = new HashSet<PropositionalVariable>();
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+        formula.getPropositionalVariables(propVars, done);
+        done.clear();
+        for (PropositionalVariable var : propVars)
             outputExpressions
                     .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
                             SExpressionConstants.BOOL_TYPE, 0));
 
-        for (DomainVariable var : formula.getDomainVariables())
+        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
+        formula.getDomainVariables(domainVars, done);
+        done.clear();
+        for (DomainVariable var : domainVars)
             outputExpressions.add(SExpression.makeDeclareFun(
                     (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
                     0));
 
-        for (UninterpretedFunction function : formula
-                .getUninterpretedFunctions())
+        Set<UninterpretedFunction> ufs = new HashSet<UninterpretedFunction>();
+        formula.getUninterpretedFunctions(ufs, done);
+        done.clear();
+        for (UninterpretedFunction function : ufs)
             outputExpressions.add(SExpression.makeDeclareFun(
                     function.getName(), function.getType(),
                     function.getNumParams()));
 
-        for (FunctionMacro macro : this.consequent.getFunctionMacros())
+        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+        this.consequent.getFunctionMacros(macros, done);
+        done.clear();
+        for (FunctionMacro macro : macros)
             outputExpressions.add(macro.toSmtlibV2());
 
         String declarationsStr = "";

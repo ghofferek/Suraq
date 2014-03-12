@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import at.iaik.suraq.exceptions.ParseError;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
@@ -143,8 +145,8 @@ public class TseitinParser extends SMTLibParser {
         tseitinVariables.clear();
         tseitinVariables.addAll(tmpList);
 
-        rootFormula = (AndFormula.generate(clauses))
-                .substituteFormula(renameMap);
+        rootFormula = (AndFormula.generate(clauses)).substituteFormula(
+                renameMap, new HashMap<SMTLibObject, SMTLibObject>());
         parsingSuccessfull = true;
     }
 
@@ -297,8 +299,7 @@ public class TseitinParser extends SMTLibParser {
         Formula negFormula = buildNegativeFormula(clauses, tseitinVar);
         assert (posFormula != null);
         assert (negFormula != null);
-        while (!Util
-                .checkEquivalenceOfFormulas(posFormula, negFormula)) {
+        while (!Util.checkEquivalenceOfFormulas(posFormula, negFormula)) {
             clauses.remove(clauses.size() - 1); // remove last element from list
             posFormula = buildPositiveFormula(clauses, tseitinVar);
             negFormula = buildNegativeFormula(clauses, tseitinVar);
@@ -489,8 +490,8 @@ public class TseitinParser extends SMTLibParser {
 
         List<Integer> tseitinIndices = new ArrayList<Integer>();
 
-        Set<PropositionalVariable> propVars = formula
-                .getPropositionalVariables();
+        Set<PropositionalVariable> propVars = new HashSet<PropositionalVariable>();
+        formula.getPropositionalVariables(propVars, new HashSet<SMTLibObject>());
 
         Iterator<PropositionalVariable> iterator = propVars.iterator();
         while (iterator.hasNext()) {

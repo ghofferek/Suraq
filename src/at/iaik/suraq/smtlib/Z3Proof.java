@@ -45,7 +45,7 @@ import at.iaik.suraq.util.Util;
  * @author Bettina Koenighofer <bettina.koenighofer@iaik.tugraz.at>
  * 
  */
-public class Z3Proof implements SMTLibObject, Serializable {
+public class Z3Proof implements Comparable<Z3Proof>, Serializable {
 
     /**
      * 
@@ -436,7 +436,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * 
      * @return this proof as an SMTLIBv2 s-expression.
      */
-    @Override
     public SExpression toSmtlibV2() {
         List<SExpression> children = new ArrayList<SExpression>();
         children.add(this.proofType);
@@ -461,7 +460,6 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * 
      * @return assert-partition of the element.
      */
-    @Override
     public Set<Integer> getPartitionsFromSymbols() {
         long operationId = DagOperationManager.startDAGOperation();
         Set<Integer> result = this
@@ -1504,23 +1502,35 @@ public class Z3Proof implements SMTLibObject, Serializable {
 
         Set<SExpression> outputExpressions = new HashSet<SExpression>();
 
-        for (PropositionalVariable var : formula.getPropositionalVariables())
+        Set<SMTLibObject> done = new HashSet<SMTLibObject>();
+        Set<PropositionalVariable> pVars = new HashSet<PropositionalVariable>();
+        formula.getPropositionalVariables(pVars, done);
+        done.clear();
+        for (PropositionalVariable var : pVars)
             outputExpressions
                     .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
                             SExpressionConstants.BOOL_TYPE, 0));
 
-        for (DomainVariable var : formula.getDomainVariables())
+        Set<DomainVariable> dVars = new HashSet<DomainVariable>();
+        formula.getDomainVariables(dVars, done);
+        done.clear();
+        for (DomainVariable var : dVars)
             outputExpressions.add(SExpression.makeDeclareFun(
                     (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
                     0));
 
-        for (UninterpretedFunction function : formula
-                .getUninterpretedFunctions())
+        Set<UninterpretedFunction> ufs = new HashSet<UninterpretedFunction>();
+        formula.getUninterpretedFunctions(ufs, done);
+        done.clear();
+        for (UninterpretedFunction function : ufs)
             outputExpressions.add(SExpression.makeDeclareFun(
                     function.getName(), function.getType(),
                     function.getNumParams()));
 
-        for (FunctionMacro macro : this.consequent.getFunctionMacros())
+        Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
+        this.consequent.getFunctionMacros(macros, done);
+        done.clear();
+        for (FunctionMacro macro : macros)
             outputExpressions.add(macro.toSmtlibV2());
 
         String declarationsStr = "";
@@ -1856,7 +1866,7 @@ public class Z3Proof implements SMTLibObject, Serializable {
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     @Override
-    public int compareTo(SMTLibObject o) {
+    public int compareTo(Z3Proof o) {
         return this.toString().compareTo(o.toString());
     }
 

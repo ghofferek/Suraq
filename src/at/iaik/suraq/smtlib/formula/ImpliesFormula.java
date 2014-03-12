@@ -95,31 +95,39 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getArrayVariables()
      */
     @Override
-    public Set<ArrayVariable> getArrayVariables() {
-        Set<ArrayVariable> result = leftSide.getArrayVariables();
-        result.addAll(rightSide.getArrayVariables());
-        return result;
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        leftSide.getArrayVariables(result, done);
+        rightSide.getArrayVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getDomainVariables()
      */
     @Override
-    public Set<DomainVariable> getDomainVariables() {
-        Set<DomainVariable> result = leftSide.getDomainVariables();
-        result.addAll(rightSide.getDomainVariables());
-        return result;
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        leftSide.getDomainVariables(result, done);
+        rightSide.getDomainVariables(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getPropositionalVariables()
      */
     @Override
-    public Set<PropositionalVariable> getPropositionalVariables() {
-        Set<PropositionalVariable> result = leftSide
-                .getPropositionalVariables();
-        result.addAll(rightSide.getPropositionalVariables());
-        return result;
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        leftSide.getPropositionalVariables(result, done);
+        rightSide.getPropositionalVariables(result, done);
+        done.add(this);
     }
 
     /**
@@ -151,30 +159,38 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctionNames()
      */
     @Override
-    public Set<String> getUninterpretedFunctionNames() {
-        Set<String> result = leftSide.getUninterpretedFunctionNames();
-        result.addAll(rightSide.getUninterpretedFunctionNames());
-        return result;
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        leftSide.getUninterpretedFunctionNames(result, done);
+        rightSide.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacroNames()
      */
     @Override
-    public Set<String> getFunctionMacroNames() {
-        Set<String> result = leftSide.getFunctionMacroNames();
-        result.addAll(rightSide.getFunctionMacroNames());
-        return result;
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        leftSide.getFunctionMacroNames(result, done);
+        rightSide.getFunctionMacroNames(result, done);
+        done.add(this);
     }
 
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getFunctionMacros()
      */
     @Override
-    public Set<FunctionMacro> getFunctionMacros() {
-        Set<FunctionMacro> result = leftSide.getFunctionMacros();
-        result.addAll(rightSide.getFunctionMacros());
-        return result;
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        leftSide.getFunctionMacros(result, done);
+        rightSide.getFunctionMacros(result, done);
+        done.add(this);
     }
 
     /**
@@ -215,9 +231,19 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteFormula(Map)
      */
     @Override
-    public Formula substituteFormula(Map<Token, ? extends Term> paramMap) {
-        return ImpliesFormula.create(leftSide.substituteFormula(paramMap),
-                rightSide.substituteFormula(paramMap));
+    public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.containsKey(this)) {
+            assert (done.get(this) != null);
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
+        Formula result = ImpliesFormula.create(
+                leftSide.substituteFormula(paramMap, done),
+                rightSide.substituteFormula(paramMap, done));
+        assert (result != null);
+        done.put(this, result);
+        return result;
     }
 
     /**
@@ -347,11 +373,13 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
     @Override
-    public Set<UninterpretedFunction> getUninterpretedFunctions() {
-        Set<UninterpretedFunction> result = leftSide
-                .getUninterpretedFunctions();
-        result.addAll(rightSide.getUninterpretedFunctions());
-        return result;
+    public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
+            Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        leftSide.getUninterpretedFunctions(result, done);
+        rightSide.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**
