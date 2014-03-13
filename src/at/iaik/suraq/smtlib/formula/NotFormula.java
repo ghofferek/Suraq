@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -688,6 +689,46 @@ public class NotFormula extends BooleanCombinationFormula {
         formula.writeTo(writer);
         writer.append(')');
 
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getLiterals(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getLiterals(Set<Formula> result, Set<Formula> done) {
+        if (done.contains(this))
+            return;
+        formula.getLiterals(result, done);
+        done.add(this);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#numAigNodes(java.util.Set)
+     */
+    @Override
+    public int numAigNodes(Set<Formula> done) {
+        if (done.contains(this))
+            return 0;
+        int result = formula.numAigNodes(done);
+        done.add(this);
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
+     *      java.util.Map)
+     */
+    @Override
+    public int toAig(TreeMap<Integer, Integer[]> aigNodes,
+            Map<Formula, Integer> done) {
+        if (done.get(this) != null)
+            return done.get(this);
+
+        int result = formula.toAig(aigNodes, done);
+        result ^= 1;
+        done.put(this, result);
+        return result;
     }
 
 }

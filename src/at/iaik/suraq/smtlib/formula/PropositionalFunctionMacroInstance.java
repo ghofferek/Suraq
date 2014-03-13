@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.exceptions.InvalidParametersException;
@@ -691,6 +692,33 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public void writeTo(Writer writer) throws IOException {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getLiterals(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getLiterals(Set<Formula> result, Set<Formula> done) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#numAigNodes(java.util.Set)
+     */
+    @Override
+    public int numAigNodes(Set<Formula> done) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
+     *      java.util.Map)
+     */
+    @Override
+    public int toAig(TreeMap<Integer, Integer[]> aigNodes,
+            Map<Formula, Integer> done) {
         throw new NotImplementedException();
     }
 

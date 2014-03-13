@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -723,4 +724,56 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         writer.append(')');
 
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getLiterals(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getLiterals(Set<Formula> result, Set<Formula> done) {
+        if (done.contains(this))
+            return;
+        leftSide.getLiterals(result, done);
+        rightSide.getLiterals(result, done);
+        done.add(this);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#numAigNodes(java.util.Set)
+     */
+    @Override
+    public int numAigNodes(Set<Formula> done) {
+        if (done.contains(this))
+            return 0;
+        int result = 0;
+        result += leftSide.numAigNodes(done);
+        result += rightSide.numAigNodes(done);
+        result++;
+        done.add(this);
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap, java.util.Map)
+     */
+    @Override
+    public int toAig(TreeMap<Integer, Integer[]> aigNodes,
+            Map<Formula, Integer> done) {
+        if (done.get(this) != null)
+            return done.get(this);
+
+        int left = leftSide.toAig(aigNodes, done);
+        int right = rightSide.toAig(aigNodes, done);
+
+        int result = Util.nextFreePositiveAigLiteral(aigNodes, done);
+
+        Integer[] node = new Integer[2];
+        node[0] = left;
+        node[1] = right ^ 1;
+        aigNodes.put(result, node);
+        result ^= 1;
+        done.put(this, result);
+        return result;
+    }
+
 }

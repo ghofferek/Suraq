@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.Token;
@@ -346,5 +347,37 @@ public interface Formula extends SMTLibObject, Serializable {
      * @throws IOException
      */
     public void writeTo(Writer writer) throws IOException;
+
+    /**
+     * Adds all literals of this formula to <code>result</code>. Uses
+     * <code>done</code> as a cache to avoid DAG-unrolling.
+     * 
+     * @param result
+     * @param done
+     */
+    public void getLiterals(Set<Formula> result, Set<Formula> done);
+
+    /**
+     * Computes the number of AIG nodes necessary to encode this formula in a
+     * DAG-aware way.
+     * 
+     * @param done
+     *            cache to avoid unrolling the DAG.
+     * @return the number of AIG nodes
+     */
+    public int numAigNodes(Set<Formula> done);
+
+    /**
+     * Computes AIG nodes corresponding to the formula
+     * 
+     * @param aigNodes
+     *            the definition of the nodes
+     * @param done
+     *            cache mapping (sub)formulas to AIGER literals (initialize with
+     *            ground literals of the formula)
+     * @return the AIGER variable representing this formula
+     */
+    public int toAig(TreeMap<Integer, Integer[]> aigNodes,
+            Map<Formula, Integer> done);
 
 }

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -19,6 +20,7 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.HashTagContainer;
+import at.iaik.suraq.util.Util;
 
 /**
  * Represents an if-then-else-style formula.
@@ -721,4 +723,67 @@ public class PropositionalIte extends BooleanCombinationFormula {
         writer.append(')');
 
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getLiterals(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getLiterals(Set<Formula> result, Set<Formula> done) {
+        if (done.contains(this))
+            return;
+        condition.getLiterals(result, done);
+        thenBranch.getLiterals(result, done);
+        elseBranch.getLiterals(result, done);
+        done.add(this);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#numAigNodes(java.util.Set)
+     */
+    @Override
+    public int numAigNodes(Set<Formula> done) {
+        if (done.contains(this))
+            return 0;
+        int result = 0;
+        result += condition.numAigNodes(done);
+        result += thenBranch.numAigNodes(done);
+        result += elseBranch.numAigNodes(done);
+        result += 3;
+        done.add(this);
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(java.util.TreeMap,
+     *      java.util.Map)
+     */
+    @Override
+    public int toAig(TreeMap<Integer, Integer[]> aigNodes,
+            Map<Formula, Integer> done) {
+        if (done.get(this) != null)
+            return done.get(this);
+
+        int conditionLit = condition.toAig(aigNodes, done);
+        int thenLit = thenBranch.toAig(aigNodes, done);
+        int elseLit = elseBranch.toAig(aigNodes, done);
+
+        int first = Util.nextFreePositiveAigLiteral(aigNodes, done);
+        Integer[] firstNode = { conditionLit, thenLit };
+        aigNodes.put(first, firstNode);
+
+        int second = Util.nextFreePositiveAigLiteral(aigNodes, done);
+        Integer[] secondNode = { conditionLit ^ 1, elseLit };
+        aigNodes.put(second, secondNode);
+
+        int result = Util.nextFreePositiveAigLiteral(aigNodes, done);
+        Integer[] resultNode = { first ^ 1, second ^ 1 };
+        aigNodes.put(result, resultNode);
+
+        result ^= 1;
+
+        done.put(this, result);
+        return result;
+    }
+
 }

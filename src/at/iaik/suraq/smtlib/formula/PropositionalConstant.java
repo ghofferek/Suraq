@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.SuraqException;
@@ -475,6 +476,33 @@ public class PropositionalConstant extends PropositionalTerm {
     public void writeTo(Writer writer) throws IOException {
         writer.write(constant ? SExpressionConstants.TRUE.toString()
                 : SExpressionConstants.FALSE.toString());
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getLiterals(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getLiterals(Set<Formula> result, Set<Formula> done) {
+        return;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#numAigNodes(java.util.Set)
+     */
+    @Override
+    public int numAigNodes(Set<Formula> done) {
+        return 0;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
+     *      java.util.Map)
+     */
+    @Override
+    public int toAig(TreeMap<Integer, Integer[]> aigNodes,
+            Map<Formula, Integer> done) {
+        return constant ? 1 : 0;
     }
 
 }

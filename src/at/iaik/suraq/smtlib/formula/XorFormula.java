@@ -6,7 +6,10 @@ package at.iaik.suraq.smtlib.formula;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -115,4 +118,23 @@ public class XorFormula extends AndOrXorFormula {
         throw new RuntimeException(
                 "XOR formulas currently not supported for Tseitin encoding!");
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#numAigNodes(java.util.Set)
+     */
+    @Override
+    public int numAigNodes(Set<Formula> done) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
+     *      java.util.Map)
+     */
+    @Override
+    public int toAig(TreeMap<Integer, Integer[]> aigNodes,
+            Map<Formula, Integer> done) {
+        throw new NotImplementedException();
+    }
+
 }

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
@@ -226,4 +227,50 @@ public class AndFormula extends AndOrXorFormula {
 
         return tseitinVar;
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#numAigNodes(java.util.Set)
+     */
+    @Override
+    public int numAigNodes(Set<Formula> done) {
+        if (done.contains(this))
+            return 0;
+        int result = 0;
+        for (Formula formula : formulas)
+            result += formula.numAigNodes(done);
+        result += formulas.size() - 1;
+        done.add(this);
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(java.util.TreeMap,
+     *      java.util.Map)
+     */
+    @Override
+    public int toAig(TreeMap<Integer, Integer[]> aigNodes,
+            Map<Formula, Integer> done) {
+        if (done.get(this) != null)
+            return done.get(this);
+
+        assert (formulas.size() > 0);
+        if (formulas.size() == 1)
+            return formulas.get(0).toAig(aigNodes, done);
+
+        int intermediate = Util.nextFreePositiveAigLiteral(aigNodes, done);
+        Integer[] intermediateNode = { formulas.get(0).toAig(aigNodes, done),
+                formulas.get(1).toAig(aigNodes, done) };
+        aigNodes.put(intermediate, intermediateNode);
+        for (int count = 2; count < formulas.size(); count++) {
+            int current = Util.nextFreePositiveAigLiteral(aigNodes, done);
+            Integer[] currentNode = { intermediate,
+                    formulas.get(count).toAig(aigNodes, done) };
+            aigNodes.put(current, currentNode);
+            intermediate = current;
+        }
+
+        done.put(this, intermediate);
+        return intermediate;
+    }
+
 }

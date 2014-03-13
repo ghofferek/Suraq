@@ -644,4 +644,17 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         writer.append(") ");
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getLiterals(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getLiterals(Set<Formula> result, Set<Formula> done) {
+        if (done.contains(this))
+            return;
+        for (Formula subformula : formulas)
+            subformula.getLiterals(result, done);
+        done.add(this);
+    }
+
 }

@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
@@ -2043,5 +2044,16 @@ public final class Util {
                     "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
         }
 
+    }
+
+    /**
+     * @param aigNodes
+     * @param done
+     * @return
+     */
+    public static int nextFreePositiveAigLiteral(
+            TreeMap<Integer, Integer[]> aigNodes, Map<Formula, Integer> done) {
+        return aigNodes.isEmpty() ? done.size() * 2 : ((aigNodes
+                .descendingKeySet().iterator().next() + 2) / 2) * 2;
     }
 }
