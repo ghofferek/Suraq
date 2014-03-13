@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.sexp;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -211,6 +213,14 @@ public class Token extends SExpression implements Serializable,
     @Override
     public int compareTo(Token o) {
         return token.compareTo(o.token);
+    }
+
+    /**
+     * @see at.iaik.suraq.sexp.SExpression#writeTo(java.io.Writer)
+     */
+    @Override
+    public void writeTo(Writer writer) throws IOException {
+        writer.write(token);
     }
 
 }

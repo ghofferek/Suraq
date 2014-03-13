@@ -4,6 +4,8 @@
 
 package at.iaik.suraq.smtsolver;
 
+import java.io.File;
+
 import at.iaik.suraq.smtlib.formula.Formula;
 
 /**
@@ -91,6 +93,8 @@ public abstract class SMTSolver {
      * 
      */
     public abstract void solve(String smtStr);
+
+    public abstract void solve(File file);
 
     public abstract void solve(Formula formula);
 }

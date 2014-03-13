@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -175,6 +176,14 @@ public class VeriTSolver extends SMTSolver {
         if (proofFile.exists()) {
             lastFile = proofFile;
         }
+    }
+
+    /**
+     * @see at.iaik.suraq.smtsolver.SMTSolver#solve(java.io.File)
+     */
+    @Override
+    public void solve(File file) {
+        throw new NotImplementedException();
     }
 
     /**

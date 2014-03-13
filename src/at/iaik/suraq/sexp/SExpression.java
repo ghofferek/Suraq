@@ -3,7 +3,9 @@
  */
 package at.iaik.suraq.sexp;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -357,6 +359,8 @@ public class SExpression implements Serializable {
         if (!(obj instanceof SExpression))
             return false;
 
+        if (obj instanceof Token && !(this instanceof Token))
+            return false;
         SExpression other = ((SExpression) obj);
         if (children.size() != other.children.size())
             return false;
@@ -460,7 +464,7 @@ public class SExpression implements Serializable {
 
         SExpression eqFormulaExp = new SExpression(SExpressionConstants.EQUAL,
                 SExpression.fromString(controlSignal.toString()),
-                SExpression.fromString(controlFormula.toString()));
+                controlFormula.toSmtlibV2());
 
         SExpression result = new SExpression(SExpressionConstants.ASSERT,
                 eqFormulaExp);
@@ -533,6 +537,67 @@ public class SExpression implements Serializable {
             } else
                 child.replace(replacements);
         }
+    }
+
+    /**
+     * @return
+     */
+    public boolean isAssert() {
+        if (children.size() != 2)
+            return false;
+        if (!children.get(0).equals(SExpressionConstants.ASSERT))
+            return false;
+        return true;
+    }
+
+    /**
+     * @return
+     */
+    public boolean isDeclareFun() {
+        if (children.size() < 4)
+            return false;
+        if (!children.get(0).equals(SExpressionConstants.DECLARE_FUN))
+            return false;
+        return true;
+    }
+
+    /**
+     * 
+     */
+    public void changeControlAndNoDepDefs() {
+        if (!isDeclareFun())
+            return;
+
+        List<SExpression> childrenCopy = new ArrayList<SExpression>(
+                children.size());
+        for (int count = 0; count < children.size(); count++) {
+            SExpression child = children.get(count);
+            if (child.equals(SExpressionConstants.CONTROL_TYPE)) {
+                childrenCopy.add(SExpressionConstants.BOOL_TYPE);
+                continue;
+            }
+            if (child.equals(SExpressionConstants.NO_DEPENDENCE))
+                continue;
+
+            childrenCopy.add(child);
+        }
+        children.clear();
+        children.addAll(childrenCopy);
+    }
+
+    /**
+     * writes this expression to <code>writer</code>.
+     * 
+     * @param writer
+     * @throws IOException
+     */
+    public void writeTo(Writer writer) throws IOException {
+        writer.write("(");
+        for (SExpression child : children) {
+            writer.write(" ");
+            child.writeTo(writer);
+        }
+        writer.write(")");
     }
 
 }

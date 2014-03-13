@@ -4,11 +4,13 @@
 package at.iaik.suraq.main;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1144,16 +1146,28 @@ public class Suraq implements Runnable {
                                     .getArrayVariables()));
             interpolants.put(key, interpolant);
         }
-        Util.printToSystemOutWithWallClockTimePrefix("Starting generation of output string.");
-        // Now we have results. Let's check them and write them to a file.
-        String outputStr = createOutputString(sourceFile, interpolants);
+        // write output file
+        try {
+            Util.printToSystemOutWithWallClockTimePrefix(" Writing output to file "
+                    + options.getOutput());
+            FileWriter fstream = new FileWriter(options.getOutput());
+            BufferedWriter writer = new BufferedWriter(fstream);
+            createOutputFile(sourceFile, interpolants, writer);
+            writer.close();
+            fstream.close();
+        } catch (IOException exc) {
+            Util.printToSystemOutWithWallClockTimePrefix("Error while writing to output file: "
+                    + options.getOutput());
+            exc.printStackTrace();
+            noErrors = false;
+        }
 
         if (options.isCheckResult()) {
             Util.printToSystemOutWithWallClockTimePrefix("Starting to check results with z3...");
             Timer checkTimer = new Timer();
             checkTimer.start();
             SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
-            z3.solve(outputStr);
+            z3.solve(new File(options.getOutput()));
 
             switch (z3.getState()) {
             case SMTSolver.UNSAT:
@@ -1170,21 +1184,6 @@ public class Suraq implements Runnable {
             checkTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("Check finished in "
                     + checkTimer);
-
-        }
-
-        // write output file
-        try {
-            Util.printToSystemOutWithWallClockTimePrefix(" Writing output to file "
-                    + options.getOutput());
-            FileWriter fstream = new FileWriter(options.getOutput());
-            fstream.write(outputStr);
-            fstream.close();
-        } catch (IOException exc) {
-            Util.printToSystemOutWithWallClockTimePrefix("Error while writing to output file: "
-                    + options.getOutput());
-            exc.printStackTrace();
-            noErrors = false;
         }
 
         Util.printToSystemOutWithWallClockTimePrefix(" done!");
@@ -1448,16 +1447,29 @@ public class Suraq implements Runnable {
                             logicParser.getArrayVariables()));
             iteTrees.put(key, iteTree);
         }
-        Util.printToSystemOutWithWallClockTimePrefix("Starting generation of output string.");
-        // Now we have results. Let's check them and write them to a file.
-        String outputStr = createOutputString(sourceFile, iteTrees);
+
+        // write output file
+        try {
+            Util.printToSystemOutWithWallClockTimePrefix(" Writing output to file "
+                    + options.getOutput());
+            FileWriter fstream = new FileWriter(options.getOutput());
+            BufferedWriter writer = new BufferedWriter(fstream);
+            createOutputFile(sourceFile, iteTrees, writer);
+            writer.close();
+            fstream.close();
+        } catch (IOException exc) {
+            Util.printToSystemOutWithWallClockTimePrefix("Error while writing to output file: "
+                    + options.getOutput());
+            exc.printStackTrace();
+            noErrors = false;
+        }
 
         if (options.isCheckResult()) {
             Util.printToSystemOutWithWallClockTimePrefix("Starting to check results with z3...");
             Timer checkTimer = new Timer();
             checkTimer.start();
             SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type, "lib/z3/bin/z3");
-            z3.solve(outputStr);
+            z3.solve(new File(options.getOutput()));
 
             switch (z3.getState()) {
             case SMTSolver.UNSAT:
@@ -1474,21 +1486,6 @@ public class Suraq implements Runnable {
             checkTimer.stop();
             Util.printToSystemOutWithWallClockTimePrefix("Check finished in "
                     + checkTimer);
-
-        }
-
-        // write output file
-        try {
-            Util.printToSystemOutWithWallClockTimePrefix(" Writing output to file "
-                    + options.getOutput());
-            FileWriter fstream = new FileWriter(options.getOutput());
-            fstream.write(outputStr);
-            fstream.close();
-        } catch (IOException exc) {
-            Util.printToSystemOutWithWallClockTimePrefix("Error while writing to output file: "
-                    + options.getOutput());
-            exc.printStackTrace();
-            noErrors = false;
         }
 
         Util.printToSystemOutWithWallClockTimePrefix(" done!");
@@ -1545,18 +1542,22 @@ public class Suraq implements Runnable {
     }
 
     /**
-     * Forms the string which represents the final result of suraq. The
+     * Forms the file which represents the final result of suraq. The
      * interpolation result for each control signal is inserted in the original
      * input file, and forms the result.
      * 
      * @param interpolationFormulas
      *            Map which contains the interpolation for each control signal
+     * @param writer
+     *            the writer to write to
      * @return the string from the union of the input file and
      *         control-signal-interpolations.
+     * @throws IOException
      * 
      */
-    private String createOutputString(File sourceFile,
-            Map<PropositionalVariable, Formula> interpolations) {
+    private void createOutputFile(File sourceFile,
+            Map<PropositionalVariable, Formula> interpolations, Writer writer)
+            throws IOException {
 
         SExpParser sExpParser = null;
         try {
@@ -1565,12 +1566,12 @@ public class Suraq implements Runnable {
             System.err.println("ERROR: File " + sourceFile.getPath()
                     + " not found!");
             noErrors = false;
-            return null;
+            return;
         } catch (IOException exc) {
             System.err.println("ERROR: Could not read from file "
                     + sourceFile.getPath());
             noErrors = false;
-            return null;
+            return;
         }
 
         try {
@@ -1579,7 +1580,7 @@ public class Suraq implements Runnable {
         } catch (ParseError exc) {
             handleParseError(exc);
             noErrors = false;
-            return null;
+            return;
         }
 
         SExpression rootExp = sExpParser.getRootExpr();
@@ -1592,17 +1593,20 @@ public class Suraq implements Runnable {
         int count = 1;
         SExpression lastDeclare = null;
         for (SExpression child : children) {
-            if (child.toString().contains("declare-fun")) {
-                String newChild = child.toString().replace("Control", "Bool")
-                        .replace(":no_dependence", " ");
-                newChild = newChild.replace("\n\n", "\n");
-
-                rootExp.replaceChild(SExpression.fromString(newChild), count);
+            // if (child.toString().contains("declare-fun")) {
+            // String newChild = child.toString().replace("Control", "Bool")
+            // .replace(":no_dependence", " ");
+            // newChild = newChild.replace("\n\n", "\n");
+            //
+            // rootExp.replaceChild(SExpression.fromString(newChild), count);
+            // lastDeclare = rootExp.getChildren().get(count);
+            // }
+            child.changeControlAndNoDepDefs();
+            if (child.isDeclareFun())
                 lastDeclare = rootExp.getChildren().get(count);
-            }
 
             // negate assert formulas
-            if (child.toString().contains("assert")) {
+            if (child.isAssert()) {
 
                 assert (child.getChildren().size() == 2);
 
@@ -1644,12 +1648,8 @@ public class Suraq implements Runnable {
 
         rootExp.addChild(SExpressionConstants.CHECK_SAT);
 
-        String rootExpStr = rootExp.toString();
-
-        int beginIndex = rootExpStr.indexOf('(');
-        int endIndex = rootExpStr.lastIndexOf(')');
-
-        return (String) rootExpStr.subSequence(beginIndex + 1, endIndex);
+        for (SExpression child : rootExp.getChildren())
+            child.writeTo(writer);
     }
 
     /**
