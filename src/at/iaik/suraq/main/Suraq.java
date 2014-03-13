@@ -142,19 +142,19 @@ public class Suraq implements Runnable {
     /**
      * stores all present propositional variables
      */
-    private Set<PropositionalVariable> propositionalVars;
+    private Set<PropositionalVariable> propositionalVars = new HashSet<PropositionalVariable>();
     /**
      * stores all present domain variables
      */
-    private Set<DomainVariable> domainVars;
+    private Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
     /**
      * stores all present array variables
      */
-    private Set<ArrayVariable> arrayVars;
+    private Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
     /**
      * stores all present uninterpreted functions
      */
-    private Set<UninterpretedFunction> uninterpretedFunctions;
+    private Set<UninterpretedFunction> uninterpretedFunctions = new HashSet<UninterpretedFunction>();
 
     /**
      * Constraints for variables newly introduced during reductions.

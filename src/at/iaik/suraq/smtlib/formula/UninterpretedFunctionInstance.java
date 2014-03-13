@@ -269,7 +269,12 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     @Override
     public void getUninterpretedFunctionNames(Set<String> result,
             Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         result.add(this.function.getName().toString());
+        for (DomainTerm term : parameters)
+            term.getUninterpretedFunctionNames(result, done);
+        done.add(this);
     }
 
     /**
@@ -443,7 +448,12 @@ public class UninterpretedFunctionInstance extends DomainTerm {
     @Override
     public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
             Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
         result.add(function);
+        for (DomainTerm term : parameters)
+            term.getUninterpretedFunctions(result, done);
+        done.add(this);
     }
 
     /**

@@ -1742,7 +1742,8 @@ public final class Util {
         }
 
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
-        formula.getArrayVariables(arrayVars, new HashSet<SMTLibObject>());
+        formula.getArrayVariables(arrayVars, done);
+        done.clear();
         for (ArrayVariable arrayVar : arrayVars) {
             writer.write("(" + SExpressionConstants.DECLARE_FUN.toString()
                     + " " + arrayVar.getVarName() + " () "
