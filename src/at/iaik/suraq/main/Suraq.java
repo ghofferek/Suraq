@@ -521,9 +521,10 @@ public class Suraq implements Runnable {
 
             List<OrFormula> clauses = new ArrayList<OrFormula>();
             Map<PropositionalVariable, Formula> encoding = new HashMap<PropositionalVariable, Formula>();
+            Map<Formula, PropositionalVariable> done = new HashMap<Formula, PropositionalVariable>();
             // also changes the partitionFormula
             Formula tseitinVar = partitionFormula.tseitinEncode(clauses,
-                    encoding, count);
+                    encoding, done, count);
             Util.printToSystemOutWithWallClockTimePrefix("Done encoding.");
             assert (Util.isLiteral(tseitinVar));
             tseitinEncoding.putAll(encoding);

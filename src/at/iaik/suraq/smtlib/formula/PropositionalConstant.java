@@ -347,10 +347,15 @@ public class PropositionalConstant extends PropositionalTerm {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding, int partition) {
+            Map<PropositionalVariable, Formula> encoding,
+            Map<Formula, PropositionalVariable> done, int partition) {
+
+        if (done.get(this) != null)
+            return done.get(this);
 
         PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
-        encoding.put(tseitinVar, this.deepFormulaCopy());
+        encoding.put(tseitinVar, this);
+        done.put(this, tseitinVar);
 
         List<Formula> disjuncts = new ArrayList<Formula>(1);
 

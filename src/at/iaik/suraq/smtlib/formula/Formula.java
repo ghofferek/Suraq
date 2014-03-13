@@ -239,6 +239,9 @@ public interface Formula extends SMTLibObject, Serializable {
      * @param encoding
      *            a (call-by-reference) parameter, which will contain the
      *            mapping of Tseitin variables to the formulas they represent.
+     * @param done
+     *            a map of formulas already encoded (to avoid encoding them
+     *            again)
      * @param partition
      *            the partition that is encoded (used to assign fresh Tseitin
      *            variables to)
@@ -246,7 +249,8 @@ public interface Formula extends SMTLibObject, Serializable {
      *         or the formula itself if it is a literal/constant.
      */
     public Formula tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding, int partition);
+            Map<PropositionalVariable, Formula> encoding,
+            Map<Formula, PropositionalVariable> done, int partition);
 
     /**
      * Replaces instances of uninterpreted predicates in formula with auxiliary

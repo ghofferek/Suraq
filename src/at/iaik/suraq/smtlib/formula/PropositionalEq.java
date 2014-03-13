@@ -66,7 +66,8 @@ public class PropositionalEq extends EqualityFormula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding, int partition) {
+            Map<PropositionalVariable, Formula> encoding,
+            Map<Formula, PropositionalVariable> done, int partition) {
         List<ImpliesFormula> conjuncts = new ArrayList<ImpliesFormula>(2);
 
         // A circle is enough:
@@ -83,10 +84,6 @@ public class PropositionalEq extends EqualityFormula {
                 .get(terms.size() - 1);
         conjuncts.add(ImpliesFormula.create(termlast, term1));
 
-        if (terms.size() != 2)
-            System.err
-                    .println("PropositionalVariable:tseitinEncode: Was not implemented correctly, but is now.");
-
         // old version:
         /*
          * assert (terms.size() == 2); PropositionalTerm term1 =
@@ -100,7 +97,7 @@ public class PropositionalEq extends EqualityFormula {
          */
 
         return (AndFormula.generate(conjuncts).tseitinEncode(clauses, encoding,
-                partition));
+                done, partition));
     }
 
     @Override

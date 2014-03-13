@@ -39,7 +39,9 @@ public class TseitinEncoding {
         // GH 2013-05-02: Not sure where this is used,
         // just putting -1 for the partition parameters,
         // as this is probably not used anywhere anyway.
-        Formula tseitinVar = formula.tseitinEncode(clauses, encoding, -1);
+        // GH 2014-03-13: Not sure where this is used,
+        // just putting null for the new "done" parameter
+        Formula tseitinVar = formula.tseitinEncode(clauses, encoding, null, -1);
         assert (Util.isLiteral(tseitinVar));
         tseitinEncoding.putAll(encoding);
         if (tseitinVar instanceof PropositionalVariable)

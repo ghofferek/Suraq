@@ -501,9 +501,10 @@ public class FormulaTerm extends PropositionalTerm {
      */
     @Override
     public Formula tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding, int partition) {
+            Map<PropositionalVariable, Formula> encoding,
+            Map<Formula, PropositionalVariable> done, int partition) {
 
-        return formula.tseitinEncode(clauses, encoding, partition);
+        return formula.tseitinEncode(clauses, encoding, done, partition);
     }
 
     /**

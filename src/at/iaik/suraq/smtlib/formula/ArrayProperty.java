@@ -741,7 +741,8 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding, int partition) {
+            Map<PropositionalVariable, Formula> encoding,
+            Map<Formula, PropositionalVariable> done, int partition) {
         throw new RuntimeException(
                 "Array properties should have been removed before Tseitin encoding!");
     }

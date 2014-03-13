@@ -110,7 +110,8 @@ public class XorFormula extends AndOrXorFormula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding, int partition) {
+            Map<PropositionalVariable, Formula> encoding,
+            Map<Formula, PropositionalVariable> done, int partition) {
         throw new RuntimeException(
                 "XOR formulas currently not supported for Tseitin encoding!");
     }

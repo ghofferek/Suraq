@@ -538,7 +538,8 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding, int partition) {
+            Map<PropositionalVariable, Formula> encoding,
+            Map<Formula, PropositionalVariable> done, int partition) {
 
         List<Formula> conjuncts = new ArrayList<Formula>(2);
         List<Formula> disjuncts = new ArrayList<Formula>(2);
@@ -553,7 +554,7 @@ public class PropositionalIte extends BooleanCombinationFormula {
         disjuncts.add(AndFormula.generate(conjuncts));
 
         return (OrFormula.generate(disjuncts)).tseitinEncode(clauses, encoding,
-                partition);
+                done, partition);
 
     }
 

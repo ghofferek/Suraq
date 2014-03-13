@@ -684,34 +684,41 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      *      java.util.Map)
      */
     @Override
-    public PropositionalVariable tseitinEncode(List<OrFormula> clauses,
-            Map<PropositionalVariable, Formula> encoding, int partition) {
+    public Formula tseitinEncode(List<OrFormula> clauses,
+            Map<PropositionalVariable, Formula> encoding,
+            Map<Formula, PropositionalVariable> done, int partition) {
 
-        assert (clauses != null);
-        assert (encoding != null);
+        // OLD Code (that encodes a predicate instance)
+        // assert (clauses != null);
+        // assert (encoding != null);
+        //
+        // Set<Integer> partitions = this.getPartitionsFromSymbols();
+        // assert (partitions.size() == 1 || partitions.size() == 2);
+        // if (partitions.size() == 2)
+        // partitions.remove(-1);
+        // assert (partitions.size() == 1);
+        // assert (partitions.iterator().next().equals(partition) || partitions
+        // .iterator().next().equals(-1));
+        //
+        // PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
+        // encoding.put(tseitinVar, this.deepFormulaCopy());
+        //
+        // List<Formula> disjuncts = new ArrayList<Formula>(2);
+        // disjuncts.add(NotFormula.create(tseitinVar));
+        // disjuncts.add(this.deepFormulaCopy());
+        // clauses.add(OrFormula.generate(disjuncts));
+        //
+        // disjuncts.clear();
+        // disjuncts.add(tseitinVar);
+        // disjuncts.add(NotFormula.create(this.deepFormulaCopy()));
+        // clauses.add(OrFormula.generate(disjuncts));
+        // return tseitinVar;
 
-        Set<Integer> partitions = this.getPartitionsFromSymbols();
-        assert (partitions.size() == 1 || partitions.size() == 2);
-        if (partitions.size() == 2)
-            partitions.remove(-1);
-        assert (partitions.size() == 1);
-        assert (partitions.iterator().next().equals(partition) || partitions
-                .iterator().next().equals(-1));
+        // BEGIN REPLACEMENT (do not encode predicate instance, as it already is
+        // a literal)
+        return this;
+        // END REPLACEMENT
 
-        PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
-        encoding.put(tseitinVar, this.deepFormulaCopy());
-
-        List<Formula> disjuncts = new ArrayList<Formula>(2);
-        disjuncts.add(NotFormula.create(tseitinVar));
-        disjuncts.add(this.deepFormulaCopy());
-        clauses.add(OrFormula.generate(disjuncts));
-
-        disjuncts.clear();
-        disjuncts.add(tseitinVar);
-        disjuncts.add(NotFormula.create(this.deepFormulaCopy()));
-        clauses.add(OrFormula.generate(disjuncts));
-
-        return tseitinVar;
     }
 
     /**
