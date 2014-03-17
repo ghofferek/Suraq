@@ -2145,7 +2145,11 @@ public class TransitivityCongruenceChain implements
         Formula literal = this.getLiteral();
         Set<Integer> partitions = literal.getPartitionsFromSymbols();
         partitions.remove(-1);
-        assert (partitions.size() <= 1);
+        if (partitions.size() > 1) {
+            int color = partitions.iterator().next() % 2;
+            for (int partition : partitions)
+                assert (partition % 2 == color);
+        }
 
         if (partitions.isEmpty()) { // Treat global equality as B
             Formula result = this.internalInterpolant();
@@ -2153,14 +2157,14 @@ public class TransitivityCongruenceChain implements
         }
 
         assert (!partitions.isEmpty());
-        assert (partitions.size() == 1);
-        int partition = partitions.iterator().next();
+        assert (partitions.size() >= 1);
+        int partition = (partitions.iterator().next() - 1) % 2;
 
-        if ((partition - 1) % 2 == 1) { // B equality
+        if (partition == 1) { // B equality
             Formula result = this.internalInterpolant();
             return result;
         }
-        assert ((partition - 1) % 2 == 0); // A equality
+        assert (partition == 0); // A equality
         Formula result = this.modifiedInternalInterpolant();
         return result;
     }

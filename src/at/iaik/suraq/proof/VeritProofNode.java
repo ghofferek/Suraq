@@ -2808,7 +2808,7 @@ public class VeritProofNode implements Serializable {
             return result;
         }
 
-        assert (positiveColor != negativeColor || (positiveColor == -1 && negativeColor == -1));
+        assert (positiveColor == negativeColor || positiveColor == -1 || negativeColor == -1);
 
         if (positiveColor == 0 || negativeColor == 0) {
             // A-G, G-A, or A-A congruence

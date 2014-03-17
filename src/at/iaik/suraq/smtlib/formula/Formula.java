@@ -380,4 +380,14 @@ public interface Formula extends SMTLibObject, Serializable {
     public int toAig(TreeMap<Integer, Integer[]> aigNodes,
             Map<Formula, Integer> done);
 
+    /**
+     * Computes the size of this formula (in terms of nodes in the syntax tree),
+     * either with or without expansion of the DAG. Both computations are done
+     * DAG-aware.
+     * 
+     * @param expandDAG
+     * @param done
+     * @return
+     */
+    public long size(boolean expandDAG, Map<Formula, Long> done);
 }

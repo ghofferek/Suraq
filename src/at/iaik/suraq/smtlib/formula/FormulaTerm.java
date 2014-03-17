@@ -671,13 +671,20 @@ public class FormulaTerm extends PropositionalTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
-     *      java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap, java.util.Map)
      */
     @Override
     public int toAig(TreeMap<Integer, Integer[]> aigNodes,
             Map<Formula, Integer> done) {
         return formula.toAig(aigNodes, done);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
+     */
+    @Override
+    public long size(boolean expandDAG, Map<Formula, Long> done) {
+        return formula.size(expandDAG, done);
     }
 
 }

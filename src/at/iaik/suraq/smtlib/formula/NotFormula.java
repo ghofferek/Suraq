@@ -716,8 +716,7 @@ public class NotFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
-     *      java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap, java.util.Map)
      */
     @Override
     public int toAig(TreeMap<Integer, Integer[]> aigNodes,
@@ -727,6 +726,25 @@ public class NotFormula extends BooleanCombinationFormula {
 
         int result = formula.toAig(aigNodes, done);
         result ^= 1;
+        done.put(this, result);
+        return result;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
+     */
+    @Override
+    public long size(boolean expandDAG, Map<Formula, Long> done) {
+        if (done.get(this) != null) {
+            if (expandDAG)
+                return done.get(this);
+            else
+                return 0;
+        }
+
+        long result = 1;
+        result += formula.size(expandDAG, done);
+
         done.put(this, result);
         return result;
     }

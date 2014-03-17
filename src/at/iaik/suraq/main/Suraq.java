@@ -1122,7 +1122,8 @@ public class Suraq implements Runnable {
                         "Could not simplify interpolant due to IOException",
                         exc);
             }
-            assert (simplifier.checkSimplification());
+            assert (simplifier.checkSimplification()); // might not work on
+            // too large formulas
             interpolant = simplifier.getSimplifiedFormula();
             assert (Util.checkInterpolant(interpolant, assertPartitionFormulas));
 

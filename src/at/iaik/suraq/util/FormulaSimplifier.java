@@ -33,6 +33,8 @@ public class FormulaSimplifier {
 
     public static final String SIMPLIFIER_PATH = "./lib/simplifier/simplify.sh";
 
+    private static final long CHECK_TRESHOLD = 10000;
+
     /**
      * The originalFormula, unsimplified formula.
      */
@@ -61,14 +63,27 @@ public class FormulaSimplifier {
      * 
      */
     public void simplify() throws IOException {
-
+        Util.printToSystemOutWithWallClockTimePrefix("Simplifying a formula with abc.");
         File originalFile = File.createTempFile("originalFormula", ".aag",
                 new File("./"));
-        File resultFile = File.createTempFile("simplifiedFormula", ".aag");
+        File resultFile = File.createTempFile("simplifiedFormula", ".aag",
+                new File("./"));
+        Util.printToSystemOutWithWallClockTimePrefix("Temporary aiger file for original formula: "
+                + originalFile.toString());
         writeToFile(originalFile);
-        ProcessUtil.runExternalProcess(FormulaSimplifier.SIMPLIFIER_PATH + " "
-                + originalFile.toString() + " " + resultFile.toString(), "");
-        parseResult(resultFile);
+        Util.printToSystemOutWithWallClockTimePrefix("Starting abc.");
+        ProcessResult result = ProcessUtil
+                .runExternalProcess(
+                        FormulaSimplifier.SIMPLIFIER_PATH + " "
+                                + originalFile.toString() + " "
+                                + resultFile.toString(), "");
+        if (result.getExitCode() != 0)
+            throw new RuntimeException("Error during abc simplification");
+        Util.printToSystemOutWithWallClockTimePrefix("Parsing abc results from aiger file "
+                + resultFile.toString());
+        simplifiedFormula = parseResult(resultFile);
+        Util.printToSystemOutWithWallClockTimePrefix("Done with simplification");
+
     }
 
     /**
@@ -126,6 +141,18 @@ public class FormulaSimplifier {
             writer.write("\n");
         }
 
+        // Symbol table
+        count = 0;
+        for (Formula literal : literals) {
+            writer.write("i");
+            writer.write(Integer.toString(count));
+            writer.write(" ");
+            writer.write(literal.toString().replaceAll("\\s{2,}", " ")
+                    .replace("\n", ""));
+            writer.write("\n");
+            count++;
+        }
+
         writer.close();
         fwriter.close();
     }
@@ -136,7 +163,7 @@ public class FormulaSimplifier {
      * @param resultFile
      * @throws IOException
      */
-    private void parseResult(File resultFile) throws IOException {
+    private Formula parseResult(File resultFile) throws IOException {
         FileReader freader = new FileReader(resultFile);
         BufferedReader reader = new BufferedReader(freader);
 
@@ -163,8 +190,8 @@ public class FormulaSimplifier {
         int outputLiteral = Integer.parseInt(outputLine);
 
         Map<Integer, Integer[]> andGates = new TreeMap<Integer, Integer[]>();
-        String line;
-        while ((line = reader.readLine()) != null) {
+        for (int count = 0; count < numAndGates; count++) {
+            String line = reader.readLine();
             String[] gateDef = line.split(" ");
             assert (gateDef.length == 3);
             Integer[] rhs = { Integer.parseInt(gateDef[1]),
@@ -179,7 +206,7 @@ public class FormulaSimplifier {
             Integer aigLit = literalEncoding.get(literal);
             done.put(aigLit, literal);
         }
-        simplifiedFormula = aigToFormula(outputLiteral, andGates, done);
+        return aigToFormula(outputLiteral, andGates, done);
     }
 
     /**
@@ -201,8 +228,13 @@ public class FormulaSimplifier {
             return PropositionalConstant.create(true);
 
         boolean negated = aigLit % 2 == 1;
-
         int posAigLit = aigLit & 0xFFFFFFFE;
+        if (done.get(posAigLit) != null) {
+            assert (negated);
+            Formula result = NotFormula.create(done.get(posAigLit));
+            done.put(aigLit, result);
+            return result;
+        }
 
         Integer[] gate = andGates.get(posAigLit);
         assert (gate.length == 2);
@@ -233,15 +265,46 @@ public class FormulaSimplifier {
     }
 
     /**
-     * Performs check of equivlance between original and simplified formula.
+     * Performs check of equivalence between original and simplified formula.
      * This might be infeasible for large (original) formulas.
      * 
      * @return <code>true</code> iff the original formula is equivalent to the
      *         simplified formula.
      */
     public boolean checkSimplification() {
+        // try {
+        // assert (checkWriteReadOriginalFormula());
+        // } catch (IOException exc) {
+        // exc.printStackTrace();
+        // throw new RuntimeException(exc);
+        // }
+        long size = originalFormula.size(true, new HashMap<Formula, Long>());
+        if (size > FormulaSimplifier.CHECK_TRESHOLD) {
+            Util.printToSystemOutWithWallClockTimePrefix("WARNING: Skipped check of simplification because original formula has tree-size "
+                    + Util.largeNumberFormatter.format(size));
+            return true;
+        }
+
         return Util.checkEquivalenceOfFormulas(originalFormula,
                 simplifiedFormula);
     }
 
+    /**
+     * Writes the original formula to an AIGER file and reads it back in. This
+     * method servers purely testing purposes and has no practical significance.
+     * (That's why it is marked Deprecated.)
+     * 
+     * @return <code>true</code> iff the formula that was read back in equals
+     *         the original formula.
+     * @throws IOException
+     */
+    @Deprecated
+    public boolean checkWriteReadOriginalFormula() throws IOException {
+        File testFile = File.createTempFile("testAigWriteRead", ".aag",
+                new File("./"));
+
+        writeToFile(testFile);
+        Formula testFormula = parseResult(testFile);
+        return Util.checkEquivalenceOfFormulas(originalFormula, testFormula);
+    }
 }

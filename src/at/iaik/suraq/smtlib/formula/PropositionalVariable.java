@@ -543,8 +543,7 @@ public class PropositionalVariable extends PropositionalTerm implements
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
-     *      java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap, java.util.Map)
      */
     @Override
     public int toAig(TreeMap<Integer, Integer[]> aigNodes,
@@ -552,4 +551,23 @@ public class PropositionalVariable extends PropositionalTerm implements
         assert (done.get(this) != null);
         return done.get(this);
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
+     */
+    @Override
+    public long size(boolean expandDAG, Map<Formula, Long> done) {
+        if (done.get(this) != null) {
+            if (expandDAG)
+                return done.get(this);
+            else
+                return 0;
+        }
+
+        long result = 1;
+
+        done.put(this, result);
+        return result;
+    }
+
 }

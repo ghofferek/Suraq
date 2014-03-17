@@ -873,4 +873,22 @@ public abstract class EqualityFormula implements Formula {
         writer.append(") ");
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
+     */
+    @Override
+    public long size(boolean expandDAG, Map<Formula, Long> done) {
+        if (done.get(this) != null) {
+            if (expandDAG)
+                return done.get(this);
+            else
+                return 0;
+        }
+
+        assert (terms.size() == 2);
+        long result = 1;
+        done.put(this, result);
+        return result;
+    }
+
 }

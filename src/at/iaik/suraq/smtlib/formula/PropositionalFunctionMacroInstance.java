@@ -713,8 +713,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
-     *      java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap, java.util.Map)
      */
     @Override
     public int toAig(TreeMap<Integer, Integer[]> aigNodes,
@@ -722,4 +721,11 @@ public class PropositionalFunctionMacroInstance implements Formula {
         throw new NotImplementedException();
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
+     */
+    @Override
+    public long size(boolean expandDAG, Map<Formula, Long> done) {
+        throw new NotImplementedException();
+    }
 }

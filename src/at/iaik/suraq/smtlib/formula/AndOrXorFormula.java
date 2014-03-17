@@ -657,4 +657,24 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         done.add(this);
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
+     */
+    @Override
+    public long size(boolean expandDAG, Map<Formula, Long> done) {
+        if (done.get(this) != null) {
+            if (expandDAG)
+                return done.get(this);
+            else
+                return 0;
+        }
+
+        long result = 1;
+        for (Formula formula : formulas)
+            result += formula.size(expandDAG, done);
+
+        done.put(this, result);
+        return result;
+    }
+
 }
