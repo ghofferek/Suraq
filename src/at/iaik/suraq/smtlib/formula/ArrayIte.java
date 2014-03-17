@@ -587,8 +587,10 @@ public class ArrayIte extends ArrayTerm {
             PropositionalIte propIte = PropositionalIte.create(condition
                     .removeArrayITE(topLevelFormula, noDependenceVars,
                             constraints), eqThen, eqElse);
-            if (Util.formulaContainsAny(propIte, noDependenceVars))
-                noDependenceVars.add(newToken);
+            // if (Util.formulaContainsAny(propIte, noDependenceVars))
+            // Always make new auxiliary variables noDep to avoid combinational
+            // loops
+            noDependenceVars.add(newToken);
             constraints.add(propIte);
             return newVar;
         } catch (SuraqException exc) {

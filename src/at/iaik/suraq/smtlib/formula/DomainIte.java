@@ -675,8 +675,10 @@ public class DomainIte extends DomainTerm {
             PropositionalIte propIte = PropositionalIte.create(condition
                     .removeDomainITE(topLevelFormula, noDependenceVars,
                             andPreList), eqThen, eqElse);
-            if (Util.formulaContainsAny(propIte, noDependenceVars))
-                noDependenceVars.add(newToken);
+            // if (Util.formulaContainsAny(propIte, noDependenceVars))
+            // Always make new auxiliary variables noDep, to avoid combinational
+            // loops
+            noDependenceVars.add(newToken);
             andPreList.add(propIte);
             return newVar;
         } catch (SuraqException exc) {
