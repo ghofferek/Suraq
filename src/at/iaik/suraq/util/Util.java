@@ -1994,12 +1994,15 @@ public final class Util {
         formula2.getUninterpretedFunctions(uif2, done);
         done.clear();
 
-        if (!domainVars1.equals(domainVars2))
-            return false;
-        if (!propVars1.equals(propVars2))
-            return false;
-        if (!uif1.equals(uif2))
-            return false;
+        // Vars can be different when one formula contains redundant vars (such
+        // as (x and not x)).
+        //
+        // if (!domainVars1.equals(domainVars2))
+        // return false;
+        // if (!propVars1.equals(propVars2))
+        // return false;
+        // if (!uif1.equals(uif2))
+        // return false;
 
         if (!Util.checkFormulaImplication(formula1, formula2))
             return false;
@@ -2053,7 +2056,7 @@ public final class Util {
      */
     public static int nextFreePositiveAigLiteral(
             TreeMap<Integer, Integer[]> aigNodes, Map<Formula, Integer> done) {
-        return aigNodes.isEmpty() ? done.size() * 2 : ((aigNodes
+        return aigNodes.isEmpty() ? 2 + done.size() * 2 : ((aigNodes
                 .descendingKeySet().iterator().next() + 2) / 2) * 2;
     }
 }

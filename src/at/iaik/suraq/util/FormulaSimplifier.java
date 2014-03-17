@@ -62,7 +62,7 @@ public class FormulaSimplifier {
      */
     public void simplify() throws IOException {
 
-        File originalFile = File.createTempFile("originalFormual", ".aag",
+        File originalFile = File.createTempFile("originalFormula", ".aag",
                 new File("./"));
         File resultFile = File.createTempFile("simplifiedFormula", ".aag");
         writeToFile(originalFile);
@@ -112,6 +112,7 @@ public class FormulaSimplifier {
 
         // Output
         writer.write(aigEncoding.get(originalFormula).toString());
+        writer.write("\n");
 
         // AND gates
         for (Integer gate : aigNodes.keySet()) {

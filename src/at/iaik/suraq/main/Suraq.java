@@ -65,6 +65,7 @@ import at.iaik.suraq.smtsolver.z3;
 import at.iaik.suraq.util.BenchmarkTimer;
 import at.iaik.suraq.util.DebugHelper;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.FormulaSimplifier;
 import at.iaik.suraq.util.SaveCache;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
@@ -508,7 +509,7 @@ public class Suraq implements Runnable {
             //
             // String simpleSmtStr = z3.solve2(smtStr);
             //
-            Formula simplifiedPartitionFormula = simplify(partitionFormula);
+            Formula simplifiedPartitionFormula = simplifyWithZ3(partitionFormula);
             assert (Util.checkEquivalenceOfFormulas(partitionFormula,
                     simplifiedPartitionFormula));
             partitionFormula = simplifiedPartitionFormula;
@@ -1112,7 +1113,17 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Done.");
             Map<SMTLibObject, SMTLibObject> done = new HashMap<SMTLibObject, SMTLibObject>();
             interpolant = interpolant.substituteFormula(substitutionsMap, done);
-            interpolant = simplify(interpolant);
+            // interpolant = simplifyWithZ3(interpolant);
+            FormulaSimplifier simplifier = new FormulaSimplifier(interpolant);
+            try {
+                simplifier.simplify();
+            } catch (IOException exc) {
+                throw new RuntimeException(
+                        "Could not simplify interpolant due to IOException",
+                        exc);
+            }
+            assert (simplifier.checkSimplification());
+            interpolant = simplifier.getSimplifiedFormula();
             assert (Util.checkInterpolant(interpolant, assertPartitionFormulas));
 
             Util.printToSystemOutWithWallClockTimePrefix("Resubstituting...");
@@ -1199,7 +1210,7 @@ public class Suraq implements Runnable {
      * @param formula
      * @return
      */
-    private Formula simplify(Formula formula) {
+    private Formula simplifyWithZ3(Formula formula) {
         z3 z3 = (at.iaik.suraq.smtsolver.z3) SMTSolver.create(
                 SMTSolver.z3_type, SuraqOptions.getZ3_4Path());
 
@@ -1441,7 +1452,7 @@ public class Suraq implements Runnable {
             // might be forgotten.
             // Check if it occurs in practice.
             Formula iteTree = iteTrees.get(key);
-            iteTree = simplify(iteTree);
+            iteTree = simplifyWithZ3(iteTree);
             iteTree = iteTree
                     .uninterpretedFunctionsBackToArrayReads(new HashSet<ArrayVariable>(
                             logicParser.getArrayVariables()));

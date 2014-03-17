@@ -263,15 +263,15 @@ public class OrFormula extends AndOrXorFormula {
         if (formulas.size() == 1)
             return formulas.get(0).toAig(aigNodes, done);
 
-        int intermediate = Util.nextFreePositiveAigLiteral(aigNodes, done);
         Integer[] intermediateNode = {
                 formulas.get(0).toAig(aigNodes, done) ^ 1,
                 formulas.get(1).toAig(aigNodes, done) ^ 1 };
+        int intermediate = Util.nextFreePositiveAigLiteral(aigNodes, done);
         aigNodes.put(intermediate, intermediateNode);
         for (int count = 2; count < formulas.size(); count++) {
-            int current = Util.nextFreePositiveAigLiteral(aigNodes, done);
             Integer[] currentNode = { intermediate ^ 1,
                     formulas.get(count).toAig(aigNodes, done) ^ 1 };
+            int current = Util.nextFreePositiveAigLiteral(aigNodes, done);
             aigNodes.put(current, currentNode);
             intermediate = current;
         }
