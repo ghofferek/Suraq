@@ -821,4 +821,34 @@ public class ImpliesFormula extends BooleanCombinationFormula {
 
         done.add(this);
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeSubformulasWithOnlyLeafChildren(java.util.Set,
+     *      java.util.HashSet)
+     */
+    @Override
+    public void computeSubformulasWithOnlyLeafChildren(
+            Set<Formula> onlyLeafChildren, Set<Formula> leaves,
+            Set<Formula> done) {
+        if (done.contains(this))
+            return;
+        if (leaves.contains(this)) {
+            done.add(this);
+            return;
+        }
+
+        Formula[] formulas = { leftSide, rightSide };
+        boolean result = true;
+        for (Formula formula : formulas) {
+            if (!leaves.contains(formula))
+                result = false;
+            formula.computeSubformulasWithOnlyLeafChildren(onlyLeafChildren,
+                    leaves, done);
+        }
+        if (result)
+            onlyLeafChildren.add(this);
+
+        done.add(this);
+        return;
+    }
 }

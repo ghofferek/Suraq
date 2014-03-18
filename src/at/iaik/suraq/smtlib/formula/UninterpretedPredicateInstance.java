@@ -1199,4 +1199,23 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             Set<Formula> done) {
         return; // Leaf node
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeSubformulasWithOnlyLeafChildren(java.util.Set,
+     *      java.util.HashSet)
+     */
+    @Override
+    public void computeSubformulasWithOnlyLeafChildren(
+            Set<Formula> onlyLeafChildren, Set<Formula> leaves,
+            Set<Formula> done) {
+        if (done.contains(this))
+            return;
+        if (leaves.contains(this)) {
+            done.add(this);
+            return;
+        }
+
+        done.add(this);
+        return;
+    }
 }

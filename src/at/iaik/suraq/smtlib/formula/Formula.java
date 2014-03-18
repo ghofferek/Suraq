@@ -402,4 +402,15 @@ public interface Formula extends SMTLibObject, Serializable {
      */
     public void computeParents(Map<Formula, Set<Formula>> parents,
             Set<Formula> done);
+
+    /**
+     * Computes the set of all subformulas which have only "leafs" as their
+     * subformulas. "Leafs" are constants, variables, equalities, predicates.
+     * 
+     * @param onlyLeafChildren
+     * @param done
+     */
+    public void computeSubformulasWithOnlyLeafChildren(
+            Set<Formula> onlyLeafChildren, Set<Formula> leaves, Set<Formula> done);
+
 }

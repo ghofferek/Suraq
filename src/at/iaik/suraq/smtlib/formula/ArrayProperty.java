@@ -941,4 +941,15 @@ public class ArrayProperty implements Formula {
             Set<Formula> done) {
         throw new NotImplementedException();
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeSubformulasWithOnlyLeafChildren(java.util.Set,
+     *      java.util.HashSet)
+     */
+    @Override
+    public void computeSubformulasWithOnlyLeafChildren(
+            Set<Formula> onlyLeafChildren, Set<Formula> leaves,
+            Set<Formula> done) {
+        throw new NotImplementedException();
+    }
 }
