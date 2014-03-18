@@ -570,4 +570,13 @@ public class PropositionalVariable extends PropositionalTerm implements
         return result;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeParents(java.util.Map,
+     *      java.util.Set)
+     */
+    @Override
+    public void computeParents(Map<Formula, Set<Formula>> parents,
+            Set<Formula> done) {
+        return; // Leaf node
+    }
 }

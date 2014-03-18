@@ -932,4 +932,13 @@ public class ArrayProperty implements Formula {
         throw new NotImplementedException();
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeParents(java.util.Map,
+     *      java.util.Set)
+     */
+    @Override
+    public void computeParents(Map<Formula, Set<Formula>> parents,
+            Set<Formula> done) {
+        throw new NotImplementedException();
+    }
 }

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -796,4 +797,28 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         return result;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeParents(java.util.Map,
+     *      java.util.Set)
+     */
+    @Override
+    public void computeParents(Map<Formula, Set<Formula>> parents,
+            Set<Formula> done) {
+        if (done.contains(this))
+            return;
+
+        Formula[] formulas = { leftSide, rightSide };
+        for (Formula child : formulas) {
+            Set<Formula> childsParents = parents.get(child);
+            if (childsParents == null) {
+                childsParents = new TreeSet<Formula>();
+                parents.put(child, childsParents);
+            }
+            assert (childsParents != null);
+            childsParents.add(this);
+            child.computeParents(parents, done);
+        }
+
+        done.add(this);
+    }
 }

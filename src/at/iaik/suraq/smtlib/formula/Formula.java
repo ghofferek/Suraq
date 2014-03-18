@@ -390,4 +390,16 @@ public interface Formula extends SMTLibObject, Serializable {
      * @return
      */
     public long size(boolean expandDAG, Map<Formula, Long> done);
+
+    /**
+     * Computes the parent-mapping in this formula. I.e., a node maps to a set
+     * of its parents.
+     * 
+     * @param parents
+     *            results will be written to this map
+     * @param done
+     *            used for DAG-awareness.
+     */
+    public void computeParents(Map<Formula, Set<Formula>> parents,
+            Set<Formula> done);
 }

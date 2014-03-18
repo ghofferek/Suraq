@@ -728,4 +728,14 @@ public class PropositionalFunctionMacroInstance implements Formula {
     public long size(boolean expandDAG, Map<Formula, Long> done) {
         throw new NotImplementedException();
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeParents(java.util.Map,
+     *      java.util.Set)
+     */
+    @Override
+    public void computeParents(Map<Formula, Set<Formula>> parents,
+            Set<Formula> done) {
+        throw new NotImplementedException();
+    }
 }

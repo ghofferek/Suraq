@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -687,4 +688,24 @@ public class FormulaTerm extends PropositionalTerm {
         return formula.size(expandDAG, done);
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeParents(java.util.Map,
+     *      java.util.Set)
+     */
+    @Override
+    public void computeParents(Map<Formula, Set<Formula>> parents,
+            Set<Formula> done) {
+        if (done.contains(this))
+            return;
+        Set<Formula> childsParents = parents.get(formula);
+        if (childsParents == null) {
+            childsParents = new TreeSet<Formula>();
+            parents.put(formula, childsParents);
+        }
+        assert (childsParents != null);
+        childsParents.add(this);
+        formula.computeParents(parents, done);
+
+        done.add(this);
+    }
 }

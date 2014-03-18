@@ -677,4 +677,28 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         return result;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#computeParents(java.util.Map,
+     *      java.util.Set)
+     */
+    @Override
+    public void computeParents(Map<Formula, Set<Formula>> parents,
+            Set<Formula> done) {
+        if (done.contains(this))
+            return;
+
+        for (Formula child : formulas) {
+            Set<Formula> childsParents = parents.get(child);
+            if (childsParents == null) {
+                childsParents = new TreeSet<Formula>();
+                parents.put(child, childsParents);
+            }
+            assert (childsParents != null);
+            childsParents.add(this);
+            child.computeParents(parents, done);
+        }
+
+        done.add(this);
+    }
+
 }
