@@ -2350,8 +2350,8 @@ public class TransitivityCongruenceChain implements
             current = current.getNext();
         }
 
-        if (current == null) {
-            // Whole chain only A-colorable
+        if (current == null || current == clone.getEnd()) {
+            // Whole chain only A-colorable (with a potential final G)
             result[0] = clone;
             result[1] = null;
             result[2] = null;

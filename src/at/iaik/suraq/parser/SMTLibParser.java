@@ -127,7 +127,9 @@ public abstract class SMTLibParser extends Parser implements Serializable {
      */
     protected Collection<DomainVariable> currentUVars = null;
 
-    protected Map<Token, Formula> letDefinitions = new HashMap<Token, Formula>();
+    protected Map<Token, Formula> letFormulaDefinitions = new HashMap<Token, Formula>();
+
+    protected Map<Token, Term> letTermDefinitions = new HashMap<Token, Term>();
 
     /**
      * Parses a given s-expression into a formula.
@@ -194,8 +196,8 @@ public abstract class SMTLibParser extends Parser implements Serializable {
             return var;
         }
 
-        if (isLetKey(expression)) {
-            Formula value = letDefinitions.get(expression);
+        if (isFormulaLetKey(expression)) {
+            Formula value = letFormulaDefinitions.get(expression);
             assert (value != null);
             return value;
         }
@@ -534,6 +536,12 @@ public abstract class SMTLibParser extends Parser implements Serializable {
      *             if parsing fails
      */
     protected Term parseTerm(SExpression expression) throws ParseError {
+
+        if (isTermLetKey(expression)) {
+            Term value = letTermDefinitions.get(expression);
+            assert (value != null);
+            return value;
+        }
 
         if (expression.toString().charAt(0) == SMTLibParser.REF_TERM) {
             // resolve reference with LUT
@@ -1182,10 +1190,24 @@ public abstract class SMTLibParser extends Parser implements Serializable {
      * @return <code>true</code> if the given expression is a key defined by a
      *         let expression, <code>false</code> otherwise.
      */
-    protected boolean isLetKey(SExpression expression) {
+    protected boolean isFormulaLetKey(SExpression expression) {
         if (!(expression instanceof Token))
             return false;
-        return letDefinitions.containsKey(expression);
+        return letFormulaDefinitions.containsKey(expression);
+    }
+
+    /**
+     * Checks whether the given expression is a key defined by a let expression.
+     * 
+     * @param expression
+     *            the expression to check.
+     * @return <code>true</code> if the given expression is a key defined by a
+     *         let expression, <code>false</code> otherwise.
+     */
+    protected boolean isTermLetKey(SExpression expression) {
+        if (!(expression instanceof Token))
+            return false;
+        return letTermDefinitions.containsKey(expression);
     }
 
     /**
@@ -1279,29 +1301,65 @@ public abstract class SMTLibParser extends Parser implements Serializable {
             assert (defineExpr.size() == 2);
             assert (defineExpr.getChildren().get(0) instanceof Token);
             Token key = (Token) defineExpr.getChildren().get(0);
-            Formula value = parseFormulaBody(defineExpr.getChildren().get(1));
 
-            letDefinitions.put(key, value);
+            if (isTerm(defineExpr.getChildren().get(1))) {
+                Term value = parseTerm(defineExpr.getChildren().get(1));
+                letTermDefinitions.put(key, value);
+            } else {
+                Formula value = parseFormulaBody(defineExpr.getChildren()
+                        .get(1));
+                letFormulaDefinitions.put(key, value);
+            }
             currentLetTokens.add(key);
         }
 
         // String formulaString = expr.getChildren().get(2).toString();
         //
-        // for (Token token : letDefinitions.keySet())
+        // for (Token token : letFormulaDefinitions.keySet())
         // formulaString = formulaString.replaceAll(token.toString()
-        // + "[\\t\\n\\x0B\\f\\r(]", letDefinitions.get(token)
+        // + "[\\t\\n\\x0B\\f\\r(]", letFormulaDefinitions.get(token)
         // .toString());
         //
         // SExpression tmpExpr = SExpression.fromString(formulaString);
 
         // SExpression tmpExpr = expr.getChildren().get(2);
-        // tmpExpr.replace(letDefinitions);
+        // tmpExpr.replace(letFormulaDefinitions);
 
         Formula result = parseFormulaBody(expr.getChildren().get(2));
 
-        for (Token key : currentLetTokens)
-            letDefinitions.remove(key);
+        for (Token key : currentLetTokens) {
+            letFormulaDefinitions.remove(key);
+            letTermDefinitions.remove(key);
+        }
 
         return result;
+    }
+
+    /**
+     * 
+     * @param expression
+     * @return <code>true</code> iff the given expression is a term and not a
+     *         formula.
+     */
+    protected boolean isTerm(SExpression expression) {
+        if (isDomainVariable(expression))
+            return true;
+
+        UninterpretedFunction function = isUninterpredFunctionInstance(expression);
+        if (function != null) {
+            if (function.getType().equals(SExpressionConstants.VALUE_TYPE))
+                return true;
+        }
+
+        if (isArrayRead(expression))
+            return true;
+
+        if (isArrayWrite(expression))
+            return true;
+
+        if (isArrayVariable(expression))
+            return true;
+
+        return false;
     }
 }

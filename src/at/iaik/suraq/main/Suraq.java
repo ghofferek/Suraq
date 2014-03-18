@@ -508,12 +508,13 @@ public class Suraq implements Runnable {
             // smtStr += SExpressionConstants.EXIT.toString();
             //
             // String simpleSmtStr = z3.solve2(smtStr);
-            //
+
             Formula simplifiedPartitionFormula = simplifyWithZ3(partitionFormula);
             assert (Util.checkEquivalenceOfFormulas(partitionFormula,
                     simplifiedPartitionFormula));
             partitionFormula = simplifiedPartitionFormula;
             Util.printToSystemOutWithWallClockTimePrefix("Done simplifying.");
+
             // TseitinParser parser = parseTseitinStr(simpleSmtStr, count);
             // Util.printToSystemOutWithWallClockTimePrefix("Done parsing simplified partition");
             // assert (parser.getTseitinVariables().size() == 0);

@@ -282,7 +282,6 @@ public class z3 extends SMTSolver {
                         .println("IOException while trying to display Z3 output.");
                 throw new RuntimeException(exc);
             }
-
         }
         String line;
         try {
@@ -293,6 +292,8 @@ public class z3 extends SMTSolver {
                 else if (line.equals("unsat"))
                     state = SMTSolver.UNSAT;
             }
+            pResult.getOutputStream().close();
+            pResult.getErrorStream().close();
         } catch (IOException exc) {
             throw new RuntimeException("IOException while reading z3 output",
                     exc);

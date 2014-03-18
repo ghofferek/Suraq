@@ -97,4 +97,5 @@ public abstract class SMTSolver {
     public abstract void solve(File file);
 
     public abstract void solve(Formula formula);
+
 }

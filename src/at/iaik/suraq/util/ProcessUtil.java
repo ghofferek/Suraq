@@ -6,6 +6,8 @@ package at.iaik.suraq.util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -82,19 +84,26 @@ public class ProcessUtil {
         int exitCode = -1;
         ProcessResultStreams result = null;
         try {
-            Process p = Runtime.getRuntime().exec(executable);
+            // Process p = Runtime.getRuntime().exec(executable);
+            //
+            // BufferedReader input = new BufferedReader(new InputStreamReader(
+            // p.getInputStream()));
 
-            BufferedReader input = new BufferedReader(new InputStreamReader(
-                    p.getInputStream()));
+            ProcessBuilder pb = new ProcessBuilder(executable.split(" "));
+            File resultFile = File.createTempFile("z3Result", ".smt2",
+                    new File("./"));
+            System.out.println("z3 Result file: " + resultFile.toString());
+            pb.redirectOutput(resultFile);
+            Process p = pb.start();
             BufferedReader error = new BufferedReader(new InputStreamReader(
                     p.getErrorStream()));
-
             try {
                 exitCode = p.waitFor();
             } catch (InterruptedException exc) {
                 throw new RuntimeException("InterruptedException...", exc);
             }
-
+            FileReader freader = new FileReader(resultFile);
+            BufferedReader input = new BufferedReader(freader);
             result = new ProcessResultStreams(input, error, exitCode);
         } catch (IOException exc) {
             throw new RuntimeException("IOException...", exc);
