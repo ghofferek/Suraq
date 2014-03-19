@@ -1646,23 +1646,24 @@ public class Suraq implements Runnable {
                                         .getArrayVariables())).toSmtlibV2());
         rootExp.addChild(constraintExp);
 
+        for (SExpression child : rootExp.getChildren())
+            child.writeTo(writer);
+
         // add new assert formulas for each control signal
         for (Map.Entry<PropositionalVariable, Formula> entry : interpolations
                 .entrySet()) {
             PropositionalVariable controlSignal = entry.getKey();
             Formula controlFormula = entry.getValue();
 
-            SExpression controlAssert = SExpression.makeControlAssert(
-                    controlSignal, controlFormula);
-
-            rootExp.addChild(controlAssert);
-
+            writer.write("(assert (= ");
+            writer.write(controlSignal.toString());
+            writer.write(" \n");
+            Util.writeFormulaUsingLetExpressions(controlFormula, writer);
+            writer.write("\n))");
         }
 
-        rootExp.addChild(SExpressionConstants.CHECK_SAT);
+        writer.write(SExpressionConstants.CHECK_SAT.toString());
 
-        for (SExpression child : rootExp.getChildren())
-            child.writeTo(writer);
     }
 
     /**

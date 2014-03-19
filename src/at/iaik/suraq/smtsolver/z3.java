@@ -244,7 +244,10 @@ public class z3 extends SMTSolver {
             writer.write("\n");
             Util.writeDeclarations(formula, writer);
             writer.write("(" + SExpressionConstants.ASSERT.toString() + " ");
-            formula.writeTo(writer);
+
+            // formula.writeTo(writer);
+            Util.writeFormulaUsingLetExpressions(formula, writer);
+
             writer.write(" )\n");
             writer.write(SExpressionConstants.CHECK_SAT.toString());
             writer.write(SExpressionConstants.EXIT.toString());
