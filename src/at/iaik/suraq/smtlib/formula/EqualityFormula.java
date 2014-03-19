@@ -919,4 +919,13 @@ public abstract class EqualityFormula implements Formula {
         done.add(this);
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#dependsOnlyOn(java.util.Set)
+     */
+    @Override
+    public boolean dependsOnlyOn(Set<Formula> formulaSet) {
+        return true;
+    }
+
 }

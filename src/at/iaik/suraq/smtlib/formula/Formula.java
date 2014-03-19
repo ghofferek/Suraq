@@ -415,6 +415,14 @@ public interface Formula extends SMTLibObject, Serializable {
             Set<Formula> done);
 
     /**
+     * 
+     * @param formulaSet
+     * @return <code>true</code> iff this formula depends only on formulas from
+     *         <code>formulaSet</code>.
+     */
+    public boolean dependsOnlyOn(Set<Formula> formulaSet);
+
+    /**
      * Adds all terms in this formula to the <code>result</code> set. Only adds
      * top-level terms, not their subterms.
      * 

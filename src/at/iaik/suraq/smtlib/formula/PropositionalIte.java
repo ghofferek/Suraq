@@ -878,4 +878,19 @@ public class PropositionalIte extends BooleanCombinationFormula {
 
         done.add(this);
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#dependsOnlyOn(java.util.Set)
+     */
+    @Override
+    public boolean dependsOnlyOn(Set<Formula> formulaSet) {
+        if (!formulaSet.contains(condition))
+            return false;
+        if (!formulaSet.contains(thenBranch))
+            return false;
+        if (!formulaSet.contains(elseBranch))
+            return false;
+        return true;
+    }
+
 }

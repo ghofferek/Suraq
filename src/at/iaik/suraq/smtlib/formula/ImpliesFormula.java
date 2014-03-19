@@ -866,4 +866,17 @@ public class ImpliesFormula extends BooleanCombinationFormula {
 
         done.add(this);
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#dependsOnlyOn(java.util.Set)
+     */
+    @Override
+    public boolean dependsOnlyOn(Set<Formula> formulaSet) {
+        if (!formulaSet.contains(leftSide))
+            return false;
+        if (!formulaSet.contains(rightSide))
+            return false;
+        return true;
+    }
+
 }

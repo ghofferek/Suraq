@@ -758,4 +758,13 @@ public class PropositionalFunctionMacroInstance implements Formula {
     public void getTerms(Set<Term> result, Set<Formula> done) {
         throw new NotImplementedException();
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#dependsOnlyOn(java.util.Set)
+     */
+    @Override
+    public boolean dependsOnlyOn(Set<Formula> formulaSet) {
+        throw new NotImplementedException();
+    }
+
 }

@@ -745,4 +745,14 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         done.add(this);
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#dependsOnlyOn(java.util.Set)
+     */
+    @Override
+    public boolean dependsOnlyOn(Set<Formula> formulaSet) {
+        if (formulaSet.containsAll(formulas))
+            return true;
+        return false;
+    }
+
 }

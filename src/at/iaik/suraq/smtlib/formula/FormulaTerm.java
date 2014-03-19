@@ -749,4 +749,13 @@ public class FormulaTerm extends PropositionalTerm {
 
         done.add(this);
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#dependsOnlyOn(java.util.Set)
+     */
+    @Override
+    public boolean dependsOnlyOn(Set<Formula> formulaSet) {
+        return formula.dependsOnlyOn(formulaSet);
+    }
+
 }
