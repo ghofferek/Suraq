@@ -1218,4 +1218,18 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
         done.add(this);
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getTerms(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getTerms(Set<Term> result, Set<Formula> done) {
+        if (done.contains(this))
+            return;
+
+        result.addAll(parameters);
+
+        done.add(this);
+    }
 }

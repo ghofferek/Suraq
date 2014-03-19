@@ -598,4 +598,14 @@ public class PropositionalVariable extends PropositionalTerm implements
         done.add(this);
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getTerms(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getTerms(Set<Term> result, Set<Formula> done) {
+        return;
+    }
+
 }

@@ -411,6 +411,17 @@ public interface Formula extends SMTLibObject, Serializable {
      * @param done
      */
     public void computeSubformulasWithOnlyLeafChildren(
-            Set<Formula> onlyLeafChildren, Set<Formula> leaves, Set<Formula> done);
+            Set<Formula> onlyLeafChildren, Set<Formula> leaves,
+            Set<Formula> done);
+
+    /**
+     * Adds all terms in this formula to the <code>result</code> set. Only adds
+     * top-level terms, not their subterms.
+     * 
+     * @param result
+     * @param done
+     *            cache to avoid unrolling the DAG.
+     */
+    public void getTerms(Set<Term> result, Set<Formula> done);
 
 }

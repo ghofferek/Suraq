@@ -730,4 +730,19 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
         return;
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getTerms(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getTerms(Set<Term> result, Set<Formula> done) {
+        if (done.contains(this))
+            return;
+
+        for (Formula formula : formulas)
+            formula.getTerms(result, done);
+
+        done.add(this);
+    }
+
 }

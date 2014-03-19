@@ -952,4 +952,13 @@ public class ArrayProperty implements Formula {
             Set<Formula> done) {
         throw new NotImplementedException();
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getTerms(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getTerms(Set<Term> result, Set<Formula> done) {
+        throw new NotImplementedException();
+    }
 }

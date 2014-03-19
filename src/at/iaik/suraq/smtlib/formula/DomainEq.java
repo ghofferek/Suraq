@@ -220,8 +220,7 @@ public class DomainEq extends EqualityFormula {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap,
-     *      java.util.Map)
+     * @see at.iaik.suraq.smtlib.formula.Formula#toAig(TreeMap, java.util.Map)
      */
     @Override
     public int toAig(TreeMap<Integer, Integer[]> aigNodes,
@@ -229,5 +228,19 @@ public class DomainEq extends EqualityFormula {
         assert (this.terms.size() == 2);
         assert (done.get(this) != null);
         return done.get(this) ^ (equal ? 0 : 1);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getTerms(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getTerms(Set<Term> result, Set<Formula> done) {
+        if (done.contains(this))
+            return;
+
+        result.addAll(terms);
+
+        done.add(this);
     }
 }

@@ -862,4 +862,20 @@ public class PropositionalIte extends BooleanCombinationFormula {
         done.add(this);
         return;
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#getTerms(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getTerms(Set<Term> result, Set<Formula> done) {
+        if (done.contains(this))
+            return;
+
+        condition.getTerms(result, done);
+        thenBranch.getTerms(result, done);
+        elseBranch.getTerms(result, done);
+
+        done.add(this);
+    }
 }
