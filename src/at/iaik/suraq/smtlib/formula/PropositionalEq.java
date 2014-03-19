@@ -5,10 +5,12 @@ package at.iaik.suraq.smtlib.formula;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.exceptions.IncomparableTermsException;
@@ -127,7 +129,10 @@ public class PropositionalEq extends EqualityFormula {
      */
     @Override
     public void getLiterals(Set<Formula> result, Set<Formula> done) {
-        throw new NotImplementedException();
+        for (Term term : terms) {
+            assert (term instanceof PropositionalTerm);
+            ((PropositionalTerm) term).getLiterals(result, done);
+        }
     }
 
     /**
@@ -145,6 +150,42 @@ public class PropositionalEq extends EqualityFormula {
     public int toAig(TreeMap<Integer, Integer[]> aigNodes,
             Map<Formula, Integer> done) {
         throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.EqualityFormula#computeParents(java.util.Map,
+     *      java.util.Set)
+     */
+    @Override
+    public void computeParents(Map<Formula, Set<Formula>> parents,
+            Set<Formula> done) {
+        for (Term term : terms) {
+            assert (term instanceof PropositionalTerm);
+            PropositionalTerm propTerm = (PropositionalTerm) term;
+            Set<Formula> childsParents = parents.get(propTerm);
+            if (childsParents == null) {
+                childsParents = new TreeSet<Formula>();
+                parents.put(propTerm, childsParents);
+            }
+            assert (childsParents != null);
+            childsParents.add(this);
+            propTerm.computeParents(parents, done);
+        }
+        done.add(this);
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.formula.EqualityFormula#dependsOnlyOn(java.util.Set)
+     */
+    @Override
+    public boolean dependsOnlyOn(Set<Formula> formulaSet) {
+        Set<Formula> propTerms = new HashSet<Formula>(terms.size() * 2);
+        for (Term term : terms) {
+            assert (term instanceof PropositionalTerm);
+            propTerms.add((PropositionalTerm) term);
+        }
+        boolean result = formulaSet.containsAll(propTerms);
+        return result;
     }
 
     /**

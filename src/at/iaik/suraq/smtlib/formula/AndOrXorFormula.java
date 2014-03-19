@@ -669,7 +669,7 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
             writer.append(' ');
             String id = definitions.get(subformula);
             assert (id != null);
-            writer.append("id");
+            writer.append(id);
         }
         writer.append(") ");
     }

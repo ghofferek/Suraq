@@ -2074,6 +2074,8 @@ public final class Util {
 
         Set<Formula> pseudoLeaves = new HashSet<Formula>();
         formula.getLiterals(pseudoLeaves, new HashSet<Formula>());
+        pseudoLeaves.add(PropositionalConstant.create(true));
+        pseudoLeaves.add(PropositionalConstant.create(false));
 
         Set<Term> terms = new HashSet<Term>();
         formula.getTerms(terms, new HashSet<Formula>());
@@ -2081,7 +2083,7 @@ public final class Util {
         int idCounter = 0;
 
         // Start outermost let-expression (the one defining terms).
-        writer.write("(let \n");
+        writer.write("(let (\n");
         Map<SMTLibObject, String> letDefinitions = new HashMap<SMTLibObject, String>();
         for (Term term : terms) {
             String id = "et!" + Integer.toString(idCounter++);
@@ -2092,17 +2094,17 @@ public final class Util {
             term.writeTo(writer);
             writer.write(")\n");
         }
-        writer.write("("); // opens the formula part of the outermost let
-                           // expression.
+        writer.write(")\n("); // opens the formula part of the outermost let
+                              // expression.
 
-        List<Formula> currentFormulasToDefine = new ArrayList<Formula>(
+        Set<Formula> currentFormulasToDefine = new HashSet<Formula>(
                 pseudoLeaves);
 
         int letLevels = 0;
         while (!currentFormulasToDefine.isEmpty()) {
             // start the current let expression
             letLevels++;
-            writer.write("let \n");
+            writer.write("let (\n");
             for (Formula currentFormula : currentFormulasToDefine) {
                 writer.write("(");
                 String id = "ef!" + Integer.toString(idCounter++);
@@ -2113,16 +2115,16 @@ public final class Util {
                 letDefinitions.put(currentFormula, id);
                 pseudoLeaves.add(currentFormula);
             }
-            // open the formula part of the current let expression
-            writer.write("(");
 
             // Compute the next formulas to define
-            List<Formula> nextFormulasToDefine = new ArrayList<Formula>();
+            Set<Formula> nextFormulasToDefine = new HashSet<Formula>();
             for (Formula currentFormula : currentFormulasToDefine) {
                 Set<Formula> currentParents = parents.get(currentFormula);
                 if (currentParents == null) {
                     assert (currentFormula == formula);
                     assert (currentFormulasToDefine.size() == 1);
+                    assert (nextFormulasToDefine.isEmpty());
+                    assert (letDefinitions.get(formula) != null);
                     currentFormulasToDefine.clear();
                     break;
                 }
@@ -2131,8 +2133,13 @@ public final class Util {
                         nextFormulasToDefine.add(parent);
                 }
             }
-            currentFormulasToDefine = nextFormulasToDefine;
+            if (!nextFormulasToDefine.isEmpty()) {
+                // open the formula part of the current let expression
+                writer.write(")\n(");
+                currentFormulasToDefine = nextFormulasToDefine;
+            }
         }
+        writer.write(")"); // Close definitions of innermost let
         String rootId = letDefinitions.get(formula);
         assert (rootId != null);
         writer.write(rootId);
@@ -2140,11 +2147,11 @@ public final class Util {
         // Close parentheses for let expressions and their formulas
         StringBuilder builder = new StringBuilder();
         for (int count = 0; count < letLevels; count++)
-            builder.append("))");
+            builder.append(")");
         writer.write(builder.toString());
 
         // Close outermost let-expression (the one defining terms)
-        writer.write("\n))");
+        writer.write("\n)");
         writer.flush();
     }
 }
