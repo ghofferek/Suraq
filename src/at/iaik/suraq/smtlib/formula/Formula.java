@@ -349,6 +349,18 @@ public interface Formula extends SMTLibObject, Serializable {
     public void writeTo(Writer writer) throws IOException;
 
     /**
+     * Writes this formula to the given <code>writer</code>, using the given
+     * <code>definitions</code>. The <code>definitions</code> must contain all
+     * the formulas and terms that are directly referenced by this formula.
+     * 
+     * @param writer
+     * @param definitions
+     * @throws IOException
+     */
+    public void writeTo(Writer writer, Map<SMTLibObject, String> definitions)
+            throws IOException;
+
+    /**
      * Adds all literals of this formula to <code>result</code>. Uses
      * <code>done</code> as a cache to avoid DAG-unrolling.
      * 

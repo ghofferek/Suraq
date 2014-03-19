@@ -2059,4 +2059,92 @@ public final class Util {
         return aigNodes.isEmpty() ? 2 + done.size() * 2 : ((aigNodes
                 .descendingKeySet().iterator().next() + 2) / 2) * 2;
     }
+
+    /**
+     * Writes the given formula to the given writer, using let expressions.
+     * 
+     * @param formula
+     * @param writer
+     * @throws IOException
+     */
+    public static void writeFormulaUsingLetExpressions(Formula formula,
+            Writer writer) throws IOException {
+        Map<Formula, Set<Formula>> parents = new HashMap<Formula, Set<Formula>>();
+        formula.computeParents(parents, new HashSet<Formula>());
+
+        Set<Formula> pseudoLeaves = new HashSet<Formula>();
+        formula.getLiterals(pseudoLeaves, new HashSet<Formula>());
+
+        Set<Term> terms = new HashSet<Term>();
+        formula.getTerms(terms, new HashSet<Formula>());
+
+        int idCounter = 0;
+
+        // Start outermost let-expression (the one defining terms).
+        writer.write("(let \n");
+        Map<SMTLibObject, String> letDefinitions = new HashMap<SMTLibObject, String>();
+        for (Term term : terms) {
+            String id = "et!" + Integer.toString(idCounter++);
+            letDefinitions.put(term, id);
+            writer.write("(");
+            writer.write(id);
+            writer.write(" ");
+            term.writeTo(writer);
+            writer.write(")\n");
+        }
+        writer.write("("); // opens the formula part of the outermost let
+                           // expression.
+
+        List<Formula> currentFormulasToDefine = new ArrayList<Formula>(
+                pseudoLeaves);
+
+        int letLevels = 0;
+        while (!currentFormulasToDefine.isEmpty()) {
+            // start the current let expression
+            letLevels++;
+            writer.write("let \n");
+            for (Formula currentFormula : currentFormulasToDefine) {
+                writer.write("(");
+                String id = "ef!" + Integer.toString(idCounter++);
+                writer.write(id);
+                writer.write(" ");
+                currentFormula.writeTo(writer, letDefinitions);
+                writer.write(")\n");
+                letDefinitions.put(currentFormula, id);
+                pseudoLeaves.add(currentFormula);
+            }
+            // open the formula part of the current let expression
+            writer.write("(");
+
+            // Compute the next formulas to define
+            List<Formula> nextFormulasToDefine = new ArrayList<Formula>();
+            for (Formula currentFormula : currentFormulasToDefine) {
+                Set<Formula> currentParents = parents.get(currentFormula);
+                if (currentParents == null) {
+                    assert (currentFormula == formula);
+                    assert (currentFormulasToDefine.size() == 1);
+                    currentFormulasToDefine.clear();
+                    break;
+                }
+                for (Formula parent : currentParents) {
+                    if (parent.dependsOnlyOn(pseudoLeaves))
+                        nextFormulasToDefine.add(parent);
+                }
+            }
+            currentFormulasToDefine = nextFormulasToDefine;
+        }
+        String rootId = letDefinitions.get(formula);
+        assert (rootId != null);
+        writer.write(rootId);
+
+        // Close parentheses for let expressions and their formulas
+        StringBuilder builder = new StringBuilder();
+        for (int count = 0; count < letLevels; count++)
+            builder.append("))");
+        writer.write(builder.toString());
+
+        // Close outermost let-expression (the one defining terms)
+        writer.write("\n))");
+        writer.flush();
+    }
 }

@@ -1142,7 +1142,23 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
             parameter.writeTo(writer);
         }
         writer.append(")");
+    }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer,
+     *      java.util.Map)
+     */
+    @Override
+    public void writeTo(Writer writer, Map<SMTLibObject, String> definitions)
+            throws IOException {
+        writer.append("(").append(function.toString());
+        for (DomainTerm parameter : parameters) {
+            writer.write(" ");
+            String id = definitions.get(parameter);
+            assert (id != null);
+            writer.write(id);
+        }
+        writer.append(")");
     }
 
     /**

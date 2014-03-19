@@ -722,7 +722,29 @@ public class PropositionalIte extends BooleanCombinationFormula {
         writer.append(' ');
         elseBranch.writeTo(writer);
         writer.append(')');
+    }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer,
+     *      java.util.Map)
+     */
+    @Override
+    public void writeTo(Writer writer, Map<SMTLibObject, String> definitions)
+            throws IOException {
+        writer.append('(').append(SExpressionConstants.ITE.toString());
+        writer.append(' ');
+        String idCondition = definitions.get(condition);
+        assert (idCondition != null);
+        writer.write(idCondition);
+        writer.append(' ');
+        String idThen = definitions.get(thenBranch);
+        assert (idThen != null);
+        writer.write(idThen);
+        writer.append(' ');
+        String idElse = definitions.get(elseBranch);
+        assert (idElse != null);
+        writer.write(idElse);
+        writer.append(')');
     }
 
     /**

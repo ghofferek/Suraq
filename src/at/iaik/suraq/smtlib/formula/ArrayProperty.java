@@ -899,6 +899,16 @@ public class ArrayProperty implements Formula {
     }
 
     /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer,
+     *      java.util.Map)
+     */
+    @Override
+    public void writeTo(Writer writer, Map<SMTLibObject, String> definitions)
+            throws IOException {
+        throw new NotImplementedException();
+    }
+
+    /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getLiterals(java.util.Set,
      *      java.util.Set)
      */

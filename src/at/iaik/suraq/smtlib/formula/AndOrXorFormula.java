@@ -645,6 +645,36 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     }
 
     /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer,
+     *      java.util.Map)
+     */
+    @Override
+    public void writeTo(Writer writer, Map<SMTLibObject, String> definitions)
+            throws IOException {
+        writer.append('(');
+        if (this instanceof AndFormula)
+            writer.append(SExpressionConstants.AND.toString());
+        else {
+            if (this instanceof OrFormula)
+                writer.append(SExpressionConstants.OR.toString());
+            else {
+                if (this instanceof XorFormula)
+                    writer.append(SExpressionConstants.XOR.toString());
+                else {
+                    throw new RuntimeException("Unexpected formula type.");
+                }
+            }
+        }
+        for (Formula subformula : formulas) {
+            writer.append(' ');
+            String id = definitions.get(subformula);
+            assert (id != null);
+            writer.append("id");
+        }
+        writer.append(") ");
+    }
+
+    /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getLiterals(java.util.Set,
      *      java.util.Set)
      */

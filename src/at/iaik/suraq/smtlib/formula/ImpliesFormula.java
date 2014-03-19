@@ -723,7 +723,25 @@ public class ImpliesFormula extends BooleanCombinationFormula {
         writer.append(' ');
         rightSide.writeTo(writer);
         writer.append(')');
+    }
 
+    /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer,
+     *      java.util.Map)
+     */
+    @Override
+    public void writeTo(Writer writer, Map<SMTLibObject, String> definitions)
+            throws IOException {
+        writer.append('(').append(SExpressionConstants.IMPLIES.toString());
+        writer.append(' ');
+        String idLeft = definitions.get(leftSide);
+        assert (idLeft != null);
+        writer.write(idLeft);
+        writer.append(' ');
+        String idRight = definitions.get(rightSide);
+        assert (idRight != null);
+        writer.write(idRight);
+        writer.append(')');
     }
 
     /**

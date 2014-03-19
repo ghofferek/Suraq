@@ -874,6 +874,25 @@ public abstract class EqualityFormula implements Formula {
     }
 
     /**
+     * @see at.iaik.suraq.smtlib.formula.Formula#writeTo(java.io.Writer,
+     *      java.util.Map)
+     */
+    @Override
+    public void writeTo(Writer writer, Map<SMTLibObject, String> definitions)
+            throws IOException {
+        writer.append('(')
+                .append(this.equal ? SExpressionConstants.EQUAL.toString()
+                        : SExpressionConstants.DISTINCT.toString()).append(' ');
+        for (Term term : terms) {
+            String id = definitions.get(term);
+            assert (id != null);
+            writer.append(id);
+            writer.append(' ');
+        }
+        writer.append(") ");
+    }
+
+    /**
      * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
      */
     @Override
