@@ -22,6 +22,7 @@ import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.HashTagContainer;
+import at.iaik.suraq.util.IdGenerator;
 import at.iaik.suraq.util.ImmutableArrayList;
 
 /**
@@ -45,6 +46,8 @@ public abstract class EqualityFormula implements Formula {
     protected final boolean equal;
 
     private final int hashCode;
+
+    private final long id = IdGenerator.getId();
 
     /**
      * 
@@ -276,6 +279,29 @@ public abstract class EqualityFormula implements Formula {
     @Override
     public int hashCode() {
         return this.hashCode;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getId()
+     */
+    @Override
+    public final long getId() {
+        return id;
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public final int compareTo(SMTLibObject o) {
+        long otherId = o.getId();
+        if (this.id < otherId)
+            return -1;
+        if (this.id == otherId)
+            return 0;
+        if (this.id > otherId)
+            return 1;
+        throw new RuntimeException("Something is TERRIBLY wrong!!");
     }
 
     /**
@@ -591,14 +617,6 @@ public abstract class EqualityFormula implements Formula {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    /**
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    @Override
-    public int compareTo(SMTLibObject o) {
-        return this.toString().compareTo(o.toString());
     }
 
     /**

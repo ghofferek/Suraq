@@ -538,14 +538,6 @@ public class NotFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    @Override
-    public int compareTo(SMTLibObject o) {
-        return this.toString().compareTo(o.toString());
-    }
-
-    /**
      * @see at.iaik.suraq.smtlib.formula.Formula#tseitinEncode(java.util.Map)
      */
     @Override

@@ -2120,7 +2120,8 @@ public final class Util {
             Set<Formula> nextFormulasToDefine = new HashSet<Formula>();
             for (Formula currentFormula : currentFormulasToDefine) {
                 Set<Formula> currentParents = parents.get(currentFormula);
-                if (currentParents == null) {
+                if (currentParents == null
+                        && !(currentFormula instanceof PropositionalConstant)) {
                     assert (currentFormula == formula);
                     assert (currentFormulasToDefine.size() == 1);
                     assert (nextFormulasToDefine.isEmpty());
@@ -2128,10 +2129,13 @@ public final class Util {
                     currentFormulasToDefine.clear();
                     break;
                 }
-                for (Formula parent : currentParents) {
-                    if (parent.dependsOnlyOn(pseudoLeaves))
-                        nextFormulasToDefine.add(parent);
-                }
+                if (currentParents != null) {
+                    for (Formula parent : currentParents) {
+                        if (parent.dependsOnlyOn(pseudoLeaves))
+                            nextFormulasToDefine.add(parent);
+                    }
+                } else
+                    assert (currentFormula instanceof PropositionalConstant);
             }
             if (!nextFormulasToDefine.isEmpty()) {
                 // open the formula part of the current let expression

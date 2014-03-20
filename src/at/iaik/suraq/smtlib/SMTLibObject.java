@@ -91,4 +91,9 @@ public interface SMTLibObject extends Comparable<SMTLibObject> {
      */
     @Override
     public String toString();
+
+    /**
+     * @return the unique ID of this object.
+     */
+    public long getId();
 }

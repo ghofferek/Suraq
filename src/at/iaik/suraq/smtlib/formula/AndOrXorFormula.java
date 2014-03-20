@@ -466,14 +466,6 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
     }
 
     /**
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    @Override
-    public int compareTo(SMTLibObject o) {
-        return this.toString().compareTo(o.toString());
-    }
-
-    /**
      * @see at.iaik.suraq.formula.Formula#uninterpretedPredicatesToAuxiliaryVariables(at.iaik.suraq.formula.Formula,
      *      java.util.Map, java.util.Map)
      */

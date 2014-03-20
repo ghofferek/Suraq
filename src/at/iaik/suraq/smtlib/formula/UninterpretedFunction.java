@@ -11,6 +11,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
+import at.iaik.suraq.util.IdGenerator;
 
 /**
  * This class represents uninterpreted functions. It stores the name of the
@@ -27,6 +28,8 @@ public class UninterpretedFunction implements SMTLibObject, Serializable {
      * 
      */
     private static final long serialVersionUID = 5520322987626682279L;
+
+    private final long id = IdGenerator.getId();
 
     /**
      * The assert-partitions
@@ -211,6 +214,14 @@ public class UninterpretedFunction implements SMTLibObject, Serializable {
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getId()
+     */
+    @Override
+    public long getId() {
+        return id;
     }
 
     /**

@@ -23,6 +23,7 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.HashTagContainer;
+import at.iaik.suraq.util.IdGenerator;
 import at.iaik.suraq.util.ImmutableHashMap;
 
 /**
@@ -35,6 +36,8 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * 
      */
     private static final long serialVersionUID = 5604001861879637266L;
+
+    private final long id = IdGenerator.getId();
 
     /**
      * The macro of which this is an instance.
@@ -241,6 +244,14 @@ public class PropositionalFunctionMacroInstance implements Formula {
     @Override
     public int hashCode() {
         return macro.hashCode() * 31 + paramMap.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getId()
+     */
+    @Override
+    public long getId() {
+        return id;
     }
 
     /**

@@ -17,6 +17,7 @@ import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.HashTagContainer;
+import at.iaik.suraq.util.IdGenerator;
 
 /**
  * This abstract class represents terms. Terms can be domain terms, array terms,
@@ -42,6 +43,8 @@ public abstract class Term implements Serializable, SMTLibObject {
             .create("")).getClass().getSuperclass();
 
     public final static int GLOBAL_PARTITION = -1;
+
+    private final long id = IdGenerator.getId();
 
     /**
      * The assert-partitions
@@ -327,8 +330,24 @@ public abstract class Term implements Serializable, SMTLibObject {
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     @Override
-    public int compareTo(SMTLibObject o) {
-        return this.toString().compareTo(o.toString());
+    public final int compareTo(SMTLibObject o) {
+        long otherId = o.getId();
+        if (this.id < otherId)
+            return -1;
+        if (this.id == otherId)
+            return 0;
+        if (this.id > otherId)
+            return 1;
+        throw new RuntimeException("Something is TERRIBLY wrong!!");
+    }
+
+    /**
+     * 
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getId()
+     */
+    @Override
+    public final long getId() {
+        return id;
     }
 
 }

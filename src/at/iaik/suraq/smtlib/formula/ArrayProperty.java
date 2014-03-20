@@ -25,6 +25,7 @@ import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
 import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.HashTagContainer;
+import at.iaik.suraq.util.IdGenerator;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.Util;
 
@@ -42,6 +43,8 @@ public class ArrayProperty implements Formula {
      * 
      */
     private static final long serialVersionUID = -1979830923087843951L;
+
+    private final long id = IdGenerator.getId();
 
     /**
      * The collection of universally quantified variables.
@@ -418,6 +421,14 @@ public class ArrayProperty implements Formula {
     public int hashCode() {
         return uVars.hashCode() * 31 * 31 + indexGuard.hashCode() * 31
                 + valueConstraint.hashCode();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getId()
+     */
+    @Override
+    public long getId() {
+        return id;
     }
 
     /**
