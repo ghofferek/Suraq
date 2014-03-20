@@ -16,11 +16,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -64,9 +62,7 @@ import at.iaik.suraq.smtsolver.VeriTSolver;
 import at.iaik.suraq.smtsolver.z3;
 import at.iaik.suraq.util.BenchmarkTimer;
 import at.iaik.suraq.util.DebugHelper;
-import at.iaik.suraq.util.FormulaCache;
 import at.iaik.suraq.util.FormulaSimplifier;
-import at.iaik.suraq.util.SaveCache;
 import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 
@@ -97,10 +93,10 @@ public class Suraq implements Runnable {
      */
     private DomainVariable lambda;
 
-    /**
-     * The expressions that will be written to the output.
-     */
-    private List<SExpression> outputExpressions;
+    // /**
+    // * The expressions that will be written to the output.
+    // */
+    // private List<SExpression> outputExpressions;
 
     /**
      * Maps each noDependenceVar to a list of its copies.
@@ -402,6 +398,7 @@ public class Suraq implements Runnable {
      * @return the tseitin encoded partitions
      * 
      */
+    @Deprecated
     private void performTseitinEncodingWithZ3() {
 
         int count = 1;
@@ -1307,134 +1304,78 @@ public class Suraq implements Runnable {
         SuraqOptions options = SuraqOptions.getInstance();
 
         File sourceFile = new File(options.getInput());
-        File saveCacheSerial = new File(options.getCacheFileSerial());
-
-        Date inputFileDate = new Date(sourceFile.lastModified());
-        Date cacheFileDate = new Date(saveCacheSerial.lastModified());
-        boolean cacheOutdated = inputFileDate.getTime() > cacheFileDate
-                .getTime();
         List<PropositionalVariable> controlVariables = null;
         Map<PropositionalVariable, Formula> iteTrees = null;
-        SaveCache cache = null;
-        // Get from cache whatever we can (if we should)
-        if (options.useNewVeritCache() && saveCacheSerial.exists()
-                && !cacheOutdated) {
-            System.out
-                    .println("################################################################################");
-            Util.printToSystemOutWithWallClockTimePrefix("Using cached proof object from file "
-                    + saveCacheSerial);
-            Timer cacheReadTimer = new Timer();
-            cacheReadTimer.start();
-            cache = SaveCache.loadSaveCacheFromFile(saveCacheSerial.getPath());
-            cacheReadTimer.stop();
-            Util.printToSystemOutWithWallClockTimePrefix("Reading from cache took "
-                    + cacheReadTimer);
-            assert (cache != null);
 
-        }
+        Util.printMemoryInformation();
+        Util.printToSystemOutWithWallClockTimePrefix("start input transformations");
+        Timer inputTransformationTimer = new Timer();
+        inputTransformationTimer.start();
+        inputTransformations(sourceFile);
+        controlVariables = logicParser.getControlVariables();
+        inputTransformationTimer.stop();
+        Util.printToSystemOutWithWallClockTimePrefix("finished input transformations in "
+                + inputTransformationTimer + ".\n");
+        Util.printMemoryInformation();
 
-        if (cache == null) {
-            Util.printMemoryInformation();
-            Util.printToSystemOutWithWallClockTimePrefix("start input transformations");
-            Timer inputTransformationTimer = new Timer();
-            inputTransformationTimer.start();
-            inputTransformations(sourceFile);
-            controlVariables = logicParser.getControlVariables();
-            inputTransformationTimer.stop();
-            Util.printToSystemOutWithWallClockTimePrefix("finished input transformations in "
-                    + inputTransformationTimer + ".\n");
-            Util.printMemoryInformation();
-
-            if (options.getUseThisPropProofFile() == null) {
-                String providedProofFile = options.getUseThisProofFile();
-                BufferedReader proofReader;
-                if (providedProofFile == null) {
-                    Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
-                    Timer proofcalculationTimer = new Timer();
-                    proofcalculationTimer.start();
-                    List<Formula> tseitinPartitionsList = new ArrayList<Formula>(
-                            tseitinPartitions.size());
-                    for (Integer key : tseitinPartitions.keySet())
-                        tseitinPartitionsList.add(tseitinPartitions.get(key));
-                    VeriTSolver veriT = new VeriTSolver();
-                    veriT.solve(tseitinPartitionsList);
-                    Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
-                    try {
-                        proofReader = veriT.getStream();
-                    } catch (FileNotFoundException exc) {
-                        throw new RuntimeException(exc);
-                    }
-                } else {
-                    try {
-                        proofReader = new BufferedReader(new FileReader(
-                                providedProofFile));
-                        Util.printToSystemOutWithWallClockTimePrefix("[INFO] Using the following proof file, instead of calling the solver: "
-                                + providedProofFile);
-                    } catch (FileNotFoundException exc) {
-                        System.out.println("Proof file not found: "
-                                + providedProofFile);
-                        throw new RuntimeException(exc);
-                    }
+        if (options.getUseThisPropProofFile() == null) {
+            String providedProofFile = options.getUseThisProofFile();
+            BufferedReader proofReader;
+            if (providedProofFile == null) {
+                Util.printToSystemOutWithWallClockTimePrefix("start proof calculation.");
+                Timer proofcalculationTimer = new Timer();
+                proofcalculationTimer.start();
+                List<Formula> tseitinPartitionsList = new ArrayList<Formula>(
+                        tseitinPartitions.size());
+                for (Integer key : tseitinPartitions.keySet())
+                    tseitinPartitionsList.add(tseitinPartitions.get(key));
+                VeriTSolver veriT = new VeriTSolver();
+                veriT.solve(tseitinPartitionsList);
+                Util.printToSystemOutWithWallClockTimePrefix("VeriTSolver returned!");
+                try {
+                    proofReader = veriT.getStream();
+                } catch (FileNotFoundException exc) {
+                    throw new RuntimeException(exc);
                 }
-
-                VeriTParser veriTParser;
-                veriTParser = new VeriTParser(proofReader, mainFormula,
-                        tseitinEncoding.keySet(),
-                        noDependenceVarsCopies.values(),
-                        noDependenceFunctionsCopies);
-                Util.printMemoryInformation();
-                if (!options.getCheckProofWhileParsing()) {
-                    VeritProof.setCheckProofEnabled(false);
-                    VeritProofNode.setCheckProofNodesEnabled(false);
-                }
-                Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
-                Timer parseTimer = new Timer();
-                parseTimer.start();
-                veriTParser.parse();
-                parseTimer.stop();
-                Util.printToSystemOutWithWallClockTimePrefix("Done parsing. (Took "
-                        + parseTimer.toString() + ")");
-                veritProof = veriTParser.getProof();
-                assert (veritProof != null);
-                Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
-                        + Util.largeNumberFormatter.format(veritProof.size()));
-                veritProof.removeUnreachableNodes();
-                Util.printToSystemOutWithWallClockTimePrefix("Proof size (after removing unreachable nodes): "
-                        + Util.largeNumberFormatter.format(veritProof.size()));
-                assert (veritProof.checkProof());
-                assert (veritProof.hasNoBadLiterals());
-
-                if (options.useNewVeritCache()) {
-                    // Now write to cache
-                    Util.printToSystemOutWithWallClockTimePrefix("Now writing to cache.");
-                    Timer cacheWriteTimer = new Timer();
-                    cacheWriteTimer.start();
-                    cache = new SaveCache(propositionalVars, domainVars,
-                            arrayVars, uninterpretedFunctions,
-                            controlVariables, mainFormula,
-                            assertPartitionFormulas, tseitinEncoding,
-                            saveCacheSerial.getPath(), veritProof,
-                            noDependenceVarsCopies,
-                            noDependenceFunctionsCopies, constraints,
-                            logicParser);
-                    cacheWriteTimer.stop();
-                    Util.printToSystemOutWithWallClockTimePrefix("Done writing to cache. Took "
-                            + cacheWriteTimer);
-                } else {
-                    Util.printToSystemOutWithWallClockTimePrefix("Skipped writing to cache, because --newVeritCache was not specified.");
+            } else {
+                try {
+                    proofReader = new BufferedReader(new FileReader(
+                            providedProofFile));
+                    Util.printToSystemOutWithWallClockTimePrefix("[INFO] Using the following proof file, instead of calling the solver: "
+                            + providedProofFile);
+                } catch (FileNotFoundException exc) {
+                    System.out.println("Proof file not found: "
+                            + providedProofFile);
+                    throw new RuntimeException(exc);
                 }
             }
-        } else {
-            // Read from cache
-            veritProof = cache.getVeritProof();
+
+            VeriTParser veriTParser;
+            veriTParser = new VeriTParser(proofReader, mainFormula,
+                    tseitinEncoding.keySet(), noDependenceVarsCopies.values(),
+                    noDependenceFunctionsCopies);
+            Util.printMemoryInformation();
+            if (!options.getCheckProofWhileParsing()) {
+                VeritProof.setCheckProofEnabled(false);
+                VeritProofNode.setCheckProofNodesEnabled(false);
+            }
+            Util.printToSystemOutWithWallClockTimePrefix("start to parse proof.");
+            Timer parseTimer = new Timer();
+            parseTimer.start();
+            veriTParser.parse();
+            parseTimer.stop();
+            Util.printToSystemOutWithWallClockTimePrefix("Done parsing. (Took "
+                    + parseTimer.toString() + ")");
+            veritProof = veriTParser.getProof();
             assert (veritProof != null);
-            Util.printToSystemOutWithWallClockTimePrefix("Proof was read from cache. Size: "
-                    + veritProof.size() + " nodes.");
-            controlVariables = cache.getControlVars();
-            constraints = cache.getConstraints();
-            logicParser = cache.getLogicParser();
-            assert (controlVariables != null);
-            readFieldsFromCache(cache);
+            Util.printToSystemOutWithWallClockTimePrefix("Proof size: "
+                    + Util.largeNumberFormatter.format(veritProof.size()));
+            veritProof.removeUnreachableNodes();
+            Util.printToSystemOutWithWallClockTimePrefix("Proof size (after removing unreachable nodes): "
+                    + Util.largeNumberFormatter.format(veritProof.size()));
+            assert (veritProof.checkProof());
+            assert (veritProof.hasNoBadLiterals());
+
         }
 
         if (options.getUseThisPropProofFile() == null) {
@@ -1507,51 +1448,6 @@ public class Suraq implements Runnable {
         printEnd(noErrors, overallTimer);
         // System.err.println(Suraq.extTimer);
         return;
-    }
-
-    private void readFieldsFromCache(SaveCache sc) {
-        propositionalVars = sc.getPropsitionalVars();
-        assert (propositionalVars != null);
-        domainVars = sc.getDomainVars();
-        assert (domainVars != null);
-        arrayVars = sc.getArrayVars();
-        assert (arrayVars != null);
-        uninterpretedFunctions = sc.getUninterpretedFunctions();
-        assert (uninterpretedFunctions != null);
-        mainFormula = sc.getMainFormula();
-        assert (mainFormula != null);
-        assertPartitionFormulas = sc.getAssertPartitionFormulas();
-        assert (assertPartitionFormulas != null);
-        tseitinEncoding = sc.getTseitinEncoding();
-        assert (tseitinEncoding != null);
-        noDependenceVarsCopies = sc.getNoDependenceVarsCopies();
-        assert (noDependenceVarsCopies != null);
-        noDependenceFunctionsCopies = sc.getNoDependenceFunctionsCopies();
-        assert (noDependenceFunctionsCopies != null);
-
-        Util.printToSystemOutWithWallClockTimePrefix("Copying to FormulaCache... ");
-        Timer t = new Timer();
-        t.start();
-        for (PropositionalVariable tmp : propositionalVars)
-            FormulaCache.propVar.post(tmp);
-        for (DomainVariable tmp : domainVars)
-            FormulaCache.domainVarFormula.post(tmp);
-        for (UninterpretedFunction tmp : uninterpretedFunctions)
-            FormulaCache.uninterpretedFunction.post(tmp);
-        for (List<Term> tmp2 : noDependenceVarsCopies.values())
-            for (Term tmp : tmp2) {
-                if (tmp instanceof DomainVariable)
-                    FormulaCache.domainVarFormula.post((DomainVariable) tmp);
-                if (tmp instanceof PropositionalVariable)
-                    FormulaCache.propVar.post((PropositionalVariable) tmp);
-            }
-        for (List<UninterpretedFunction> tmp2 : noDependenceFunctionsCopies
-                .values())
-            for (UninterpretedFunction tmp : tmp2)
-                FormulaCache.uninterpretedFunction.post(tmp);
-
-        t.stop();
-        Util.printToSystemOutWithWallClockTimePrefix(" Needed: " + t);
     }
 
     /**
@@ -2156,19 +2052,8 @@ public class Suraq implements Runnable {
     private void prepareOutputExpressions(Formula formula,
             List<PropositionalVariable> controlSignals) throws SuraqException {
         Timer timer = new Timer();
-        outputExpressions = new ArrayList<SExpression>();
-        // outputExpressions.add(SExpression.fromString("(set-logic QF_AUFLIA)"));
-
-        outputExpressions.add(SExpressionConstants.SET_LOGIC_QF_UF);
-        outputExpressions.add(SExpressionConstants.AUTO_CONFIG_FALSE);
-        // outputExpressions.add(SExpressionConstants.PROOF_MODE_2);
-        // outputExpressions
-        // .add(SExpressionConstants.SET_OPTION_PRODUCE_INTERPOLANT);
-        outputExpressions.add(SExpressionConstants.DECLARE_SORT_VALUE);
 
         Util.printToSystemOutWithWallClockTimePrefix("  Writing declarations...");
-
-        int beginDeclarationsIdx = outputExpressions.size();
 
         timer.reset();
         timer.start();
@@ -2178,42 +2063,7 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
 
-        // this seems not to work correctly for
-        // performFullSuraq3_no_readonly_pipeline_ex_suraq
-
-        // get declarations and functions
-        ListIterator<SExpression> beginDeclarations = outputExpressions
-                .listIterator(beginDeclarationsIdx);
-        while (beginDeclarations.hasNext()) {
-            SExpression elem = beginDeclarations.next();
-            declarationStr += elem.toString();
-        }
-
-        int beginAssertPartitionIdx = outputExpressions.size();
         writeAssertPartitions(formula, noDependenceVars, controlSignals);
-
-        // get assert partitions and transform to simplifies.
-        ListIterator<SExpression> beginAssert = outputExpressions
-                .listIterator(beginAssertPartitionIdx);
-        while (beginAssert.hasNext()) {
-            SExpression expr = beginAssert.next().deepCopy();
-            // expr.replaceChild(new Token("simplify"), 0);
-            assertPartitionList.add(expr);
-        }
-
-        // FIXME how is this added, when outputExpressions is not used any more.
-        outputExpressions.add(SExpressionConstants.CHECK_SAT);
-        outputExpressions.add(SExpressionConstants.GET_PROOF);
-        outputExpressions.add(SExpressionConstants.EXIT);
-
-        // debug:
-        /*
-         * try{ File debugFile1 = new File("./debug_assertPartitionList.txt");
-         * FileWriter fstream = new FileWriter(debugFile1);
-         * ListIterator<SExpression> tmp = assertPartitionList.listIterator();
-         * while (tmp.hasNext()) { fstream.write(tmp.next().toString()); }
-         * fstream.close(); } catch(Exception ex) { ex.printStackTrace(); }
-         */
 
         Suraq.extTimer.stopReset("</doMainWork>");
 
@@ -2274,8 +2124,8 @@ public class Suraq implements Runnable {
             Set<Token> noDependenceVars,
             List<PropositionalVariable> controlSignals) throws SuraqException {
 
-        if (outputExpressions == null)
-            throw new SuraqException("outputExpressions not initialized!");
+        // if (outputExpressions == null)
+        // throw new SuraqException("outputExpressions not initialized!");
 
         for (int count = 0; count < (1 << controlSignals.size()); count++) {
             Util.printToSystemOutWithWallClockTimePrefix("  Writing assert-partition number "
@@ -2338,11 +2188,11 @@ public class Suraq implements Runnable {
                     new HashMap<SMTLibObject, SMTLibObject>());
             tempFormula = NotFormula.create(tempFormula);
             this.assertPartitionFormulas.put(count + 1, tempFormula);
-            SExpression assertPartitionExpression = new SExpression();
-            assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
-            // .addChild(SExpressionConstants.ASSERT_PARTITION);
-            assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
-            outputExpressions.add(assertPartitionExpression);
+            // SExpression assertPartitionExpression = new SExpression();
+            // assertPartitionExpression.addChild(SExpressionConstants.ASSERT);
+            // // .addChild(SExpressionConstants.ASSERT_PARTITION);
+            // assertPartitionExpression.addChild(tempFormula.toSmtlibV2());
+            // outputExpressions.add(assertPartitionExpression);
         }
     }
 
@@ -2366,8 +2216,6 @@ public class Suraq implements Runnable {
             throws SuraqException {
 
         Util.printToSystemOutWithWallClockTimePrefix("   step 0");
-        if (outputExpressions == null)
-            throw new SuraqException("outputExpressions not initialized!");
 
         varTypes = new HashMap<Token, SExpression>();
         varTypes.put(Token.generate(lambda.getVarName()),
@@ -2386,9 +2234,9 @@ public class Suraq implements Runnable {
                         SExpressionConstants.BOOL_TYPE);
                 continue; // noDependenceVars will be handled later.
             }
-            outputExpressions
-                    .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
-                            SExpressionConstants.BOOL_TYPE, 0));
+            // outputExpressions
+            // .add(SExpression.makeDeclareFun((Token) var.toSmtlibV2(),
+            // SExpressionConstants.BOOL_TYPE, 0));
         }
 
         Set<DomainVariable> dVars = new HashSet<DomainVariable>();
@@ -2402,9 +2250,9 @@ public class Suraq implements Runnable {
                         SExpressionConstants.VALUE_TYPE);
                 continue; // noDependenceVars will be handled later.
             }
-            outputExpressions.add(SExpression.makeDeclareFun(
-                    (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
-                    0));
+            // outputExpressions.add(SExpression.makeDeclareFun(
+            // (Token) var.toSmtlibV2(), SExpressionConstants.VALUE_TYPE,
+            // 0));
         }
 
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
@@ -2421,9 +2269,9 @@ public class Suraq implements Runnable {
                         SExpressionConstants.ARRAY_TYPE);
                 continue; // noDependenceVars will be handled later.
             }
-            outputExpressions.add(SExpression.makeDeclareFun(
-                    (Token) var.toSmtlibV2(), SExpressionConstants.ARRAY_TYPE,
-                    0));
+            // outputExpressions.add(SExpression.makeDeclareFun(
+            // (Token) var.toSmtlibV2(), SExpressionConstants.ARRAY_TYPE,
+            // 0));
         } // end debug
 
         Set<UninterpretedFunction> ufs = new HashSet<UninterpretedFunction>();
@@ -2438,9 +2286,9 @@ public class Suraq implements Runnable {
                 functionArity.put(function.getName(), function.getNumParams());
                 continue; // noDependenceVars will be handled later.
             }
-            outputExpressions.add(SExpression.makeDeclareFun(
-                    function.getName(), function.getType(),
-                    function.getNumParams()));
+            // outputExpressions.add(SExpression.makeDeclareFun(
+            // function.getName(), function.getType(),
+            // function.getNumParams()));
         }
 
         long _cnt = noDependenceVars.size();
@@ -2491,8 +2339,8 @@ public class Suraq implements Runnable {
 
                 String name = Util.freshVarNameCached(formula, var.toString()
                         + "_copy_" + count);
-                outputExpressions.add(SExpression.makeDeclareFun(
-                        Token.generate(name), type, numParams));
+                // outputExpressions.add(SExpression.makeDeclareFun(
+                // Token.generate(name), type, numParams));
                 if (numParams == 0) {
                     if (type.equals(SExpressionConstants.BOOL_TYPE))
                         listOfVarCopies.add(PropositionalVariable.create(name,
@@ -2514,8 +2362,8 @@ public class Suraq implements Runnable {
         Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
         formula.getFunctionMacros(macros, done);
         done.clear();
-        for (FunctionMacro macro : macros)
-            outputExpressions.add(macro.toSmtlibV2());
+        // for (FunctionMacro macro : macros)
+        // outputExpressions.add(macro.toSmtlibV2());
     }
 
     /**
@@ -2756,7 +2604,8 @@ public class Suraq implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Dumping SMT query to file "
                     + filename);
             File file = new File(filename);
-            FileWriter writer = new FileWriter(file);
+            FileWriter fw = new FileWriter(file);
+            BufferedWriter writer = new BufferedWriter(fw);
             writer.write("; This SMT file was created by the SURAQ synthesis tool.\n");
             writer.write("; Date and time of creation: ");
             writer.write(new SimpleDateFormat("yyyy-MM-dd HH:mm")
@@ -2770,7 +2619,9 @@ public class Suraq implements Runnable {
 
             writer.write(SExpressionConstants.SET_LOGIC_QF_UF.toString());
             writer.write(SExpressionConstants.DECLARE_SORT_VALUE.toString());
-            writer.write(declarationStr);
+            // writer.write(declarationStr);
+            Util.writeDeclarations(AndFormula.generate(new ArrayList<Formula>(
+                    assertPartitionFormulas.values())), writer);
             writer.write("\n");
             int count = 0;
             for (Integer key : assertPartitionFormulas.keySet()) {
