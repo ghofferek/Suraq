@@ -2069,6 +2069,13 @@ public final class Util {
      */
     public static void writeFormulaUsingLetExpressions(Formula formula,
             Writer writer) throws IOException {
+
+        if (formula.size(true, new HashMap<Formula, Long>()) < 100) {
+            Util.printToSystemOutWithWallClockTimePrefix("Writing small formula without let expressions.");
+            formula.writeTo(writer);
+            return;
+        }
+
         Map<Formula, Set<Formula>> parents = new HashMap<Formula, Set<Formula>>();
         formula.computeParents(parents, new HashSet<Formula>());
 
@@ -2123,7 +2130,12 @@ public final class Util {
                 if (currentParents == null
                         && !(currentFormula instanceof PropositionalConstant)) {
                     assert (currentFormula == formula);
-                    assert (currentFormulasToDefine.size() == 1);
+                    assert (currentFormulasToDefine.size() == 1 || (currentFormulasToDefine
+                            .size() <= 3
+                            && currentFormulasToDefine
+                                    .contains(PropositionalConstant
+                                            .create(true)) && currentFormulasToDefine
+                                .contains(PropositionalConstant.create(false))));
                     assert (nextFormulasToDefine.isEmpty());
                     assert (letDefinitions.get(formula) != null);
                     currentFormulasToDefine.clear();
