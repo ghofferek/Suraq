@@ -6,11 +6,13 @@ package at.iaik.suraq.smtlib.formula;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
  * A propositional term. I.e., either a propositional constant or a
@@ -96,4 +98,9 @@ public abstract class PropositionalTerm extends Term implements Formula,
     @Override
     public abstract PropositionalTerm removeArrayITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, Collection<Formula> constraints);
+
+    @Override
+    public abstract PropositionalTerm substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done);
 }

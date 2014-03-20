@@ -512,12 +512,20 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
+
         List<Term> pairs = new ArrayList<Term>();
         for (Term term : terms)
-            pairs.add(term.substituteUninterpretedFunctionTerm(substitutions));
+            pairs.add(term.substituteUninterpretedFunction(substitutions, done));
         try {
-            return EqualityFormula.create(pairs, equal);
+            Formula result = EqualityFormula.create(pairs, equal);
+            done.put(this, result);
+            return result;
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);

@@ -2322,8 +2322,8 @@ public class Suraq implements Runnable {
                                     + " is neither a variable nor an uninterpreted function.");
             }
 
-            tempFormula = tempFormula
-                    .substituteUninterpretedFunction(ufSubstitutions);
+            tempFormula = tempFormula.substituteUninterpretedFunction(
+                    ufSubstitutions, new HashMap<SMTLibObject, SMTLibObject>());
 
             int currentCount = count;
             int mask = 1;

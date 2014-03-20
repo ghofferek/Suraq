@@ -435,9 +435,16 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
-        return NotFormula.create(formula
-                .substituteUninterpretedFunction(substitutions));
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
+        Formula result = NotFormula.create(formula
+                .substituteUninterpretedFunction(substitutions, done));
+        done.put(this, result);
+        return result;
     }
 
     /**

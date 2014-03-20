@@ -461,8 +461,13 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(
-            Map<Token, UninterpretedFunction> substitutions) {
+    public DomainTerm substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof DomainTerm);
+            return (DomainTerm) done.get(this);
+        }
         UninterpretedFunction function = this.function;
 
         if (substitutions.containsKey(function.getName())) {
@@ -478,12 +483,14 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         // }
         List<DomainTerm> paramnew = new ArrayList<DomainTerm>();
         for (Term term : parameters)
-            paramnew.add((DomainTerm) term
-                    .substituteUninterpretedFunctionTerm(substitutions));
+            paramnew.add((DomainTerm) term.substituteUninterpretedFunction(
+                    substitutions, done));
 
         try {
-            return UninterpretedFunctionInstance.create(function, paramnew,
-                    assertPartition);
+            DomainTerm result = UninterpretedFunctionInstance.create(function,
+                    paramnew, assertPartition);
+            done.put(this, result);
+            return result;
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

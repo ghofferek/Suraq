@@ -12,6 +12,7 @@ import java.util.Set;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
 
 /**
  * 
@@ -54,6 +55,11 @@ public abstract class DomainTerm extends Term implements Serializable {
      */
     @Override
     public abstract DomainTerm deepTermCopy();
+
+    @Override
+    public abstract DomainTerm substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done);
 
     /**
      * @see at.iaik.suraq.formula.Term#uninterpretedPredicatesToAuxiliaryVariables(t)

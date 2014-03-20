@@ -321,8 +321,13 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
+    public UninterpretedPredicateInstance substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof UninterpretedPredicateInstance);
+            return (UninterpretedPredicateInstance) done.get(this);
+        }
         UninterpretedFunction function = this.function;
 
         if (substitutions.containsKey(function.getName())) {
@@ -337,39 +342,14 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
 
         List<DomainTerm> paramNew = new ArrayList<DomainTerm>();
         for (Term term : parameters)
-            paramNew.add((DomainTerm) term
-                    .substituteUninterpretedFunctionTerm(substitutions));
+            paramNew.add((DomainTerm) term.substituteUninterpretedFunction(
+                    substitutions, done));
 
         try {
-            return UninterpretedPredicateInstance.create(function, paramNew);
-        } catch (SuraqException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public Term substituteUninterpretedFunctionTerm(
-            Map<Token, UninterpretedFunction> substitutions) {
-        UninterpretedFunction function = this.function;
-
-        if (substitutions.containsKey(function.getName())) {
-            function = substitutions.get(function.getName());
-            assert ((function.getType()).equals(SExpressionConstants.BOOL_TYPE));
-        }
-        // if (function.getName().equals(oldFunction)) {
-        // function = newFunction;
-        // assert (newFunction.getType()
-        // .equals(SExpressionConstants.BOOL_TYPE));
-        // }
-
-        List<DomainTerm> paramNew = new ArrayList<DomainTerm>();
-        for (Term term : parameters)
-            paramNew.add((DomainTerm) term
-                    .substituteUninterpretedFunctionTerm(substitutions));
-
-        try {
-            return UninterpretedPredicateInstance.create(function, paramNew);
+            UninterpretedPredicateInstance result = UninterpretedPredicateInstance
+                    .create(function, paramNew);
+            done.put(this, result);
+            return result;
         } catch (SuraqException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

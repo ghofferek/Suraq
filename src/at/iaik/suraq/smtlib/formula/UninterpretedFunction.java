@@ -4,9 +4,11 @@
 package at.iaik.suraq.smtlib.formula;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.SMTLibObject;
@@ -332,6 +334,17 @@ public class UninterpretedFunction implements SMTLibObject, Serializable {
     public void getFunctionMacros(Set<FunctionMacro> result,
             Set<SMTLibObject> done) {
         return;
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#substituteUninterpretedFunction(java.util.Map,
+     *      java.util.Map)
+     */
+    @Override
+    public SMTLibObject substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        throw new NotImplementedException();
     }
 
 }

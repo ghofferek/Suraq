@@ -390,12 +390,21 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
         Formula rightSide = this.rightSide;
         Formula leftSide = this.leftSide;
-        leftSide = leftSide.substituteUninterpretedFunction(substitutions);
-        rightSide = rightSide.substituteUninterpretedFunction(substitutions);
-        return ImpliesFormula.create(leftSide, rightSide);
+        leftSide = leftSide
+                .substituteUninterpretedFunction(substitutions, done);
+        rightSide = rightSide.substituteUninterpretedFunction(substitutions,
+                done);
+        Formula result = ImpliesFormula.create(leftSide, rightSide);
+        done.put(this, result);
+        return result;
     }
 
     /**

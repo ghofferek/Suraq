@@ -118,6 +118,11 @@ public abstract class Term implements Serializable, SMTLibObject {
     public abstract Term substituteTerm(Map<Token, ? extends Term> paramMap,
             Map<SMTLibObject, SMTLibObject> done);
 
+    @Override
+    public abstract Term substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done);
+
     /**
      * Computes the index set of this term. I.e., if it is an array read, its
      * index term is returned (as a singleton). For other term types, an empty
@@ -189,13 +194,6 @@ public abstract class Term implements Serializable, SMTLibObject {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
-    // public abstract Term substituteUninterpretedFunctionTerm(Token
-    // oldFunction,
-    // UninterpretedFunction newFunction);
-
-    // chillebold:
-    public abstract Term substituteUninterpretedFunctionTerm(
-            Map<Token, UninterpretedFunction> substitutions);
 
     /**
      * 

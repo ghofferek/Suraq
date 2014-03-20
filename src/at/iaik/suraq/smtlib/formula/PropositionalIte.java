@@ -449,14 +449,22 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
-        Formula condition = this.condition
-                .substituteUninterpretedFunction(substitutions);
-        Formula thenBranch = this.thenBranch
-                .substituteUninterpretedFunction(substitutions);
-        Formula elseBranch = this.elseBranch
-                .substituteUninterpretedFunction(substitutions);
-        return PropositionalIte.create(condition, thenBranch, elseBranch);
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
+        Formula condition = this.condition.substituteUninterpretedFunction(
+                substitutions, done);
+        Formula thenBranch = this.thenBranch.substituteUninterpretedFunction(
+                substitutions, done);
+        Formula elseBranch = this.elseBranch.substituteUninterpretedFunction(
+                substitutions, done);
+        Formula result = PropositionalIte.create(condition, thenBranch,
+                elseBranch);
+        done.put(this, result);
+        return result;
     }
 
     /**

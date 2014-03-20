@@ -406,11 +406,20 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
         List<Formula> children = new ArrayList<Formula>();
         for (Formula formula : formulas)
-            children.add(formula.substituteUninterpretedFunction(substitutions));
-        return create(children);
+            children.add(formula.substituteUninterpretedFunction(substitutions,
+                    done));
+
+        Formula result = create(children);
+        done.put(this, result);
+        return result;
     }
 
     /**

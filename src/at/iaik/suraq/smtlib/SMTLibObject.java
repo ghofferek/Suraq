@@ -1,8 +1,10 @@
 package at.iaik.suraq.smtlib;
 
+import java.util.Map;
 import java.util.Set;
 
 import at.iaik.suraq.sexp.SExpression;
+import at.iaik.suraq.sexp.Token;
 import at.iaik.suraq.smtlib.formula.ArrayVariable;
 import at.iaik.suraq.smtlib.formula.DomainVariable;
 import at.iaik.suraq.smtlib.formula.FunctionMacro;
@@ -86,8 +88,21 @@ public interface SMTLibObject extends Comparable<SMTLibObject> {
             Set<SMTLibObject> done);
 
     /**
+     * Substitutes the uninterpreted functions according to the given map.
+     * Parameters are not changed (except for recursive substitutions).
      * 
-     * @return a String representation of this formula
+     * @param substitutions
+     * @param done
+     *            DAG-aware cache
+     * @return
+     */
+    public SMTLibObject substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done);
+
+    /**
+     * 
+     * @return a String representation of this object
      */
     @Override
     public String toString();

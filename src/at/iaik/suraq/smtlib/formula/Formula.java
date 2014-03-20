@@ -72,22 +72,10 @@ public interface Formula extends SMTLibObject, Serializable {
     public Formula substituteFormula(Map<Token, ? extends Term> paramMap,
             Map<SMTLibObject, SMTLibObject> done);
 
-    /**
-     * Replaces all instances of <code>oldFunction</code> with instances of
-     * <code>newFunction</code>. The parameters of the functions are not changed
-     * (except for recursive substitutions).
-     * 
-     * @param oldFunction
-     *            the name of the function to replace.
-     * @param newFunction
-     *            the function to put in place.
-     */
-    // public Formula substituteUninterpretedFunction(Token oldFunction,
-    // UninterpretedFunction newFunction);
-
-    // chillebold:
+    @Override
     public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions);
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done);
 
     /**
      * Replaces all array equalities in this formula by equivalent array

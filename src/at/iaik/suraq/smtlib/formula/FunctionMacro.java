@@ -14,6 +14,8 @@ import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.sexp.SExpression;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.sexp.Token;
+import at.iaik.suraq.smtlib.SMTLibObject;
+import at.iaik.suraq.util.IdGenerator;
 import at.iaik.suraq.util.ImmutableArrayList;
 import at.iaik.suraq.util.ImmutableHashMap;
 
@@ -21,7 +23,7 @@ import at.iaik.suraq.util.ImmutableHashMap;
  * @author Georg Hofferek <georg.hofferek@iaik.tugraz.at>
  * 
  */
-public abstract class FunctionMacro implements Serializable {
+public abstract class FunctionMacro implements Serializable, SMTLibObject {
 
     /**
      * 
@@ -32,6 +34,8 @@ public abstract class FunctionMacro implements Serializable {
      */
     protected final Token name;
     protected final List<Token> parameters;
+
+    private final long id = IdGenerator.getId();
 
     /**
      * The map of parameters to their types.
@@ -67,24 +71,25 @@ public abstract class FunctionMacro implements Serializable {
 
     }
 
+    @Override
+    public final long getId() {
+        return id;
+    }
+
     /**
-     * Constructs a new <code>FunctionMacro</code>, which is a deep copy of the
-     * given one
-     * 
-     * @param macro
-     *            the macro to (deep) copy.
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
-    /*
-     * private FunctionMacro(FunctionMacro macro) {
-     * 
-     * this.name = (Token) macro.name.deepCopy(); this.parameters = new
-     * ArrayList<Token>(); for (Token parameter : macro.parameters)
-     * this.parameters.add((Token) parameter.deepCopy()); HashMap<Token,
-     * SExpression> tmp = new HashMap<Token, SExpression>(); for (Token token :
-     * macro.paramMap.keySet()) tmp.put((Token) token.deepCopy(),
-     * macro.paramMap.get(token).deepCopy()); this.paramMap = new
-     * ImmutableHashMap<Token, SExpression>(tmp); }
-     */
+    @Override
+    public final int compareTo(SMTLibObject o) {
+        long otherId = o.getId();
+        if (this.id < otherId)
+            return -1;
+        if (this.id == otherId)
+            return 0;
+        if (this.id > otherId)
+            return 1;
+        throw new RuntimeException("Something is TERRIBLY wrong!!");
+    }
 
     /**
      * @return the <code>name</code>
@@ -195,6 +200,7 @@ public abstract class FunctionMacro implements Serializable {
      * 
      * @return a define-fun expression for this macro.
      */
+    @Override
     public SExpression toSmtlibV2() {
         ArrayList<SExpression> tmp = new ArrayList<SExpression>();
         tmp.add(SExpressionConstants.DEFINE_FUN);

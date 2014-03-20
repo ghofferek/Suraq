@@ -458,16 +458,24 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
         PropositionalFunctionMacro macro = this.macro
-                .substituteUninterpretedFunction(substitutions);
+                .substituteUninterpretedFunction(substitutions, done);
         Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token token : paramMap.keySet()) {
             paramMap2.put(token, paramMap.get(token)
-                    .substituteUninterpretedFunctionTerm(substitutions));
+                    .substituteUninterpretedFunction(substitutions, done));
         }
         try {
-            return PropositionalFunctionMacroInstance.create(macro, paramMap2);
+            Formula result = PropositionalFunctionMacroInstance.create(macro,
+                    paramMap2);
+            done.put(this, result);
+            return result;
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

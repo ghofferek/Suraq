@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import at.iaik.suraq.exceptions.InvalidParametersException;
 import at.iaik.suraq.exceptions.SuraqException;
 import at.iaik.suraq.sexp.SExpression;
@@ -293,6 +294,7 @@ public class PropositionalFunctionMacro extends FunctionMacro {
     /**
      * @see at.iaik.suraq.smtlib.formula.Formula#getUninterpretedFunctions()
      */
+    @Override
     public void getUninterpretedFunctions(Set<UninterpretedFunction> result,
             Set<SMTLibObject> done) {
         body.getUninterpretedFunctions(result, done);
@@ -310,13 +312,22 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @see at.iaik.suraq.smtlib.formula.Formula#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
+    @Override
     public PropositionalFunctionMacro substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof PropositionalFunctionMacro);
+            return (PropositionalFunctionMacro) done.get(this);
+        }
 
-        Formula body = this.body.substituteUninterpretedFunction(substitutions);
+        Formula body = this.body.substituteUninterpretedFunction(substitutions,
+                done);
         try {
-            return PropositionalFunctionMacro.create(name, parameters,
-                    paramMap, body);
+            PropositionalFunctionMacro result = PropositionalFunctionMacro
+                    .create(name, parameters, paramMap, body);
+            done.put(this, result);
+            return result;
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -439,4 +450,72 @@ public class PropositionalFunctionMacro extends FunctionMacro {
                     exc);
         }
     }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getPartitionsFromSymbols()
+     */
+    @Override
+    public Set<Integer> getPartitionsFromSymbols() {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getArrayVariables(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getArrayVariables(Set<ArrayVariable> result,
+            Set<SMTLibObject> done) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getDomainVariables(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getDomainVariables(Set<DomainVariable> result,
+            Set<SMTLibObject> done) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getPropositionalVariables(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getPropositionalVariables(Set<PropositionalVariable> result,
+            Set<SMTLibObject> done) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getUninterpretedFunctionNames(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getUninterpretedFunctionNames(Set<String> result,
+            Set<SMTLibObject> done) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getFunctionMacroNames(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getFunctionMacroNames(Set<String> result, Set<SMTLibObject> done) {
+        result.add(this.name.toString());
+    }
+
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#getFunctionMacros(java.util.Set,
+     *      java.util.Set)
+     */
+    @Override
+    public void getFunctionMacros(Set<FunctionMacro> result,
+            Set<SMTLibObject> done) {
+        result.add(this);
+    }
+
 }

@@ -416,18 +416,26 @@ public class TermFunctionMacroInstance extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(
-            Map<Token, UninterpretedFunction> substitutions) {
+    public TermFunctionMacroInstance substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof TermFunctionMacroInstance);
+            return (TermFunctionMacroInstance) done.get(this);
+        }
         TermFunctionMacro macro = (TermFunctionMacro) this.macro
-                .substituteUninterpretedFunction(substitutions);
+                .substituteUninterpretedFunction(substitutions, done);
 
         Map<Token, Term> paramMap2 = new HashMap<Token, Term>();
         for (Token token : paramMap.keySet())
             paramMap2.put(token, this.paramMap.get(token)
-                    .substituteUninterpretedFunctionTerm(substitutions));
+                    .substituteUninterpretedFunction(substitutions, done));
 
         try {
-            return TermFunctionMacroInstance.create(macro, paramMap2);
+            TermFunctionMacroInstance result = TermFunctionMacroInstance
+                    .create(macro, paramMap2);
+            done.put(this, result);
+            return result;
         } catch (InvalidParametersException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

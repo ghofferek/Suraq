@@ -409,15 +409,22 @@ public class DomainIte extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(
-            Map<Token, UninterpretedFunction> substitutions) {
-        Formula condition = this.condition
-                .substituteUninterpretedFunction(substitutions);
-        DomainTerm thenBranch = (DomainTerm) this.thenBranch
-                .substituteUninterpretedFunctionTerm(substitutions);
-        DomainTerm elseBranch = (DomainTerm) this.elseBranch
-                .substituteUninterpretedFunctionTerm(substitutions);
-        return DomainIte.create(condition, thenBranch, elseBranch);
+    public DomainTerm substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof Term);
+            return (DomainTerm) done.get(this);
+        }
+        Formula condition = this.condition.substituteUninterpretedFunction(
+                substitutions, done);
+        DomainTerm thenBranch = this.thenBranch
+                .substituteUninterpretedFunction(substitutions, done);
+        DomainTerm elseBranch = this.elseBranch
+                .substituteUninterpretedFunction(substitutions, done);
+        DomainTerm result = DomainIte.create(condition, thenBranch, elseBranch);
+        done.put(this, result);
+        return result;
     }
 
     /**

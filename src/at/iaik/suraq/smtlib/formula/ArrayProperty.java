@@ -640,16 +640,26 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof Formula);
+            return (Formula) done.get(this);
+        }
+
         Formula indexGuard = this.indexGuard;
         Formula valueConstraint = this.valueConstraint;
 
-        indexGuard = indexGuard.substituteUninterpretedFunction(substitutions);
-        valueConstraint = valueConstraint
-                .substituteUninterpretedFunction(substitutions);
+        indexGuard = indexGuard.substituteUninterpretedFunction(substitutions,
+                done);
+        valueConstraint = valueConstraint.substituteUninterpretedFunction(
+                substitutions, done);
 
         try {
-            return ArrayProperty.create(uVars, indexGuard, valueConstraint);
+            Formula result = ArrayProperty.create(uVars, indexGuard,
+                    valueConstraint);
+            done.put(this, result);
+            return result;
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);

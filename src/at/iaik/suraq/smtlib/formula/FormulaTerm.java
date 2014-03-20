@@ -303,65 +303,18 @@ public class FormulaTerm extends PropositionalTerm {
     }
 
     /**
-     * @see at.iaik.suraq.smtlib.formula.Term#substituteUninterpretedFunction(at.iaik.suraq.sexp.Token,
-     *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
+     * 
+     * @see at.iaik.suraq.smtlib.formula.Term#substituteUninterpretedFunction(java.util.Map,
+     *      java.util.Map)
      */
     @Override
-    public Formula substituteUninterpretedFunction(
-            Map<Token, UninterpretedFunction> substitutions) {
-        Formula formula = this.formula;
-
-        if (formula instanceof UninterpretedPredicateInstance) {
-            Token key = ((UninterpretedFunctionInstance) formula).getFunction()
-                    .getName();
-            if (substitutions.containsKey(key)) {
-                try {
-                    formula = UninterpretedPredicateInstance.create(
-                            substitutions.get(key),
-                            ((UninterpretedFunctionInstance) formula)
-                                    .getParameters());
-                } catch (SuraqException exc) {
-                    throw new RuntimeException(
-                            "Unexpected situation while subsituting uninterpreted function");
-                }
-            }
-            // if (((UninterpretedFunctionInstance)
-            // formula).getFunction().equals(
-            // oldFunction)) {
-            // try {
-            // formula = UninterpretedPredicateInstance.create(newFunction,
-            // ((UninterpretedFunctionInstance) formula)
-            // .getParameters());
-            // } catch (SuraqException exc) {
-            // throw new RuntimeException(
-            // "Unexpected situation while subsituting uninterpreted function");
-            // }
-            // }
-            List<DomainTerm> paramNew = new ArrayList<DomainTerm>();
-            for (Term param : ((UninterpretedFunctionInstance) formula)
-                    .getParameters())
-                paramNew.add((DomainTerm) param
-                        .substituteUninterpretedFunctionTerm(substitutions));
-            try {
-                formula = UninterpretedPredicateInstance.create(
-                        ((UninterpretedPredicateInstance) formula)
-                                .getFunction(), paramNew, assertPartition);
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-            // (UninterpretedFunction function,List<DomainTerm> parameters, int
-            // partition
-            // ... create new formula with parameters...
-
+    public PropositionalTerm substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof FormulaTerm);
+            return (FormulaTerm) done.get(this);
         }
-        formula = formula.substituteUninterpretedFunction(substitutions);
-        return FormulaTerm.create(formula);
-    }
-
-    @Override
-    public Term substituteUninterpretedFunctionTerm(
-            Map<Token, UninterpretedFunction> substitutions) {
         Formula formula = this.formula;
 
         if (formula instanceof UninterpretedPredicateInstance) {
@@ -379,24 +332,11 @@ public class FormulaTerm extends PropositionalTerm {
                 }
             }
 
-            // if (((UninterpretedFunctionInstance)
-            // formula).getFunction().equals(
-            // oldFunction)) {
-            // try {
-            // formula = UninterpretedPredicateInstance.create(newFunction,
-            // ((UninterpretedFunctionInstance) formula)
-            // .getParameters());
-            // } catch (SuraqException exc) {
-            // throw new RuntimeException(
-            // "Unexpected situation while subsituting uninterpreted function");
-            // }
-            // }
-
             List<DomainTerm> paramNew = new ArrayList<DomainTerm>();
-            for (Term param : ((UninterpretedFunctionInstance) formula)
+            for (DomainTerm param : ((UninterpretedFunctionInstance) formula)
                     .getParameters())
-                paramNew.add((DomainTerm) param
-                        .substituteUninterpretedFunctionTerm(substitutions));
+                paramNew.add(param.substituteUninterpretedFunction(
+                        substitutions, done));
             try {
                 formula = UninterpretedPredicateInstance.create(
                         ((UninterpretedPredicateInstance) formula)
@@ -410,8 +350,10 @@ public class FormulaTerm extends PropositionalTerm {
             // ... create new formula with parameters...
 
         }
-        formula = formula.substituteUninterpretedFunction(substitutions);
-        return FormulaTerm.create(formula);
+        formula = formula.substituteUninterpretedFunction(substitutions, done);
+        PropositionalTerm result = FormulaTerm.create(formula);
+        done.put(this, result);
+        return result;
     }
 
     /**

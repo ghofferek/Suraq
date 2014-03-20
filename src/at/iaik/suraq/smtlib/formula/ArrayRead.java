@@ -364,13 +364,20 @@ public class ArrayRead extends DomainTerm {
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
     @Override
-    public Term substituteUninterpretedFunctionTerm(
-            Map<Token, UninterpretedFunction> substitutions) {
+    public DomainTerm substituteUninterpretedFunction(
+            Map<Token, UninterpretedFunction> substitutions,
+            Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null) {
+            assert (done.get(this) instanceof DomainTerm);
+            return (DomainTerm) done.get(this);
+        }
         ArrayTerm arrayTerm = (ArrayTerm) this.arrayTerm
-                .substituteUninterpretedFunctionTerm(substitutions);
-        DomainTerm indexTerm = (DomainTerm) this.indexTerm
-                .substituteUninterpretedFunctionTerm(substitutions);
-        return ArrayRead.create(arrayTerm, indexTerm);
+                .substituteUninterpretedFunction(substitutions, done);
+        DomainTerm indexTerm = this.indexTerm.substituteUninterpretedFunction(
+                substitutions, done);
+        DomainTerm result = ArrayRead.create(arrayTerm, indexTerm);
+        done.put(this, result);
+        return result;
     }
 
     /**
