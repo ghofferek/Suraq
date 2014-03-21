@@ -866,6 +866,7 @@ public class Suraq implements Runnable {
     /**
      * @param rootProof
      */
+    @Deprecated
     private void dealWithBadLiteralHypotheses(Z3Proof rootProof) {
         Timer timer = new Timer();
         timer.start();

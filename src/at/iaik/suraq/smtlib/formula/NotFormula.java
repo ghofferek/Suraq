@@ -558,13 +558,13 @@ public class NotFormula extends BooleanCombinationFormula {
         if (done.get(this) != null)
             return done.get(this);
 
-        Set<Integer> partitions = this.getPartitionsFromSymbols();
-        assert (partitions.size() == 1 || partitions.size() == 2);
-        if (partitions.size() == 2)
-            partitions.remove(-1);
-        assert (partitions.size() == 1);
-        assert (partitions.iterator().next().equals(partition) || partitions
-                .iterator().next().equals(-1));
+        // Set<Integer> partitions = this.getPartitionsFromSymbols();
+        // assert (partitions.size() == 1 || partitions.size() == 2);
+        // if (partitions.size() == 2)
+        // partitions.remove(-1);
+        // assert (partitions.size() == 1);
+        // assert (partitions.iterator().next().equals(partition) || partitions
+        // .iterator().next().equals(-1));
 
         PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
         encoding.put(tseitinVar, this);
@@ -584,6 +584,7 @@ public class NotFormula extends BooleanCombinationFormula {
         disjuncts.add(NotFormula.create(tseitinVarForSubformula));
         clauses.add(OrFormula.generate(disjuncts));
 
+        done.put(this, tseitinVar);
         return tseitinVar;
     }
 

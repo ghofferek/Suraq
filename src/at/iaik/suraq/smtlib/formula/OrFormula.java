@@ -201,13 +201,13 @@ public class OrFormula extends AndOrXorFormula {
         if (done.get(this) != null)
             return done.get(this);
 
-        Set<Integer> partitions = this.getPartitionsFromSymbols();
-        assert (partitions.size() == 1 || partitions.size() == 2);
-        if (partitions.size() == 2)
-            partitions.remove(-1);
-        assert (partitions.size() == 1);
-        assert (partitions.iterator().next().equals(partition) || partitions
-                .iterator().next().equals(-1));
+        // Set<Integer> partitions = this.getPartitionsFromSymbols();
+        // assert (partitions.size() == 1 || partitions.size() == 2);
+        // if (partitions.size() == 2)
+        // partitions.remove(-1);
+        // assert (partitions.size() == 1);
+        // assert (partitions.iterator().next().equals(partition) || partitions
+        // .iterator().next().equals(-1));
 
         PropositionalVariable tseitinVar = Util.freshTseitinVar(partition);
 
@@ -231,6 +231,7 @@ public class OrFormula extends AndOrXorFormula {
         disjuncts.add(NotFormula.create(tseitinVar));
         clauses.add(OrFormula.generate(disjuncts));
 
+        done.put(this, tseitinVar);
         return tseitinVar;
     }
 

@@ -176,7 +176,8 @@ public class z3 extends SMTSolver {
             writer.write("\n");
             Util.writeDeclarations(formula, writer);
             writer.write("(" + SExpressionConstants.SIMPLIFY.toString() + " ");
-            formula.writeTo(writer);
+            // formula.writeTo(writer);
+            Util.writeFormulaUsingLetExpressions(formula, writer);
             writer.write(" " + SExpressionConstants.ELIM_AND.toString() + " "
                     + SExpressionConstants.TRUE + ")\n");
             writer.write(SExpressionConstants.EXIT.toString());

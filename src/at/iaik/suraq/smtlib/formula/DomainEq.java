@@ -153,6 +153,14 @@ public class DomainEq extends EqualityFormula {
         // return tseitinVar;
 
         // END OLD CODE - BEGIN REPLACEMENT
+        Set<Integer> partitions = this.getPartitionsFromSymbols();
+        assert (partitions.size() == 1 || partitions.size() == 2);
+        if (partitions.size() == 2)
+            partitions.remove(-1);
+        assert (partitions.size() == 1);
+        assert (partitions.iterator().next().equals(partition) || partitions
+                .iterator().next().equals(-1));
+
         assert (Util.isLiteral(this));
         return this;
         // END REPLACEMENT
