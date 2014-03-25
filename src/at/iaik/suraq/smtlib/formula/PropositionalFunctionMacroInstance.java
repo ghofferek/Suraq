@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib.formula;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -754,7 +755,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
      */
     @Override
-    public long size(boolean expandDAG, Map<Formula, Long> done) {
+    public BigInteger size(boolean expandDAG, Map<Formula, BigInteger> done) {
         throw new NotImplementedException();
     }
 

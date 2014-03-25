@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -389,7 +390,7 @@ public interface Formula extends SMTLibObject, Serializable {
      * @param done
      * @return
      */
-    public long size(boolean expandDAG, Map<Formula, Long> done);
+    public BigInteger size(boolean expandDAG, Map<Formula, BigInteger> done);
 
     /**
      * Computes the parent-mapping in this formula. I.e., a node maps to a set

@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -2070,7 +2071,8 @@ public final class Util {
     public static void writeFormulaUsingLetExpressions(Formula formula,
             Writer writer) throws IOException {
 
-        if (formula.size(true, new HashMap<Formula, Long>()) < 100) {
+        if (formula.size(true, new HashMap<Formula, BigInteger>()).compareTo(
+                new BigInteger("100")) < 0) {
             Util.printToSystemOutWithWallClockTimePrefix("Writing small formula without let expressions.");
             formula.writeTo(writer);
             return;

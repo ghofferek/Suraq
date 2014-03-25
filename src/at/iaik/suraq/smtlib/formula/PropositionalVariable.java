@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -561,15 +562,15 @@ public class PropositionalVariable extends PropositionalTerm implements
      * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
      */
     @Override
-    public long size(boolean expandDAG, Map<Formula, Long> done) {
+    public BigInteger size(boolean expandDAG, Map<Formula, BigInteger> done) {
         if (done.get(this) != null) {
             if (expandDAG)
                 return done.get(this);
             else
-                return 0;
+                return BigInteger.ZERO;
         }
 
-        long result = 1;
+        BigInteger result = BigInteger.ONE;
 
         done.put(this, result);
         return result;

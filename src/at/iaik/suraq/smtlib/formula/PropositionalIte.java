@@ -6,6 +6,7 @@ package at.iaik.suraq.smtlib.formula;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -813,18 +814,18 @@ public class PropositionalIte extends BooleanCombinationFormula {
      * @see at.iaik.suraq.smtlib.formula.Formula#size(boolean, java.util.Map)
      */
     @Override
-    public long size(boolean expandDAG, Map<Formula, Long> done) {
+    public BigInteger size(boolean expandDAG, Map<Formula, BigInteger> done) {
         if (done.get(this) != null) {
             if (expandDAG)
                 return done.get(this);
             else
-                return 0;
+                return BigInteger.ZERO;
         }
 
-        long result = 1;
-        result += condition.size(expandDAG, done);
-        result += thenBranch.size(expandDAG, done);
-        result += elseBranch.size(expandDAG, done);
+        BigInteger result = BigInteger.ONE;
+        result = result.add(condition.size(expandDAG, done));
+        result = result.add(thenBranch.size(expandDAG, done));
+        result = result.add(elseBranch.size(expandDAG, done));
 
         done.put(this, result);
         return result;

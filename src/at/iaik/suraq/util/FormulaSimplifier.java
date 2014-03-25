@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +34,7 @@ public class FormulaSimplifier {
 
     public static final String SIMPLIFIER_PATH = "./lib/simplifier/simplify.sh";
 
-    private static final long CHECK_TRESHOLD = 10000;
+    private static final BigInteger CHECK_TRESHOLD = new BigInteger("10000");
 
     /**
      * The originalFormula, unsimplified formula.
@@ -278,8 +279,9 @@ public class FormulaSimplifier {
         // exc.printStackTrace();
         // throw new RuntimeException(exc);
         // }
-        long size = originalFormula.size(true, new HashMap<Formula, Long>());
-        if (size > FormulaSimplifier.CHECK_TRESHOLD) {
+        BigInteger size = originalFormula.size(true,
+                new HashMap<Formula, BigInteger>());
+        if (size.compareTo(FormulaSimplifier.CHECK_TRESHOLD) < 0) {
             Util.printToSystemOutWithWallClockTimePrefix("WARNING: Skipped check of simplification because original formula has tree-size "
                     + Util.largeNumberFormatter.format(size));
             return true;
