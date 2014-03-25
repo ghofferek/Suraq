@@ -2071,9 +2071,11 @@ public final class Util {
     public static void writeFormulaUsingLetExpressions(Formula formula,
             Writer writer) throws IOException {
 
-        if (formula.size(true, new HashMap<Formula, BigInteger>()).compareTo(
-                new BigInteger("100")) < 0) {
-            Util.printToSystemOutWithWallClockTimePrefix("Writing small formula without let expressions.");
+        BigInteger size = formula
+                .size(true, new HashMap<Formula, BigInteger>());
+        if (size.compareTo(new BigInteger("100")) < 0) {
+            Util.printToSystemOutWithWallClockTimePrefix("Writing small formula without let expressions. (Size: "
+                    + size.toString() + ")");
             formula.writeTo(writer);
             return;
         }
