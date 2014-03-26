@@ -501,10 +501,15 @@ public class ArrayRead extends DomainTerm {
      */
     @Override
     public DomainTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return ArrayRead.create(
-                arrayTerm.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                indexTerm.uninterpretedFunctionsBackToArrayReads(arrayVars));
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (DomainTerm) done.get(this);
+        DomainTerm result = ArrayRead.create((ArrayTerm) arrayTerm
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done),
+                (DomainTerm) indexTerm.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done));
+        done.put(this, result);
+        return result;
     }
 
     /**

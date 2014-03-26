@@ -437,10 +437,11 @@ public class PropositionalFunctionMacro extends FunctionMacro {
      * @param arrayVars
      * @return
      */
+    @Override
     public PropositionalFunctionMacro uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        Formula newBody = body
-                .uninterpretedFunctionsBackToArrayReads(arrayVars);
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        Formula newBody = (Formula) body
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done);
         try {
             return PropositionalFunctionMacro.create(name, parameters,
                     paramMap, newBody);

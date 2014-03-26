@@ -266,6 +266,16 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
     }
 
     /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#uninterpretedFunctionsBackToArrayReads(java.util.Set,
+     *      java.util.Map)
+     */
+    @Override
+    public SMTLibObject uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        return this;
+    }
+
+    /**
      * @see at.iaik.suraq.smtlib.formula.Term#substituteUninterpretedFunction(Token,
      *      at.iaik.suraq.smtlib.formula.UninterpretedFunction)
      */
@@ -348,15 +358,6 @@ public class ArrayVariable extends ArrayTerm implements Serializable {
                 "uninterpretedFunctionsToAuxiliaryVariables cannot be called on an ArrayVariable.");
 
         // return;
-    }
-
-    /**
-     * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedFunctionsBackToArrayReads(java.util.Set)
-     */
-    @Override
-    public ArrayTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return this;
     }
 
     /**

@@ -543,10 +543,14 @@ public class FormulaTerm extends PropositionalTerm {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
      */
     @Override
-    public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return FormulaTerm.create(formula
-                .uninterpretedFunctionsBackToArrayReads(arrayVars));
+    public Formula uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (Formula) done.get(this);
+        Formula result = FormulaTerm.create((Formula) formula
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done));
+        done.put(this, result);
+        return result;
     }
 
     /**

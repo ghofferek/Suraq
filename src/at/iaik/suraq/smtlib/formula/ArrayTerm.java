@@ -62,10 +62,6 @@ public abstract class ArrayTerm extends Term implements Serializable {
             Map<DomainVariable, List<DomainTerm>> instanceParameters,
             Set<Token> noDependenceVars);
 
-    @Override
-    public abstract ArrayTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars);
-
     /**
      * @see at.iaik.suraq.smtlib.formula.Term#removeDomainITE(at.iaik.suraq.smtlib.formula.Formula,
      *      java.util.Set, java.util.List)

@@ -804,7 +804,10 @@ public class UninterpretedFunctionInstance extends DomainTerm {
      */
     @Override
     public DomainTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+
+        if (done.get(this) != null)
+            return (DomainTerm) done.get(this);
 
         if (parameters.size() == 1) {
             // Check whether this is an instance that should be replaced
@@ -812,8 +815,13 @@ public class UninterpretedFunctionInstance extends DomainTerm {
                 if (variable.getVarName().equals(function.getName().toString())) {
                     assert (parameters.size() == 1);
                     assert (function.getNumParams() == 1);
-                    return ArrayRead.create(variable, parameters.get(0)
-                            .uninterpretedFunctionsBackToArrayReads(arrayVars));
+                    ArrayRead result = ArrayRead.create(
+                            variable,
+                            (DomainTerm) parameters.get(0)
+                                    .uninterpretedFunctionsBackToArrayReads(
+                                            arrayVars, done));
+                    done.put(this, result);
+                    return result;
                 }
             }
         }
@@ -822,13 +830,15 @@ public class UninterpretedFunctionInstance extends DomainTerm {
         List<DomainTerm> newParameters = new ArrayList<DomainTerm>(
                 parameters.size());
         for (DomainTerm parameter : parameters) {
-            DomainTerm newParameter = parameter
-                    .uninterpretedFunctionsBackToArrayReads(arrayVars);
+            DomainTerm newParameter = (DomainTerm) parameter
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars, done);
             newParameters.add(newParameter);
         }
         try {
-            return UninterpretedFunctionInstance
-                    .create(function, newParameters);
+            DomainTerm result = UninterpretedFunctionInstance.create(function,
+                    newParameters);
+            done.put(this, result);
+            return result;
         } catch (WrongNumberOfParametersException exc) {
             throw new RuntimeException(
                     "Unexpected WrongNumberOfParametersException while back-substituting array reads.",

@@ -664,11 +664,18 @@ public class PropositionalIte extends BooleanCombinationFormula {
      */
     @Override
     public Formula uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return PropositionalIte.create(
-                condition.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                thenBranch.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                elseBranch.uninterpretedFunctionsBackToArrayReads(arrayVars));
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (Formula) done.get(this);
+
+        Formula result = PropositionalIte.create((Formula) condition
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done),
+                (Formula) thenBranch.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done),
+                (Formula) elseBranch.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done));
+        done.put(this, result);
+        return result;
     }
 
     /**

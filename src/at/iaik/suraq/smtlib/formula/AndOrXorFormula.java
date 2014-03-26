@@ -558,14 +558,18 @@ public abstract class AndOrXorFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (Formula) done.get(this);
         List<Formula> newFormulas = new ArrayList<Formula>(formulas.size());
         for (Formula formula : formulas) {
-            Formula newFormula = formula
-                    .uninterpretedFunctionsBackToArrayReads(arrayVars);
+            Formula newFormula = (Formula) formula
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars, done);
             newFormulas.add(newFormula);
         }
-        return this.create(newFormulas);
+        Formula result = this.create(newFormulas);
+        done.put(this, result);
+        return result;
     }
 
     /**

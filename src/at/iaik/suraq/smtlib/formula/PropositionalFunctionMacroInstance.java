@@ -671,17 +671,22 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public Formula uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (Formula) done.get(this);
+
         Map<Token, Term> newParamMap = new HashMap<Token, Term>();
         for (Token key : paramMap.keySet()) {
-            newParamMap.put(key, paramMap.get(key)
-                    .uninterpretedFunctionsBackToArrayReads(arrayVars));
+            newParamMap.put(key, (Term) paramMap.get(key)
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars, done));
         }
         PropositionalFunctionMacro newMacro = macro
-                .uninterpretedFunctionsBackToArrayReads(arrayVars);
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done);
         try {
-            return PropositionalFunctionMacroInstance.create(newMacro,
-                    newParamMap);
+            Formula result = PropositionalFunctionMacroInstance.create(
+                    newMacro, newParamMap);
+            done.put(this, result);
+            return result;
         } catch (InvalidParametersException exc) {
             throw new RuntimeException(
                     "Unexpected InvalidParametersException while back-substituting array reads.",

@@ -827,16 +827,21 @@ public abstract class EqualityFormula implements Formula {
      * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
      */
     @Override
-    public EqualityFormula uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
+    public Formula uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (Formula) done.get(this);
+
         List<Term> newTerms = new ArrayList<Term>(terms.size());
         for (Term term : terms) {
-            Term newTerm = term
-                    .uninterpretedFunctionsBackToArrayReads(arrayVars);
+            Term newTerm = (Term) term.uninterpretedFunctionsBackToArrayReads(
+                    arrayVars, done);
             newTerms.add(newTerm);
         }
         try {
-            return EqualityFormula.create(newTerms, equal);
+            Formula result = EqualityFormula.create(newTerms, equal);
+            done.put(this, result);
+            return result;
         } catch (IncomparableTermsException exc) {
             throw new RuntimeException(
                     "Unexpected IncomparableTermsException while back-substituting array reads.",

@@ -648,9 +648,14 @@ public class NotFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return NotFormula.create(formula
-                .uninterpretedFunctionsBackToArrayReads(arrayVars));
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (Formula) done.get(this);
+
+        Formula result = NotFormula.create((Formula) formula
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done));
+        done.put(this, result);
+        return result;
     }
 
     /**

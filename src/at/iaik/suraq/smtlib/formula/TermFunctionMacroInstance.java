@@ -597,16 +597,22 @@ public class TermFunctionMacroInstance extends DomainTerm {
      */
     @Override
     public DomainTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (DomainTerm) done.get(this);
+
         Map<Token, Term> newParamMap = new HashMap<Token, Term>();
         for (Token key : paramMap.keySet()) {
-            newParamMap.put(key, paramMap.get(key)
-                    .uninterpretedFunctionsBackToArrayReads(arrayVars));
+            newParamMap.put(key, (Term) paramMap.get(key)
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars, done));
         }
         TermFunctionMacro newMacro = macro
-                .uninterpretedFunctionsBackToArrayReads(arrayVars);
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done);
         try {
-            return TermFunctionMacroInstance.create(newMacro, newParamMap);
+            DomainTerm result = TermFunctionMacroInstance.create(newMacro,
+                    newParamMap);
+            done.put(this, result);
+            return result;
         } catch (InvalidParametersException exc) {
             throw new RuntimeException(
                     "Unexpected InvalidParametersException while back-substituting array reads.",

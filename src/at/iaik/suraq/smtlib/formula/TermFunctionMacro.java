@@ -310,12 +310,18 @@ public class TermFunctionMacro extends FunctionMacro {
      * @param arrayVars
      * @return
      */
+    @Override
     public TermFunctionMacro uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        Term newBody = body.uninterpretedFunctionsBackToArrayReads(arrayVars);
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (TermFunctionMacro) done.get(this);
+        Term newBody = (Term) body.uninterpretedFunctionsBackToArrayReads(
+                arrayVars, done);
         try {
-            return TermFunctionMacro
-                    .create(name, parameters, paramMap, newBody);
+            TermFunctionMacro result = TermFunctionMacro.create(name,
+                    parameters, paramMap, newBody);
+            done.put(this, result);
+            return result;
         } catch (InvalidParametersException exc) {
             throw new RuntimeException(
                     "Unexpected InvalidParametersException while back-substituting array reads.",

@@ -1151,10 +1151,11 @@ public class Suraq implements Runnable {
             // writes. Declarations might be missing, or backsubstitutions
             // might be forgotten.
             // Check if it occurs in practice.
-            Formula interpolant = interpolants.get(key)
+            Formula interpolant = (Formula) interpolants.get(key)
                     .uninterpretedFunctionsBackToArrayReads(
-                            new HashSet<ArrayVariable>(logicParser
-                                    .getArrayVariables()));
+                            new HashSet<ArrayVariable>(
+                                    logicParser.getArrayVariables()),
+                            new HashMap<SMTLibObject, SMTLibObject>());
             interpolants.put(key, interpolant);
         }
         // write output file
@@ -1397,9 +1398,11 @@ public class Suraq implements Runnable {
             // Check if it occurs in practice.
             Formula iteTree = iteTrees.get(key);
             iteTree = simplifyWithZ3(iteTree);
-            iteTree = iteTree
-                    .uninterpretedFunctionsBackToArrayReads(new HashSet<ArrayVariable>(
-                            logicParser.getArrayVariables()));
+            iteTree = (Formula) iteTree
+                    .uninterpretedFunctionsBackToArrayReads(
+                            new HashSet<ArrayVariable>(logicParser
+                                    .getArrayVariables()),
+                            new HashMap<SMTLibObject, SMTLibObject>());
             iteTrees.put(key, iteTree);
         }
 
@@ -1539,8 +1542,10 @@ public class Suraq implements Runnable {
                 SExpressionConstants.ASSERT, AndFormula
                         .generate(new ArrayList<Formula>(this.constraints))
                         .uninterpretedFunctionsBackToArrayReads(
-                                new HashSet<ArrayVariable>(logicParser
-                                        .getArrayVariables())).toSmtlibV2());
+                                new HashSet<ArrayVariable>(
+                                        logicParser.getArrayVariables()),
+                                new HashMap<SMTLibObject, SMTLibObject>())
+                        .toSmtlibV2());
         rootExp.addChild(constraintExp);
 
         for (SExpression child : rootExp.getChildren())

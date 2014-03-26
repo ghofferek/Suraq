@@ -478,7 +478,7 @@ public class PropositionalVariable extends PropositionalTerm implements
      */
     @Override
     public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
         return this;
     }
 

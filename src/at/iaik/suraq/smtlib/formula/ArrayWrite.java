@@ -577,11 +577,17 @@ public class ArrayWrite extends ArrayTerm {
      */
     @Override
     public ArrayTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return ArrayWrite.create(
-                arrayTerm.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                indexTerm.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                valueTerm.uninterpretedFunctionsBackToArrayReads(arrayVars));
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (ArrayTerm) done.get(this);
+        ArrayTerm result = ArrayWrite.create((ArrayTerm) arrayTerm
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done),
+                (DomainTerm) indexTerm.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done),
+                (DomainTerm) valueTerm.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done));
+        done.put(this, result);
+        return result;
     }
 
     /**

@@ -347,4 +347,14 @@ public class UninterpretedFunction implements SMTLibObject, Serializable {
         throw new NotImplementedException();
     }
 
+    /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#uninterpretedFunctionsBackToArrayReads(java.util.Set,
+     *      java.util.Map)
+     */
+    @Override
+    public SMTLibObject uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        throw new NotImplementedException();
+    }
+
 }

@@ -279,14 +279,6 @@ public abstract class Term implements Serializable, SMTLibObject {
             Set<Token> noDependenceVars);
 
     /**
-     * @param arrayVars
-     * @return a term where matching uninterpreted function instances are
-     *         replaced by array reads.
-     */
-    public abstract Term uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars);
-
-    /**
      * A new <code>Term</code> where DomainITEs have been replaced with new
      * variables.
      * 

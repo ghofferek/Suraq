@@ -295,6 +295,16 @@ public class DomainVariable extends DomainTerm implements Serializable {
     }
 
     /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#uninterpretedFunctionsBackToArrayReads(java.util.Set,
+     *      java.util.Map)
+     */
+    @Override
+    public SMTLibObject uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        return this;
+    }
+
+    /**
      * @see at.iaik.suraq.smtlib.formula.Term#flatten()
      */
     @Override
@@ -357,15 +367,6 @@ public class DomainVariable extends DomainTerm implements Serializable {
             Map<String, List<DomainVariable>> functionInstances,
             Map<DomainVariable, List<DomainTerm>> instanceParameters,
             Set<Token> noDependenceVars) {
-        return this;
-    }
-
-    /**
-     * @see at.iaik.suraq.smtlib.formula.Term#uninterpretedFunctionsBackToArrayReads(java.util.Set)
-     */
-    @Override
-    public DomainTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
         return this;
     }
 

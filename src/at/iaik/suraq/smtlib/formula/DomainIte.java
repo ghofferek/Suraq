@@ -648,11 +648,17 @@ public class DomainIte extends DomainTerm {
      */
     @Override
     public DomainTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return DomainIte.create(
-                condition.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                thenBranch.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                elseBranch.uninterpretedFunctionsBackToArrayReads(arrayVars));
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (DomainTerm) done.get(this);
+        DomainTerm result = DomainIte.create((Formula) condition
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done),
+                (DomainTerm) thenBranch.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done),
+                (DomainTerm) elseBranch.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done));
+        done.put(this, result);
+        return result;
     }
 
     /**

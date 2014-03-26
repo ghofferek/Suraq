@@ -1039,15 +1039,19 @@ public class UninterpretedPredicateInstance extends PropositionalTerm {
      */
     @Override
     public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (PropositionalTerm) done.get(this);
         List<DomainTerm> newParameters = new ArrayList<DomainTerm>();
         for (DomainTerm parameter : parameters) {
-            newParameters.add(parameter
-                    .uninterpretedFunctionsBackToArrayReads(arrayVars));
+            newParameters.add((DomainTerm) parameter
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars, done));
         }
         try {
-            return UninterpretedPredicateInstance.create(function,
-                    newParameters);
+            PropositionalTerm result = UninterpretedPredicateInstance.create(
+                    function, newParameters);
+            done.put(this, result);
+            return result;
         } catch (WrongNumberOfParametersException exc) {
             throw new RuntimeException(
                     "Unexpected WrongNumberOfParametersException while back-substituting array reads.",

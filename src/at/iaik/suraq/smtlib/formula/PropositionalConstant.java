@@ -152,6 +152,16 @@ public class PropositionalConstant extends PropositionalTerm {
     }
 
     /**
+     * @see at.iaik.suraq.smtlib.SMTLibObject#uninterpretedFunctionsBackToArrayReads(java.util.Set,
+     *      java.util.Map)
+     */
+    @Override
+    public SMTLibObject uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        return this;
+    }
+
+    /**
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -420,15 +430,6 @@ public class PropositionalConstant extends PropositionalTerm {
     @Override
     public PropositionalTerm removeDomainITE(Formula topLevelFormula,
             Set<Token> noDependenceVars, List<Formula> andPreList) {
-        return this;
-    }
-
-    /**
-     * @see at.iaik.suraq.smtlib.formula.Formula#uninterpretedFunctionsBackToArrayReads(java.util.Set)
-     */
-    @Override
-    public PropositionalTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
         return this;
     }
 

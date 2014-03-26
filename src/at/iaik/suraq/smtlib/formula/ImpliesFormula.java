@@ -674,10 +674,15 @@ public class ImpliesFormula extends BooleanCombinationFormula {
      */
     @Override
     public Formula uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return ImpliesFormula.create(
-                leftSide.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                rightSide.uninterpretedFunctionsBackToArrayReads(arrayVars));
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (Formula) done.get(this);
+        Formula result = ImpliesFormula.create((Formula) leftSide
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done),
+                (Formula) rightSide.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done));
+        done.put(this, result);
+        return result;
     }
 
     /**

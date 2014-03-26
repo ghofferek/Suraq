@@ -547,11 +547,19 @@ public class ArrayIte extends ArrayTerm {
      */
     @Override
     public ArrayTerm uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
-        return ArrayIte.create(
-                condition.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                thenBranch.uninterpretedFunctionsBackToArrayReads(arrayVars),
-                elseBranch.uninterpretedFunctionsBackToArrayReads(arrayVars));
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (ArrayTerm) done.get(this);
+
+        ArrayTerm result = ArrayIte.create((Formula) condition
+                .uninterpretedFunctionsBackToArrayReads(arrayVars, done),
+                (ArrayTerm) thenBranch.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done),
+                (ArrayTerm) elseBranch.uninterpretedFunctionsBackToArrayReads(
+                        arrayVars, done));
+
+        done.put(this, result);
+        return result;
     }
 
     /**

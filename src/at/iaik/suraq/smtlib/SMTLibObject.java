@@ -101,6 +101,21 @@ public interface SMTLibObject extends Comparable<SMTLibObject> {
             Map<SMTLibObject, SMTLibObject> done);
 
     /**
+     * Returns a formula where all uninterpreted function instances which match
+     * a name in the given set of <code>arrayVars</code> are replaced by
+     * corresponding array reads.
+     * 
+     * @param arrayVarsthe
+     *            name of the array vars for matching function names against.
+     * @param done
+     *            cache to avoid DAG-expansion.
+     * @return a formula where array reads have been put back in.
+     * 
+     */
+    public SMTLibObject uninterpretedFunctionsBackToArrayReads(
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done);
+
+    /**
      * 
      * @return a String representation of this object
      */

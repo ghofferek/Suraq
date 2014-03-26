@@ -853,12 +853,17 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public Formula uninterpretedFunctionsBackToArrayReads(
-            Set<ArrayVariable> arrayVars) {
+            Set<ArrayVariable> arrayVars, Map<SMTLibObject, SMTLibObject> done) {
+        if (done.get(this) != null)
+            return (Formula) done.get(this);
         try {
-            return ArrayProperty.create(uVars, indexGuard
-                    .uninterpretedFunctionsBackToArrayReads(arrayVars),
-                    valueConstraint
-                            .uninterpretedFunctionsBackToArrayReads(arrayVars));
+            Formula result = ArrayProperty.create(uVars, (Formula) indexGuard
+                    .uninterpretedFunctionsBackToArrayReads(arrayVars, done),
+                    (Formula) valueConstraint
+                            .uninterpretedFunctionsBackToArrayReads(arrayVars,
+                                    done));
+            done.put(this, result);
+            return result;
         } catch (InvalidIndexGuardException exc) {
             throw new RuntimeException(
                     "Unexpected Excpetion while back-substituting array reads.",
