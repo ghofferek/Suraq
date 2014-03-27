@@ -34,6 +34,7 @@ public class FormulaSimplifier {
 
     public static final String SIMPLIFIER_PATH = "./lib/simplifier/simplify.sh";
 
+    @SuppressWarnings("unused")
     private static final BigInteger CHECK_TRESHOLD = new BigInteger("10000");
 
     /**
@@ -273,19 +274,14 @@ public class FormulaSimplifier {
      *         simplified formula.
      */
     public boolean checkSimplification() {
-        // try {
-        // assert (checkWriteReadOriginalFormula());
-        // } catch (IOException exc) {
-        // exc.printStackTrace();
-        // throw new RuntimeException(exc);
+
+        // BigInteger size = originalFormula.size(true,
+        // new HashMap<Formula, BigInteger>());
+        // if (size.compareTo(FormulaSimplifier.CHECK_TRESHOLD) < 0) {
+        // Util.printToSystemOutWithWallClockTimePrefix("WARNING: Skipped check of simplification because original formula has tree-size "
+        // + Util.largeNumberFormatter.format(size));
+        // return true;
         // }
-        BigInteger size = originalFormula.size(true,
-                new HashMap<Formula, BigInteger>());
-        if (size.compareTo(FormulaSimplifier.CHECK_TRESHOLD) < 0) {
-            Util.printToSystemOutWithWallClockTimePrefix("WARNING: Skipped check of simplification because original formula has tree-size "
-                    + Util.largeNumberFormatter.format(size));
-            return true;
-        }
 
         return Util.checkEquivalenceOfFormulas(originalFormula,
                 simplifiedFormula);

@@ -1121,8 +1121,7 @@ public class Suraq implements Runnable {
                         "Could not simplify interpolant due to IOException",
                         exc);
             }
-            assert (simplifier.checkSimplification()); // might not work on
-            // too large formulas
+            assert (simplifier.checkSimplification());
             interpolant = simplifier.getSimplifiedFormula();
             assert (Util.checkInterpolant(interpolant, assertPartitionFormulas));
 
@@ -1146,11 +1145,6 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("Starting back-substitution");
         for (PropositionalVariable key : interpolants.keySet()) {
             assert (interpolants.get(key) != null);
-            // FIXME There is a potential problem with backsubstituting for
-            // newly created array vars (e.g., the ones introduced to remove
-            // writes. Declarations might be missing, or backsubstitutions
-            // might be forgotten.
-            // Check if it occurs in practice.
             Formula interpolant = (Formula) interpolants.get(key)
                     .uninterpretedFunctionsBackToArrayReads(
                             new HashSet<ArrayVariable>(
@@ -1391,11 +1385,6 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("Starting back-substitution");
         for (PropositionalVariable key : iteTrees.keySet()) {
             assert (iteTrees.get(key) != null);
-            // FIXME There is a potential problem with backsubstituting for
-            // newly created array vars (e.g., the ones introduced to remove
-            // writes. Declarations might be missing, or backsubstitutions
-            // might be forgotten.
-            // Check if it occurs in practice.
             Formula iteTree = iteTrees.get(key);
             iteTree = simplifyWithZ3(iteTree);
             iteTree = (Formula) iteTree
