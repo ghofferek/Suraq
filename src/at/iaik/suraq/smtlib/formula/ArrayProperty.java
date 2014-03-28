@@ -910,7 +910,7 @@ public class ArrayProperty implements Formula {
      */
     @Override
     public void writeTo(Writer writer) throws IOException {
-        writer.write("(forall");
+        writer.write("(forall (");
         for (DomainVariable var : uVars) {
             writer.write(" (");
             writer.write(var.getVarName());
@@ -918,11 +918,11 @@ public class ArrayProperty implements Formula {
             writer.write(SExpressionConstants.VALUE_TYPE.toString());
             writer.write(")");
         }
-        writer.write(" (=> ");
+        writer.write(") (=> ");
         indexGuard.writeTo(writer);
         writer.write(" ");
         valueConstraint.writeTo(writer);
-        writer.write(")");
+        writer.write("))");
     }
 
     /**

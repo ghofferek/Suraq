@@ -327,7 +327,7 @@ public class ArrayWrite extends ArrayTerm {
             result = (ArrayVariable) arrayTerm;
         }
 
-        index = indexTerm.deepTermCopy();
+        index = indexTerm;
         index = (DomainTerm) index.removeArrayWritesTerm(topLevelFormula,
                 constraints, noDependenceVars);
         if (!(index instanceof DomainVariable)) {
@@ -338,20 +338,16 @@ public class ArrayWrite extends ArrayTerm {
             terms.add(index);
             constraints.add(DomainEq.create(terms, true));
 
-            // Check if the complex index contained any noDependenceVars.
-            // This might be conservative and might not be complete (i.e., may
-            // result unnecessary unrealizability)
-            if (Util.termContainsAny(index, noDependenceVars))
-                noDependenceVars.add(Token.generate(simpleIndex.getVarName()));
+            noDependenceVars.add(Token.generate(simpleIndex.getVarName()));
             index = simpleIndex;
         }
 
-        value = valueTerm.deepTermCopy();
+        value = valueTerm;
         value = (DomainTerm) value.removeArrayWritesTerm(topLevelFormula,
                 constraints, noDependenceVars);
 
         // now apply axiom
-        String oldVar = result.toSmtlibV2().toString().replaceAll("\\W", "");
+        String oldVar = result.getVarName();
         ArrayVariable newVar = ArrayVariable.create(Util.freshVarNameCached(
                 topLevelFormula, oldVar + "_store"));
 
@@ -370,7 +366,8 @@ public class ArrayWrite extends ArrayTerm {
         domainTerms.clear();
         domainTerms.add(index);
         domainTerms.add(newUVar);
-        Formula indexGuard = DomainEq.create(domainTerms, false);
+        Formula indexGuard = NotFormula.create(DomainEq.create(domainTerms,
+                true));
 
         domainTerms.clear();
         domainTerms.add(ArrayRead.create(newVar, newUVar));
@@ -635,7 +632,7 @@ public class ArrayWrite extends ArrayTerm {
         indexTerm.writeTo(writer);
         writer.write(" ");
         valueTerm.writeTo(writer);
-        writer.write(" ");
+        writer.write(")");
     }
 
 }

@@ -399,23 +399,18 @@ public class ArrayRead extends DomainTerm {
         if (this.indexTerm instanceof DomainVariable)
             return this; // This read is already simple.
 
-        DomainTerm oldIndexTerm = this.indexTerm;
-        DomainTerm indexTerm = DomainVariable.create(Util.freshVarNameCached(
-                topLevelFormula, "read"));
+        DomainTerm oldIndexTerm = (DomainTerm) this.indexTerm
+                .makeArrayReadsSimpleTerm(topLevelFormula, constraints,
+                        noDependenceVars);
+        DomainVariable indexTerm = DomainVariable.create(Util
+                .freshVarNameCached(topLevelFormula, "read"));
 
-        List<DomainTerm> list = new ArrayList<DomainTerm>();
+        List<DomainTerm> list = new ArrayList<DomainTerm>(2);
         list.add(indexTerm);
         list.add(oldIndexTerm);
         constraints.add(DomainEq.create(list, true));
 
-        // Check if the arrayTerm contained any noDependenceVars.
-        // This is conservative and might not be complete (i.e., may
-        // result unnecessary unrealizability), but
-        // in practice, array reads should only occur on primitive
-        // array expressions, so this should not be a "real" problem.
-        if (Util.termContainsAny(arrayTerm, noDependenceVars))
-            noDependenceVars.add(Token.generate(((DomainVariable) indexTerm)
-                    .getVarName()));
+        noDependenceVars.add(Token.generate(indexTerm.getVarName()));
 
         return ArrayRead.create(this.arrayTerm, indexTerm);
     }

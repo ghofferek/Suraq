@@ -138,6 +138,7 @@ public class Suraq implements Runnable {
      * stores the main formula
      */
     private Formula mainFormula = null;
+
     /**
      * stores all present propositional variables
      */
@@ -1127,12 +1128,39 @@ public class Suraq implements Runnable {
 
             Util.printToSystemOutWithWallClockTimePrefix("Resubstituting...");
             PropositionalVariable currentSignal = controlVariables.remove(0);
+            // DEBUG
+            File interpolantFile = new File(currentSignal.getVarName()
+                    .toString() + ".smt2");
+            try {
+                FileWriter fwriter = new FileWriter(interpolantFile);
+                Util.printToSystemOutWithWallClockTimePrefix("Writing interpolant to "
+                        + interpolantFile.toString());
+                BufferedWriter writer = new BufferedWriter(fwriter);
+                Util.writeFormulaUsingLetExpressions(interpolant, writer);
+                writer.close();
+                fwriter.close();
+            } catch (IOException exc) {
+                Util.printToSystemOutWithWallClockTimePrefix("Could not write interpolant to file.");
+                exc.printStackTrace();
+            }
+            // END DEBUG
             interpolants.put(currentSignal, interpolant);
             Map<Token, PropositionalTerm> substMap = new TreeMap<Token, PropositionalTerm>();
             substMap.put(Token.generate(currentSignal.getVarName()),
                     FormulaTerm.create(interpolant));
             done.clear();
             mainFormula = mainFormula.substituteFormula(substMap, done);
+
+            if (count == numControlSignals - 1) {
+                // This was the last control signal.
+                // mainFormula should now be UNSAT.
+                Util.printToSystemOutWithWallClockTimePrefix("Checking if negation of main formula is UNSAT");
+                if (!Util.checkUnsat(NotFormula.create(mainFormula))) {
+                    noErrors = false;
+                    Util.printToSystemOutWithWallClockTimePrefix("ERROR! negation of mainFormula was not UNSAT!");
+                } else
+                    Util.printToSystemOutWithWallClockTimePrefix("OK! negation of mainFormula is UNSAT.");
+            }
 
             assertPartitionFormulas.clear();
             tseitinPartitions.clear();
@@ -1822,16 +1850,21 @@ public class Suraq implements Runnable {
     private Formula performFormulaReductions() throws SuraqException {
         Suraq.extTimer.stopReset("<doMainWork>");
         Timer timer = new Timer();
+        Formula formula = logicParser.getMainFormula();
+        Util.writeFormulaToFile(formula, "afterNothing.smt2", false); // DEBUG
 
         // Flattening formula, because macros cause problems when
         // replacing arrays with uninterpreted functions
         // (functions cannot be macro parameters)
         Util.printToSystemOutWithWallClockTimePrefix("  Flattening formula...");
         timer.start();
-        Formula formula = logicParser.getMainFormula().flatten();
+        formula = formula.flatten();
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
+
+        Util.writeFormulaToFile(formula, "afterFlatten.smt2", false); // DEBUG
+
         Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
         formula.getFunctionMacros(macros, new HashSet<SMTLibObject>());
         assert (macros.isEmpty());
@@ -1857,6 +1890,8 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
 
+        Util.writeFormulaToFile(formula, "afterRemoveArrayITE.smt2", false); // DEBUG
+
         Util.printToSystemOutWithWallClockTimePrefix("  Making array reads simple...");
         timer.reset();
         timer.start();
@@ -1874,6 +1909,9 @@ public class Suraq implements Runnable {
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
+
+        Util.writeFormulaToFile(formula, "afterMakeReadsSimple.smt2", false); // DEBUG
+
         Util.printToSystemOutWithWallClockTimePrefix("  Removing array writes...");
         timer.reset();
         timer.start();
@@ -1891,6 +1929,9 @@ public class Suraq implements Runnable {
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
+
+        Util.writeFormulaToFile(formula, "afterRemoveArrayWrites.smt2", false); // DEBUG
+
         Suraq.extTimer.stopReset("after removin array reads + writes");
 
         Util.printToSystemOutWithWallClockTimePrefix("  Removing array equalities...");
@@ -1900,6 +1941,9 @@ public class Suraq implements Runnable {
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
+
+        Util.writeFormulaToFile(formula, "afterRemoveArrayEq.smt2", false); // DEBUG
+
         Suraq.extTimer.stopReset("after removing array equalities");
 
         Set<DomainTerm> indexSet = formula.getIndexSet();
@@ -1928,6 +1972,8 @@ public class Suraq implements Runnable {
 
         formula = ImpliesFormula.create(lambdaConstraints, formula);
 
+        Util.writeFormulaToFile(formula, "aftertoArrayProp.smt2", false); // DEBUG
+
         Set<Token> currentDependenceArrayVariables = new HashSet<Token>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
         formula.getArrayVariables(arrayVars, new HashSet<SMTLibObject>());
@@ -1943,6 +1989,8 @@ public class Suraq implements Runnable {
         timer.stop();
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
+
+        Util.writeFormulaToFile(formula, "afterArrayToUF.smt2", false); // DEBUG
         Suraq.extTimer.stopReset("after Array Reads to UF");
 
         // /////////////////////////////////////////////////

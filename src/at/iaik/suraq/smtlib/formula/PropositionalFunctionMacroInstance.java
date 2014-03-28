@@ -717,7 +717,13 @@ public class PropositionalFunctionMacroInstance implements Formula {
      */
     @Override
     public void writeTo(Writer writer) throws IOException {
-        throw new NotImplementedException();
+        writer.write("(");
+        writer.write(macro.getName().toString());
+        for (Token param : macro.getParameters()) {
+            writer.write(" ");
+            paramMap.get(param).writeTo(writer);
+        }
+        writer.write(")");
     }
 
     /**

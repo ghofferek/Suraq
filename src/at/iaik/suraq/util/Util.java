@@ -2051,6 +2051,28 @@ public final class Util {
     }
 
     /**
+     * 
+     * @param formula
+     * @return <code>true</code> iff the given formula is UNSAT.
+     */
+    public static boolean checkUnsat(Formula formula) {
+        SMTSolver z3 = SMTSolver.create(SMTSolver.z3_type,
+                SuraqOptions.getZ3Path());
+
+        z3.solve(formula);
+
+        switch (z3.getState()) {
+        case SMTSolver.UNSAT:
+            return true;
+        case SMTSolver.SAT:
+            return false;
+        default:
+            throw (new RuntimeException(
+                    "Z3 tells us UNKOWN STATE. CHECK ERROR STREAM."));
+        }
+    }
+
+    /**
      * @param aigNodes
      * @param done
      * @return
@@ -2173,5 +2195,31 @@ public final class Util {
         // Close outermost let-expression (the one defining terms)
         writer.write("\n)");
         writer.flush();
+    }
+
+    /**
+     * Writes the given formula to a file with the given name.
+     * 
+     * @param formula
+     * @param name
+     * @param useLet
+     *            whether or not to use let-expressions
+     */
+    public static void writeFormulaToFile(Formula formula, String name,
+            boolean useLet) {
+        try {
+            File file = new File(name);
+            FileWriter fwriter = new FileWriter(file);
+            BufferedWriter writer = new BufferedWriter(fwriter);
+            if (useLet)
+                Util.writeFormulaUsingLetExpressions(formula, writer);
+            else
+                formula.writeTo(writer);
+            writer.close();
+            fwriter.close();
+        } catch (IOException exc) {
+            Util.printToSystemOutWithWallClockTimePrefix("Error writing formula to file.");
+            exc.printStackTrace();
+        }
     }
 }
