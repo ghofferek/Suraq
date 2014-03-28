@@ -1235,15 +1235,13 @@
           completion 
           (= operand-bo (select REGFILEi (rf2-of inst-idi))) ; normal read during completion
           (ite ; forward from EX?
-            (=
-              ; begin forward-b-from-ex
-              (and
-                (= (rf2-of inst-id) dest-ex)
-                (not bubble-ex)
-                (not (is-store opcode-ex))
-              )
-              ; end forward-b-from-ex
+            ; begin forward-b-from-ex
+            (and
+              (= (rf2-of inst-id) dest-ex)
+              (not bubble-ex)
+              (not (is-store opcode-ex))
             )
+            ; end forward-b-from-ex
             (ite
               (or (is-load opcode-exf) (is-store opcode-exf))
               (= operand-bo (PLUS operand-af short-immed-exf))
