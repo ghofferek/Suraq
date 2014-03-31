@@ -366,8 +366,7 @@ public class ArrayWrite extends ArrayTerm {
         domainTerms.clear();
         domainTerms.add(index);
         domainTerms.add(newUVar);
-        Formula indexGuard = NotFormula.create(DomainEq.create(domainTerms,
-                true));
+        Formula indexGuard = DomainEq.create(domainTerms, false);
 
         domainTerms.clear();
         domainTerms.add(ArrayRead.create(newVar, newUVar));

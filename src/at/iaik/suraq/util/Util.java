@@ -120,8 +120,8 @@ public final class Util {
         Util.tseitinVarCounter = 0;
     }
 
-    static Formula lastFormula = null;
-    static Set<Object> lostNames = new HashSet<Object>();
+    private static Formula lastFormula = null;
+    private static final Set<String> lostNames = new HashSet<String>();
 
     public static final String freshVarNameCached(Formula formula, String prefix) {
         return Util.freshVarNameCached(formula, prefix, null);
@@ -151,11 +151,19 @@ public final class Util {
             formula.getFunctionMacros(macros, done);
             done.clear();
 
-            Util.lostNames.addAll(aVars);
-            Util.lostNames.addAll(dVars);
-            Util.lostNames.addAll(pVars);
-            Util.lostNames.addAll(ufs);
-            Util.lostNames.addAll(macros);
+            for (ArrayVariable aVar : aVars)
+                Util.lostNames.add(aVar.getVarName());
+            for (DomainVariable dVar : dVars)
+                Util.lostNames.add(dVar.getVarName());
+
+            for (PropositionalVariable pVar : pVars)
+                Util.lostNames.add(pVar.getVarName());
+
+            for (UninterpretedFunction uf : ufs)
+                Util.lostNames.add(uf.getName().toString());
+
+            for (FunctionMacro macro : macros)
+                Util.lostNames.add(macro.getName().toString());
         }
 
         int count = -1;
