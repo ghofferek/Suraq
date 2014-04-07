@@ -895,14 +895,25 @@ public abstract class EqualityFormula implements Formula {
      */
     @Override
     public void writeTo(Writer writer) throws IOException {
-        writer.append('(')
-                .append(this.equal ? SExpressionConstants.EQUAL.toString()
-                        : SExpressionConstants.DISTINCT.toString()).append(' ');
-        for (Term term : terms) {
-            term.writeTo(writer);
-            writer.append(' ');
+
+        if (!this.equal && this.terms.size() == 2) {
+            writer.append("(not (=");
+            for (Term term : terms) {
+                writer.append(' ');
+                term.writeTo(writer);
+            }
+            writer.append("))");
+
+        } else {
+            writer.append('(').append(
+                    this.equal ? SExpressionConstants.EQUAL.toString()
+                            : SExpressionConstants.DISTINCT.toString());
+            for (Term term : terms) {
+                writer.append(' ');
+                term.writeTo(writer);
+            }
+            writer.append(") ");
         }
-        writer.append(") ");
     }
 
     /**

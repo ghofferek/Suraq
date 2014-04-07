@@ -88,6 +88,9 @@ public class MakeBooleanOperationsBinary implements Runnable {
         if (expression instanceof Token)
             return expression;
 
+        if (expression.getChildren().isEmpty())
+            return expression;
+
         if (expression.getChildren().get(0).equals(SExpressionConstants.AND)
                 || expression.getChildren().get(0)
                         .equals(SExpressionConstants.OR)

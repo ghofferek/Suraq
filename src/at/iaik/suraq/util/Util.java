@@ -2212,13 +2212,16 @@ public final class Util {
      * @param name
      * @param useLet
      *            whether or not to use let-expressions
+     * @param writeDeclarations
      */
     public static void writeFormulaToFile(Formula formula, String name,
-            boolean useLet) {
+            boolean useLet, boolean writeDeclarations) {
         try {
             File file = new File(name);
             FileWriter fwriter = new FileWriter(file);
             BufferedWriter writer = new BufferedWriter(fwriter);
+            if (writeDeclarations)
+                Util.writeDeclarations(formula, writer);
             if (useLet)
                 Util.writeFormulaUsingLetExpressions(formula, writer);
             else

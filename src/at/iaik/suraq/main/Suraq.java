@@ -1851,7 +1851,7 @@ public class Suraq implements Runnable {
         Suraq.extTimer.stopReset("<doMainWork>");
         Timer timer = new Timer();
         Formula formula = logicParser.getMainFormula();
-        Util.writeFormulaToFile(formula, "afterNothing.smt2", false); // DEBUG
+        Util.writeFormulaToFile(formula, "afterNothing.smt2", false, false); // DEBUG
 
         // Flattening formula, because macros cause problems when
         // replacing arrays with uninterpreted functions
@@ -1863,7 +1863,7 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
 
-        Util.writeFormulaToFile(formula, "afterFlatten.smt2", false); // DEBUG
+        Util.writeFormulaToFile(formula, "afterFlatten.smt2", false, false); // DEBUG
 
         Set<FunctionMacro> macros = new HashSet<FunctionMacro>();
         formula.getFunctionMacros(macros, new HashSet<SMTLibObject>());
@@ -1890,7 +1890,8 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
 
-        Util.writeFormulaToFile(formula, "afterRemoveArrayITE.smt2", false); // DEBUG
+        Util.writeFormulaToFile(formula, "afterRemoveArrayITE.smt2", false,
+                false); // DEBUG
 
         Util.printToSystemOutWithWallClockTimePrefix("  Making array reads simple...");
         timer.reset();
@@ -1910,7 +1911,8 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
 
-        Util.writeFormulaToFile(formula, "afterMakeReadsSimple.smt2", false); // DEBUG
+        Util.writeFormulaToFile(formula, "afterMakeReadsSimple.smt2", false,
+                false); // DEBUG
 
         Util.printToSystemOutWithWallClockTimePrefix("  Removing array writes...");
         timer.reset();
@@ -1930,7 +1932,8 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
 
-        Util.writeFormulaToFile(formula, "afterRemoveArrayWrites.smt2", false); // DEBUG
+        Util.writeFormulaToFile(formula, "afterRemoveArrayWrites.smt2", false,
+                false); // DEBUG
 
         Suraq.extTimer.stopReset("after removin array reads + writes");
 
@@ -1942,7 +1945,8 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
 
-        Util.writeFormulaToFile(formula, "afterRemoveArrayEq.smt2", false); // DEBUG
+        Util.writeFormulaToFile(formula, "afterRemoveArrayEq.smt2", false,
+                false); // DEBUG
 
         Suraq.extTimer.stopReset("after removing array equalities");
 
@@ -1972,7 +1976,7 @@ public class Suraq implements Runnable {
 
         formula = ImpliesFormula.create(lambdaConstraints, formula);
 
-        Util.writeFormulaToFile(formula, "aftertoArrayProp.smt2", false); // DEBUG
+        Util.writeFormulaToFile(formula, "aftertoArrayProp.smt2", false, false); // DEBUG
 
         Set<Token> currentDependenceArrayVariables = new HashSet<Token>();
         Set<ArrayVariable> arrayVars = new HashSet<ArrayVariable>();
@@ -1990,7 +1994,7 @@ public class Suraq implements Runnable {
         Util.printToSystemOutWithWallClockTimePrefix("    Done. (" + timer
                 + ")");
 
-        Util.writeFormulaToFile(formula, "afterArrayToUF.smt2", false); // DEBUG
+        Util.writeFormulaToFile(formula, "afterArrayToUF.smt2", false, true); // DEBUG
         Suraq.extTimer.stopReset("after Array Reads to UF");
 
         // /////////////////////////////////////////////////
