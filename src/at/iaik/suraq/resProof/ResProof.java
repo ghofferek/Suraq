@@ -33,6 +33,7 @@ import at.iaik.suraq.smtlib.formula.PropositionalVariable;
 import at.iaik.suraq.smtsolver.SMTSolver;
 import at.iaik.suraq.smtsolver.VeriTSolver;
 import at.iaik.suraq.util.ImmutableSet;
+import at.iaik.suraq.util.Timer;
 import at.iaik.suraq.util.Util;
 
 public class ResProof {
@@ -219,13 +220,17 @@ public class ResProof {
         }
         assert (maxLit != 0);
         assert (stream != null);
+        Timer timer = new Timer();
+        timer.start();
         Util.printToSystemOutWithWallClockTimePrefix("Parsing propositional proof...");
         VeriTParser parser = new VeriTParser(stream, maxLit, resProof,
                 partitions, leafPartitions);
         parser.parse();
         stream.close();
+        timer.stop();
+        Util.printToSystemOutWithWallClockTimePrefix("Done. (Took "
+                + timer.toString() + ".)");
         resProof.killNamesOfResNodes();
-        Util.printToSystemOutWithWallClockTimePrefix("Done.");
         return resProof;
     }
 
