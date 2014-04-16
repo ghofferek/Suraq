@@ -1,16 +1,23 @@
 Suraq is licensed under the GNU LESSER GENERAL PUBLIC LICENSE (see below), with
-the exception of the following parts:
+the exception of the following parts. 
+If you want to license Suraq under different license terms, please contact
+roderick.bloem@iaik.tugraz.at.
 
+################################################################################
 The jargs library is subject to its own license. See ./lib/jargs-1.0/LICENCE
 for details.
 
+################################################################################
 The veriT executable distributed with Suraq is subject to the BSD license. See
 http://www.opensource.org/licenses/bsd-license.php
 
+################################################################################
+The abc executable distributed with Suraq is subject to its own license. See
+./lib/simplifier/LICENSE_abc for details.
 
-
-If you want to license Suraq under different license terms, please contact
-roderick.bloem@iaik.tugraz.at.
+################################################################################
+The aigtoaig executable distributed with Suraq is subject to its own license. 
+See ./lib/simplifier/LICENSE_aiger for details.
 
 
 ################################################################################
