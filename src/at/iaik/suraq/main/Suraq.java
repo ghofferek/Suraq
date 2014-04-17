@@ -1884,6 +1884,7 @@ public class Suraq implements Runnable {
             if (!nodepVars.contains(Token.generate(var.getVarName())))
                 numDepvars++;
         }
+        numDepvars -= logicParser.getControlVariables().size();
 
         Util.printToSystemOutWithWallClockTimePrefix("Number of variables on which the controllers CAN    depend: "
                 + numDepvars);
