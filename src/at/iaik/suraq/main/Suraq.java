@@ -1131,22 +1131,22 @@ public class Suraq implements Runnable {
 
             Util.printToSystemOutWithWallClockTimePrefix("Resubstituting...");
             PropositionalVariable currentSignal = controlVariables.remove(0);
-            // DEBUG
-            File interpolantFile = new File(currentSignal.getVarName()
-                    .toString() + ".smt2");
-            try {
-                FileWriter fwriter = new FileWriter(interpolantFile);
-                Util.printToSystemOutWithWallClockTimePrefix("Writing interpolant to "
-                        + interpolantFile.toString());
-                BufferedWriter writer = new BufferedWriter(fwriter);
-                Util.writeFormulaUsingLetExpressions(interpolant, writer);
-                writer.close();
-                fwriter.close();
-            } catch (IOException exc) {
-                Util.printToSystemOutWithWallClockTimePrefix("Could not write interpolant to file.");
-                exc.printStackTrace();
-            }
-            // END DEBUG
+            // // DEBUG
+            // File interpolantFile = new File(currentSignal.getVarName()
+            // .toString() + ".smt2");
+            // try {
+            // FileWriter fwriter = new FileWriter(interpolantFile);
+            // Util.printToSystemOutWithWallClockTimePrefix("Writing interpolant to "
+            // + interpolantFile.toString());
+            // BufferedWriter writer = new BufferedWriter(fwriter);
+            // Util.writeFormulaUsingLetExpressions(interpolant, writer);
+            // writer.close();
+            // fwriter.close();
+            // } catch (IOException exc) {
+            // Util.printToSystemOutWithWallClockTimePrefix("Could not write interpolant to file.");
+            // exc.printStackTrace();
+            // }
+            // // END DEBUG
             interpolants.put(currentSignal, interpolant);
             Map<Token, PropositionalTerm> substMap = new TreeMap<Token, PropositionalTerm>();
             substMap.put(Token.generate(currentSignal.getVarName()),
@@ -1154,7 +1154,10 @@ public class Suraq implements Runnable {
             done.clear();
             mainFormula = mainFormula.substituteFormula(substMap, done);
 
-            if (count == numControlSignals - 1) {
+            boolean assertsEnabled = false;
+            assert (assertsEnabled = true) == true; // Intentional side
+                                                    // effect!!!
+            if (count == numControlSignals - 1 && assertsEnabled) {
                 // This was the last control signal.
                 // mainFormula should now be UNSAT.
                 Util.printToSystemOutWithWallClockTimePrefix("Checking if negation of main formula is UNSAT");
@@ -1199,6 +1202,7 @@ public class Suraq implements Runnable {
             noErrors = false;
         }
 
+        overallTimer.stop(); // Don't include check time into overall time
         if (options.isCheckResult()) {
             Util.printToSystemOutWithWallClockTimePrefix("Starting to check results with z3...");
             Timer checkTimer = new Timer();
@@ -1225,7 +1229,6 @@ public class Suraq implements Runnable {
 
         Util.printToSystemOutWithWallClockTimePrefix(" done!");
         // All done :-)
-        overallTimer.stop();
         printEnd(noErrors, overallTimer);
         // System.err.println(Suraq.extTimer);
         return;
