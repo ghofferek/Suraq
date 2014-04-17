@@ -1880,7 +1880,6 @@ public class Suraq implements Runnable {
             if (!nodepVars.contains(Token.generate(var.getVarName())))
                 numDepvars++;
         }
-        numDepvars -= logicParser.getControlVariables().size();
         Util.printToSystemOutWithWallClockTimePrefix("[INFO] The following number refer to variables DECLARED in the input file.");
         Util.printToSystemOutWithWallClockTimePrefix("[INFO] They are not necessarily actually USED in the formula.");
         Util.printToSystemOutWithWallClockTimePrefix("Number of variables on which the controllers CAN    depend: "
