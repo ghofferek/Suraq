@@ -2292,16 +2292,16 @@
       ) ; end conjunction of update parts
       (and
         (equivalence pREGFILEci5_ pREGFILEsc5_ pDMEMci5_ pDMEMsc5_ pPCci5_ pPCsc5_)
-;         (=> ; liveness. disallow stall if there is a bubble in ID or EX, and stall was not forced.
-;           (and
-;             (not pforce-stall-issue)
-;             (or
-;               pbubble-id
-;               pbubble-ex
-;             )
-;           )
-;           (not do-stall-issue)
-;         )
+        (=> ; liveness. disallow stall if there is a bubble in ID or EX, and stall was not forced.
+          (and
+            (not pforce-stall-issue)
+            (or
+              pbubble-id
+              pbubble-ex
+            )
+          )
+          (not do-stall-issue)
+        )
           true
       )
     ) ; end of update implies 
