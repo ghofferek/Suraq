@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
+import at.iaik.suraq.main.SuraqOptions;
+
 /**
  * Utility functions for running external executables.
  * 
@@ -92,6 +94,8 @@ public class ProcessUtil {
             ProcessBuilder pb = new ProcessBuilder(executable.split(" "));
             File resultFile = File.createTempFile("z3Result", ".smt2",
                     new File("./"));
+            if (!SuraqOptions.getInstance().getKeepTemFiles())
+                resultFile.deleteOnExit();
             System.out.println("z3 Result file: " + resultFile.toString());
             pb.redirectOutput(resultFile);
             Process p = pb.start();

@@ -144,6 +144,11 @@ public final class SuraqOptions {
     private final Boolean checkResultValue;
 
     /**
+     * The value of the keepTempFiles option.
+     */
+    private final Boolean keepTempFilesValue;
+
+    /**
      * The value of the cache option.
      */
     private final Integer cacheValue;
@@ -337,6 +342,9 @@ public final class SuraqOptions {
         Option splitterBookkeeperSleepTimeOption = cmdLineParser
                 .addIntegerOption("splitterBookkeeperSleepTime");
 
+        Option keepTempFilesOption = cmdLineParser
+                .addBooleanOption("keepTempFiles");
+
         try {
             cmdLineParser.parse(args);
         } catch (OptionException exc) {
@@ -406,6 +414,9 @@ public final class SuraqOptions {
 
         splitterBookkeeperSleepTimeValue = (Integer) cmdLineParser
                 .getOptionValue(splitterBookkeeperSleepTimeOption);
+
+        keepTempFilesValue = (Boolean) cmdLineParser
+                .getOptionValue(keepTempFilesOption);
 
         int end = getInput().lastIndexOf(".");
 
@@ -655,6 +666,10 @@ public final class SuraqOptions {
 
     public boolean getCheckTseitin() {
         return checkTseitinValue == null ? false : checkTseitinValue;
+    }
+
+    public boolean getKeepTemFiles() {
+        return keepTempFilesValue == null ? false : keepTempFilesValue;
     }
 
     public int getNumSplitterThreads() {

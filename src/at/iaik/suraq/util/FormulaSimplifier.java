@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.smtlib.formula.NotFormula;
@@ -68,8 +69,12 @@ public class FormulaSimplifier {
         Util.printToSystemOutWithWallClockTimePrefix("Simplifying a formula with abc.");
         File originalFile = File.createTempFile("originalFormula", ".aag",
                 new File("./"));
+        if (!SuraqOptions.getInstance().getKeepTemFiles())
+            originalFile.deleteOnExit();
         File resultFile = File.createTempFile("simplifiedFormula", ".aag",
                 new File("./"));
+        if (!SuraqOptions.getInstance().getKeepTemFiles())
+            resultFile.deleteOnExit();
         Util.printToSystemOutWithWallClockTimePrefix("Temporary aiger file for original formula: "
                 + originalFile.toString());
         writeToFile(originalFile);
@@ -300,6 +305,8 @@ public class FormulaSimplifier {
     public boolean checkWriteReadOriginalFormula() throws IOException {
         File testFile = File.createTempFile("testAigWriteRead", ".aag",
                 new File("./"));
+        if (!SuraqOptions.getInstance().getKeepTemFiles())
+            testFile.deleteOnExit();
 
         writeToFile(testFile);
         Formula testFormula = parseResult(testFile);

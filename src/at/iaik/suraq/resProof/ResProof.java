@@ -142,6 +142,8 @@ public class ResProof {
 
             File tmpDimacsFile = File.createTempFile("tmp", ".dimacs",
                     new File("./"));
+            if (!SuraqOptions.getInstance().getKeepTemFiles())
+                tmpDimacsFile.deleteOnExit();
             BufferedWriter writer = new BufferedWriter(new FileWriter(
                     tmpDimacsFile));
 

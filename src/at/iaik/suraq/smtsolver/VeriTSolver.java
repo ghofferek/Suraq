@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.smtlib.formula.AndFormula;
 import at.iaik.suraq.smtlib.formula.Formula;
@@ -97,8 +98,12 @@ public class VeriTSolver extends SMTSolver {
             // createTempFile...
             proofFile = File.createTempFile("veriT-proof", ".smt2", new File(
                     "./"));
+            if (!SuraqOptions.getInstance().getKeepTemFiles())
+                proofFile.deleteOnExit();
             tmpInFile = File
                     .createTempFile("veriT-in", ".smt2", new File("./"));
+            if (!SuraqOptions.getInstance().getKeepTemFiles())
+                tmpInFile.deleteOnExit();
             FileWriter fw = new FileWriter(tmpInFile);
             fw.write(smt2);
             fw.close();
@@ -222,6 +227,8 @@ public class VeriTSolver extends SMTSolver {
                     "./"));
             tmpInFile = File
                     .createTempFile("veriT-in", ".smt2", new File("./"));
+            if (!SuraqOptions.getInstance().getKeepTemFiles())
+                tmpInFile.deleteOnExit();
             FileWriter fw = new FileWriter(tmpInFile);
             BufferedWriter writer = new BufferedWriter(fw);
             writer.write(SExpressionConstants.SET_LOGIC_QF_UF.toString());
@@ -327,6 +334,8 @@ public class VeriTSolver extends SMTSolver {
 
         proofFile = File.createTempFile("veriT-proof-dimacs", ".smt2",
                 new File("./"));
+        if (!SuraqOptions.getInstance().getKeepTemFiles())
+            proofFile.deleteOnExit();
         String executionPath = VeriTSolver.path //
                 + " --proof-version=1" // 0|1
                 + " --proof=" + proofFile // temporary file

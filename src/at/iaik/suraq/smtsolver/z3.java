@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import at.iaik.suraq.main.SuraqOptions;
 import at.iaik.suraq.sexp.SExpressionConstants;
 import at.iaik.suraq.smtlib.formula.Formula;
 import at.iaik.suraq.util.ProcessResult;
@@ -168,6 +169,8 @@ public class z3 extends SMTSolver {
 
             tmpInFile = File.createTempFile("z3-in-simplify", ".smt2",
                     new File("./"));
+            if (!SuraqOptions.getInstance().getKeepTemFiles())
+                tmpInFile.deleteOnExit();
             FileWriter fw = new FileWriter(tmpInFile);
             BufferedWriter writer = new BufferedWriter(fw);
             writer.write(SExpressionConstants.SET_LOGIC_QF_UF.toString());
@@ -237,6 +240,8 @@ public class z3 extends SMTSolver {
 
             tmpInFile = File.createTempFile("z3-in-solve", ".smt2", new File(
                     "./"));
+            if (!SuraqOptions.getInstance().getKeepTemFiles())
+                tmpInFile.deleteOnExit();
             FileWriter fw = new FileWriter(tmpInFile);
             BufferedWriter writer = new BufferedWriter(fw);
             writer.write(SExpressionConstants.SET_LOGIC_QF_UF.toString());
