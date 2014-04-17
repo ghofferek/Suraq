@@ -195,6 +195,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
             return;
         for (Term term : paramMap.values())
             term.getUninterpretedFunctionNames(result, done);
+        macro.getBody().getUninterpretedFunctionNames(result, done);
         done.add(this);
     }
 
@@ -207,6 +208,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
             return;
         for (Term term : paramMap.values())
             term.getFunctionMacroNames(result, done);
+        macro.getBody().getFunctionMacroNames(result, done);
         done.add(this);
     }
 
@@ -216,7 +218,11 @@ public class PropositionalFunctionMacroInstance implements Formula {
     @Override
     public void getFunctionMacros(Set<FunctionMacro> result,
             Set<SMTLibObject> done) {
+        if (done.contains(this))
+            return;
+        macro.getBody().getFunctionMacros(result, done);
         result.add(this.macro);
+        done.add(this);
     }
 
     /**
@@ -450,6 +456,7 @@ public class PropositionalFunctionMacroInstance implements Formula {
             return;
         for (Term term : paramMap.values())
             term.getUninterpretedFunctions(result, done);
+        macro.getBody().getUninterpretedFunctions(result, done);
         done.add(this);
     }
 

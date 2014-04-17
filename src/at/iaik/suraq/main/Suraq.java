@@ -1862,13 +1862,9 @@ public class Suraq implements Runnable {
         Formula formula = logicParser.getMainFormula();
 
         // Output statistics
-        Set<ArrayVariable> arrayVars2 = new HashSet<ArrayVariable>();
-        formula.getArrayVariables(arrayVars2, new HashSet<SMTLibObject>());
-        Set<DomainVariable> domainVars = new HashSet<DomainVariable>();
-        formula.getDomainVariables(domainVars, new HashSet<SMTLibObject>());
-        Set<PropositionalVariable> propVars = new HashSet<PropositionalVariable>();
-        formula.getPropositionalVariables(propVars, new HashSet<SMTLibObject>());
-
+        List<ArrayVariable> arrayVars2 = logicParser.getArrayVariables();
+        List<DomainVariable> domainVars = logicParser.getDomainVariables();
+        List<PropositionalVariable> propVars = logicParser.getBoolVariables();
         List<Token> nodepVars = logicParser.getNoDependenceVariables();
 
         int numDepvars = 0;
@@ -1885,7 +1881,8 @@ public class Suraq implements Runnable {
                 numDepvars++;
         }
         numDepvars -= logicParser.getControlVariables().size();
-
+        Util.printToSystemOutWithWallClockTimePrefix("[INFO] The following number refer to variables DECLARED in the input file.");
+        Util.printToSystemOutWithWallClockTimePrefix("[INFO] They are not necessarily actually USED in the formula.");
         Util.printToSystemOutWithWallClockTimePrefix("Number of variables on which the controllers CAN    depend: "
                 + numDepvars);
         Util.printToSystemOutWithWallClockTimePrefix("Number of variables on which the controllers CANNOT depend: "
