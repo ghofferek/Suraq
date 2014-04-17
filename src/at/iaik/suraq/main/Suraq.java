@@ -1447,6 +1447,7 @@ public class Suraq implements Runnable {
             noErrors = false;
         }
 
+        overallTimer.stop(); // Don't count time to check results.
         if (options.isCheckResult()) {
             Util.printToSystemOutWithWallClockTimePrefix("Starting to check results with z3...");
             Timer checkTimer = new Timer();
@@ -1473,7 +1474,7 @@ public class Suraq implements Runnable {
 
         Util.printToSystemOutWithWallClockTimePrefix(" done!");
         // All done :-)
-        overallTimer.stop();
+
         printEnd(noErrors, overallTimer);
         // System.err.println(Suraq.extTimer);
         return;
@@ -2494,7 +2495,7 @@ public class Suraq implements Runnable {
     private void printEnd(boolean result, Timer overallTimer) {
         System.out
                 .println("################################################################################");
-        Util.printToSystemOutWithWallClockTimePrefix("  (Overall time: "
+        Util.printToSystemOutWithWallClockTimePrefix("  (Overall time - excluding checking of results: "
                 + overallTimer + ")");
         if (result)
 
