@@ -46,7 +46,7 @@ public class VeriTSolver extends SMTSolver {
     /**
      * The Path of the executable veriT
      */
-    private static String path = "./lib/veriT/veriT";
+    private static String path = "./lib/veriT/veriT79dde157745ac50765678565c9f76894b8e8bf8b";
 
     /**
      * The Path of the VeriT-Proof File, if it exists.
