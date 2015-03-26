@@ -178,6 +178,8 @@ public class UncolorableLeafSplitter implements Runnable {
                             + replacement.getLiteralConclusions().size()
                             + " literals (" + difference
                             + " literals fewer than original leaf.)");
+                    printDetailedInformationOnRedundancy(leafToSplit,
+                            replacement);
                 } else
                     Util.printToSystemOutWithWallClockTimePrefix("    "
                             + "Splitter " + id + ": "
@@ -200,6 +202,26 @@ public class UncolorableLeafSplitter implements Runnable {
             Util.printToSystemOutWithWallClockTimePrefix("Splitter " + id
                     + ": " + totalLiteralsFewer + " literals saved in "
                     + numStrongerClauses + " clauses.");
+        }
+    }
+
+    /**
+     * @param leafToSplit
+     * @param replacement
+     */
+    private void printDetailedInformationOnRedundancy(
+            VeritProofNode leafToSplit, VeritProofNode replacement) {
+
+        System.out.println("[REDUNDANCY_INFO] Redundant Node: "
+                + leafToSplit.getName());
+        System.out
+                .println("[REDUNDANCY_INFO] Redundant literals follow (1 per line)");
+        List<Formula> redundantLiterals = leafToSplit.getLiteralConclusions()
+                .removeAllFromCopy(replacement.getLiteralConclusions());
+        for (Formula literal : redundantLiterals) {
+            System.out.println("[REDUNDANCY_INFO] "
+                    + literal.toString().replaceAll("\\s{2,}", " ")
+                            .replace("\n", ""));
         }
     }
 
