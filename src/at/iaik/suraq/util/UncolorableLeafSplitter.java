@@ -212,8 +212,15 @@ public class UncolorableLeafSplitter implements Runnable {
     private void printDetailedInformationOnRedundancy(
             VeritProofNode leafToSplit, VeritProofNode replacement) {
 
-        System.out.println("[REDUNDANCY_INFO] Redundant Node: "
+        System.out.println("[REDUNDANCY_INFO] Redundant Node Name: "
                 + leafToSplit.getName());
+        System.out.print("[REDUNDANCY_INFO] Redundant Node Conclusion: ( ");
+        for (Formula literal : leafToSplit.getLiteralConclusions()) {
+            System.out.print(literal.toString().replaceAll("\\s{2,}", " ")
+                    .replace("\n", "")
+                    + " ");
+        }
+        System.out.println(" )");
         System.out
                 .println("[REDUNDANCY_INFO] Redundant literals follow (1 per line)");
         List<Formula> redundantLiterals = leafToSplit.getLiteralConclusions()
